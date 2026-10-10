@@ -6,6 +6,8 @@ import com.coursebook.pacer.model.Closure
 import com.coursebook.pacer.model.Group
 import com.coursebook.pacer.model.Homework
 import com.coursebook.pacer.model.Plan
+import com.coursebook.pacer.model.SchoolClass
+import com.coursebook.pacer.model.SchoolYear
 import com.coursebook.pacer.model.TestEvent
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -14,91 +16,143 @@ import org.json.JSONObject
 
 /**
  * Hand-written JSON mapping on the framework's org.json, so no serialization library ships in the APK.
- * Dates are ISO strings and weekdays use the web page's numbering (0 = Sunday), so a plan exported
- * from the page's localStorage reads back unchanged.
+ * Dates are ISO strings and weekdays use the web page's numbering (0 = Sunday).
+ *
+ * Version 2 stores school years, each with its classes. Version 1 files and the web page's
+ * localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    private const val VERSION = 1
+    private const val VERSION = 2
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
-        .put("activePlan", data.activePlan)
+        .put("activeYear", data.activeYear)
+        .put("activeClass", data.activeClass)
         .put("view", data.view)
-        .put("plans", JSONArray(data.plans.map(::plan)))
+        .put("years", JSONArray(data.years.map(::year)))
         .toString()
 
     fun decode(text: String): AppData {
         val o = JSONObject(text)
-        val plans = o.getJSONArray("plans").objects().map(::plan)
-        require(plans.isNotEmpty())
+        val view = o.optString("view", AppData.VIEW_SETUP)
+        val years = o.optJSONArray("years")
+        if (years == null) {
+            val plans = o.getJSONArray("plans").objects().map(::plan)
+            require(plans.isNotEmpty())
+            return migratePlans(plans, o.optString("activePlan", plans.first().id), view)
+        }
         return AppData(
-            plans = plans,
-            activePlan = o.optString("activePlan", plans.first().id),
-            view = o.optString("view", AppData.VIEW_SETUP),
+            years = years.objects().map(::year),
+            activeYear = o.optString("activeYear", ""),
+            activeClass = o.optString("activeClass", ""),
+            view = view,
         )
     }
 
-    private fun plan(p: Plan) = JSONObject()
-        .put("id", p.id).put("name", p.name)
-        .put("start", p.start?.toString() ?: "").put("end", p.end?.toString() ?: "")
-        .put("mins", p.mins).put("pace", p.pace)
-        .put("groups", JSONArray(p.groups.map { g ->
-            JSONObject().put("id", g.id).put("name", g.name)
-                .put("days", JSONArray(g.days.map { it.value % 7 }))
-                .put("from", g.from?.toString() ?: "")
-                .put("pos", JSONObject(g.pos as Map<*, *>))
-        }))
-        .put("closures", JSONArray(p.closures.map { c ->
-            JSONObject().put("id", c.id).put("label", c.label)
-                .put("from", c.from.toString()).put("to", c.to.toString()).put("who", c.who)
-        }))
-        .put("books", JSONArray(p.books.map { b ->
-            JSONObject().put("id", b.id).put("name", b.name).put("first", b.first).put("last", b.last)
-                .put("skip", b.skip).put("due", b.due?.toString() ?: "")
-        }))
-        .put("homework", JSONArray(p.homework.map { h ->
-            JSONObject().put("id", h.id).put("groupId", h.groupId).put("bookId", h.bookId)
-                .put("from", h.from).put("to", h.to).put("when", h.setOn?.toString() ?: "")
-        }))
-        .put("events", JSONArray(p.events.map { e ->
-            JSONObject().put("id", e.id).put("name", e.name).put("date", e.date.toString())
-                .put("who", e.who).put("consumes", e.consumes)
+    private fun year(y: SchoolYear) = JSONObject()
+        .put("id", y.id).put("name", y.name)
+        .put("start", y.start?.toString() ?: "").put("end", y.end?.toString() ?: "")
+        .put("closures", closures(y.closures))
+        .put("classes", JSONArray(y.classes.map { c ->
+            JSONObject().put("id", c.id).put("name", c.name).put("mins", c.mins).put("pace", c.pace)
+                .put("groups", groups(c.groups)).put("books", books(c.books))
+                .put("homework", homework(c.homework)).put("events", events(c.events))
         }))
 
+    private fun year(o: JSONObject) = SchoolYear(
+        id = o.getString("id"),
+        name = o.optString("name", "School year"),
+        start = o.date("start"),
+        end = o.date("end"),
+        closures = closures(o.optJSONArray("closures")),
+        classes = o.optJSONArray("classes").objects().map { c ->
+            SchoolClass(
+                id = c.getString("id"),
+                name = c.optString("name", "Class"),
+                mins = c.optInt("mins", 60),
+                pace = c.pace(),
+                groups = groups(c.optJSONArray("groups")),
+                books = books(c.optJSONArray("books")),
+                homework = homework(c.optJSONArray("homework")),
+                events = events(c.optJSONArray("events")),
+            )
+        },
+    )
+
+    /** A version-1 plan. Only read: new files store years. */
     private fun plan(o: JSONObject): Plan = Plan(
         id = o.getString("id"),
         name = o.optString("name", "Plan"),
         start = o.date("start"),
         end = o.date("end"),
         mins = o.optInt("mins", 60),
-        pace = o.optDouble("pace", 0.0).takeUnless { it.isNaN() } ?: 0.0,
-        groups = o.optJSONArray("groups").objects().map { g ->
-            val pos = g.optJSONObject("pos")
-            Group(
-                id = g.getString("id"),
-                name = g.optString("name", "Group"),
-                days = g.optJSONArray("days").ints().map { DayOfWeek.of(if (it == 0) 7 else it) }.toSet(),
-                from = g.date("from"),
-                pos = pos?.names().strings().associateWith { pos!!.optInt(it) }.filterValues { it > 0 },
-            )
-        },
-        closures = o.optJSONArray("closures").objects().mapNotNull { c ->
-            val from = c.date("from") ?: return@mapNotNull null
-            Closure(c.getString("id"), c.optString("label", "Day off"), from, c.date("to") ?: from, c.optString("who", "all"))
-        },
-        books = o.optJSONArray("books").objects().map { b ->
-            Book(b.getString("id"), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
-                b.optString("skip", ""), b.date("due"))
-        },
-        homework = o.optJSONArray("homework").objects().map { h ->
-            Homework(h.getString("id"), h.getString("groupId"), h.getString("bookId"),
-                h.optInt("from"), h.optInt("to"), h.date("when"))
-        },
-        events = o.optJSONArray("events").objects().mapNotNull { e ->
-            val date = e.date("date") ?: return@mapNotNull null
-            TestEvent(e.getString("id"), e.optString("name", "Test"), date, e.optString("who", "all"), e.optBoolean("consumes", true))
-        },
+        pace = o.pace(),
+        groups = groups(o.optJSONArray("groups")),
+        closures = closures(o.optJSONArray("closures")),
+        books = books(o.optJSONArray("books")),
+        homework = homework(o.optJSONArray("homework")),
+        events = events(o.optJSONArray("events")),
     )
+
+    private fun groups(list: List<Group>) = JSONArray(list.map { g ->
+        JSONObject().put("id", g.id).put("name", g.name)
+            .put("days", JSONArray(g.days.map { it.value % 7 }))
+            .put("from", g.from?.toString() ?: "")
+            .put("pos", JSONObject(g.pos as Map<*, *>))
+    })
+
+    private fun groups(a: JSONArray?): List<Group> = a.objects().map { g ->
+        val pos = g.optJSONObject("pos")
+        Group(
+            id = g.getString("id"),
+            name = g.optString("name", "Group"),
+            days = g.optJSONArray("days").ints().map { DayOfWeek.of(if (it == 0) 7 else it) }.toSet(),
+            from = g.date("from"),
+            pos = pos?.names().strings().associateWith { pos!!.optInt(it) }.filterValues { it > 0 },
+        )
+    }
+
+    private fun closures(list: List<Closure>) = JSONArray(list.map { c ->
+        JSONObject().put("id", c.id).put("label", c.label)
+            .put("from", c.from.toString()).put("to", c.to.toString()).put("who", c.who)
+    })
+
+    private fun closures(a: JSONArray?): List<Closure> = a.objects().mapNotNull { c ->
+        val from = c.date("from") ?: return@mapNotNull null
+        Closure(c.getString("id"), c.optString("label", "Day off"), from, c.date("to") ?: from, c.optString("who", "all"))
+    }
+
+    private fun books(list: List<Book>) = JSONArray(list.map { b ->
+        JSONObject().put("id", b.id).put("name", b.name).put("first", b.first).put("last", b.last)
+            .put("skip", b.skip).put("due", b.due?.toString() ?: "")
+    })
+
+    private fun books(a: JSONArray?): List<Book> = a.objects().map { b ->
+        Book(b.getString("id"), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
+            b.optString("skip", ""), b.date("due"))
+    }
+
+    private fun homework(list: List<Homework>) = JSONArray(list.map { h ->
+        JSONObject().put("id", h.id).put("groupId", h.groupId).put("bookId", h.bookId)
+            .put("from", h.from).put("to", h.to).put("when", h.setOn?.toString() ?: "")
+    })
+
+    private fun homework(a: JSONArray?): List<Homework> = a.objects().map { h ->
+        Homework(h.getString("id"), h.getString("groupId"), h.getString("bookId"),
+            h.optInt("from"), h.optInt("to"), h.date("when"))
+    }
+
+    private fun events(list: List<TestEvent>) = JSONArray(list.map { e ->
+        JSONObject().put("id", e.id).put("name", e.name).put("date", e.date.toString())
+            .put("who", e.who).put("consumes", e.consumes)
+    })
+
+    private fun events(a: JSONArray?): List<TestEvent> = a.objects().mapNotNull { e ->
+        val date = e.date("date") ?: return@mapNotNull null
+        TestEvent(e.getString("id"), e.optString("name", "Test"), date, e.optString("who", "all"), e.optBoolean("consumes", true))
+    }
+
+    private fun JSONObject.pace(): Double = optDouble("pace", 0.0).takeUnless { it.isNaN() } ?: 0.0
 
     private fun JSONObject.date(key: String): LocalDate? =
         optString(key, "").takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }

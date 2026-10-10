@@ -3,38 +3,52 @@ package com.coursebook.pacer.ui
 import com.coursebook.pacer.engine.problems
 import com.coursebook.pacer.model.AppData
 import com.coursebook.pacer.model.Plan
+import com.coursebook.pacer.model.SchoolClass
+import com.coursebook.pacer.model.SchoolYear
 
 /** Every destination in the app. Plain Kotlin, so the back stack rules are unit-testable. */
 sealed interface Screen {
+    /** The logo, the school-year picker and Settings. */
     data object Home : Screen
-    /** Every group's card, and the plan's problems. */
-    data object Schedules : Screen
-    data object Plans : Screen
-    data class Group(val id: String) : Screen
-    data object Term : Screen
-    data object Groups : Screen
-    data object DaysOff : Screen
-    data object Tests : Screen
-    data object Books : Screen
-    data object Homework : Screen
     data object Settings : Screen
+    /** The open year: Classes, School year settings, Overview and Print. */
+    data object Year : Screen
+    /** Term dates, days off, and renaming or deleting the year. */
+    data object YearSettings : Screen
+    /** Every group in every class of the year, and the year's problems. */
+    data object Overview : Screen
+    data object Classes : Screen
+    /** The open class: lesson length and pace, books and groups. */
+    data object Class : Screen
+    data object Tests : Screen
+    data object Homework : Screen
+    /** A group of the open class. */
+    data class Group(val id: String) : Screen
 }
 
-/** A plan problem and the screen that fixes it. */
-data class Problem(val text: String, val fix: Screen)
+/** Shown only while a school year is open. */
+val Screen.needsYear: Boolean get() = this != Screen.Home && this != Screen.Settings
+
+/** Shown only while a class is open. */
+val Screen.needsClass: Boolean
+    get() = this == Screen.Class || this == Screen.Tests || this == Screen.Homework || this is Screen.Group
+
+/** A problem and the screen that fixes it, if any. [classId] is the class to open first. */
+data class Problem(val text: String, val fix: Screen?, val classId: String? = null)
 
 /**
  * Back stack rules. The stack always starts at [Screen.Home].
  *
- * Only the open group is persisted, through [AppData.view], whose stored meaning is unchanged:
- * a group id, or [AppData.VIEW_SETUP] for "no group open" (which now lands on Home).
+ * Only the open group is persisted, through [AppData.view]: a group id, or [AppData.VIEW_SETUP]
+ * for "no group open", which lands on Home.
  */
 object Nav {
     val root: List<Screen> = listOf(Screen.Home)
 
-    /** The stack to start with for a saved [AppData.view]. A group reopens over Schedules, where it was opened from. */
+    /** The stack to start with for a saved [AppData.view]. A group reopens under its class, as if opened from Classes. */
     fun fromView(view: String): List<Screen> =
-        if (view == AppData.VIEW_SETUP || view.isBlank()) root else listOf(Screen.Home, Screen.Schedules, Screen.Group(view))
+        if (view == AppData.VIEW_SETUP || view.isBlank()) root
+        else listOf(Screen.Home, Screen.Year, Screen.Classes, Screen.Class, Screen.Group(view))
 
     /** What to save in [AppData.view] for this stack. */
     fun viewOf(stack: List<Screen>): String =
@@ -50,27 +64,42 @@ object Nav {
 
     fun pop(stack: List<Screen>): List<Screen> = if (stack.size > 1) stack.dropLast(1) else stack
 
-    /**
-     * The stack after switching to another plan: the same screens, minus any group,
-     * since plans made from the sample share group ids.
-     */
-    fun afterPlanSwitch(stack: List<Screen>): List<Screen> = prune(stack.filter { it !is Screen.Group }, emptySet())
+    /** The stack after another year opens: everything that showed the old year closes. */
+    fun afterYearSwitch(stack: List<Screen>): List<Screen> = prune(stack, hasYear = false, hasClass = false, emptySet())
 
-    /** Drops screens for groups that no longer exist, for example after a delete or an undo. */
-    fun prune(stack: List<Screen>, groupIds: Set<String>): List<Screen> {
-        val kept = stack.filter { it !is Screen.Group || it.id in groupIds }
+    /** The stack after another class opens: the old class's screens close, the year's stay. */
+    fun afterClassSwitch(stack: List<Screen>): List<Screen> = prune(stack, hasYear = true, hasClass = false, emptySet())
+
+    /** Drops screens for a year, class or group that no longer exists, for example after a delete or an undo. */
+    fun prune(stack: List<Screen>, hasYear: Boolean, hasClass: Boolean, groupIds: Set<String>): List<Screen> {
+        val kept = stack.filter {
+            (hasYear || !it.needsYear) && (hasClass || !it.needsClass) && (it !is Screen.Group || it.id in groupIds)
+        }
         return if (kept.firstOrNull() == Screen.Home) kept else root + kept.filter { it != Screen.Home }
     }
 
     /** [Plan.problems], each paired with the screen where it gets fixed. */
     fun problems(plan: Plan): List<Problem> = plan.problems().map { Problem(it, fixFor(plan, it)) }
 
-    private fun fixFor(plan: Plan, msg: String): Screen = when {
-        msg.startsWith("Set both a term") || msg.startsWith("The term ends") -> Screen.Term
-        msg.startsWith("Add at least one group") -> Screen.Groups
-        msg.startsWith("Add at least one book") -> Screen.Books
-        plan.books.any { msg.startsWith("${it.name}:") } -> Screen.Books
-        plan.groups.any { msg.startsWith("${it.name} has") } -> Screen.Groups
-        else -> Screen.Home
+    /**
+     * Every problem in the year. Term problems are listed once; the rest name their class
+     * and open it when fixed.
+     */
+    fun problems(year: SchoolYear): List<Problem> {
+        val none = SchoolClass("", "", 0, 0.0, emptyList(), emptyList(), emptyList(), emptyList())
+        val term = problems(year.planFor(none)).filter { it.fix == Screen.YearSettings }
+        if (year.classes.isEmpty()) return term + Problem("Add at least one class.", Screen.Classes)
+        return term + year.classes.flatMap { c ->
+            problems(year.planFor(c)).filter { it.fix != Screen.YearSettings }
+                .map { Problem("${c.name.ifBlank { "Class" }}: ${it.text}", it.fix, c.id) }
+        }
+    }
+
+    private fun fixFor(plan: Plan, msg: String): Screen? = when {
+        msg.startsWith("Set both a term") || msg.startsWith("The term ends") -> Screen.YearSettings
+        msg.startsWith("Add at least one group") || msg.startsWith("Add at least one book") -> Screen.Class
+        plan.books.any { msg.startsWith("${it.name}:") } -> Screen.Class
+        plan.groups.any { msg.startsWith("${it.name} has") } -> Screen.Class
+        else -> null
     }
 }

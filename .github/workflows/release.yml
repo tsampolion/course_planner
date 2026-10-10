@@ -99,5 +99,5 @@ jobs:
           done
           gh release create "$TAG" "${apks[@]}" \
             --target "$SHA" \
-            --title "Coursebook Pacer $VERSION" \
+            --title "Course Pacer $VERSION" \
             --notes-file notes.md

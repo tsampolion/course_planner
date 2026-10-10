@@ -10,14 +10,14 @@ enum class ThemeMode {
 }
 
 /**
- * App-level preferences. They live outside the plans, so undo never touches them.
- * The new-plan defaults match the sample plan, so a fresh install behaves as before.
+ * App-level preferences. They live outside the school years, so undo never touches them.
+ * The new-class defaults match the sample class, so a fresh install behaves as before.
  */
 data class Settings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
-    /** Lesson length, in minutes, for new plans. */
+    /** Lesson length, in minutes, for new classes. */
     val lessonMins: Int = DEFAULT_MINS,
-    /** Sustainable pace, in pages per lesson, for new plans. */
+    /** Sustainable pace, in pages per lesson, for new classes. */
     val pace: Double = DEFAULT_PACE,
 ) {
     /** Keeps stored values usable whatever was saved. */

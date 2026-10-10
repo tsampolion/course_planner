@@ -7,15 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,30 +31,28 @@ import com.coursebook.pacer.engine.fmtShort
 import com.coursebook.pacer.engine.plain
 import com.coursebook.pacer.engine.short
 import com.coursebook.pacer.engine.verdict
-import com.coursebook.pacer.model.Plan
+import com.coursebook.pacer.model.SchoolYear
 import com.coursebook.pacer.ui.theme.Pacer
 
-/** How each group stands, with the plan's problems first. */
+/** How every group in the year stands, class by class, with the year's problems first. */
 @Composable
-fun SchedulesScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
-    val problems = remember(plan) { Nav.problems(plan) }
-    val reports = remember(plan) { plan.groups.map { GroupReport(plan, it) } }
+fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
+    val problems = remember(year) { Nav.problems(year) }
+    val classes = remember(year) {
+        year.classes.map { c -> val plan = year.planFor(c); c to plan.groups.map { GroupReport(plan, it) } }
+    }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 12.dp, bottom = padding.calculateBottomPadding() + 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        items(problems) { p -> ErrorBox(p.text, onFix = if (p.fix == Screen.Home) null else ({ vm.open(p.fix) })) }
-        if (reports.isEmpty()) {
-            item(key = "noGroups") {
-                Section("Get started") {
-                    Hint("Add a group for each class you teach from this plan. Its schedule appears here once the term dates and books are in.")
-                    OutlinedButton(onClick = { vm.addGroup(); vm.open(Screen.Groups) }) { Text("Add a group") }
-                }
-            }
+    ScreenList(padding, spacing = 12.dp) {
+        items(problems) { p ->
+            // A class's problem opens that class; the rest open the screen that fixes them.
+            val fix: (() -> Unit)? = p.classId?.let { id -> { vm.openClass(id) } } ?: p.fix?.let { f -> { vm.open(f) } }
+            ErrorBox(p.text, onFix = fix)
         }
-        items(reports, key = { it.group.id }) { r -> GroupCard(r) { vm.open(Screen.Group(r.group.id)) } }
+        classes.forEach { (c, reports) ->
+            item(key = "head:${c.id}") { Heading(c.name.ifBlank { "Class" }) }
+            if (reports.isEmpty()) item(key = "none:${c.id}") { Hint("No groups in this class yet.") }
+            items(reports, key = { "${c.id}:${it.group.id}" }) { r -> GroupCard(r) { vm.openGroup(c.id, r.group.id) } }
+        }
     }
 }
 
@@ -100,7 +95,7 @@ private fun GroupCard(report: GroupReport, onOpen: () -> Unit) {
                         "Fits, with ${verdict.spare.fixed2()} lessons to spare",
                         style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.ok,
                     )
-                    null -> if (report.teaching > 0 && plan.pace <= 0) Hint("Set the pace you can sustain under Term to get a verdict.")
+                    null -> if (report.teaching > 0 && plan.pace <= 0) Hint("Set the pace you can sustain on the class screen to get a verdict.")
                 }
                 if (next != null) {
                     val what = if (next.blocked) {

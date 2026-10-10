@@ -13,21 +13,21 @@ import com.coursebook.pacer.engine.short
 import com.coursebook.pacer.model.Plan
 
 /**
- * Prints every group's schedule, one group per page, through the system print dialog
+ * Prints every group of every given plan (one per class), one group per page, through the system print dialog
  * (which also offers "Save as PDF"). Uses the platform WebView, so no PDF library ships in the APK.
  */
 object PrintSheet {
     // The print job reads the WebView after this call returns; keep it alive until the next job.
     private var webView: WebView? = null
 
-    fun print(context: Context, plan: Plan) {
-        val html = html(plan)
+    fun print(context: Context, title: String, plans: List<Plan>) {
+        val html = html(plans)
         val view = WebView(context)
         webView = view
         view.webViewClient = object : WebViewClient() {
             override fun onPageFinished(v: WebView, url: String?) {
                 val pm = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
-                val name = "${plan.name} schedule"
+                val name = "$title schedule"
                 pm.print(name, v.createPrintDocumentAdapter(name), PrintAttributes.Builder().build())
             }
         }
@@ -36,7 +36,7 @@ object PrintSheet {
 
     private fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    fun html(plan: Plan): String = buildString {
+    fun html(plans: List<Plan>): String = buildString {
         append(
             """<!doctype html><html><head><meta charset="utf-8"><style>
             body{font:10pt sans-serif;color:#000;margin:0}
@@ -52,7 +52,7 @@ object PrintSheet {
             section{break-after:page} section:last-child{break-after:auto}
             </style></head><body>""",
         )
-        for (g in plan.groups) {
+        for (plan in plans) for (g in plan.groups) {
             val r = GroupReport(plan, g)
             if (r.rows.isEmpty()) continue
             append("<section><h3>").append(esc("${plan.name} — ${g.name}")).append("</h3><div class=meta>")

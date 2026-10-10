@@ -8,11 +8,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -33,10 +38,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.coursebook.pacer.engine.fmt
@@ -297,4 +304,75 @@ fun LinkRow(title: String, detail: String, onClick: () -> Unit) {
         }
         Text("›", fontSize = 22.sp, color = Pacer.colors.muted, modifier = Modifier.padding(start = 8.dp))
     }
+}
+
+/** The scrolling body most screens share, inset by the scaffold's [padding]. */
+@Composable
+fun ScreenList(padding: PaddingValues, spacing: Dp = 14.dp, content: LazyListScope.() -> Unit) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().imePadding(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 12.dp, bottom = padding.calculateBottomPadding() + 32.dp),
+        verticalArrangement = Arrangement.spacedBy(spacing),
+        content = content,
+    )
+}
+
+/** A serif heading over a run of cards, such as "Books" or a class name. */
+@Composable
+fun Heading(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text, style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onBackground, modifier = modifier.padding(top = 6.dp).semantics { heading() },
+    )
+}
+
+/** A tappable card that opens something: a title, a muted summary, and a chevron. */
+@Composable
+fun CardRow(title: String, detail: String, onClick: () -> Unit, warn: Boolean = false) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, if (warn) Pacer.colors.warn else Pacer.colors.line),
+    ) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text(detail, style = MaterialTheme.typography.bodySmall, color = if (warn) Pacer.colors.warn else Pacer.colors.muted)
+            }
+            Text("›", fontSize = 22.sp, color = Pacer.colors.muted, modifier = Modifier.padding(start = 8.dp))
+        }
+    }
+}
+
+/** The dialog behind every "Add a …" button: [content] holds the fields, and Add stays off until [canAdd]. */
+@Composable
+fun AddDialogFrame(
+    title: String,
+    canAdd: Boolean,
+    onAdd: () -> Unit,
+    onDismiss: () -> Unit,
+    confirm: String = "Add",
+    content: @Composable () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { content() } },
+        confirmButton = { TextButton(onClick = { onAdd(); onDismiss() }, enabled = canAdd) { Text(confirm) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+/** Asks before deleting something big. Undo can still bring it back. */
+@Composable
+fun ConfirmDelete(name: String, detail: String, onDelete: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete “$name”?") },
+        text = { Text(detail) },
+        confirmButton = { TextButton(onClick = { onDelete(); onDismiss() }) { Text("Delete", color = Pacer.colors.warn) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }

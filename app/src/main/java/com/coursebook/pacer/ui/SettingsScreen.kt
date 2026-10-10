@@ -31,7 +31,7 @@ private val THEMES = listOf(
     ThemeMode.DARK to "Dark",
 )
 
-/** App-level preferences. None of these are plan edits, so undo does not cover them. */
+/** App-level preferences. None of these are edits to a school year, so undo does not cover them. */
 @Composable
 fun SettingsScreen(settings: Settings, vm: PacerViewModel, padding: PaddingValues) {
     val context = LocalContext.current
@@ -63,7 +63,7 @@ fun SettingsScreen(settings: Settings, vm: PacerViewModel, padding: PaddingValue
             }
         }
         item(key = "defaults") {
-            Section("New plans") {
+            Section("New classes") {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     IntField(settings.lessonMins, vm::setDefaultMins, "Lesson length (min)", Modifier.weight(1f))
                     CommitField(
@@ -75,13 +75,13 @@ fun SettingsScreen(settings: Settings, vm: PacerViewModel, padding: PaddingValue
                         decimal = true,
                     )
                 }
-                Hint("Used when you create a plan. Existing plans keep their own values, which you change under Term.")
+                Hint("Used when you add a class. Existing classes keep their own values, which you change on the class screen.")
             }
         }
         item(key = "about") {
             Section("About") {
-                Text("Coursebook Pacer $version", style = MaterialTheme.typography.bodyLarge)
-                Hint("Plans are saved on this device and included in Android backups, along with these settings.")
+                Text("$APP_NAME $version", style = MaterialTheme.typography.bodyLarge)
+                Hint("School years are saved on this device and included in Android backups, along with these settings.")
                 Hint("© 2026 Dimitrios Tsampallas. All rights reserved.")
             }
         }

@@ -13,24 +13,18 @@ private const val ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 fun newId(): String = (1..7).map { ID_CHARS[Random.nextInt(ID_CHARS.length)] }.joinToString("")
 
-/** The starting plan: a Greek 2026-27 school year with two groups and three books. */
-fun seedPlan(): Plan {
+/** The starting year: the Greek 2026-27 school year with one class of two groups and three books. */
+fun seedYear(): SchoolYear {
     fun d(s: String) = LocalDate.parse(s)
     fun off(label: String, from: String, to: String = from, who: String = ALL_GROUPS) =
         Closure(newId(), label, d(from), d(to), who)
 
     val start = d("2026-09-09")
-    return Plan(
+    return SchoolYear(
         id = newId(),
-        name = "2026–27 main",
+        name = "2026–27",
         start = start,
         end = d("2027-05-31"),
-        mins = 75,
-        pace = 4.0,
-        groups = listOf(
-            Group("ga", "Group A", setOf(MONDAY, WEDNESDAY, FRIDAY), start),
-            Group("gb", "Group B", setOf(TUESDAY, THURSDAY, SATURDAY), start),
-        ),
         closures = listOf(
             off("Ohi Day", "2026-10-28"),
             off("Polytechnic Day", "2026-11-17"),
@@ -46,17 +40,43 @@ fun seedPlan(): Plan {
             off("Report cards 3", "2027-05-28", who = "ga"),
             off("Report cards 3", "2027-05-29", who = "gb"),
         ),
-        books = listOf(
-            Book(newId(), "Student's Book", 1, 160),
-            Book(newId(), "Workbook", 1, 120),
-            Book(newId(), "Grammar", 1, 103),
+        classes = listOf(
+            SchoolClass(
+                id = newId(),
+                name = "Sample class",
+                mins = 75,
+                pace = 4.0,
+                groups = listOf(
+                    Group("ga", "Group A", setOf(MONDAY, WEDNESDAY, FRIDAY), start),
+                    Group("gb", "Group B", setOf(TUESDAY, THURSDAY, SATURDAY), start),
+                ),
+                books = listOf(
+                    Book(newId(), "Student's Book", 1, 160),
+                    Book(newId(), "Workbook", 1, 120),
+                    Book(newId(), "Grammar", 1, 103),
+                ),
+                homework = emptyList(),
+                events = emptyList(),
+            ),
         ),
-        homework = emptyList(),
-        events = emptyList(),
     )
 }
 
-fun seedData(): AppData {
-    val p = seedPlan()
-    return AppData(plans = listOf(p), activePlan = p.id)
+/** The sample class as the engine sees it. */
+fun seedPlan(): Plan = seedYear().let { it.planFor(it.classes.first()) }
+
+fun seedData(): AppData = AppData(years = listOf(seedYear()))
+
+/** What the "New school year" form starts with. */
+data class YearDraft(val name: String, val start: LocalDate, val end: LocalDate)
+
+/**
+ * The year after the latest one already planned, or the one under way on [today] if that is later.
+ * A school year counts as under way from July. Dates run from 1 September to 31 May.
+ */
+fun suggestYear(years: List<SchoolYear>, today: LocalDate): YearDraft {
+    val current = if (today.monthValue >= 7) today.year else today.year - 1
+    val next = years.mapNotNull { it.start?.year }.maxOrNull()?.plus(1) ?: current
+    val y = maxOf(current, next)
+    return YearDraft("$y–" + ((y + 1) % 100).toString().padStart(2, '0'), LocalDate.of(y, 9, 1), LocalDate.of(y + 1, 5, 31))
 }
