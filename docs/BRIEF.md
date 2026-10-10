@@ -1,6 +1,6 @@
-# Brief: Coursebook Pacer for Android
+# Brief: Course Pacer for Android
 
-This is the improved version of the original request ("turn the Coursebook Pacer page into a lightweight, fast Android app"). The app in this repository was built from it.
+This is the improved version of the original request ("turn the Coursebook Pacer page into a lightweight, fast Android app"). The app in this repository was built from it. The app is now called Course Pacer; since 1.3.0 plans are organised as school years and classes (see `docs/YEARS_BRIEF.md`).
 
 ## Goal
 
@@ -20,8 +20,8 @@ The pacing rules live in the page's JavaScript. Port them to plain Kotlin and gi
 
 ## Feature parity checklist
 
-- Plans: switch, rename, create, delete (with confirmation), undo (60 steps; edits to one field within 1.2 s count as one step).
-- Term: start, end, lesson length, sustainable pace.
+- Plans (now school years, each holding classes): switch, rename, create, delete (with confirmation), undo (60 steps; edits to one field within 1.2 s count as one step).
+- Term (the school year's dates; lesson length and pace per class): start, end, lesson length, sustainable pace.
 - Groups: name, teaching weekdays, next-lesson date, add, remove, reset all positions.
 - Days off: list, add (reason, from, to, applies to), remove, add Greek holidays.
 - Tests and worksheets: list (warn when the date is not a lesson day), add, remove.

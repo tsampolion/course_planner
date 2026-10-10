@@ -22,6 +22,33 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-10
+
+The app is now called Course Pacer, and plans are organised as school years that hold classes. Existing plans move over on first launch and schedule exactly as before.
+
+### Added
+
+- School years. Each holds the term dates, the days off and its classes. Home lists them in a picker in the middle of the screen; "New school year" suggests the next year's name and dates and can add the Greek public holidays.
+- Classes (previously groups were listed straight under a plan). A class is a set of books taught to one or more groups, with its own lesson length and sustainable pace. The Classes screen lists them with a status line each.
+- Year screen with buttons for Classes, School year settings, Overview, and Print or save PDF.
+- School year settings: name, start and end dates, days off and Greek holidays, and deleting the year. A day off can apply to every class, one class, or one group.
+- Overview: every group in every class with its verdict, and the year's problems, each linked to the screen that fixes it.
+- Deleting a school year offers Undo on Home.
+
+### Changed
+
+- Renamed the app from Coursebook Pacer to Course Pacer.
+- Home shows the logo at the top, the school-year picker in the middle and a Settings button at the bottom right.
+- The class screen holds what were the Term (lesson length and pace), Groups and Books screens, with links to Tests & worksheets and Homework.
+- Print or save PDF covers every group in every class of the open year.
+- Undo works within the open school year; opening another year starts a fresh history.
+- Settings: "New plans" defaults are now "New classes" defaults.
+- The saved file is version 2. Version-1 files and the web page's export still load: each plan becomes a school year with the same name, dates and days off, holding one class ("Main class") with its books, groups, tests and homework.
+
+### Removed
+
+- The Plans and Schedules screens, and the Home button grid. Their features moved to the screens above.
+
 ## [1.2.0] - 2026-10-10
 
 Home is now a minimal launcher: the logo, the app's name, the open plan, and a button for each part of the app. Scheduling results and the saved file format don't change.
@@ -95,7 +122,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/tsampolion/course_planner/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tsampolion/course_planner/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/tsampolion/course_planner/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/tsampolion/course_planner/compare/v1.0.1...v1.0.2

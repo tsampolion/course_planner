@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Coursebook Pacer: a single-module Kotlin + Jetpack Compose Android app (`com.coursebook.pacer`). It ports a web page that paces coursebook pages over the lessons left in a term. `docs/BRIEF.md` is the spec and feature-parity checklist.
+Course Pacer (formerly Coursebook Pacer): a single-module Kotlin + Jetpack Compose Android app (`com.coursebook.pacer`). It ports a web page that paces coursebook pages over the lessons left in a term. `docs/BRIEF.md` is the spec and feature-parity checklist.
 
 ## Commands
 
@@ -16,10 +16,10 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 
 ## Architecture
 
-- `model/`: immutable data classes. `AppData` holds every plan, `activePlan`, and `view` (the open group's id, or `"setup"` when none is open). `Settings` holds app preferences (theme, new-plan defaults). `ALL_GROUPS = "all"` stands in for a group id on closures and tests. `Seed.kt` builds the sample plan and `newId()`.
+- `model/`: immutable data classes. `AppData` holds every `SchoolYear`, `activeYear`, `activeClass`, and `view` (the open group's id, or `"setup"` when none is open). A `SchoolYear` has the term dates, the days off (`Closure.who` is `ALL_GROUPS`, a class id or a group id) and its `SchoolClass`es; a class has lesson length, pace, books, groups, homework and tests. The engine still takes a `Plan` (one class over one term), built by `SchoolYear.planFor(class)`. `Settings` holds app preferences (theme, new-class defaults). `ALL_GROUPS = "all"` stands in for a group id on closures and tests. `Seed.kt` builds the sample year, `newId()` and `suggestYear()`.
 - `engine/`: pure Kotlin with no Android imports, so it's unit-testable on the JVM. `Pacer.kt` holds the rules: `lessonsFor`, `remainingPages`, `allocatePages`, `GroupReport`, `verdict()`, `problems()`. `Holidays.kt` covers Orthodox Easter and Greek holidays. `Format.kt` handles display and TSV.
-- `data/`: `JsonCodec` maps to `org.json` by hand. `PlanStore` writes `plans.json` in `filesDir` through `AtomicFile`. If the file can't be read, it's copied to `plans.json.bad` and the app falls back to the seed plan. `SettingsStore` keeps `Settings` in SharedPreferences (`settings.xml`), outside undo.
-- `ui/`: one `PacerViewModel` exposes `StateFlow<UiState>`, and Compose reads it with `collectAsState`. Every mutation goes through `edit`, `editPlan`, `editGroup` or `editBook`, which push undo (at most 60 steps; edits with the same tag within 1.2 s merge) and schedule a debounced save (400 ms). `MainActivity.onStop` calls `vm.flush()`. Navigation is a back stack of `Screen`s in `UiState` (rules in `Nav.kt`, plain Kotlin and unit-tested); there's no navigation library. Home is the root, and only the open group persists, through `AppData.view`. `PrintSheet` renders HTML into a `WebView` for `PrintManager`.
+- `data/`: `JsonCodec` maps to `org.json` by hand. Version 2 stores years; version-1 files and the web page's export (a flat `plans` list) go through `migratePlans` in `Migration.kt`, which makes each plan a year with one class. `PlanStore` writes `plans.json` in `filesDir` through `AtomicFile`. If the file can't be read, it's copied to `plans.json.bad` and the app falls back to the seed plan. `SettingsStore` keeps `Settings` in SharedPreferences (`settings.xml`), outside undo.
+- `ui/`: one `PacerViewModel` exposes `StateFlow<UiState>`, and Compose reads it with `collectAsState`. Every mutation goes through `edit`, `editYear`, `editClass`, `editGroup` or `editBook`, which push undo (at most 60 steps; edits with the same tag within 1.2 s merge) and schedule a debounced save (400 ms). Opening another school year clears the undo history; deleting a year lands on Home, whose snackbar offers undo. `MainActivity.onStop` calls `vm.flush()`. Navigation is a back stack of `Screen`s in `UiState` (rules in `Nav.kt`, plain Kotlin and unit-tested); there's no navigation library. Home (logo, year picker, Settings) is the root; then Year → Classes → Class → Group, plus School year settings, Overview, Tests and Homework. Only the open year, class and group persist (`activeYear`, `activeClass`, `view`), and launch reopens a saved group only. `PrintSheet` renders HTML into a `WebView` for `PrintManager`.
 - DI is manual: `PacerApplication.store` goes to `PacerViewModel.Factory`.
 
 ## Rules
@@ -32,7 +32,7 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 
 ## Gotchas
 
-- The JSON format has to stay readable from the web page's localStorage export. Weekdays are numbered **0 = Sunday**, unlike `java.time.DayOfWeek`, and dates are ISO strings. If you change the schema, bump `JsonCodec.VERSION` and keep reading old files.
+- The JSON format has to stay readable from the web page's localStorage export (now through `migratePlans`). Weekdays are numbered **0 = Sunday**, unlike `java.time.DayOfWeek`, and dates are ISO strings. If you change the schema, bump `JsonCodec.VERSION` and keep reading old files.
 - Don't give the `edit` helpers a tag for structural edits (add or remove). Tags are for per-field typing, so it merges into one undo step.
 - `proguard-rules.pro` is empty because nothing uses reflection. If you add reflection or JNI, add keep rules and check `assembleRelease`.
 - The release build is signed with the debug key on purpose. Don't commit keystores (`*.jks` and `*.keystore` are gitignored).

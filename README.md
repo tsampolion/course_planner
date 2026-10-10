@@ -1,28 +1,28 @@
-# Coursebook Pacer for Android
+# Course Pacer for Android
 
 [![Android](https://github.com/tsampolion/course_planner/actions/workflows/android.yml/badge.svg)](https://github.com/tsampolion/course_planner/actions/workflows/android.yml)
 
-A native Android version of the Coursebook Pacer page, for teachers who have to get through one or more coursebooks by the end of term. For each group, it counts the lessons left, removes pages that are skipped or already set for homework, and splits the rest so every book lands on the final lesson.
+A native Android version of the Coursebook Pacer web page, for teachers who have to get through one or more coursebooks by the end of term. For each group, it counts the lessons left, removes pages that are skipped or already set for homework, and splits the rest so every book lands on the final lesson.
 
 The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 
-- **Home**: the logo, the app's name, the open plan, and a button for each part of the app, each with a one-line summary.
-- **Schedules**: every group at a glance, with lessons and pages left, the pace needed, the verdict and the next lesson. Plan problems sit at the top and each links to the screen that fixes it.
-- **Plans**: keep several plans and switch between them on the Plans screen. Rename, create or delete a plan (deleting asks first). Undo goes back up to 60 steps.
-- **Term**: start and end dates, lesson length, and the pace in pages per lesson you can sustain.
-- **Groups**: name, teaching weekdays and next-lesson date. Reset every group's position in one step.
-- **Days off**: for all groups or one group. One tap adds the Greek public holidays, which are worked out from Orthodox Easter.
+- **Home**: the logo, a picker for the school year, and Settings. Tap a year to open it, or add a new one (its name and dates are suggested, and the Greek public holidays can come as days off).
+- **School year**: buttons for Classes, School year settings, Overview, and Print or save PDF, each with a one-line summary.
+- **School year settings**: the year's name, start and end dates, and days off for every class, one class or one group. One tap adds the Greek public holidays, which are worked out from Orthodox Easter. Delete the year (it asks first, and Home offers undo).
+- **Classes**: a class is a set of books taught to one or more groups. Add, open, rename or delete classes.
+- **Class**: lesson length and the pace in pages per lesson you can sustain; books (first and last page, skipped pages such as `8, 24-27`, and an optional finish-by date that re-paces only that book); groups (name, teaching weekdays, next-lesson date, and a reset for every group's position); and links to tests and homework.
 - **Tests and worksheets**: a test can take the whole lesson, which moves the pages forward, or run alongside it. The app warns when a test date isn't a lesson day.
-- **Books**: first and last page, skipped pages (such as `8, 24-27`), and an optional finish-by date that re-paces only that book.
 - **Homework already set**: those pages drop out of the lessons for that group.
+- **Overview**: every group in every class at a glance, with lessons and pages left, the pace needed, the verdict and the next lesson. The year's problems sit at the top and each links to the screen that fixes it.
 - **Group view**: a summary, a verdict (lessons to spare or the shortfall compared with your sustainable pace), and for each book the resume position, pages left and pace. Also lessons per month, and the lesson-by-lesson schedule grouped by month, with **Mark next lesson done**.
-- **Output**: copy the schedule as tab-separated text, share it, or print or save every group's schedule as a PDF.
-- **Error list**: missing or reversed term dates, groups with no days, bad page ranges, and finish-by dates that do nothing or leave no lesson.
-- **Settings**: light, dark or system theme, the lesson length and pace that new plans start with, and the app version.
+- **Output**: copy a group's schedule as tab-separated text, share it, or print or save every group's schedule for the year as a PDF.
+- **Error list**: missing or reversed term dates, classes with no groups or books, groups with no days, bad page ranges, and finish-by dates that do nothing or leave no lesson.
+- **Undo**: up to 60 steps within the open school year, from every screen inside it.
+- **Settings**: light, dark or system theme, the lesson length and pace that new classes start with, and the app version.
 
-Plans and settings are saved on the device and included in Android backup and device-to-device transfer.
+School years and settings are saved on the device and included in Android backup and device-to-device transfer.
 
 ## Tech stack
 
@@ -76,14 +76,15 @@ When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/w
 │       ├── main/java/com/coursebook/pacer/
 │       │   ├── MainActivity.kt       # hosts Compose, flushes saves in onStop
 │       │   ├── PacerApplication.kt   # composition root: creates the PlanStore and SettingsStore
-│       │   ├── model/                # Plan, Group, Book, Closure, Homework, TestEvent, Settings; sample plan
+│       │   ├── model/                # SchoolYear, SchoolClass, Group, Book, Closure, Homework, TestEvent, Plan, Settings; sample year
 │       │   ├── engine/               # pacing rules, Greek holidays, formatting (plain Kotlin)
-│       │   ├── data/                 # org.json codec, atomic file storage, settings in SharedPreferences
+│       │   ├── data/                 # org.json codec, migration of older files, atomic file storage, settings in SharedPreferences
 │       │   └── ui/                   # PacerViewModel, navigation, Compose screens, print to PDF, theme
 │       ├── main/res/                 # theme, colors, launcher icon, backup rules
-│       └── test/java/.../            # engine, navigation and settings unit tests
+│       └── test/java/.../            # engine, school year, migration, navigation and settings unit tests
 ├── docs/BRIEF.md                     # product brief and parity checklist
-├── docs/UI_BRIEF.md                  # brief for the home, plan and settings screens
+├── docs/UI_BRIEF.md                  # brief for the home, plan and settings screens (1.1.0)
+├── docs/YEARS_BRIEF.md               # brief for school years and classes (1.3.0)
 ├── gradle/libs.versions.toml         # version catalog
 ├── .github/workflows/android.yml     # CI: tests and release APK
 └── .github/workflows/release.yml     # tags vX.Y.Z and publishes the release after CI passes on main
