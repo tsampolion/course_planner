@@ -8,7 +8,8 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 
 ## Features
 
-- **Plans**: keep several plans and switch between them. Rename, create or delete a plan (deleting asks first). Undo goes back up to 60 steps.
+- **Home**: every group at a glance, with lessons and pages left, the pace needed, the verdict and the next lesson. Plan problems sit at the top and each links to the screen that fixes it. From here, open a group or any part of the plan.
+- **Plans**: keep several plans and switch between them from the title on Home. Rename, create or delete a plan (deleting asks first). Undo goes back up to 60 steps.
 - **Term**: start and end dates, lesson length, and the pace in pages per lesson you can sustain.
 - **Groups**: name, teaching weekdays and next-lesson date. Reset every group's position in one step.
 - **Days off**: for all groups or one group. One tap adds the Greek public holidays, which are worked out from Orthodox Easter.
@@ -18,8 +19,9 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 - **Group view**: a summary, a verdict (lessons to spare or the shortfall compared with your sustainable pace), and for each book the resume position, pages left and pace. Also lessons per month, and the lesson-by-lesson schedule grouped by month, with **Mark next lesson done**.
 - **Output**: copy the schedule as tab-separated text, share it, or print or save every group's schedule as a PDF.
 - **Error list**: missing or reversed term dates, groups with no days, bad page ranges, and finish-by dates that do nothing or leave no lesson.
+- **Settings**: light, dark or system theme, the lesson length and pace that new plans start with, and the app version.
 
-Plans are saved on the device and included in Android backup and device-to-device transfer.
+Plans and settings are saved on the device and included in Android backup and device-to-device transfer.
 
 ## Tech stack
 
@@ -72,14 +74,15 @@ When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/w
 │   └── src/
 │       ├── main/java/com/coursebook/pacer/
 │       │   ├── MainActivity.kt       # hosts Compose, flushes saves in onStop
-│       │   ├── PacerApplication.kt   # composition root: creates the PlanStore
-│       │   ├── model/                # Plan, Group, Book, Closure, Homework, TestEvent; sample plan
+│       │   ├── PacerApplication.kt   # composition root: creates the PlanStore and SettingsStore
+│       │   ├── model/                # Plan, Group, Book, Closure, Homework, TestEvent, Settings; sample plan
 │       │   ├── engine/               # pacing rules, Greek holidays, formatting (plain Kotlin)
-│       │   ├── data/                 # org.json codec and atomic file storage
-│       │   └── ui/                   # PacerViewModel, Compose screens, print to PDF, theme
+│       │   ├── data/                 # org.json codec, atomic file storage, settings in SharedPreferences
+│       │   └── ui/                   # PacerViewModel, navigation, Compose screens, print to PDF, theme
 │       ├── main/res/                 # theme, colors, launcher icon, backup rules
-│       └── test/java/.../engine/     # engine unit tests
+│       └── test/java/.../            # engine, navigation and settings unit tests
 ├── docs/BRIEF.md                     # product brief and parity checklist
+├── docs/UI_BRIEF.md                  # brief for the home, plan and settings screens
 ├── gradle/libs.versions.toml         # version catalog
 ├── .github/workflows/android.yml     # CI: tests and release APK
 └── .github/workflows/release.yml     # tags vX.Y.Z and publishes the release after CI passes on main

@@ -22,6 +22,26 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-10
+
+The app now opens on a home screen, each part of a plan has its own screen, and there is a settings screen. Scheduling results and the saved file format don't change.
+
+### Added
+
+- Home screen: one card per group with lessons and pages left, the pace needed, the verdict and the next lesson's pages; plan problems at the top, each linking to the screen that fixes it; links to every part of the plan and to Settings.
+- Separate screens for Term, Groups, Days off, Tests & worksheets, Books and Homework, replacing the single Setup list. Each shows the plan problems it can fix.
+- Settings screen: light, dark or system theme; lesson length and pace for new plans; app version. Settings are stored in SharedPreferences, outside undo, and included in backups.
+- The system back button and a back arrow move up through screens. Each screen keeps its scroll position while it's on the back stack.
+- On a group's screen, the title switches between groups. On Groups, each group links to its schedule.
+- Unit tests for navigation and settings.
+- `docs/UI_BRIEF.md`, the brief for this change.
+
+### Changed
+
+- The group tab row is gone. Groups open from Home, and the open group is still restored on launch through the existing `view` field.
+- New plans take their lesson length and pace from Settings. The defaults match the sample plan (75 minutes, 4 pages), so nothing changes until you edit them.
+- "Add Greek public holidays" is disabled until the term has both dates.
+
 ## [1.0.2] - 2026-10-10
 
 ### Added
@@ -60,7 +80,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/tsampolion/course_planner/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/tsampolion/course_planner/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/tsampolion/course_planner/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tsampolion/course_planner/releases/tag/v1.0.0

@@ -70,7 +70,10 @@ data class Plan(
     val events: List<TestEvent>,
 )
 
-/** Everything the app stores. [view] is "setup" or a group id. */
+/**
+ * Everything the app stores. [view] is the open group's id, or "setup" when no group is open
+ * (the app then starts on Home). The name is kept so files from older versions and the web page still read.
+ */
 data class AppData(
     val plans: List<Plan>,
     val activePlan: String,
