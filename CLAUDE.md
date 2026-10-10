@@ -16,10 +16,10 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 
 ## Architecture
 
-- `model/`: immutable data classes. `AppData` holds every plan, `activePlan`, and `view` (`"setup"` or a group id). `ALL_GROUPS = "all"` stands in for a group id on closures and tests. `Seed.kt` builds the sample plan and `newId()`.
+- `model/`: immutable data classes. `AppData` holds every plan, `activePlan`, and `view` (the open group's id, or `"setup"` when none is open). `Settings` holds app preferences (theme, new-plan defaults). `ALL_GROUPS = "all"` stands in for a group id on closures and tests. `Seed.kt` builds the sample plan and `newId()`.
 - `engine/`: pure Kotlin with no Android imports, so it's unit-testable on the JVM. `Pacer.kt` holds the rules: `lessonsFor`, `remainingPages`, `allocatePages`, `GroupReport`, `verdict()`, `problems()`. `Holidays.kt` covers Orthodox Easter and Greek holidays. `Format.kt` handles display and TSV.
-- `data/`: `JsonCodec` maps to `org.json` by hand. `PlanStore` writes `plans.json` in `filesDir` through `AtomicFile`. If the file can't be read, it's copied to `plans.json.bad` and the app falls back to the seed plan.
-- `ui/`: one `PacerViewModel` exposes `StateFlow<UiState>`, and Compose reads it with `collectAsState`. Every mutation goes through `edit`, `editPlan`, `editGroup` or `editBook`, which push undo (at most 60 steps; edits with the same tag within 1.2 s merge) and schedule a debounced save (400 ms). `MainActivity.onStop` calls `vm.flush()`. `PrintSheet` renders HTML into a `WebView` for `PrintManager`.
+- `data/`: `JsonCodec` maps to `org.json` by hand. `PlanStore` writes `plans.json` in `filesDir` through `AtomicFile`. If the file can't be read, it's copied to `plans.json.bad` and the app falls back to the seed plan. `SettingsStore` keeps `Settings` in SharedPreferences (`settings.xml`), outside undo.
+- `ui/`: one `PacerViewModel` exposes `StateFlow<UiState>`, and Compose reads it with `collectAsState`. Every mutation goes through `edit`, `editPlan`, `editGroup` or `editBook`, which push undo (at most 60 steps; edits with the same tag within 1.2 s merge) and schedule a debounced save (400 ms). `MainActivity.onStop` calls `vm.flush()`. Navigation is a back stack of `Screen`s in `UiState` (rules in `Nav.kt`, plain Kotlin and unit-tested); there's no navigation library. Home is the root, and only the open group persists, through `AppData.view`. `PrintSheet` renders HTML into a `WebView` for `PrintManager`.
 - DI is manual: `PacerApplication.store` goes to `PacerViewModel.Factory`.
 
 ## Rules
@@ -36,7 +36,7 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 - Don't give the `edit` helpers a tag for structural edits (add or remove). Tags are for per-field typing, so it merges into one undo step.
 - `proguard-rules.pro` is empty because nothing uses reflection. If you add reflection or JNI, add keep rules and check `assembleRelease`.
 - The release build is signed with the debug key on purpose. Don't commit keystores (`*.jks` and `*.keystore` are gitignored).
-- `data_extraction_rules.xml` backs up only `plans.json`. If you add another stored file, update it.
+- `data_extraction_rules.xml` backs up `plans.json` and `settings.xml`. If you add another stored file, update it.
 
 ## Workflow
 
