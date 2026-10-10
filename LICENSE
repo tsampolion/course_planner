@@ -1,16 +1,48 @@
-Copyright (c) 2026 tsampolion. All rights reserved.
+Copyright (c) 2026 Dimitrios Tsampallas. All rights reserved.
 
-This software and its source code, documentation, assets and build outputs
-(together, the "Software") are the exclusive property of the copyright holder.
+1. Ownership
 
-No licence is granted. Without the copyright holder's prior written permission,
-no one may use, copy, modify, merge, publish, distribute, sublicense, sell,
-install, run or create derivative works of the Software, in whole or in part.
+This software and its source code, documentation, assets, build outputs and
+version history (together, the "Software") are the exclusive property of
+Dimitrios Tsampallas (the "Owner").
+
+2. No licence granted
+
+No licence or other right is granted. Without the Owner's prior written
+permission, no person or entity may use, copy, modify, merge, publish,
+distribute, sublicense, sell, install, run or create derivative works of the
+Software, in whole or in part.
 
 Being able to view the Software, for example in a repository hosting service,
 does not grant any of these rights.
 
+3. Artificial intelligence systems
+
+"AI System" means any artificial intelligence or machine learning system,
+application, model, agent, assistant, bot or automated tool, together with
+anyone who operates or deploys it.
+
+Unless the Owner has explicitly authorised it, no AI System may:
+
+  (a) modify, add to, delete, rewrite, refactor, move or otherwise change any
+      part of the Software;
+  (b) commit, push, merge or open pull requests against any repository that
+      holds the Software, or take any other action on it;
+  (c) copy, reproduce or distribute the Software, or create derivative works
+      from it; or
+  (d) use the Software to train, fine-tune, evaluate or build any AI model or
+      dataset, or to support retrieval for one.
+
+Authorisation is explicit only when the Owner personally grants it to a
+specific AI System for specific work, for example by personally starting
+and instructing that AI System, in a session the Owner controls, to work on
+the Software. It does not carry over to any other AI System, session or
+task. Anything an AI System does without such authorisation is unlicensed
+and infringes the Owner's rights.
+
+4. Disclaimer
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR ITS USE.
+IMPLIED. IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ITS USE.
