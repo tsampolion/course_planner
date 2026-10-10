@@ -1,0 +1,40 @@
+package com.coursebook.pacer.data
+
+import android.util.AtomicFile
+import android.util.Log
+import com.coursebook.pacer.model.AppData
+import com.coursebook.pacer.model.seedData
+import java.io.File
+
+/** Keeps every plan in one JSON file in app storage. Writes are atomic, so a crash never leaves half a file. */
+class PlanStore(dir: File) {
+    private val file = AtomicFile(File(dir, "plans.json"))
+
+    fun load(): AppData = try {
+        JsonCodec.decode(file.readFully().decodeToString())
+    } catch (e: java.io.FileNotFoundException) {
+        seedData()
+    } catch (e: Exception) {
+        Log.w(TAG, "Unreadable plans file, kept as plans.json.bad; starting from the sample plan", e)
+        runCatching { file.baseFile.copyTo(File(file.baseFile.path + ".bad"), overwrite = true) }
+        seedData()
+    }
+
+    /** Synchronized: the debounced background save and the flush on stop may overlap. */
+    @Synchronized
+    fun save(data: AppData) {
+        val bytes = JsonCodec.encode(data).encodeToByteArray()
+        val out = file.startWrite()
+        try {
+            out.write(bytes)
+            file.finishWrite(out)
+        } catch (e: Exception) {
+            file.failWrite(out)
+            Log.w(TAG, "Could not save plans", e)
+        }
+    }
+
+    private companion object {
+        const val TAG = "PlanStore"
+    }
+}
