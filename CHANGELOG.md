@@ -11,7 +11,16 @@ Versioning for this app:
 - **MINOR**: a new feature that keeps existing plans working
 - **PATCH**: bug fixes, and performance or size improvements
 
-When you cut a release, rename `[Unreleased]` to the new version and date. Set `versionName` in `app/build.gradle.kts` to the same version, increase `versionCode` by one, and tag the commit `vX.Y.Z`.
+Every pull request bumps the version:
+
+1. Choose MAJOR, MINOR or PATCH using the rules above.
+2. Set `versionName` in `app/build.gradle.kts` to `X.Y.Z` (always three parts) and increase `versionCode` by one.
+3. Add a `## [X.Y.Z] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom.
+4. After merging, tag the merge commit `vX.Y.Z`.
+
+This rule starts with the first pull request after this one. This pull request only fixes the version format: `versionName` goes from `1.0` to `1.0.0`, and the app itself doesn't change.
+
+Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
@@ -19,11 +28,13 @@ When you cut a release, rename `[Unreleased]` to the new version and date. Set `
 
 - `CHANGELOG.md` (this file).
 - `CLAUDE.md` with build commands, architecture, rules and gotchas for AI coding agents.
-- README sections on features, tech stack, prerequisites, CI, project structure, contributing and license, plus a CI status badge.
+- `LICENSE`: proprietary, all rights reserved.
+- README sections on features, tech stack, prerequisites, CI, project structure, development workflow and license, plus a CI status badge.
 - `.gitignore` entries for `.kotlin/`, `.navigation/`, `*.apks`, `/app/release/`, logs, heap dumps, `Thumbs.db` and `.claude/settings.local.json`, grouped under comments.
 
 ### Changed
 
+- `versionName` is now `1.0.0` (was `1.0`), so it follows SemVer exactly.
 - The README now says that CI runs on every push and on manual dispatch, as well as on pull requests.
 
 ## [1.0.0] - 2026-10-10
@@ -43,4 +54,3 @@ When you cut a release, rename `[Unreleased]` to the new version and date. Set `
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/tsampolion/course_planner/releases/tag/v1.0.0
-<!-- Both links work once the v1.0.0 tag is pushed: git tag v1.0.0 5a466df && git push origin v1.0.0 -->

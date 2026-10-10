@@ -41,4 +41,5 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 ## Workflow
 
 - Run `./gradlew testDebugUnitTest` (and `assembleRelease` if you touched the build or dependencies) before committing.
-- Record every user-facing change under `## [Unreleased]` in `CHANGELOG.md` (Keep a Changelog, SemVer). When you release, bump `versionName` and `versionCode` in `app/build.gradle.kts` to match.
+- **Every PR bumps the version.** Set `versionName` in `app/build.gradle.kts` to the next SemVer `MAJOR.MINOR.PATCH` (always three parts; see the rules at the top of `CHANGELOG.md`), increase `versionCode` by one, and add a matching `## [X.Y.Z] - YYYY-MM-DD` section to `CHANGELOG.md` with its compare link. After merging, tag the merge commit `vX.Y.Z`.
+- The code is proprietary (`LICENSE`). Don't add third-party code or assets under licences that conflict with that.

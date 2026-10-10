@@ -88,14 +88,14 @@ The release build is signed with the debug key, so you can install it directly. 
 - `minSdk 26`, so `java.time` works without desugaring. The release build uses R8 with resource shrinking, ships English resources only, and uses a framework theme instead of AppCompat.
 - PDF output goes through the system print dialog via `WebView`, so no PDF library is bundled.
 
-## Contributing
+## Development workflow
 
 1. Branch off `main`.
 2. Keep the engine in plain Kotlin. Every rule change needs a test in `PacerTest`.
 3. Run `./gradlew testDebugUnitTest assembleRelease` before you open a pull request. CI runs the same commands.
-4. Add user-facing changes under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
+4. In every pull request, bump `versionName` in `app/build.gradle.kts` following [Semantic Versioning](https://semver.org/), and add a matching section to [CHANGELOG.md](CHANGELOG.md).
 5. New dependencies need approval first (see the brief).
 
 ## License
 
-No license has been chosen yet, so all rights are reserved by default.
+Proprietary. All rights reserved. See [LICENSE](LICENSE). No one may use, copy, modify or distribute this app or its code without the owner's written permission.
