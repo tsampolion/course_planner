@@ -16,7 +16,7 @@ Every pull request bumps the version:
 1. Choose MAJOR, MINOR or PATCH using the rules above.
 2. Set `versionName` in `app/build.gradle.kts` to `X.Y.Z` (always three parts) and increase `versionCode` by one.
 3. Add a `## [X.Y.Z] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom.
-4. After merging, tag the merge commit `vX.Y.Z`.
+4. After the merge, the `Release` workflow tags the merge commit `vX.Y.Z` and publishes a GitHub release with that section as notes and the APK attached. It only runs once CI passes.
 
 Keep `[Unreleased]` empty between pull requests.
 
@@ -41,6 +41,11 @@ The app now opens on a home screen, each part of a plan has its own screen, and 
 - The group tab row is gone. Groups open from Home, and the open group is still restored on launch through the existing `view` field.
 - New plans take their lesson length and pace from Settings. The defaults match the sample plan (75 minutes, 4 pages), so nothing changes until you edit them.
 - "Add Greek public holidays" is disabled until the term has both dates.
+## [1.0.2] - 2026-10-10
+
+### Added
+
+- `Release` GitHub Actions workflow. When the Android workflow passes on `main`, it reads `versionName`, creates the `vX.Y.Z` tag and a GitHub release if they don't exist yet, uses this file's section for that version as the release notes, and attaches the release APK. It can also be run manually with a commit SHA to tag an older merge.
 
 ## [1.0.1] - 2026-10-10
 
