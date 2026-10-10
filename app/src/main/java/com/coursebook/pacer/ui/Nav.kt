@@ -7,6 +7,9 @@ import com.coursebook.pacer.model.Plan
 /** Every destination in the app. Plain Kotlin, so the back stack rules are unit-testable. */
 sealed interface Screen {
     data object Home : Screen
+    /** Every group's card, and the plan's problems. */
+    data object Schedules : Screen
+    data object Plans : Screen
     data class Group(val id: String) : Screen
     data object Term : Screen
     data object Groups : Screen
@@ -29,9 +32,9 @@ data class Problem(val text: String, val fix: Screen)
 object Nav {
     val root: List<Screen> = listOf(Screen.Home)
 
-    /** The stack to start with for a saved [AppData.view]. */
+    /** The stack to start with for a saved [AppData.view]. A group reopens over Schedules, where it was opened from. */
     fun fromView(view: String): List<Screen> =
-        if (view == AppData.VIEW_SETUP || view.isBlank()) root else listOf(Screen.Home, Screen.Group(view))
+        if (view == AppData.VIEW_SETUP || view.isBlank()) root else listOf(Screen.Home, Screen.Schedules, Screen.Group(view))
 
     /** What to save in [AppData.view] for this stack. */
     fun viewOf(stack: List<Screen>): String =
@@ -46,6 +49,12 @@ object Nav {
     }
 
     fun pop(stack: List<Screen>): List<Screen> = if (stack.size > 1) stack.dropLast(1) else stack
+
+    /**
+     * The stack after switching to another plan: the same screens, minus any group,
+     * since plans made from the sample share group ids.
+     */
+    fun afterPlanSwitch(stack: List<Screen>): List<Screen> = prune(stack.filter { it !is Screen.Group }, emptySet())
 
     /** Drops screens for groups that no longer exist, for example after a delete or an undo. */
     fun prune(stack: List<Screen>, groupIds: Set<String>): List<Screen> {

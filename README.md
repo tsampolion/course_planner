@@ -8,8 +8,9 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 
 ## Features
 
-- **Home**: every group at a glance, with lessons and pages left, the pace needed, the verdict and the next lesson. Plan problems sit at the top and each links to the screen that fixes it. From here, open a group or any part of the plan.
-- **Plans**: keep several plans and switch between them from the title on Home. Rename, create or delete a plan (deleting asks first). Undo goes back up to 60 steps.
+- **Home**: the logo, the app's name, the open plan, and a button for each part of the app, each with a one-line summary.
+- **Schedules**: every group at a glance, with lessons and pages left, the pace needed, the verdict and the next lesson. Plan problems sit at the top and each links to the screen that fixes it.
+- **Plans**: keep several plans and switch between them on the Plans screen. Rename, create or delete a plan (deleting asks first). Undo goes back up to 60 steps.
 - **Term**: start and end dates, lesson length, and the pace in pages per lesson you can sustain.
 - **Groups**: name, teaching weekdays and next-lesson date. Reset every group's position in one step.
 - **Days off**: for all groups or one group. One tap adds the Greek public holidays, which are worked out from Orthodox Easter.

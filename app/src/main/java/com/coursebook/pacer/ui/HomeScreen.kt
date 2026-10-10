@@ -1,168 +1,142 @@
 package com.coursebook.pacer.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.coursebook.pacer.engine.GroupReport
-import com.coursebook.pacer.engine.Verdict
-import com.coursebook.pacer.engine.WEEK
-import com.coursebook.pacer.engine.fixed2
-import com.coursebook.pacer.engine.fmt
+import com.coursebook.pacer.R
 import com.coursebook.pacer.engine.fmtShort
-import com.coursebook.pacer.engine.plain
-import com.coursebook.pacer.engine.short
-import com.coursebook.pacer.engine.verdict
 import com.coursebook.pacer.model.Plan
 import com.coursebook.pacer.ui.theme.Pacer
 
-/** The start screen: problems first, then how each group stands, then the parts of the plan to edit. */
-@Composable
-fun HomeScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
-    val problems = remember(plan) { Nav.problems(plan) }
-    val reports = remember(plan) { plan.groups.map { GroupReport(plan, it) } }
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 12.dp, bottom = padding.calculateBottomPadding() + 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        items(problems) { p -> ErrorBox(p.text, onFix = if (p.fix == Screen.Home) null else ({ vm.open(p.fix) })) }
-
-        item(key = "groupsHead") { Box(Modifier.padding(top = 4.dp)) { Eyebrow("Groups") } }
-        if (reports.isEmpty()) {
-            item(key = "noGroups") {
-                Section("Get started") {
-                    Hint("Add a group for each class you teach from this plan. Its schedule appears here once the term dates and books are in.")
-                    OutlinedButton(onClick = { vm.addGroup(); vm.open(Screen.Groups) }) { Text("Add a group") }
-                }
-            }
-        }
-        items(reports, key = { it.group.id }) { r -> GroupCard(r) { vm.open(Screen.Group(r.group.id)) } }
-
-        item(key = "planHead") { Box(Modifier.padding(top = 8.dp)) { Eyebrow("Plan") } }
-        item(key = "planLinks") { PlanLinks(plan, vm) }
-
-        item(key = "appHead") { Box(Modifier.padding(top = 8.dp)) { Eyebrow("App") } }
-        item(key = "settings") {
-            LinkCard { LinkRow("Settings", "Theme, defaults for new plans, about") { vm.open(Screen.Settings) } }
-        }
-    }
-}
-
-@Composable
-private fun LinkCard(content: @Composable () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, Pacer.colors.line),
-    ) { Column { content() } }
-}
+/** One button on Home: where it goes, and a one-line summary of what is there. */
+private data class Tile(val title: String, val detail: String, val warn: Boolean = false, val onClick: () -> Unit)
 
 private fun count(n: Int, one: String, many: String = one + "s", none: String = "None yet") =
     if (n == 0) none else "$n ${if (n == 1) one else many}"
 
+/** The start screen: the logo, the app's name, the open plan, and a button for each part of the app. */
 @Composable
-private fun PlanLinks(plan: Plan, vm: PacerViewModel) = LinkCard {
+fun HomeScreen(plan: Plan, planCount: Int, vm: PacerViewModel, padding: PaddingValues) {
+    val context = LocalContext.current
+    val problems = remember(plan) { Nav.problems(plan).size }
     val s = plan.start
     val e = plan.end
-    val term = (if (s != null && e != null) "${s.fmt()} – ${e.fmt()}" else "Dates not set") +
-        " · ${plan.mins} min · pace ${plan.pace.plain()}"
-    val links = listOf(
-        Triple("Term", term, Screen.Term),
-        Triple("Groups", count(plan.groups.size, "group"), Screen.Groups),
-        Triple("Days off", count(plan.closures.size, "day off", "days off"), Screen.DaysOff),
-        Triple("Tests & worksheets", count(plan.events.size, "entry", "entries", "None scheduled"), Screen.Tests),
-        Triple("Books", count(plan.books.size, "book"), Screen.Books),
-        Triple("Homework already assigned", count(plan.homework.size, "assignment", none = "Nothing assigned ahead"), Screen.Homework),
+    val tiles = listOf(
+        Tile(
+            "Schedules",
+            if (problems > 0) count(problems, "problem") else count(plan.groups.size, "group"),
+            warn = problems > 0,
+        ) { vm.open(Screen.Schedules) },
+        Tile("Plans", count(planCount, "plan")) { vm.open(Screen.Plans) },
+        Tile("Term", if (s != null && e != null) "${s.fmtShort()} – ${e.fmtShort()}" else "Dates not set") { vm.open(Screen.Term) },
+        Tile("Groups", count(plan.groups.size, "group")) { vm.open(Screen.Groups) },
+        Tile("Days off", count(plan.closures.size, "day off", "days off")) { vm.open(Screen.DaysOff) },
+        Tile("Tests & worksheets", count(plan.events.size, "entry", "entries", "None scheduled")) { vm.open(Screen.Tests) },
+        Tile("Books", count(plan.books.size, "book")) { vm.open(Screen.Books) },
+        Tile("Homework", count(plan.homework.size, "assignment", none = "Nothing assigned")) { vm.open(Screen.Homework) },
+        Tile("Print or save PDF", "Every group's schedule") { PrintSheet.print(context, plan) },
+        Tile("Settings", "Theme, defaults, about") { vm.open(Screen.Settings) },
     )
-    links.forEachIndexed { i, (title, detail, screen) ->
-        if (i > 0) HorizontalDivider(color = Pacer.colors.line)
-        LinkRow(title, detail) { vm.open(screen) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 40.dp, bottom = padding.calculateBottomPadding() + 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Logo()
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "Coursebook Pacer",
+            fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 28.sp,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            plan.name, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Spacer(Modifier.height(32.dp))
+        // Two columns, centred and capped so tablets and landscape don't stretch the buttons.
+        Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            tiles.chunked(2).forEach { pair ->
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    pair.forEach { t -> TileButton(t, Modifier.weight(1f).fillMaxHeight()) }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+/** The launcher icon, drawn from the same artwork: the open book on the teal tile. */
+@Composable
+private fun Logo() {
+    Box(
+        Modifier.size(88.dp).clip(RoundedCornerShape(22.dp)).background(colorResource(R.color.accent)),
+        contentAlignment = Alignment.Center,
+    ) {
+        // The artwork sits in the middle of a 108dp canvas; scaling it up crops the empty margin.
+        Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = "Coursebook Pacer logo", modifier = Modifier.requiredSize(132.dp))
     }
 }
 
 @Composable
-private fun GroupCard(report: GroupReport, onOpen: () -> Unit) {
-    val plan = report.plan
-    val g = report.group
-    val verdict = remember(report) { report.verdict() }
-    val short = verdict is Verdict.Short
-    val next = report.rows.firstOrNull()
-
+private fun TileButton(t: Tile, modifier: Modifier) {
     Surface(
-        onClick = onOpen,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(6.dp),
+        onClick = t.onClick,
+        modifier = modifier.heightIn(min = 76.dp),
+        shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, Pacer.colors.line),
+        border = BorderStroke(1.dp, if (t.warn) Pacer.colors.warn else Pacer.colors.line),
     ) {
-        Column {
-            Box(Modifier.fillMaxWidth().height(3.dp).background(if (short) Pacer.colors.warn else MaterialTheme.colorScheme.primary))
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(g.name.ifBlank { "Group" }, style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold)
-                        Hint(WEEK.filter { it in g.days }.joinToString(" · ") { it.short() }.ifEmpty { "No days set" })
-                    }
-                    Text("›", fontSize = 22.sp, color = Pacer.colors.muted)
-                }
-                Row {
-                    Stat("Lessons left", "${report.lessons.size}", Modifier.weight(1f))
-                    Stat("Pages left", "${report.pages}", Modifier.weight(1f))
-                    Stat("Pace needed", if (report.teaching > 0) report.rate.fixed2() else "—", Modifier.weight(1f))
-                }
-                when (verdict) {
-                    is Verdict.Short -> Text(
-                        "Short by ${verdict.by.fixed2()} lessons at ${verdict.sustain.plain()} pages each",
-                        style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.warn,
-                    )
-                    is Verdict.Fits -> Text(
-                        "Fits, with ${verdict.spare.fixed2()} lessons to spare",
-                        style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.ok,
-                    )
-                    null -> if (report.teaching > 0 && plan.pace <= 0) Hint("Set the pace you can sustain under Term to get a verdict.")
-                }
-                if (next != null) {
-                    val what = if (next.blocked) {
-                        next.events.joinToString(" · ") { it.name }
-                    } else {
-                        plan.books.zip(next.cells).filter { it.second.isNotEmpty() }
-                            .joinToString(" · ") { (b, c) -> "${b.name} $c" }
-                            .ifEmpty { "No pages" }
-                    }
-                    Text(
-                        "Next: ${next.date.dayOfWeek.short()} ${next.date.fmtShort()} · $what",
-                        style = MaterialTheme.typography.bodySmall, fontFamily = Mono,
-                    )
-                } else {
-                    Hint("No lessons left in this term.")
-                }
-            }
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(t.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(
+                t.detail, style = MaterialTheme.typography.bodySmall,
+                color = if (t.warn) Pacer.colors.warn else Pacer.colors.muted,
+                maxLines = 2, overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

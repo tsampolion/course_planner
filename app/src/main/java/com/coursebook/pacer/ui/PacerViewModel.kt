@@ -82,10 +82,10 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     private fun editBook(id: String, tag: String? = null, change: (Book) -> Book) =
         editPlan(tag) { p -> p.copy(books = p.books.map { if (it.id == id) change(it) else it }) }
 
-    /** Switching plans, by hand or through undo, goes back to Home. */
+    /** Switching plans, by hand or through undo, keeps the open screens but closes any group. */
     private fun publish(next: AppData, stack: List<Screen> = _state.value.stack) {
         val samePlan = next.plan.id == data.plan.id
-        _state.value = stateFor(next, if (samePlan) stack else Nav.root, undoStack.size)
+        _state.value = stateFor(next, if (samePlan) stack else Nav.afterPlanSwitch(stack), undoStack.size)
         scheduleSave()
     }
 

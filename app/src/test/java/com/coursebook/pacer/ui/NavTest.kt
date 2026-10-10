@@ -15,7 +15,7 @@ class NavTest {
     @Test fun savedViewMapsToStack() {
         assertEquals(home, Nav.fromView(AppData.VIEW_SETUP))
         assertEquals(home, Nav.fromView(""))
-        assertEquals(listOf(Screen.Home, Screen.Group("ga")), Nav.fromView("ga"))
+        assertEquals(listOf(Screen.Home, Screen.Schedules, Screen.Group("ga")), Nav.fromView("ga"))
     }
 
     @Test fun stackMapsToSavedView() {
@@ -49,6 +49,11 @@ class NavTest {
         assertEquals(stack, Nav.prune(stack, setOf("gone")))
         assertEquals(home, Nav.prune(emptyList(), emptySet()))
         assertEquals(listOf(Screen.Home, Screen.Books), Nav.prune(listOf(Screen.Books), emptySet()))
+    }
+
+    @Test fun planSwitchKeepsScreensButDropsGroups() {
+        assertEquals(listOf(Screen.Home, Screen.Plans), Nav.afterPlanSwitch(listOf(Screen.Home, Screen.Plans)))
+        assertEquals(listOf(Screen.Home, Screen.Schedules), Nav.afterPlanSwitch(listOf(Screen.Home, Screen.Schedules, Screen.Group("ga"))))
     }
 
     private fun plan(
