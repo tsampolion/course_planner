@@ -9,7 +9,7 @@ Versioning for this app:
 
 - **MAJOR**: a change that breaks existing saved plans or the import from the web page, or that changes scheduling results on purpose
 - **MINOR**: a new feature that keeps existing plans working
-- **PATCH**: bug fixes, and performance or size improvements
+- **PATCH**: bug fixes, performance or size improvements, and changes to documentation, licensing, build or CI that leave the app working as before
 
 Every pull request bumps the version:
 
@@ -18,23 +18,25 @@ Every pull request bumps the version:
 3. Add a `## [X.Y.Z] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom.
 4. After merging, tag the merge commit `vX.Y.Z`.
 
-This rule starts with the first pull request after this one. This pull request only fixes the version format: `versionName` goes from `1.0` to `1.0.0`, and the app itself doesn't change.
-
 Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
+
+## [1.0.1] - 2026-10-10
+
+Changes since the `v1.0.0` tag: documentation, licensing and the version format. The app itself doesn't change.
 
 ### Added
 
 - `CHANGELOG.md` (this file).
 - `CLAUDE.md` with build commands, architecture, rules and gotchas for AI coding agents.
-- `LICENSE`: proprietary, all rights reserved.
+- `LICENSE`: proprietary, all rights reserved, with Dimitrios Tsampallas as the copyright holder. Section 3 forbids AI systems from changing, copying, distributing or training on the code unless the owner has explicitly authorised them.
 - README sections on features, tech stack, prerequisites, CI, project structure, development workflow and license, plus a CI status badge.
 - `.gitignore` entries for `.kotlin/`, `.navigation/`, `*.apks`, `/app/release/`, logs, heap dumps, `Thumbs.db` and `.claude/settings.local.json`, grouped under comments.
 
 ### Changed
 
-- `versionName` is now `1.0.0` (was `1.0`), so it follows SemVer exactly.
+- `versionName` follows SemVer exactly: `1.0` became `1.0.0`, and is now `1.0.1` (`versionCode` 2).
 - The README now says that CI runs on every push and on manual dispatch, as well as on pull requests.
 
 ## [1.0.0] - 2026-10-10
@@ -52,5 +54,6 @@ Keep `[Unreleased]` empty between pull requests.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/tsampolion/course_planner/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tsampolion/course_planner/releases/tag/v1.0.0

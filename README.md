@@ -98,4 +98,6 @@ The release build is signed with the debug key, so you can install it directly. 
 
 ## License
 
-Proprietary. All rights reserved. See [LICENSE](LICENSE). No one may use, copy, modify or distribute this app or its code without the owner's written permission.
+Proprietary. Copyright © 2026 Dimitrios Tsampallas. All rights reserved. See [LICENSE](LICENSE).
+
+No one may use, copy, modify or distribute this app or its code without the owner's written permission. AI systems (assistants, agents, bots and automated tools) may not change, copy or train on the code unless the owner has explicitly authorised them for that work.
