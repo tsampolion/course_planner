@@ -16,11 +16,17 @@ Every pull request bumps the version:
 1. Choose MAJOR, MINOR or PATCH using the rules above.
 2. Set `versionName` in `app/build.gradle.kts` to `X.Y.Z` (always three parts) and increase `versionCode` by one.
 3. Add a `## [X.Y.Z] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom.
-4. After merging, tag the merge commit `vX.Y.Z`.
+4. After the merge, the `Release` workflow tags the merge commit `vX.Y.Z` and publishes a GitHub release with that section as notes and the APK attached. It only runs once CI passes.
 
 Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
+
+## [1.0.2] - 2026-10-10
+
+### Added
+
+- `Release` GitHub Actions workflow. When the Android workflow passes on `main`, it reads `versionName`, creates the `vX.Y.Z` tag and a GitHub release if they don't exist yet, uses this file's section for that version as the release notes, and attaches the release APK. It can also be run manually with a commit SHA to tag an older merge.
 
 ## [1.0.1] - 2026-10-10
 
@@ -54,6 +60,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/tsampolion/course_planner/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/tsampolion/course_planner/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tsampolion/course_planner/releases/tag/v1.0.0

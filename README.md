@@ -60,6 +60,8 @@ The release build is signed with the debug key, so you can install it directly. 
 
 [`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, every pull request and on manual dispatch. It sets up JDK 17, runs `testDebugUnitTest`, builds `assembleRelease`, writes the APK size to the job summary, and uploads the APK as the `coursebook-pacer-apk` artifact.
 
+When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) reads `versionName` from `app/build.gradle.kts`. If the tag `vX.Y.Z` doesn't exist yet, it creates the tag and a GitHub release, with that version's `CHANGELOG.md` section as the notes and the APK attached. To tag an older merge, run it manually from the Actions tab with the commit SHA.
+
 ## Project structure
 
 ```text
@@ -79,7 +81,8 @@ The release build is signed with the debug key, so you can install it directly. 
 │       └── test/java/.../engine/     # engine unit tests
 ├── docs/BRIEF.md                     # product brief and parity checklist
 ├── gradle/libs.versions.toml         # version catalog
-└── .github/workflows/android.yml     # CI
+├── .github/workflows/android.yml     # CI: tests and release APK
+└── .github/workflows/release.yml     # tags vX.Y.Z and publishes the release after CI passes on main
 ```
 
 ## Footprint
@@ -93,7 +96,7 @@ The release build is signed with the debug key, so you can install it directly. 
 1. Branch off `main`.
 2. Keep the engine in plain Kotlin. Every rule change needs a test in `PacerTest`.
 3. Run `./gradlew testDebugUnitTest assembleRelease` before you open a pull request. CI runs the same commands.
-4. In every pull request, bump `versionName` in `app/build.gradle.kts` following [Semantic Versioning](https://semver.org/), and add a matching section to [CHANGELOG.md](CHANGELOG.md).
+4. In every pull request, bump `versionName` in `app/build.gradle.kts` following [Semantic Versioning](https://semver.org/), and add a matching section to [CHANGELOG.md](CHANGELOG.md). The tag and release are created automatically after the merge.
 5. New dependencies need approval first (see the brief).
 
 ## License
