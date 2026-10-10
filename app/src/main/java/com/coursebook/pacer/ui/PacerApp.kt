@@ -51,12 +51,15 @@ import androidx.compose.ui.unit.sp
 import com.coursebook.pacer.engine.GroupReport
 import com.coursebook.pacer.engine.asTsv
 import com.coursebook.pacer.engine.lessonsFor
+import com.coursebook.pacer.model.AppData
 import com.coursebook.pacer.model.Plan
 import com.coursebook.pacer.ui.theme.Pacer
 import kotlinx.coroutines.launch
 
 private fun Screen.title(plan: Plan): String = when (this) {
-    Screen.Home -> plan.name
+    Screen.Home -> "Coursebook Pacer"
+    Screen.Schedules -> "Schedules"
+    Screen.Plans -> "Plans"
     is Screen.Group -> plan.groups.firstOrNull { it.id == id }?.name?.ifBlank { "Group" } ?: "Group"
     Screen.Term -> "Term"
     Screen.Groups -> "Groups"
@@ -82,9 +85,6 @@ fun PacerApp(vm: PacerViewModel) {
     val scope = rememberCoroutineScope()
     val toast: (String) -> Unit = { msg -> scope.launch { snackbar.currentSnackbarData?.dismiss(); snackbar.showSnackbar(msg) } }
 
-    var renaming by rememberSaveable { mutableStateOf(false) }
-    var confirmDelete by rememberSaveable { mutableStateOf(false) }
-
     BackHandler(enabled = ui.stack.size > 1) { vm.back() }
 
     // Screens keep their scroll position while they are on the stack, and forget it once popped.
@@ -99,11 +99,8 @@ fun PacerApp(vm: PacerViewModel) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
-            if (screen == Screen.Home) {
-                HomeBar(ui, vm, onPrint = { PrintSheet.print(context, plan) }, onRename = { renaming = true }, onDelete = { confirmDelete = true })
-            } else {
-                ScreenBar(screen, plan, vm, undoDepth = if (screen == Screen.Settings) null else ui.undoDepth)
-            }
+            // Home is just the logo and its buttons, with no bar.
+            if (screen != Screen.Home) ScreenBar(screen, plan, vm, undoDepth = if (screen == Screen.Settings) null else ui.undoDepth)
         },
     ) { padding ->
         AnimatedContent(
@@ -113,45 +110,27 @@ fun PacerApp(vm: PacerViewModel) {
         ) { s ->
             live += s.key()
             saved.SaveableStateProvider(s.key()) {
-                ScreenContent(s, plan, settings, vm, padding, toast, context)
+                ScreenContent(s, ui.data, settings, vm, padding, toast, context)
             }
         }
-    }
-
-    if (renaming) {
-        var name by rememberSaveable { mutableStateOf(plan.name) }
-        AlertDialog(
-            onDismissRequest = { renaming = false },
-            title = { Text("Rename plan") },
-            text = { CommitField(name, { name = it }, "Plan name") },
-            confirmButton = { TextButton(onClick = { vm.renamePlan(name.trim().ifEmpty { plan.name }); renaming = false }) { Text("Save") } },
-            dismissButton = { TextButton(onClick = { renaming = false }) { Text("Cancel") } },
-        )
-    }
-
-    if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text("Delete “${plan.name}”?") },
-            text = { Text("Undo brings it back until you close the app.") },
-            confirmButton = { TextButton(onClick = { vm.deletePlan(); confirmDelete = false }) { Text("Delete", color = Pacer.colors.warn) } },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
-        )
     }
 }
 
 @Composable
 private fun ScreenContent(
     s: Screen,
-    plan: Plan,
+    data: AppData,
     settings: com.coursebook.pacer.model.Settings,
     vm: PacerViewModel,
     padding: PaddingValues,
     toast: (String) -> Unit,
     context: Context,
 ) {
+    val plan = data.plan
     when (s) {
-        Screen.Home -> HomeScreen(plan, vm, padding)
+        Screen.Home -> HomeScreen(plan, data.plans.size, vm, padding)
+        Screen.Schedules -> SchedulesScreen(plan, vm, padding)
+        Screen.Plans -> PlansScreen(data, vm, padding)
         is Screen.Group -> {
             // Null for a moment while a deleted group's screen fades out.
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return
@@ -183,63 +162,6 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
     }
 }
 
-/** Home's bar: the plan switcher as the title, undo, and the plan and app menu. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun HomeBar(ui: UiState, vm: PacerViewModel, onPrint: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
-    val data = ui.data
-    val plan = data.plan
-    var plans by remember { mutableStateOf(false) }
-    var menu by remember { mutableStateOf(false) }
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-        title = {
-            Box {
-                TextButton(onClick = { plans = true }) {
-                    Column {
-                        Text("Coursebook Pacer", fontSize = 11.sp, color = Pacer.colors.muted)
-                        Text(
-                            "${plan.name} ▾", fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold,
-                            fontSize = 20.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.widthIn(max = 220.dp),
-                        )
-                    }
-                }
-                DropdownMenu(expanded = plans, onDismissRequest = { plans = false }) {
-                    data.plans.forEach { p ->
-                        DropdownMenuItem(
-                            text = { Text(p.name, fontWeight = if (p.id == plan.id) FontWeight.SemiBold else FontWeight.Normal) },
-                            onClick = { plans = false; vm.selectPlan(p.id) },
-                        )
-                    }
-                    HorizontalDivider()
-                    DropdownMenuItem(text = { Text("New plan") }, onClick = { plans = false; vm.newPlan() })
-                }
-            }
-        },
-        actions = {
-            UndoButton(vm, ui.undoDepth)
-            Box {
-                TextButton(onClick = { menu = true }, modifier = Modifier.semantics { contentDescription = "More options" }) {
-                    Text("⋮", fontSize = 20.sp)
-                }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Print or save PDF") }, onClick = { menu = false; onPrint() })
-                    DropdownMenuItem(text = { Text("Rename plan") }, onClick = { menu = false; onRename() })
-                    DropdownMenuItem(text = { Text("New plan") }, onClick = { menu = false; vm.newPlan() })
-                    DropdownMenuItem(
-                        text = { Text("Delete plan") },
-                        enabled = data.plans.size > 1,
-                        onClick = { menu = false; onDelete() },
-                    )
-                    HorizontalDivider()
-                    DropdownMenuItem(text = { Text("Settings") }, onClick = { menu = false; vm.open(Screen.Settings) })
-                }
-            }
-        },
-    )
-}
-
 /**
  * Every other screen's bar: back, the plan name over the screen title, and undo where plan edits happen
  * ([undoDepth] null hides it). On a group, the title switches between groups.
@@ -260,7 +182,7 @@ private fun ScreenBar(screen: Screen, plan: Plan, vm: PacerViewModel, undoDepth:
             Box {
                 val heading = @Composable {
                     Column {
-                        Text(if (screen == Screen.Settings) "Coursebook Pacer" else plan.name, fontSize = 11.sp, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(if (screen == Screen.Settings || screen == Screen.Plans) "Coursebook Pacer" else plan.name, fontSize = 11.sp, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(
                             screen.title(plan) + if (switchable) " ▾" else "",
                             fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 20.sp,

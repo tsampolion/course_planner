@@ -22,6 +22,21 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-10
+
+Home is now a minimal launcher: the logo, the app's name, the open plan, and a button for each part of the app. Scheduling results and the saved file format don't change.
+
+### Added
+
+- Schedules screen with the group cards and plan problems that were on Home.
+- Plans screen to switch, create, rename and delete plans. Rename and delete act on the open plan, and undo is in its bar.
+
+### Changed
+
+- Home shows the app's logo and name, the open plan's name, and ten buttons (Schedules, Plans, Term, Groups, Days off, Tests & worksheets, Books, Homework, Print or save PDF, Settings), each with a one-line summary. Schedules turns rust-coloured and shows the count when the plan has problems.
+- Home has no top bar. The plan switcher and the overflow menu are gone; their actions moved to Plans, and Print or save PDF and Settings are buttons on Home.
+- Switching plans keeps you on the screen you were on, closing only an open group. A group restored on launch reopens over Schedules, so back returns there.
+
 ## [1.1.0] - 2026-10-10
 
 The app now opens on a home screen, each part of a plan has its own screen, and there is a settings screen. Scheduling results and the saved file format don't change.
@@ -80,7 +95,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/tsampolion/course_planner/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/tsampolion/course_planner/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/tsampolion/course_planner/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/tsampolion/course_planner/compare/v1.0.0...v1.0.1
