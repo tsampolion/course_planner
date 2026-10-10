@@ -227,7 +227,7 @@ private fun SummaryCard(report: GroupReport, vm: PacerViewModel, modifier: Modif
 }
 
 @Composable
-private fun Stat(k: String, v: String, modifier: Modifier) {
+fun Stat(k: String, v: String, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(k.uppercase(), fontSize = 10.sp, letterSpacing = 0.7.sp, color = Pacer.colors.muted)
         Text(v, fontFamily = Mono, fontSize = 19.sp)

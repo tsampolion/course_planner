@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.coursebook.pacer.data.PlanStore
+import com.coursebook.pacer.data.SettingsStore
 import com.coursebook.pacer.engine.GroupReport
 import com.coursebook.pacer.engine.greekHolidays
 import com.coursebook.pacer.model.ALL_GROUPS
@@ -14,7 +15,9 @@ import com.coursebook.pacer.model.Closure
 import com.coursebook.pacer.model.Group
 import com.coursebook.pacer.model.Homework
 import com.coursebook.pacer.model.Plan
+import com.coursebook.pacer.model.Settings
 import com.coursebook.pacer.model.TestEvent
+import com.coursebook.pacer.model.ThemeMode
 import com.coursebook.pacer.model.newId
 import com.coursebook.pacer.model.seedPlan
 import java.time.DayOfWeek
@@ -27,16 +30,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-data class UiState(val data: AppData, val undoDepth: Int)
+/** [stack] is the back stack; its last entry is the screen on show. */
+data class UiState(val data: AppData, val undoDepth: Int, val stack: List<Screen> = Nav.root) {
+    val screen: Screen get() = stack.last()
+}
 
 /**
  * Holds the plans, applies every edit, and keeps an undo history.
  * Edits to the same field within [COALESCE_MS] collapse into one undo step,
- * so typing a page number is one step, not six. Switching tabs is not an edit.
+ * so typing a page number is one step, not six. Moving between screens is not an edit.
  */
-class PacerViewModel(private val store: PlanStore) : ViewModel() {
-    private val _state = MutableStateFlow(UiState(store.load(), 0))
+class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore) : ViewModel() {
+    private val _state = MutableStateFlow(store.load().let { d -> stateFor(d, Nav.fromView(d.view), 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
+
+    private val _settings = MutableStateFlow(settingsStore.load())
+    val settings: StateFlow<Settings> = _settings.asStateFlow()
 
     private val undoStack = ArrayDeque<Pair<List<Plan>, String>>()
     private var lastTag: String? = null
@@ -73,16 +82,20 @@ class PacerViewModel(private val store: PlanStore) : ViewModel() {
     private fun editBook(id: String, tag: String? = null, change: (Book) -> Book) =
         editPlan(tag) { p -> p.copy(books = p.books.map { if (it.id == id) change(it) else it }) }
 
-    private fun publish(next: AppData) {
-        _state.value = UiState(normalise(next), undoStack.size)
+    /** Switching plans, by hand or through undo, goes back to Home. */
+    private fun publish(next: AppData, stack: List<Screen> = _state.value.stack) {
+        val samePlan = next.plan.id == data.plan.id
+        _state.value = stateFor(next, if (samePlan) stack else Nav.root, undoStack.size)
         scheduleSave()
     }
 
-    /** Keeps the open tab pointing at something that still exists. */
-    private fun normalise(d: AppData): AppData {
+    /** Keeps the active plan and the open screens pointing at things that still exist. */
+    private fun stateFor(d: AppData, stack: List<Screen>, undoDepth: Int): UiState {
         val p = d.plan
-        val view = if (d.view == AppData.VIEW_SETUP || p.groups.any { it.id == d.view }) d.view else AppData.VIEW_SETUP
-        return if (p.id == d.activePlan && view == d.view) d else d.copy(activePlan = p.id, view = view)
+        val s = Nav.prune(stack, p.groups.mapTo(HashSet()) { it.id })
+        val view = Nav.viewOf(s)
+        val fixed = if (p.id == d.activePlan && view == d.view) d else d.copy(activePlan = p.id, view = view)
+        return UiState(fixed, undoDepth, s)
     }
 
     private fun scheduleSave() {
@@ -111,26 +124,50 @@ class PacerViewModel(private val store: PlanStore) : ViewModel() {
 
     // ---- navigation (not undoable) -----------------------------------------
 
-    fun openView(view: String) {
-        if (view == data.view) return
-        publish(data.copy(view = view))
+    fun open(screen: Screen) {
+        val stack = Nav.push(_state.value.stack, screen)
+        if (stack != _state.value.stack) publish(data, stack)
     }
+
+    /** Returns false when already at Home, so the system can close the app. */
+    fun back(): Boolean {
+        val stack = _state.value.stack
+        if (stack.size < 2) return false
+        publish(data, Nav.pop(stack))
+        return true
+    }
+
+    // ---- settings (not undoable, saved at once) ----------------------------
+
+    private fun editSettings(change: (Settings) -> Settings) {
+        val next = change(_settings.value).sanitised()
+        if (next == _settings.value) return
+        _settings.value = next
+        settingsStore.save(next)
+    }
+
+    fun setTheme(v: ThemeMode) = editSettings { it.copy(theme = v) }
+    fun setDefaultMins(v: Int) = editSettings { it.copy(lessonMins = v) }
+    fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }
 
     // ---- plans -------------------------------------------------------------
 
-    fun selectPlan(id: String) = edit { it.copy(activePlan = id, view = AppData.VIEW_SETUP) }
+    fun selectPlan(id: String) {
+        if (id != data.activePlan) edit { it.copy(activePlan = id) }
+    }
 
     fun renamePlan(name: String) = editPlan("pname") { it.copy(name = name) }
 
     fun newPlan() = edit { d ->
-        val p = seedPlan().copy(name = "New plan")
-        d.copy(plans = d.plans + p, activePlan = p.id, view = AppData.VIEW_SETUP)
+        val s = _settings.value
+        val p = seedPlan().copy(name = "New plan", mins = s.lessonMins, pace = s.pace)
+        d.copy(plans = d.plans + p, activePlan = p.id)
     }
 
     fun deletePlan() = edit { d ->
         if (d.plans.size < 2) return@edit d
         val rest = d.plans.filter { it.id != d.activePlan }
-        d.copy(plans = rest, activePlan = rest.first().id, view = AppData.VIEW_SETUP)
+        d.copy(plans = rest, activePlan = rest.first().id)
     }
 
     // ---- term --------------------------------------------------------------
@@ -227,9 +264,9 @@ class PacerViewModel(private val store: PlanStore) : ViewModel() {
 
     fun removeHomework(id: String) = editPlan { p -> p.copy(homework = p.homework.filter { it.id != id }) }
 
-    class Factory(private val store: PlanStore) : ViewModelProvider.Factory {
+    class Factory(private val store: PlanStore, private val settings: SettingsStore) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = PacerViewModel(store) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = PacerViewModel(store, settings) as T
     }
 
     private companion object {

@@ -267,13 +267,34 @@ fun AddButton(text: String, onClick: () -> Unit) {
     }
 }
 
+/** A plan problem. With [onFix] it becomes a link to the screen that fixes it. */
 @Composable
-fun ErrorBox(text: String) {
+fun ErrorBox(text: String, onFix: (() -> Unit)? = null) {
     Surface(
         shape = RoundedCornerShape(4.dp),
         color = Pacer.colors.warnSoft,
         contentColor = Pacer.colors.warn,
         border = BorderStroke(1.dp, Pacer.colors.warn),
-        modifier = Modifier.fillMaxWidth(),
-    ) { Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(10.dp)) }
+        modifier = Modifier.fillMaxWidth().then(if (onFix != null) Modifier.clickable(role = Role.Button, onClick = onFix) else Modifier),
+    ) {
+        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            if (onFix != null) Text("Fix ›", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 8.dp))
+        }
+    }
+}
+
+/** A tappable row that opens another screen: a title, a muted summary, and a chevron. */
+@Composable
+fun LinkRow(title: String, detail: String, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick).padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(detail, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
+        }
+        Text("›", fontSize = 22.sp, color = Pacer.colors.muted, modifier = Modifier.padding(start = 8.dp))
+    }
 }
