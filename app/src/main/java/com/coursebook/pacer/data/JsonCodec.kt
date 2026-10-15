@@ -27,7 +27,7 @@ import org.json.JSONObject
  * list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    private const val VERSION = 4
+    const val VERSION = 4
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -52,6 +52,21 @@ object JsonCodec {
             activeClass = o.optString("activeClass", ""),
             view = view,
         )
+    }
+
+    /**
+     * Reads a file chosen for import: an export, a `plans.json` of any version, or the web page's export.
+     * Refuses a newer version, which re-saving here would cut down, and anything that doesn't decode.
+     */
+    fun readImport(text: String): ImportResult = try {
+        if (JSONObject(text).optInt("version", 1) > VERSION) {
+            ImportResult.Newer
+        } else {
+            val years = decode(text).years
+            if (years.isEmpty()) ImportResult.NoYears else ImportResult.Years(years)
+        }
+    } catch (e: Exception) {
+        ImportResult.Unreadable
     }
 
     private fun year(y: SchoolYear) = JSONObject()

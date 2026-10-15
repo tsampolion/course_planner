@@ -23,8 +23,9 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 - **Error list**: missing or reversed term dates, classes with no groups or books, groups with no days, bad page ranges, and finish-by dates that do nothing or leave no lesson.
 - **Undo**: up to 60 steps within the open school year, from every screen inside it.
 - **Settings**: light, dark or system theme, the lesson length and pace that new classes start with, and the app version.
+- **Back up and restore** (in Settings): Export saves every school year to a file of your choice (Downloads, Google Drive and so on). Import reads that file, or the Coursebook Pacer web page's export, and asks whether to add its years beside yours or replace them; either can be undone.
 
-School years and settings are saved on the device and included in Android backup and device-to-device transfer.
+School years and settings are saved on the device and included in Android backup and device-to-device transfer. Uninstalling deletes them, so export first.
 
 ## Tech stack
 
