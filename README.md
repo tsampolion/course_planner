@@ -4,7 +4,7 @@
 
 A native Android version of the Coursebook Pacer web page, for teachers who have to get through one or more coursebooks by the end of term. For each group, it counts the lessons left, removes pages that are skipped or already set for homework, and splits the rest so every book lands on the final lesson.
 
-The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHANGELOG.md](CHANGELOG.md).
+The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHANGELOG.md](CHANGELOG.md), and features specified for later are in [docs/PLANNED_FEATURES.md](docs/PLANNED_FEATURES.md).
 
 ## Features
 
@@ -18,6 +18,7 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 - **Overview**: every group in every class at a glance, with lessons and pages left, the pace needed, the verdict and the next lesson. The year's problems sit at the top and each links to the screen that fixes it.
 - **Group view**: a summary, a verdict (lessons to spare or the shortfall compared with your sustainable pace), and for each book the resume position, pages left and pace. Also lessons per month, and the lesson-by-lesson schedule, either all months in one list or one month per tab (swipe between them).
 - **Done lessons**: tick a lesson once it's taught; it stays in the schedule, dimmed, with its pages. Long-press for "Done up to here" or "Not done from here". **Mark next lesson done** ticks the next one. Ticking out of order re-spreads the pages still to teach.
+- **Pages taught**: when a lesson didn't go to plan, long-press it and choose "Edit pages taught…" to type the pages it covered in each book (`5-8`, or nothing). The lesson is marked done with a small "edited" tag; pages it missed go back into the schedule, extra pages come off later lessons, and the rest re-spread.
 - **Output**: copy a group's remaining schedule as tab-separated text, share it, or print or save schedules as a PDF, choosing the classes and the margins.
 - **Error list**: missing or reversed term dates, classes with no groups or books, groups with no days, bad page ranges, and finish-by dates that do nothing or leave no lesson.
 - **Undo**: up to 60 steps within the open school year, from every screen inside it.

@@ -35,6 +35,33 @@ fun parseRanges(text: String): Set<Int> {
     return out
 }
 
+/**
+ * The pages typed for [b] as taught in one lesson, such as "5-8, 10", in order. Blank is none.
+ * Null when a part is not a page or a range of pages, or reaches outside the book.
+ */
+fun lessonPages(text: String, b: Book): List<Int>? {
+    val out = sortedSetOf<Int>()
+    for (part in text.split(',', ';')) {
+        val t = part.trim()
+        if (t.isEmpty()) continue
+        val m = RANGE.matchEntire(t)
+        val lo: Int
+        val hi: Int
+        if (m != null) {
+            val a = m.groupValues[1].toIntOrNull() ?: return null
+            val c = m.groupValues[2].toIntOrNull() ?: return null
+            lo = minOf(a, c)
+            hi = maxOf(a, c)
+        } else {
+            lo = t.takeIf { SINGLE.matches(it) }?.toIntOrNull() ?: return null
+            hi = lo
+        }
+        if (lo < b.first || hi > b.last || hi - lo > MAX_RANGE) return null
+        for (p in lo..hi) out += p
+    }
+    return out.toList()
+}
+
 /** [1,2,3,5,7,8] to "1–3, 5, 7–8". Empty to an em dash. */
 fun collapse(pages: List<Int>): String {
     if (pages.isEmpty()) return "—"
@@ -223,11 +250,41 @@ class GroupReport(val plan: Plan, val group: Group) {
  * Marking lessons in order leaves the same schedule as [afterNextLesson], the web page's rule.
  */
 fun GroupReport.markDone(dates: Set<LocalDate>): Group {
-    val fresh = rows.filter { it.date in dates }.map { r ->
-        DoneLesson(r.date, plan.books.zip(r.pages).filter { it.second.isNotEmpty() }.associate { (b, p) -> b.id to p })
-    }
+    val fresh = rows.filter { it.date in dates }.map { r -> DoneLesson(r.date, pagesByBook(r)) }
     if (fresh.isEmpty()) return group
     return group.copy(done = (group.done + fresh).sortedBy { it.date })
+}
+
+/** A row's pages as book id to pages, leaving out books it gives none. */
+private fun GroupReport.pagesByBook(r: Row): Map<String, List<Int>> =
+    plan.books.zip(r.pages).filter { it.second.isNotEmpty() }.associate { (b, p) -> b.id to p }
+
+/**
+ * The pages each book gets on [date] if that lesson is taught as planned: what the schedule gives it,
+ * or for a done lesson, what the schedule would give it if it were put back. Null when [date] is not
+ * one of the group's lessons.
+ */
+fun GroupReport.plannedPages(date: LocalDate): Map<String, List<Int>>? {
+    val report = if (group.done.any { it.date == date }) GroupReport(plan, group.unmarkDone(date)) else this
+    return report.rows.firstOrNull { it.date == date }?.let { pagesByBook(it) }
+}
+
+/**
+ * The group with the lesson on [date] marked done as having covered [pages] (book id to pages),
+ * whatever the schedule gave it. Pages it left out stay to be taught and pages beyond the plan leave
+ * the schedule; either way the pages still to teach re-spread over the lessons left, as when ticking.
+ * Recording the planned pages is the same as ticking. Null when [date] is not one of the group's lessons.
+ */
+fun GroupReport.recordLesson(date: LocalDate, pages: Map<String, List<Int>>): Group? {
+    val old = group.done.firstOrNull { it.date == date }
+    val planned = plannedPages(date)
+    if (planned == null && old == null) return null
+    val books = plan.books.mapTo(HashSet()) { it.id }
+    val taught = pages.filterKeys { it in books }.mapValues { it.value.distinct().sorted() }.filterValues { it.isNotEmpty() }
+    // Saving a done lesson's pages unchanged keeps its flag, even if the plan has moved since it was ticked.
+    val edited = if (old != null && taught == old.pages) old.edited else taught != planned
+    val lesson = DoneLesson(date, taught, edited)
+    return group.copy(done = (group.done.filter { it.date != date } + lesson).sortedBy { it.date })
 }
 
 /**
