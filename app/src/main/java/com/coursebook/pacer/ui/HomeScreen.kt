@@ -1,7 +1,10 @@
 package com.coursebook.pacer.ui
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +22,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,6 +51,7 @@ import com.coursebook.pacer.engine.fmt
 import com.coursebook.pacer.model.AppData
 import com.coursebook.pacer.model.SchoolYear
 import com.coursebook.pacer.model.suggestYear
+import com.coursebook.pacer.ui.theme.Pacer
 import java.time.LocalDate
 
 /** "3 classes", "1 class", or [none] for zero. */
@@ -60,8 +67,11 @@ fun SchoolYear.dates(): String {
 
 /** The start screen: the logo at the top, the school-year picker in the middle, and Settings at the bottom right. */
 @Composable
-fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues) {
+fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, onDeleted: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
+    // The year being renamed or deleted, by id.
+    var renaming by rememberSaveable { mutableStateOf<String?>(null) }
+    var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     val years = remember(data.years) { data.years.sortedByDescending { it.start } }
 
     Box(Modifier.fillMaxSize()) {
@@ -88,7 +98,7 @@ fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues) {
                     Eyebrow("School year")
                     if (years.isEmpty()) Hint("No school years yet. Add one to start planning.")
                     years.forEach { y ->
-                        CardRow(y.name.ifBlank { "School year" }, "${y.dates()} · ${count(y.classes.size, "class", "classes", "no classes")}", { vm.openYear(y.id) })
+                        YearRow(y, onOpen = { vm.openYear(y.id) }, onRename = { renaming = y.id }, onDelete = { deleting = y.id })
                     }
                     AddButton("New school year") { adding = true }
                 }
@@ -109,6 +119,60 @@ fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues) {
     }
 
     if (adding) NewYearDialog(data.years, vm) { adding = false }
+    data.years.firstOrNull { it.id == renaming }?.let { y -> RenameYearDialog(y, vm) { renaming = null } }
+    data.years.firstOrNull { it.id == deleting }?.let { y ->
+        val name = y.name.ifBlank { "School year" }
+        ConfirmDelete(name, YEAR_DELETE_DETAIL, { vm.deleteYear(y.id); onDeleted(name) }) { deleting = null }
+    }
+}
+
+/**
+ * A year in the picker: tap to open it. The ⋮ button, or a long-press anywhere on the row,
+ * offers Rename and Delete.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun YearRow(y: SchoolYear, onOpen: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    val name = y.name.ifBlank { "School year" }
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .combinedClickable(onClick = onOpen, onLongClick = { menu = true }, onLongClickLabel = "Rename or delete"),
+        shape = RoundedCornerShape(6.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, Pacer.colors.line),
+    ) {
+        Row(Modifier.padding(start = 14.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                Text(name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text(
+                    "${y.dates()} · ${count(y.classes.size, "class", "classes", "no classes")}",
+                    style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted,
+                )
+            }
+            Box {
+                TextButton(
+                    onClick = { menu = true },
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.size(48.dp).semantics { contentDescription = "More options for $name" },
+                ) { Text("⋮", fontSize = 22.sp, color = Pacer.colors.muted) }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text("Rename") }, onClick = { menu = false; onRename() })
+                    DropdownMenuItem(text = { Text("Delete", color = Pacer.colors.warn) }, onClick = { menu = false; onDelete() })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenameYearDialog(y: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
+    var name by rememberSaveable { mutableStateOf(y.name) }
+    AddDialogFrame("Rename school year", name.isNotBlank(), { vm.renameYear(y.id, name.trim()) }, onDismiss, confirm = "Save") {
+        CommitField(name, { name = it }, "Name")
+    }
 }
 
 @Composable
