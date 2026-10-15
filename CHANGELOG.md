@@ -22,6 +22,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-15
+
+### Fixed
+
+- The app opts in to Android's predictive back. Back inside the app works as before; on Android 15 and later, the back gesture from Home previews the launcher before the app closes. The "OnBackInvokedCallback is not enabled" warning no longer appears in the log on every back.
+
 ## [1.3.0] - 2026-10-10
 
 The app is now called Course Pacer, and plans are organised as school years that hold classes. Existing plans move over on first launch and schedule exactly as before.
@@ -122,7 +128,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/tsampolion/course_planner/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/tsampolion/course_planner/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tsampolion/course_planner/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/tsampolion/course_planner/compare/v1.0.2...v1.1.0
