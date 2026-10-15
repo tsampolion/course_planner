@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.coursebook.pacer.engine.fmt
+import com.coursebook.pacer.engine.plain
+import com.coursebook.pacer.model.Settings
 import com.coursebook.pacer.ui.theme.Pacer
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -88,7 +90,12 @@ fun Hint(text: String, modifier: Modifier = Modifier, color: androidx.compose.ui
     Text(text, style = MaterialTheme.typography.bodySmall, color = color, modifier = modifier)
 }
 
-/** A text field that keeps its own text while typing and hands each accepted value up. */
+/**
+ * A text field that keeps its own text while typing and hands each accepted value up.
+ * When [value] changes it takes the new text only if [sameValue] says the two differ: an undo or
+ * another screen replaces what is typed, but a commit that only reformats it (pace "1." saved and
+ * shown as "1") leaves the typing alone, so the next keystroke doesn't land on the wrong text.
+ */
 @Composable
 fun CommitField(
     value: String,
@@ -98,8 +105,14 @@ fun CommitField(
     numeric: Boolean = false,
     decimal: Boolean = false,
     placeholder: String? = null,
+    sameValue: (typed: String, value: String) -> Boolean = { a, b -> a == b },
 ) {
-    var text by remember(value) { mutableStateOf(value) }
+    var text by remember { mutableStateOf(value) }
+    var shown by remember { mutableStateOf(value) }
+    if (value != shown) {
+        shown = value
+        if (!sameValue(text, value)) text = value
+    }
     OutlinedTextField(
         value = text,
         onValueChange = { text = it; onCommit(it) },
@@ -118,10 +131,25 @@ fun CommitField(
     )
 }
 
-/** An integer field that only reports positive whole numbers; blanks and junk wait for more typing. */
+/**
+ * An integer field that only reports whole numbers from [min] to [max]; blanks, junk and numbers out of range
+ * wait for more typing, so nothing is saved that would then be clamped back under the cursor.
+ */
 @Composable
-fun IntField(value: Int, onCommit: (Int) -> Unit, label: String, modifier: Modifier = Modifier) {
-    CommitField(value.toString(), { s -> s.trim().toIntOrNull()?.takeIf { it > 0 }?.let(onCommit) }, label, modifier, numeric = true)
+fun IntField(value: Int, onCommit: (Int) -> Unit, label: String, modifier: Modifier = Modifier, min: Int = 1, max: Int = Int.MAX_VALUE) {
+    CommitField(
+        value.toString(), { s -> s.trim().toIntOrNull()?.takeIf { it in min..max }?.let(onCommit) }, label, modifier, numeric = true,
+        sameValue = { a, b -> a.trim().toIntOrNull() == b.trim().toIntOrNull() },
+    )
+}
+
+/** A pace field: pages per lesson, with a comma or a point. Only finite, non-negative values are reported. */
+@Composable
+fun PaceField(value: Double, onCommit: (Double) -> Unit, modifier: Modifier = Modifier) {
+    CommitField(
+        value.plain(), { s -> Settings.parsePace(s)?.let(onCommit) }, "Pace you can sustain", modifier, numeric = true, decimal = true,
+        sameValue = { a, b -> Settings.parsePace(a) == Settings.parsePace(b) },
+    )
 }
 
 /** A read-only field that opens a date picker. [clearable] adds a Clear button to the picker. */
@@ -369,12 +397,17 @@ fun AddDialogFrame(
 
 /** Asks before deleting something big. Undo can still bring it back. */
 @Composable
-fun ConfirmDelete(name: String, detail: String, onDelete: () -> Unit, onDismiss: () -> Unit) {
+fun ConfirmDelete(name: String, detail: String, onDelete: () -> Unit, onDismiss: () -> Unit) =
+    Confirm("Delete “$name”?", detail, "Delete", onDelete, onDismiss)
+
+/** Asks before an edit that throws work away, with [action] in the warning colour. */
+@Composable
+fun Confirm(title: String, detail: String, action: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Delete “$name”?") },
+        title = { Text(title) },
         text = { Text(detail) },
-        confirmButton = { TextButton(onClick = { onDelete(); onDismiss() }) { Text("Delete", color = Pacer.colors.warn) } },
+        confirmButton = { TextButton(onClick = { onConfirm(); onDismiss() }) { Text(action, color = Pacer.colors.warn) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }

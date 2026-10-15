@@ -2,6 +2,7 @@ package com.coursebook.pacer.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,12 +32,13 @@ import com.coursebook.pacer.engine.WEEK
 import com.coursebook.pacer.engine.fmt
 import com.coursebook.pacer.engine.lessonsFor
 import com.coursebook.pacer.engine.parseRanges
-import com.coursebook.pacer.engine.plain
 import com.coursebook.pacer.engine.short
 import com.coursebook.pacer.model.ALL_GROUPS
 import com.coursebook.pacer.model.Book
 import com.coursebook.pacer.model.Group
+import com.coursebook.pacer.model.MAX_PAGE
 import com.coursebook.pacer.model.Plan
+import com.coursebook.pacer.model.Settings
 import com.coursebook.pacer.ui.theme.Pacer
 import java.time.LocalDate
 
@@ -60,20 +62,14 @@ private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: Pa
 fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
     var addingBook by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
+    var resetting by rememberSaveable { mutableStateOf(false) }
     EditList(plan, Screen.Class, vm, padding) {
         item(key = "class") {
             Section("Class") {
                 CommitField(plan.name, vm::renameClass, "Name", Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    IntField(plan.mins, vm::setMins, "Lesson length (min)", Modifier.weight(1f))
-                    CommitField(
-                        plan.pace.plain(),
-                        { s -> s.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 }?.let(vm::setPace) },
-                        "Pace you can sustain",
-                        Modifier.weight(1f),
-                        numeric = true,
-                        decimal = true,
-                    )
+                    IntField(plan.mins, vm::setMins, "Lesson length (min)", Modifier.weight(1f), max = Settings.MAX_MINS)
+                    PaceField(plan.pace, vm::setPace, Modifier.weight(1f))
                 }
                 Hint("Pages per lesson. It does not drive the schedule; it is the benchmark the verdict measures against.")
             }
@@ -96,7 +92,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
         item(key = "groupactions") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = vm::addGroup) { Text("Add group") }
-                OutlinedButton(onClick = vm::resetPositions, enabled = plan.groups.isNotEmpty()) { Text("Reset all positions") }
+                OutlinedButton(onClick = { resetting = true }, enabled = plan.groups.isNotEmpty()) { Text("Reset all positions") }
             }
         }
 
@@ -115,17 +111,38 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
         }
     }
     if (addingBook) AddBookDialog(vm) { addingBook = false }
+    if (resetting) {
+        Confirm(
+            "Reset all positions?",
+            "Every group goes back to the first pages and the year's start, and every lesson ticked in this class is cleared, " +
+                "with the pages recorded for it. Undo brings them back.",
+            "Reset", vm::resetPositions,
+        ) { resetting = false }
+    }
     if (deleting) {
         ConfirmDelete(plan.name.ifBlank { "Class" }, "Its groups, books, tests and homework go too. Undo brings them back.", vm::deleteClass) { deleting = false }
     }
 }
 
+@Composable
+private fun GroupEditor(plan: Plan, g: Group, vm: PacerViewModel) {
+    var removing by rememberSaveable { mutableStateOf(false) }
+    Section(g.name.ifBlank { "Group" }) { GroupFields(plan, g, vm) { removing = true } }
+    if (removing) {
+        ConfirmDelete(
+            g.name.ifBlank { "Group" },
+            "Its ticked lessons, homework, and the days off and tests aimed only at it go too. Undo brings them back.",
+            { vm.removeGroup(g.id) },
+        ) { removing = false }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GroupEditor(plan: Plan, g: Group, vm: PacerViewModel) = Section(g.name.ifBlank { "Group" }) {
+private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, onRemove: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommitField(g.name, { vm.renameGroup(g.id, it) }, "Name", Modifier.weight(1f))
-        RemoveButton(g.name) { vm.removeGroup(g.id) }
+        RemoveButton(g.name, onRemove)
     }
     // Seven chips need about 330dp; the row wraps its last chips on very narrow phones.
     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -174,14 +191,27 @@ fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
 }
 
 @Composable
-private fun BookEditor(b: Book, vm: PacerViewModel) = Section(b.name.ifBlank { "Book" }) {
+private fun BookEditor(b: Book, vm: PacerViewModel) {
+    var removing by rememberSaveable { mutableStateOf(false) }
+    Section(b.name.ifBlank { "Book" }) { BookFields(b, vm) { removing = true } }
+    if (removing) {
+        ConfirmDelete(
+            b.name.ifBlank { "Book" },
+            "Its positions, homework and the pages ticked lessons recorded in it go too. Undo brings them back.",
+            { vm.removeBook(b.id) },
+        ) { removing = false }
+    }
+}
+
+@Composable
+private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommitField(b.name, { vm.renameBook(b.id, it) }, "Title", Modifier.weight(1f))
-        RemoveButton(b.name) { vm.removeBook(b.id) }
+        RemoveButton(b.name, onRemove)
     }
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        IntField(b.first, { vm.setFirstPage(b.id, it) }, "First page", Modifier.weight(1f))
-        IntField(b.last, { vm.setLastPage(b.id, it) }, "Last page", Modifier.weight(1f))
+        IntField(b.first, { vm.setFirstPage(b.id, it) }, "First page", Modifier.weight(1f), max = MAX_PAGE)
+        IntField(b.last, { vm.setLastPage(b.id, it) }, "Last page", Modifier.weight(1f), max = MAX_PAGE)
     }
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         CommitField(b.skip, { vm.setSkip(b.id, it) }, "Skip pages", Modifier.weight(1f), placeholder = "8, 24–27")
@@ -250,9 +280,9 @@ private fun AddBookDialog(vm: PacerViewModel, onDismiss: () -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var first by rememberSaveable { mutableStateOf("1") }
     var last by rememberSaveable { mutableStateOf("") }
-    val lastN = last.trim().toIntOrNull()?.takeIf { it > 0 }
+    val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
     AddDialogFrame("Add a book", lastN != null, {
-        vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it > 0 } ?: 1, lastN!!)
+        vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!)
     }, onDismiss) {
         CommitField(name, { name = it }, "Title", placeholder = "Companion")
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -269,8 +299,8 @@ private fun AddHomeworkDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> U
     var from by rememberSaveable { mutableStateOf("") }
     var to by rememberSaveable { mutableStateOf("") }
     var setOn by remember { mutableStateOf<LocalDate?>(null) }
-    val fromN = from.trim().toIntOrNull()?.takeIf { it > 0 }
-    val toN = to.trim().toIntOrNull()?.takeIf { it > 0 } ?: fromN
+    val fromN = from.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
+    val toN = to.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: fromN
     AddDialogFrame("Add homework", fromN != null && group != null && book != null, {
         vm.addHomework(group!!, book!!, fromN!!, toN!!, setOn)
     }, onDismiss) {

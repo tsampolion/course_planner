@@ -29,7 +29,7 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 - **Approved dependencies only**: the Compose BOM with Material 3, `activity-compose`, `lifecycle-viewmodel-ktx`, and JUnit. Ask before adding anything, including kotlinx-serialization, Hilt, AppCompat or an icon library. Use the platform instead (`org.json`, `AtomicFile`, `WebView`, the clipboard, the share sheet).
 - Declare versions in `gradle/libs.versions.toml`, not inline.
 - Compose only, with no XML layouts. Use the framework theme (`Theme.Pacer`), not AppCompat.
-- Keep `minSdk 26` (it lets `java.time` run without desugaring) and `resourceConfigurations += "en"`.
+- Keep `minSdk 26` (it lets `java.time` run without desugaring) and `androidResources.localeFilters += "en"` (it replaced the deprecated `resourceConfigurations` in 1.6.1).
 - **The release signing key is permanent** (1.5.2, `docs/SIGNING_BRIEF.md`). CI signs release builds with it from the `SIGNING_KEYSTORE_B64` and `SIGNING_PASSWORD` secrets and checks the certificate against the `SIGNING_CERT_SHA256` variable; `main` fails without them.
   - Never regenerate, replace or "fix" the signing key, and never change `keyAlias`, the secret names or the variable without the owner. A new key means every phone uninstalls again, which deletes its school years.
   - Rotating the key needs APK Signature Scheme v3 (`apksigner rotate` and a signing lineage), which AGP doesn't do out of the box. If the key ever leaks, plan that as its own task.

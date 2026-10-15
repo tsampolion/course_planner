@@ -21,6 +21,7 @@ import com.coursebook.pacer.model.Book
 import com.coursebook.pacer.model.Closure
 import com.coursebook.pacer.model.Group
 import com.coursebook.pacer.model.Homework
+import com.coursebook.pacer.model.MAX_PAGE
 import com.coursebook.pacer.model.SchoolClass
 import com.coursebook.pacer.model.SchoolYear
 import com.coursebook.pacer.model.Settings
@@ -299,7 +300,10 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     }
 
     fun setMins(v: Int) = editClass("class:mins") { it.copy(mins = v) }
-    fun setPace(v: Double) = editClass("class:pace") { it.copy(pace = v) }
+    /** Ignores a pace the file can't store (infinite or not a number). */
+    fun setPace(v: Double) {
+        if (v.isFinite() && v >= 0) editClass("class:pace") { it.copy(pace = v) }
+    }
 
     // ---- groups ------------------------------------------------------------
 
@@ -308,13 +312,17 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         c.copy(groups = c.groups + Group(newId(), name, setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), data.year?.start))
     }
 
-    /** Removes the group with its homework and the days off aimed only at it. */
+    /** Removes the group with its homework and the days off and tests aimed only at it. */
     fun removeGroup(id: String) = editYear { y ->
         y.copy(
             closures = y.closures.filter { it.who != id },
             classes = y.classes.map { c ->
                 if (c.id != data.activeClass) c
-                else c.copy(groups = c.groups.filter { it.id != id }, homework = c.homework.filter { it.groupId != id })
+                else c.copy(
+                    groups = c.groups.filter { it.id != id },
+                    homework = c.homework.filter { it.groupId != id },
+                    events = c.events.filter { it.who != id },
+                )
             },
         )
     }
@@ -328,7 +336,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setNextLesson(id: String, date: LocalDate?) = editGroup(id, "gfrom:$id") { it.copy(from = date) }
 
     fun setPosition(groupId: String, bookId: String, page: Int) =
-        editGroup(groupId, "pos:$groupId:$bookId") { it.copy(pos = it.pos + (bookId to page)) }
+        editGroup(groupId, "pos:$groupId:$bookId") { it.copy(pos = it.pos + (bookId to page.coerceAtMost(MAX_PAGE + 1))) }
 
     /** Starts every group over: first pages, the year's start, and no lessons marked done. */
     fun resetPositions() = editClass { c ->
@@ -374,7 +382,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     // ---- books -------------------------------------------------------------
 
     fun addBook(name: String, first: Int, last: Int) = editClass { c ->
-        c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, first, last))
+        c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, first.coerceAtMost(MAX_PAGE), last.coerceAtMost(MAX_PAGE)))
     }
 
     fun removeBook(id: String) = editClass { c ->
@@ -386,15 +394,15 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     }
 
     fun renameBook(id: String, name: String) = editBook(id, "bname:$id") { it.copy(name = name) }
-    fun setFirstPage(id: String, v: Int) = editBook(id, "bfirst:$id") { it.copy(first = v) }
-    fun setLastPage(id: String, v: Int) = editBook(id, "blast:$id") { it.copy(last = v) }
+    fun setFirstPage(id: String, v: Int) = editBook(id, "bfirst:$id") { it.copy(first = v.coerceAtMost(MAX_PAGE)) }
+    fun setLastPage(id: String, v: Int) = editBook(id, "blast:$id") { it.copy(last = v.coerceAtMost(MAX_PAGE)) }
     fun setSkip(id: String, v: String) = editBook(id, "bskip:$id") { it.copy(skip = v) }
     fun setDue(id: String, v: LocalDate?) = editBook(id, "bdue:$id") { it.copy(due = v) }
 
     // ---- homework ----------------------------------------------------------
 
     fun addHomework(groupId: String, bookId: String, from: Int, to: Int, setOn: LocalDate?) = editClass { c ->
-        c.copy(homework = c.homework + Homework(newId(), groupId, bookId, minOf(from, to), maxOf(from, to), setOn))
+        c.copy(homework = c.homework + Homework(newId(), groupId, bookId, minOf(from, to).coerceAtMost(MAX_PAGE), maxOf(from, to).coerceAtMost(MAX_PAGE), setOn))
     }
 
     fun removeHomework(id: String) = editClass { c -> c.copy(homework = c.homework.filter { it.id != id }) }

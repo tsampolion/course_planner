@@ -32,5 +32,12 @@ data class Settings(
         const val DEFAULT_MINS = 75
         const val DEFAULT_PACE = 4.0
         const val MAX_MINS = 600
+
+        /**
+         * A pace as typed, such as "4", "3.5" or "3,5". Null for anything else, including
+         * "Infinity" and "1e400", which the JSON file can't store.
+         */
+        fun parsePace(text: String): Double? =
+            text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 }
     }
 }

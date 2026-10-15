@@ -5,6 +5,7 @@ import android.util.Log
 import com.coursebook.pacer.model.AppData
 import com.coursebook.pacer.model.seedData
 import java.io.File
+import java.io.FileOutputStream
 
 /** Keeps every plan in one JSON file in app storage. Writes are atomic, so a crash never leaves half a file. */
 class PlanStore(dir: File) {
@@ -20,16 +21,20 @@ class PlanStore(dir: File) {
         seedData()
     }
 
-    /** Synchronized: the debounced background save and the flush on stop may overlap. */
+    /**
+     * Synchronized: the debounced background save and the flush on stop may overlap.
+     * Never throws: it runs in a background coroutine with no handler, where an exception would end the app.
+     */
     @Synchronized
     fun save(data: AppData) {
-        val bytes = JsonCodec.encode(data).encodeToByteArray()
-        val out = file.startWrite()
+        var out: FileOutputStream? = null
         try {
+            val bytes = JsonCodec.encode(data).encodeToByteArray()
+            out = file.startWrite()
             out.write(bytes)
             file.finishWrite(out)
         } catch (e: Exception) {
-            file.failWrite(out)
+            out?.let(file::failWrite)
             Log.w(TAG, "Could not save plans", e)
         }
     }

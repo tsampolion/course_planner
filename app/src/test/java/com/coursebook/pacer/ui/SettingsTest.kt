@@ -4,6 +4,7 @@ import com.coursebook.pacer.model.Settings
 import com.coursebook.pacer.model.ThemeMode
 import com.coursebook.pacer.model.seedPlan
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SettingsTest {
@@ -17,6 +18,12 @@ class SettingsTest {
         val seed = seedPlan()
         assertEquals(seed.mins, Settings().lessonMins)
         assertEquals(seed.pace, Settings().pace, 0.0)
+    }
+
+    @Test fun paceReadsCommasAndRefusesWhatTheFileCantStore() {
+        assertEquals(3.5, Settings.parsePace(" 3,5 ")!!, 0.0)
+        assertEquals(1.0, Settings.parsePace("1.")!!, 0.0)
+        for (bad in listOf("", "abc", "-1", "NaN", "Infinity", "1e400")) assertNull(bad, Settings.parsePace(bad))
     }
 
     @Test fun sanitisingRestoresUnusableValues() {

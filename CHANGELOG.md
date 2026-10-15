@@ -22,6 +22,23 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-15
+
+Fixes from a full audit of 1.6.0: crashes and freezes from unusual numbers, number fields that saved the wrong value, and one-tap deletions.
+
+### Fixed
+
+- A page number typed by mistake, such as 16000000, or one in an imported file, no longer freezes or crashes the app. Pages go up to 100,000; the page fields don't accept more, and files are capped when read.
+- A pace of "Infinity" or "1e400", typed or imported, no longer crashes the app when it saves. The pace fields only accept a real number, and a save that fails is logged instead of closing the app.
+- Editing a number could save a different one: changing a pace of 1.5 to 1.25 saved 12, because deleting the "5" reset the field to "1". Number fields now keep what you type, and fields with a lowest or highest value (a book's resume page, the lesson length) wait until the number is in range.
+- "Reset all positions", and the × on a group or a book, now ask first. They clear ticked lessons and the pages recorded for them.
+- Removing a group also removes the tests aimed only at it.
+- A file with repeated ids, or a lesson ticked twice on one date, no longer crashes the screens that list them. Repeats get new ids when the file is read, and **Replace all** no longer keeps two years with one id.
+
+### Changed
+
+- The build uses `androidResources.localeFilters` in place of the deprecated `resourceConfigurations`. The APK still ships English only.
+
 ## [1.6.0] - 2026-10-15
 
 Back up your school years to a file and bring them back. Uninstalling the app deletes its school years, so export before you uninstall or change phones.
@@ -212,7 +229,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/tsampolion/course_planner/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/tsampolion/course_planner/compare/v1.5.3...v1.6.0
 [1.5.3]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.3
 [1.5.2]: https://github.com/tsampolion/course_planner/pull/12

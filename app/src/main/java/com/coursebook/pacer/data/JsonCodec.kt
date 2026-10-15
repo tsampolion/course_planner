@@ -37,6 +37,7 @@ object JsonCodec {
         .put("years", JSONArray(data.years.map(::year)))
         .toString()
 
+    /** Every file read goes through [sanitiseYears], so a hand-edited or damaged one can't freeze or crash the app. */
     fun decode(text: String): AppData {
         val o = JSONObject(text)
         val view = o.optString("view", AppData.VIEW_SETUP)
@@ -44,10 +45,11 @@ object JsonCodec {
         if (years == null) {
             val plans = o.getJSONArray("plans").objects().map(::plan)
             require(plans.isNotEmpty())
-            return migratePlans(plans, o.optString("activePlan", plans.first().id), view)
+            val d = migratePlans(plans, o.optString("activePlan", plans.first().id), view)
+            return d.copy(years = sanitiseYears(d.years))
         }
         return AppData(
-            years = years.objects().map(::year),
+            years = sanitiseYears(years.objects().map(::year)),
             activeYear = o.optString("activeYear", ""),
             activeClass = o.optString("activeClass", ""),
             view = view,

@@ -37,7 +37,6 @@ import com.coursebook.pacer.data.ImportResult
 import com.coursebook.pacer.data.JsonCodec
 import com.coursebook.pacer.data.MAX_IMPORT_BYTES
 import com.coursebook.pacer.data.backupFileName
-import com.coursebook.pacer.engine.plain
 import com.coursebook.pacer.model.SchoolYear
 import com.coursebook.pacer.model.Settings
 import com.coursebook.pacer.model.ThemeMode
@@ -98,15 +97,8 @@ fun SettingsScreen(
         item(key = "defaults") {
             Section("New classes") {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    IntField(settings.lessonMins, vm::setDefaultMins, "Lesson length (min)", Modifier.weight(1f))
-                    CommitField(
-                        settings.pace.plain(),
-                        { s -> s.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 }?.let(vm::setDefaultPace) },
-                        "Pace you can sustain",
-                        Modifier.weight(1f),
-                        numeric = true,
-                        decimal = true,
-                    )
+                    IntField(settings.lessonMins, vm::setDefaultMins, "Lesson length (min)", Modifier.weight(1f), max = Settings.MAX_MINS)
+                    PaceField(settings.pace, vm::setDefaultPace, Modifier.weight(1f))
                 }
                 Hint("Used when you add a class. Existing classes keep their own values, which you change on the class screen.")
             }
