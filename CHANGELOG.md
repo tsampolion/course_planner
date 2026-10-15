@@ -22,6 +22,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-10-15
+
+### Fixed
+
+- Deleting a school year was hard to find: its button sat at the bottom of School year settings, below every day off. Each year on Home now has a ⋮ button (or long-press the year) with Rename and Delete, and the button in School year settings sits under the year's name and dates. Deleting still asks first, and Home offers Undo.
+
 ## [1.4.1] - 2026-10-15
 
 ### Fixed
@@ -148,7 +154,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/tsampolion/course_planner/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/tsampolion/course_planner/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/tsampolion/course_planner/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/tsampolion/course_planner/compare/v1.2.0...v1.3.0

@@ -49,6 +49,9 @@ import com.coursebook.pacer.model.SchoolYear
 import com.coursebook.pacer.ui.theme.Pacer
 import java.time.LocalDate
 
+/** What deleting a year takes with it, wherever it is deleted from. */
+const val YEAR_DELETE_DETAIL = "Its classes, groups, books and days off go too. You can undo it on the home screen."
+
 /** One button on the year screen: where it goes, and a one-line summary of what is there. */
 private data class Tile(val title: String, val detail: String, val warn: Boolean = false, val onClick: () -> Unit)
 
@@ -179,7 +182,7 @@ private fun whoTag(year: SchoolYear, who: String): String? {
     return "removed group"
 }
 
-/** The year's name, term dates and days off, and deleting the year. */
+/** The year's name, term dates and deleting it at the top, then its days off. */
 @Composable
 fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, onDeleted: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
@@ -190,12 +193,14 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
         items(problems) { ErrorBox(it.text) }
         item(key = "year") {
             Section("School year") {
-                CommitField(year.name, vm::renameYear, "Name", Modifier.fillMaxWidth())
+                CommitField(year.name, { vm.renameYear(year.id, it) }, "Name", Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     DateField(year.start, vm::setStart, "Starts", Modifier.weight(1f))
                     DateField(year.end, vm::setEnd, "Ends", Modifier.weight(1f))
                 }
                 Hint("Every class paces up to the end date. Each group tracks its own next lesson on its class; the start is only the default.")
+                // Up here, not below a long list of days off, so it is easy to find.
+                OutlinedButton(onClick = { deleting = true }) { Text("Delete this school year", color = Pacer.colors.warn) }
             }
         }
         item(key = "offhead") { Heading("Days off") }
@@ -217,17 +222,12 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
                 )
             }
         }
-        item(key = "delete") {
-            OutlinedButton(onClick = { deleting = true }, modifier = Modifier.padding(top = 8.dp)) {
-                Text("Delete this school year", color = Pacer.colors.warn)
-            }
-        }
     }
 
     if (adding) AddClosureDialog(year, vm) { adding = false }
     if (deleting) {
         val name = year.name.ifBlank { "School year" }
-        ConfirmDelete(name, "Its classes, groups and books go too.", { vm.deleteYear(); onDeleted(name) }) { deleting = false }
+        ConfirmDelete(name, YEAR_DELETE_DETAIL, { vm.deleteYear(year.id); onDeleted(name) }) { deleting = false }
     }
 }
 

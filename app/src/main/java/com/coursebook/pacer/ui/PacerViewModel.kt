@@ -213,10 +213,23 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         open(Screen.Year)
     }
 
-    fun renameYear(name: String) = editYear("yname") { it.copy(name = name) }
+    /** Renames any year, from Home or from its settings. */
+    fun renameYear(id: String, name: String) = edit("yname:$id") { d ->
+        d.copy(years = d.years.map { if (it.id == id) it.copy(name = name) else it })
+    }
 
-    /** Deletes the open year and returns to Home, where undo is offered once. */
-    fun deleteYear() = edit { d -> d.copy(years = d.years.filter { it.id != d.activeYear }, activeYear = "", activeClass = "") }
+    /**
+     * Deletes any year, from Home or from its settings. Deleting the open year returns to Home.
+     * Home's snackbar offers undo once.
+     */
+    fun deleteYear(id: String) = edit { d ->
+        val open = d.activeYear == id
+        d.copy(
+            years = d.years.filter { it.id != id },
+            activeYear = if (open) "" else d.activeYear,
+            activeClass = if (open) "" else d.activeClass,
+        )
+    }
 
     // ---- term --------------------------------------------------------------
 
