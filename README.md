@@ -98,7 +98,7 @@ When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/w
 │       ├── main/java/com/coursebook/pacer/
 │       │   ├── MainActivity.kt       # hosts Compose, flushes saves in onStop
 │       │   ├── PacerApplication.kt   # composition root: creates the PlanStore and SettingsStore
-│       │   ├── model/                # SchoolYear, SchoolClass, Group, Book, Closure, Homework, TestEvent, Plan, Settings; sample year
+│       │   ├── model/                # SchoolYear, SchoolClass, Group, Book, Closure, Homework, TestEvent, Plan, Settings; ids and new-year defaults
 │       │   ├── engine/               # pacing rules, Greek holidays, formatting (plain Kotlin)
 │       │   ├── data/                 # org.json codec, migration of older files, atomic file storage, settings in SharedPreferences
 │       │   └── ui/                   # PacerViewModel, navigation, Compose screens, print to PDF, theme

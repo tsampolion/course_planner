@@ -22,6 +22,21 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-15
+
+A fresh install now starts empty, with a short guide, instead of a made-up sample year.
+
+### Changed
+
+- **No more sample year.** A new install opens on an empty Home screen instead of a ready-made 2026–27 year with a "Sample class", so there's nothing fake to find and delete. School years already on a phone are untouched.
+- If the saved file can't be read, the app also starts empty (the unreadable file is still kept as `plans.json.bad`) instead of loading the sample year.
+
+### Added
+
+- **Welcome guide.** The first launch shows what the app does and the four steps to a first schedule: school year, class, books and groups, then the schedule. "Create a school year" starts the first step. Settings → Help → **Getting started** shows it again.
+- **"Next step" cards** on empty screens say what to do next: create a school year on Home, add a class on the year and Classes screens, add books (or a group) on the class screen, and add books before a group's schedule can show pages. Each card goes away once its step is done.
+- **A note on every group's schedule** saying the schedule is plain arithmetic (each book's pages spread evenly over the lessons left), that it can't know how the class is really doing, and that teachers should go by what they actually teach and record it. It shows on screen only, not in Copy, Share or Print.
+
 ## [1.6.0] - 2026-10-15
 
 Back up your school years to a file and bring them back. Uninstalling the app deletes its school years, so export before you uninstall or change phones.
@@ -212,7 +227,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/tsampolion/course_planner/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tsampolion/course_planner/compare/v1.5.3...v1.6.0
 [1.5.3]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.3
 [1.5.2]: https://github.com/tsampolion/course_planner/pull/12

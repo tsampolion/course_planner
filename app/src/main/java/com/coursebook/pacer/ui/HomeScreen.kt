@@ -65,9 +65,12 @@ fun SchoolYear.dates(): String {
     return if (s != null && e != null) "${s.fmt()} – ${e.fmt()}" else "Dates not set"
 }
 
-/** The start screen: the logo at the top, the school-year picker in the middle, and Settings at the bottom right. */
+/**
+ * The start screen: the logo at the top, the school-year picker in the middle, and Settings at the bottom right.
+ * With [welcome], the welcome guide opens over it.
+ */
 @Composable
-fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, onDeleted: (String) -> Unit) {
+fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, welcome: Boolean, onDeleted: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
     // The year being renamed or deleted, by id.
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
@@ -96,7 +99,13 @@ fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, onDele
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Eyebrow("School year")
-                    if (years.isEmpty()) Hint("No school years yet. Add one to start planning.")
+                    if (years.isEmpty()) {
+                        GuideCard(
+                            "Create your school year",
+                            "Give it its first and last teaching day. The Greek public holidays can come in as days off, " +
+                                "and you can add your school's own days off later.",
+                        )
+                    }
                     years.forEach { y ->
                         YearRow(y, onOpen = { vm.openYear(y.id) }, onRename = { renaming = y.id }, onDelete = { deleting = y.id })
                     }
@@ -118,6 +127,7 @@ fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, onDele
         }
     }
 
+    if (welcome) WelcomeDialog(onStart = { adding = true }, onDismiss = vm::setWelcomeSeen)
     if (adding) NewYearDialog(data.years, vm) { adding = false }
     data.years.firstOrNull { it.id == renaming }?.let { y -> RenameYearDialog(y, vm) { renaming = null } }
     data.years.firstOrNull { it.id == deleting }?.let { y ->
