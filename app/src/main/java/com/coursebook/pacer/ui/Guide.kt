@@ -105,10 +105,16 @@ fun GuideCard(title: String, text: String, modifier: Modifier = Modifier, action
     }
 }
 
-/** What the schedule is: arithmetic, to be checked against the classroom. Shown above every group's schedule. */
-const val SCHEDULE_NOTE =
+/** What the schedule is: arithmetic, to be checked against the classroom. */
+private const val ARITHMETIC =
     "The schedule is arithmetic, not advice: it spreads each book's pages evenly over the lessons left. " +
-        "It can't know how your class is really doing, so go by what you actually teach and record it here as you go."
+        "It can't know how your class is really doing, so go by what you actually teach"
+
+/** Shown above every group's schedule. */
+const val SCHEDULE_NOTE = "$ARITHMETIC and record it here as you go."
+
+/** Printed under every group's heading on the printed sheet. */
+const val PRINT_NOTE = "$ARITHMETIC."
 
 /** A quiet note with a thin bar, for [SCHEDULE_NOTE]. */
 @Composable

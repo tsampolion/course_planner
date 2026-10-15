@@ -35,7 +35,7 @@ A fresh install now starts empty, with a short guide, instead of a made-up sampl
 
 - **Welcome guide.** The first launch shows what the app does and the four steps to a first schedule: school year, class, books and groups, then the schedule. "Create a school year" starts the first step. Settings → Help → **Getting started** shows it again.
 - **"Next step" cards** on empty screens say what to do next: create a school year on Home, add a class on the year and Classes screens, add books (or a group) on the class screen, and add books before a group's schedule can show pages. Each card goes away once its step is done.
-- **A note on every group's schedule** saying the schedule is plain arithmetic (each book's pages spread evenly over the lessons left), that it can't know how the class is really doing, and that teachers should go by what they actually teach and record it. It shows on screen only, not in Copy, Share or Print.
+- **A note on every group's schedule** saying the schedule is plain arithmetic (each book's pages spread evenly over the lessons left), that it can't know how the class is really doing, and that teachers should go by what they actually teach and record it. It also appears under each group's heading on the printed sheet (Print or save PDF), but not in Copy or Share.
 
 ## [1.6.0] - 2026-10-15
 
