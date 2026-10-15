@@ -31,6 +31,7 @@ Record the pages a lesson actually covered when it didn't go to plan.
 - Long-press a lesson and choose "Edit pages taught…" to type the pages it covered in each book, such as `5-8` or `5-8, 10`, or leave a book empty if you taught none of it. Each field starts with the lesson's planned pages (or the ones already recorded) and shows the plan underneath. Pages outside the book are refused.
 - Saving marks the lesson done with those pages. Pages it missed go back into the schedule, normally into the next lesson, and pages taught beyond the plan come off later lessons. Each book's remaining pages re-spread over the lessons left, by the same rule as ticking.
 - A lesson recorded with pages other than the plan's shows a small "edited" tag. Putting the planned pages back removes it.
+- `docs/PLANNED_FEATURES.md` describes features planned for later. The first is focus blocks: teaching one book on its own for a run of lessons (such as three grammar units), then going back to all the books.
 
 ### Changed
 
