@@ -1,5 +1,6 @@
 package com.coursebook.pacer.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -24,15 +28,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.coursebook.pacer.engine.fmt
 import com.coursebook.pacer.engine.short
@@ -44,10 +52,14 @@ import java.time.LocalDate
 /** One button on the year screen: where it goes, and a one-line summary of what is there. */
 private data class Tile(val title: String, val detail: String, val warn: Boolean = false, val onClick: () -> Unit)
 
-/** The open school year: a button for each part of it. */
+/**
+ * The open school year: a button for each part of it. In portrait the buttons stack, full width,
+ * so they stay readable on small phones; in landscape they sit in one row.
+ */
 @Composable
 fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
-    val context = LocalContext.current
+    var printing by rememberSaveable { mutableStateOf(false) }
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val problems = remember(year) { Nav.problems(year).size }
     val groups = year.classes.sumOf { it.groups.size }
     val tiles = listOf(
@@ -58,9 +70,7 @@ fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
         Tile("Overview", if (problems > 0) count(problems, "problem") else count(groups, "group"), warn = problems > 0) {
             vm.open(Screen.Overview)
         },
-        Tile("Print or save PDF", "Every group's schedule this year") {
-            PrintSheet.print(context, year.name, year.classes.map(year::planFor))
-        },
+        Tile("Print or save PDF", "Choose classes and margins") { printing = true },
     )
 
     Column(
@@ -70,22 +80,64 @@ fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
             .padding(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 16.dp, bottom = padding.calculateBottomPadding() + 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Two columns, centred and capped so tablets and landscape don't stretch the buttons.
-        Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            tiles.chunked(2).forEach { pair ->
-                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    pair.forEach { t -> TileButton(t, Modifier.weight(1f).fillMaxHeight()) }
-                }
+        // Centred and capped so tablets don't stretch the buttons.
+        if (landscape) {
+            Row(
+                Modifier.widthIn(max = 960.dp).fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                tiles.forEach { t -> TileButton(t, Modifier.weight(1f).fillMaxHeight()) }
+            }
+        } else {
+            Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                tiles.forEach { t -> TileButton(t, Modifier.fillMaxWidth(), minHeight = 72.dp) }
             }
         }
+    }
+
+    if (printing) PrintDialog(year) { printing = false }
+}
+
+/** Picks which classes to print, all by default, and the page margins. */
+@Composable
+private fun PrintDialog(year: SchoolYear, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val chosen = remember(year.id) { mutableStateListOf(*year.classes.map { it.id }.toTypedArray()) }
+    var margin by rememberSaveable { mutableStateOf(PrintMargin.NORMAL) }
+    AddDialogFrame(
+        "Print or save PDF",
+        canAdd = chosen.isNotEmpty(),
+        onAdd = { PrintSheet.print(context, year.name, year.classes.filter { it.id in chosen }.map(year::planFor), margin) },
+        onDismiss = onDismiss,
+        confirm = "Print",
+    ) {
+        Eyebrow("Classes")
+        if (year.classes.isEmpty()) Hint("No classes yet.")
+        year.classes.forEach { c ->
+            val on = c.id in chosen
+            Row(
+                Modifier.fillMaxWidth().toggleable(value = on, role = Role.Checkbox) { if (on) chosen.remove(c.id) else chosen.add(c.id) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(checked = on, onCheckedChange = null)
+                Text(c.name.ifBlank { "Class" }, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp))
+            }
+        }
+        Eyebrow("Margins")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PrintMargin.entries.forEach { m ->
+                FilterChip(selected = margin == m, onClick = { margin = m }, label = { Text(m.label) })
+            }
+        }
+        Hint("${margin.label}: ${margin.mm} mm on every side. Each group starts on a new page; the system print dialog then offers paper size, orientation and Save as PDF.")
     }
 }
 
 @Composable
-private fun TileButton(t: Tile, modifier: Modifier) {
+private fun TileButton(t: Tile, modifier: Modifier, minHeight: Dp = 96.dp) {
     Surface(
         onClick = t.onClick,
-        modifier = modifier.heightIn(min = 96.dp),
+        modifier = modifier.heightIn(min = minHeight),
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(1.dp, if (t.warn) Pacer.colors.warn else Pacer.colors.line),

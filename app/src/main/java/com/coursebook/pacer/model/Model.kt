@@ -14,7 +14,12 @@ data class Group(
     val from: LocalDate?,
     /** Book id to the next page this group teaches in that book. */
     val pos: Map<String, Int> = emptyMap(),
+    /** Lessons marked as taught, in date order. Their dates and pages leave the schedule. */
+    val done: List<DoneLesson> = emptyList(),
 )
+
+/** A lesson marked as taught: its date, and the pages it covered in each book (book id to pages). */
+data class DoneLesson(val date: LocalDate, val pages: Map<String, List<Int>> = emptyMap())
 
 data class Closure(
     val id: String,

@@ -2,6 +2,8 @@ package com.coursebook.pacer.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -82,8 +84,8 @@ fun Eyebrow(text: String) {
 }
 
 @Composable
-fun Hint(text: String, color: androidx.compose.ui.graphics.Color = Pacer.colors.muted) {
-    Text(text, style = MaterialTheme.typography.bodySmall, color = color)
+fun Hint(text: String, modifier: Modifier = Modifier, color: androidx.compose.ui.graphics.Color = Pacer.colors.muted) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = color, modifier = modifier)
 }
 
 /** A text field that keeps its own text while typing and hands each accepted value up. */
@@ -359,7 +361,7 @@ fun AddDialogFrame(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
-        text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { content() } },
+        text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() } },
         confirmButton = { TextButton(onClick = { onAdd(); onDismiss() }, enabled = canAdd) { Text(confirm) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )

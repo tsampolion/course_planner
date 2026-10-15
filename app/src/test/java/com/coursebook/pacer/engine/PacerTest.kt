@@ -3,6 +3,7 @@ package com.coursebook.pacer.engine
 import com.coursebook.pacer.model.ALL_GROUPS
 import com.coursebook.pacer.model.Book
 import com.coursebook.pacer.model.Closure
+import com.coursebook.pacer.model.DoneLesson
 import com.coursebook.pacer.model.Group
 import com.coursebook.pacer.model.Homework
 import com.coursebook.pacer.model.Plan
@@ -112,6 +113,72 @@ class PacerTest {
         val r2 = GroupReport(p2, g)
         assertEquals(9, r2.rows.size)
         assertEquals(18, r2.pages)
+    }
+
+    /** Parity: marking lessons done in order leaves the schedule the web page's rule gives. */
+    @Test fun markingDoneInOrderMatchesTheOldRule() {
+        val base = seedPlan()
+        for (g0 in base.groups) {
+            var old = g0
+            repeat(5) { old = GroupReport(base.copy(groups = listOf(old)), old).afterNextLesson()!! }
+            val oldRows = GroupReport(base.copy(groups = listOf(old)), old).rows
+
+            val r = GroupReport(base, g0)
+            val ticked = r.markDoneUpTo(r.rows[4].date)
+            assertEquals(5, ticked.done.size)
+            assertEquals(oldRows, GroupReport(base.copy(groups = listOf(ticked)), ticked).rows)
+
+            // One tick at a time gives the same as "up to here".
+            var one = g0
+            repeat(5) { val rr = GroupReport(base.copy(groups = listOf(one)), one); one = rr.markDone(setOf(rr.rows.first().date)) }
+            assertEquals(ticked, one)
+        }
+    }
+
+    @Test fun markingDoneWithATestMatchesTheOldRule() {
+        val p = plan(events = listOf(TestEvent("t", "Test", d("2027-03-03"), ALL_GROUPS, consumes = true)))
+        val g = p.groups[0]
+        val r = GroupReport(p, g)
+        val ticked = r.markDoneUpTo(d("2027-03-03"))
+        // The test day is done with no pages.
+        assertEquals(DoneLesson(d("2027-03-03")), ticked.done[1])
+        var a = g
+        repeat(2) { a = GroupReport(p.copy(groups = listOf(a)), a).afterNextLesson()!! }
+        assertEquals(GroupReport(p.copy(groups = listOf(a)), a).rows, GroupReport(p.copy(groups = listOf(ticked)), ticked).rows)
+    }
+
+    @Test fun markingOneLessonOutOfOrderRespreadsTheRest() {
+        val p = plan()
+        val g = p.groups[0]
+        val r = GroupReport(p, g)
+        // 20 pages over 10 lessons: two a lesson. Tick only the third (pages 5-6).
+        assertEquals(listOf(5, 6), r.rows[2].pages[0])
+        val ticked = r.markDone(setOf(r.rows[2].date))
+        assertEquals(listOf(DoneLesson(d("2027-03-08"), mapOf("b" to listOf(5, 6)))), ticked.done)
+
+        val after = GroupReport(p.copy(groups = listOf(ticked)), ticked)
+        assertEquals(9, after.lessons.size)
+        assertTrue(d("2027-03-08") !in after.lessons)
+        assertEquals(18, after.pages)
+        assertEquals(listOf(1, 2), after.rows[0].pages[0])
+        assertEquals(listOf(3, 4), after.rows[1].pages[0])
+        assertEquals(listOf(7, 8), after.rows[2].pages[0])
+        assertEquals(listOf(19, 20), after.rows.last().pages[0])
+
+        // Unticking puts everything back.
+        val back = ticked.unmarkDone(d("2027-03-08"))
+        assertEquals(g, back)
+        assertEquals(r.rows, GroupReport(p.copy(groups = listOf(back)), back).rows)
+    }
+
+    @Test fun unmarkingFromADateKeepsEarlierLessons() {
+        val p = plan()
+        val r = GroupReport(p, p.groups[0])
+        val g = r.markDoneUpTo(r.rows[3].date)
+        assertEquals(4, g.done.size)
+        assertEquals(listOf(d("2027-03-01"), d("2027-03-03")), g.unmarkDoneFrom(d("2027-03-08")).done.map { it.date })
+        // Marking an already-done date or a non-lesson day changes nothing.
+        assertEquals(g, GroupReport(p.copy(groups = listOf(g)), g).markDone(setOf(d("2027-03-01"), d("2027-03-02"))))
     }
 
     @Test fun verdictMeasuresAgainstSustainablePace() {

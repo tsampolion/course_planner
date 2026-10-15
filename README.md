@@ -9,15 +9,16 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 ## Features
 
 - **Home**: the logo, a picker for the school year, and Settings. Tap a year to open it, or add a new one (its name and dates are suggested, and the Greek public holidays can come as days off).
-- **School year**: buttons for Classes, School year settings, Overview, and Print or save PDF, each with a one-line summary.
+- **School year**: buttons for Classes, School year settings, Overview, and Print or save PDF, each with a one-line summary. They stack in portrait and sit in one row in landscape.
 - **School year settings**: the year's name, start and end dates, and days off for every class, one class or one group. One tap adds the Greek public holidays, which are worked out from Orthodox Easter. Delete the year (it asks first, and Home offers undo).
 - **Classes**: a class is a set of books taught to one or more groups. Add, open, rename or delete classes.
 - **Class**: lesson length and the pace in pages per lesson you can sustain; books (first and last page, skipped pages such as `8, 24-27`, and an optional finish-by date that re-paces only that book); groups (name, teaching weekdays, next-lesson date, and a reset for every group's position); and links to tests and homework.
 - **Tests and worksheets**: a test can take the whole lesson, which moves the pages forward, or run alongside it. The app warns when a test date isn't a lesson day.
 - **Homework already set**: those pages drop out of the lessons for that group.
 - **Overview**: every group in every class at a glance, with lessons and pages left, the pace needed, the verdict and the next lesson. The year's problems sit at the top and each links to the screen that fixes it.
-- **Group view**: a summary, a verdict (lessons to spare or the shortfall compared with your sustainable pace), and for each book the resume position, pages left and pace. Also lessons per month, and the lesson-by-lesson schedule grouped by month, with **Mark next lesson done**.
-- **Output**: copy a group's schedule as tab-separated text, share it, or print or save every group's schedule for the year as a PDF.
+- **Group view**: a summary, a verdict (lessons to spare or the shortfall compared with your sustainable pace), and for each book the resume position, pages left and pace. Also lessons per month, and the lesson-by-lesson schedule, either all months in one list or one month per tab (swipe between them).
+- **Done lessons**: tick a lesson once it's taught; it stays in the schedule, dimmed, with its pages. Long-press for "Done up to here" or "Not done from here". **Mark next lesson done** ticks the next one. Ticking out of order re-spreads the pages still to teach.
+- **Output**: copy a group's remaining schedule as tab-separated text, share it, or print or save schedules as a PDF, choosing the classes and the margins.
 - **Error list**: missing or reversed term dates, classes with no groups or books, groups with no days, bad page ranges, and finish-by dates that do nothing or leave no lesson.
 - **Undo**: up to 60 steps within the open school year, from every screen inside it.
 - **Settings**: light, dark or system theme, the lesson length and pace that new classes start with, and the app version.
