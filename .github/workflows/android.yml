@@ -47,9 +47,20 @@ jobs:
           EXPECTED_SHA256: ${{ vars.SIGNING_CERT_SHA256 }}
         shell: bash
         run: |
-          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n 1)apksigner"
+          # Pinned: the build-tools AGP 8.10 builds with. Newer apksigner versions print certificates differently.
+          apksigner="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          if [ ! -x "$apksigner" ]; then
+            echo "::error::$apksigner is missing; update the build-tools version in this step and in release.yml"
+            exit 1
+          fi
           apk=$(ls app/build/outputs/apk/release/*.apk)
-          digests=$("$apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #[0-9]* certificate SHA-256 digest: //p')
+          certs=$("$apksigner" verify --print-certs "$apk")
+          digests=$(printf '%s\n' "$certs" | sed -n 's/^Signer.* certificate SHA-256 digest: //p' | sort -u)
+          if [ -z "$digests" ]; then
+            echo "::error::apksigner printed no certificate digest:"
+            printf '%s\n' "$certs"
+            exit 1
+          fi
           digest=$(printf '%s\n' "$digests" | head -n 1)
           echo "Signing certificate SHA-256: \`$digest\`" | tee -a "$GITHUB_STEP_SUMMARY"
           if [ "$SIGNED_WITH_RELEASE_KEY" != "true" ] && [ "$GITHUB_REF" != "refs/heads/main" ]; then

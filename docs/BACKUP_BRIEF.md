@@ -6,7 +6,7 @@ This is the follow-up agreed while settling the signing key (`docs/SIGNING_BRIEF
 
 Read `CLAUDE.md` first; its rules are binding. School years live in `plans.json` in the app's private storage. Android backup covers it, but a restore can't be relied on, and it doesn't help across a change of signing key. Uninstalling deletes the file. Until now the app had no way to get the data out or back in, and `docs/BRIEF.md` already expected the web page's data to be importable one day.
 
-This feature can't save the data on phones that run a release from before 1.5.2: installing any newer build there needs an uninstall first (see the signing brief). From 1.5.2 on, releases install as updates, so 1.6.0 arrives as an update and the export is there before any later reinstall or change of phone.
+This feature can't save the data on phones that run a release from before 1.5.3, the first signed one: installing any newer build there needs an uninstall first (see the signing brief). From 1.5.3 on, releases install as updates, so 1.6.0 arrives as an update and the export is there before any later reinstall or change of phone.
 
 ## Goal
 
@@ -50,7 +50,7 @@ A teacher can save every school year to a file of their choice and read that fil
 5. **Tests:**
    - `BackupTest` covers the file name and the Add rule: distinct years; a clashing id; a clashing name; importing the same file twice; and the existing years left untouched.
    - `JsonCodec.readImport` needs the real `org.json`, which the JVM unit tests don't have, and adding it as a test dependency needs the owner's approval. It was checked in the build session with a temporary, uncommitted `org.json`: a round trip of the sample year, the web page's flat export, an empty list, a newer version and junk.
-6. **Docs and version:** README (features and the storage line), `CLAUDE.md` (`data/`), `docs/BRIEF.md` (import of the web page's data is now possible), `CHANGELOG.md`, and 1.6.0 (MINOR), `versionCode` 13.
+6. **Docs and version:** README (features and the storage line), `CLAUDE.md` (`data/`), `docs/BRIEF.md` (import of the web page's data is now possible), `CHANGELOG.md`, and 1.6.0 (MINOR), `versionCode` 14.
 
 ## Out of scope
 

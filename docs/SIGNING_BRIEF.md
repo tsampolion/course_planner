@@ -1,6 +1,6 @@
 # Task: Sign every release with one permanent key
 
-This is planned feature 2 from `docs/PLANNED_FEATURES.md` ("Permanent release signing key"), with the answers to its open questions folded in. Version 1.5.2 carries the code change. The key itself and the checks that need it are the owner's, on the laptop.
+This is planned feature 2 from `docs/PLANNED_FEATURES.md` ("Permanent release signing key"), with the answers to its open questions folded in. Version 1.5.2 carries the code change. It was never published: its certificate check read nothing from the newest `apksigner` on GitHub's runners. 1.5.3 pins `apksigner` to build-tools 35.0.0 and is the first signed release. The key itself and the checks that need it are the owner's, on the laptop.
 
 ## Context
 
