@@ -22,6 +22,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-15
+
+### Added
+
+- `docs/PLANNED_FEATURES.md` gains a second entry: signing every release with one permanent key, so each new release installs over the last and keeps your school years. Today every release is signed with a different key, so updating means uninstalling, which deletes the saved years. The entry sets out the process step by step, from creating and backing up the key on the owner's computer to the checks before and after the first signed release.
+
 ## [1.5.0] - 2026-10-15
 
 Record the pages a lesson actually covered when it didn't go to plan.
@@ -170,7 +176,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/tsampolion/course_planner/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/tsampolion/course_planner/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/tsampolion/course_planner/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/tsampolion/course_planner/compare/v1.4.0...v1.4.1
