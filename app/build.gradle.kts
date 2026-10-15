@@ -13,8 +13,8 @@ android {
         // 26 gives java.time without core-library desugaring and adaptive icons without PNG fallbacks.
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.5.3"
+        versionCode = 14
+        versionName = "1.6.0"
         // English only: drops the translated strings that Compose and AndroidX ship.
         resourceConfigurations += "en"
     }

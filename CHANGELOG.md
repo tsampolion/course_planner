@@ -22,6 +22,20 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-15
+
+Back up your school years to a file and bring them back. Uninstalling the app deletes its school years, so export before you uninstall or change phones.
+
+### Added
+
+- Settings has a "Back up and restore" section. **Export…** saves every school year to a file you choose, such as Downloads or Google Drive, named like `course-pacer-2026-10-15.json`. Settings aren't included.
+- **Import…** reads that file on this phone or another, and also reads the Coursebook Pacer web page's export. It shows how many school years the file holds and asks:
+  - **Add** puts them beside yours. A year whose name is already taken gets "(imported)" after it.
+  - **Replace all** keeps only the file's years.
+  - Either way, the snackbar offers Undo.
+- Import refuses a file it can't read, one with no school years, and one from a newer version of the app, and says why. Nothing changes on the phone.
+- `docs/BACKUP_BRIEF.md` records the decisions.
+
 ## [1.5.3] - 2026-10-15
 
 **The first release signed with the permanent key. Installing it needs one last uninstall, which deletes the school years on that phone. Every release after it installs as an update and keeps them.** Before you uninstall, note each year's dates, classes, books and positions so you can type them in again. 1.5.2 below describes the change; it was never published.
@@ -198,7 +212,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.3...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/tsampolion/course_planner/compare/v1.5.3...v1.6.0
 [1.5.3]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.3
 [1.5.2]: https://github.com/tsampolion/course_planner/pull/12
 [1.5.1]: https://github.com/tsampolion/course_planner/compare/v1.5.0...v1.5.1

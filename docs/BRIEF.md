@@ -40,7 +40,7 @@ The pacing rules live in the page's JavaScript. Port them to plain Kotlin and gi
 - Approved dependencies only: Compose BOM + Material 3, `activity-compose`, `lifecycle-viewmodel-ktx`, and JUnit for tests. Anything else needs approval first.
 - Use the platform where it can do the job: `org.json` for storage, `AtomicFile` for safe writes, `WebView` + `PrintManager` for PDF, the system clipboard and share sheet.
 - Size and speed: `minSdk 26` (so `java.time` needs no desugaring), R8 minification and resource shrinking, English resources only, framework theme rather than AppCompat, no icon library.
-- Data: save to one JSON file in app storage, debounced, plus a final save when the app goes to the background. Read the page's localStorage format too, so existing plans can be imported later.
+- Data: save to one JSON file in app storage, debounced, plus a final save when the app goes to the background. Read the page's localStorage format too, so existing plans can be imported later (since 1.6.0, Settings → Import reads it; see `docs/BACKUP_BRIEF.md`).
 
 ## Definition of done
 

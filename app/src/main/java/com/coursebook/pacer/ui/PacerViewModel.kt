@@ -4,8 +4,10 @@ import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.coursebook.pacer.data.JsonCodec
 import com.coursebook.pacer.data.PlanStore
 import com.coursebook.pacer.data.SettingsStore
+import com.coursebook.pacer.data.addYears
 import com.coursebook.pacer.engine.GroupReport
 import com.coursebook.pacer.engine.greekHolidays
 import com.coursebook.pacer.engine.markDone
@@ -231,6 +233,17 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
             activeClass = if (open) "" else d.activeClass,
         )
     }
+
+    // ---- back up and restore -----------------------------------------------
+
+    /** The file Export writes: every school year, in the format of the saved file. */
+    fun exportText(): String = JsonCodec.encode(data)
+
+    /** Puts imported years beside the ones here, in one undo step. Clashing ids and names are changed ([addYears]). */
+    fun addImportedYears(years: List<SchoolYear>) = edit { d -> d.copy(years = addYears(d.years, years)) }
+
+    /** Makes the imported years the only ones, in one undo step. No year stays open. */
+    fun replaceAllYears(years: List<SchoolYear>) = edit { d -> d.copy(years = years, activeYear = "", activeClass = "") }
 
     // ---- term --------------------------------------------------------------
 

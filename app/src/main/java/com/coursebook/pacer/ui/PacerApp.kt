@@ -144,7 +144,7 @@ private fun ScreenContent(
     val plan = data.plan
     when (s) {
         Screen.Home -> HomeScreen(data, vm, padding, onDeleted = { undoToast("Deleted “$it”") })
-        Screen.Settings -> SettingsScreen(settings, vm, padding)
+        Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
         Screen.Year -> YearScreen(year ?: return, vm, padding)
         Screen.YearSettings -> YearSettingsScreen(year ?: return, vm, padding, toast, onDeleted = { undoToast("Deleted “$it”") })
         Screen.Overview -> OverviewScreen(year ?: return, vm, padding)
