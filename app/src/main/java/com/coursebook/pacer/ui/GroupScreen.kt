@@ -30,6 +30,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -37,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,8 +64,10 @@ import com.coursebook.pacer.engine.eventsOn
 import com.coursebook.pacer.engine.fixed2
 import com.coursebook.pacer.engine.fmt
 import com.coursebook.pacer.engine.fmtShort
+import com.coursebook.pacer.engine.lessonPages
 import com.coursebook.pacer.engine.monthShort
 import com.coursebook.pacer.engine.plain
+import com.coursebook.pacer.engine.plannedPages
 import com.coursebook.pacer.engine.position
 import com.coursebook.pacer.engine.short
 import com.coursebook.pacer.engine.verdict
@@ -83,6 +87,8 @@ private data class Lesson(
     val blocked: Boolean,
     val cells: List<String>,
     val done: Boolean,
+    /** Recorded with pages other than the planned ones. */
+    val edited: Boolean = false,
 )
 
 /** One line of the all-months list: a month heading or a lesson. */
@@ -98,7 +104,7 @@ private fun lessonsOf(report: GroupReport): List<Lesson> {
     val done = g.done.map { d ->
         val events = plan.eventsOn(g, d.date)
         val blocked = d.pages.isEmpty() && events.any { it.consumes }
-        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true)
+        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited)
     }
     val upcoming = report.rows.map { r -> Lesson(0, r.date, r.events, r.blocked, r.cells, done = false) }
     return (done + upcoming).sortedBy { it.date }.mapIndexed { i, l -> l.copy(n = i + 1) }
@@ -107,6 +113,8 @@ private fun lessonsOf(report: GroupReport): List<Lesson> {
 /** What a long-press on a lesson offers, and what tapping its tick does. */
 private class LessonActions(
     val toggle: (LocalDate) -> Unit,
+    /** Opens "Pages taught" for the lesson. */
+    val edit: (Lesson) -> Unit,
     val upTo: (LocalDate) -> Unit,
     val notFrom: (LocalDate) -> Unit,
     /** Some lesson on or before this date is not done yet. */
@@ -132,9 +140,11 @@ fun GroupScreen(
     val lines = remember(months) {
         months.flatMap { (m, ls) -> listOf<Line>(Line.Month(m)) + ls.map { Line.Item(it) } }
     }
+    var editing by remember(g.id) { mutableStateOf<Lesson?>(null) }
     val actions = remember(lessons, g.id) {
         LessonActions(
             toggle = { vm.toggleLesson(g.id, it) },
+            edit = { editing = it },
             upTo = { vm.markDoneUpTo(g.id, it) },
             notFrom = { vm.unmarkDoneFrom(g.id, it) },
             canUpTo = { d -> lessons.any { !it.done && !it.date.isAfter(d) } },
@@ -174,7 +184,10 @@ fun GroupScreen(
         }
         item(key = "tickhint") {
             Box(Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 6.dp)) {
-                Hint("Tick a lesson once it's taught. Long-press a lesson to mark everything up to it, or to undo from it.")
+                Hint(
+                    "Tick a lesson once it's taught. Long-press a lesson to change the pages it covered, " +
+                        "to mark everything up to it, or to undo from it.",
+                )
             }
         }
         if (lessons.isEmpty()) {
@@ -216,6 +229,8 @@ fun GroupScreen(
             }
         }
     }
+
+    editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it) }, { editing = null }) }
 }
 
 private val TickW = 40.dp
@@ -257,6 +272,7 @@ private fun MonthRow(first: LocalDate) {
 private fun LessonLine(l: Lesson, actions: LessonActions) {
     val names = l.events.joinToString(" · ") { it.name }
     var menu by remember { mutableStateOf(false) }
+    val edit = "Edit pages taught…"
     val upTo = "Done up to here"
     val notFrom = "Not done from here"
     Box {
@@ -268,6 +284,7 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                     .pointerInput(l.date) { detectTapGestures(onLongPress = { menu = true }) }
                     .semantics {
                         customActions = listOf(
+                            CustomAccessibilityAction(edit) { actions.edit(l); true },
                             CustomAccessibilityAction(upTo) { actions.upTo(l.date); true },
                             CustomAccessibilityAction(notFrom) { actions.notFrom(l.date); true },
                         )
@@ -288,6 +305,7 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                     Column(Modifier.width(DateW)) {
                         Text("${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", fontSize = 13.sp)
                         if (!l.blocked && names.isNotEmpty()) Tag(names, Modifier.padding(top = 2.dp))
+                        if (l.edited) Tag("edited", Modifier.padding(top = 2.dp))
                     }
                     if (l.blocked) {
                         Text(names, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, modifier = Modifier.weight(1f))
@@ -299,8 +317,53 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
             HorizontalDivider(color = Pacer.colors.line)
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            DropdownMenuItem(text = { Text(edit) }, onClick = { menu = false; actions.edit(l) })
             DropdownMenuItem(text = { Text(upTo) }, enabled = actions.canUpTo(l.date), onClick = { menu = false; actions.upTo(l.date) })
             DropdownMenuItem(text = { Text(notFrom) }, enabled = actions.canNotFrom(l.date), onClick = { menu = false; actions.notFrom(l.date) })
+        }
+    }
+}
+
+/**
+ * The pages a lesson covered, one field per book, prefilled with what it covered or is planned to.
+ * Saving marks it done with those pages; the pages still to teach re-spread over the lessons left.
+ */
+@Composable
+private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<String, List<Int>>) -> Unit, onDismiss: () -> Unit) {
+    val books = report.plan.books
+    val planned = remember(report, l.date) { report.plannedPages(l.date).orEmpty() }
+    val texts = remember(report.group.id, l.date) {
+        val now = report.group.done.firstOrNull { it.date == l.date }?.pages ?: planned
+        mutableStateListOf(*books.map { b -> now[b.id]?.let(::collapse).orEmpty() }.toTypedArray())
+    }
+    val parsed = books.mapIndexed { i, b -> lessonPages(texts[i], b) }
+    AddDialogFrame(
+        title = "Lesson ${l.n} · ${l.date.dayOfWeek.short()} ${l.date.fmtShort()}",
+        canAdd = parsed.all { it != null },
+        onAdd = { onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() }) },
+        onDismiss = onDismiss,
+        confirm = "Save",
+    ) {
+        Hint(
+            "Pages taught from each book, like 5-8, 10. Leave a book empty if you taught none. " +
+                "Pages left out go back into the schedule, and extra pages come off later lessons." +
+                if (l.done) "" else " Saving marks the lesson done.",
+        )
+        books.forEachIndexed { i, b ->
+            val bad = parsed[i] == null
+            OutlinedTextField(
+                value = texts[i],
+                onValueChange = { texts[i] = it },
+                label = { Text(b.name) },
+                placeholder = { Text("none") },
+                singleLine = true,
+                isError = bad,
+                supportingText = {
+                    Text(if (bad) "Use pages ${b.first}–${b.last}, like 5-8, 10" else "Planned: ${collapse(planned[b.id].orEmpty())}")
+                },
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono),
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }

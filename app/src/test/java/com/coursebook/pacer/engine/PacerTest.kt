@@ -181,6 +181,78 @@ class PacerTest {
         assertEquals(g, GroupReport(p.copy(groups = listOf(g)), g).markDone(setOf(d("2027-03-01"), d("2027-03-02"))))
     }
 
+    /** The teacher covers more of two books than planned and none of the third. */
+    @Test fun recordingOtherPagesRespreadsTheRest() {
+        val p = plan(books = listOf(Book("s", "Student's", 1, 20), Book("gr", "Grammar", 2, 21), Book("w", "Workbook", 6, 15)))
+        val g = p.groups[0]
+        val r = GroupReport(p, g)
+        val third = r.rows[2]
+        assertEquals(listOf(listOf(5, 6), listOf(6, 7), listOf(8)), third.pages)
+
+        // Lessons 1 and 2 as planned; lesson 3 teaches Student's 5-8, Grammar 6-8 and no Workbook.
+        val two = r.markDoneUpTo(r.rows[1].date)
+        val r2 = GroupReport(p.copy(groups = listOf(two)), two)
+        assertEquals(mapOf("s" to listOf(5, 6), "gr" to listOf(6, 7), "w" to listOf(8)), r2.plannedPages(third.date))
+        val taught = mapOf("s" to listOf(5, 6, 7, 8), "gr" to listOf(6, 7, 8), "w" to emptyList())
+        val ticked = r2.recordLesson(third.date, taught)!!
+        assertEquals(DoneLesson(third.date, mapOf("s" to listOf(5, 6, 7, 8), "gr" to listOf(6, 7, 8)), edited = true), ticked.done.last())
+
+        // The pages still to teach re-spread over the seven lessons left; Workbook 8 comes first.
+        val after = GroupReport(p.copy(groups = listOf(ticked)), ticked)
+        assertEquals(7, after.lessons.size)
+        assertEquals((9..20).toList(), after.rows.flatMap { it.pages[0] })
+        assertEquals((9..21).toList(), after.rows.flatMap { it.pages[1] })
+        assertEquals((8..15).toList(), after.rows.flatMap { it.pages[2] })
+        assertEquals(listOf(8), after.rows[0].pages[2])
+
+        // The same schedule as moving the positions by hand to where the lesson left off.
+        val byHand = g.copy(pos = mapOf("s" to 9, "gr" to 9, "w" to 8), from = r.rows[3].date)
+        assertEquals(GroupReport(p.copy(groups = listOf(byHand)), byHand).rows, after.rows)
+    }
+
+    @Test fun recordingThePlannedPagesIsATick() {
+        val p = plan()
+        val r = GroupReport(p, p.groups[0])
+        val date = r.rows[2].date
+        val ticked = r.markDone(setOf(date))
+        assertEquals(ticked, r.recordLesson(date, mapOf("b" to listOf(6, 5))))
+
+        // Editing a done lesson, then putting the planned pages back, clears the flag again.
+        val edited = r.recordLesson(date, mapOf("b" to listOf(5, 6, 7)))!!
+        val re = GroupReport(p.copy(groups = listOf(edited)), edited)
+        assertEquals(mapOf("b" to listOf(5, 6)), re.plannedPages(date))
+        assertEquals(ticked, re.recordLesson(date, mapOf("b" to listOf(5, 6))))
+        // Saving a done lesson unchanged keeps it as it is.
+        assertEquals(edited, re.recordLesson(date, mapOf("b" to listOf(5, 6, 7))))
+
+        // Unknown books are dropped, and a day with no lesson can't be recorded.
+        assertEquals(ticked, r.recordLesson(date, mapOf("b" to listOf(5, 6), "gone" to listOf(1))))
+        assertEquals(null, r.recordLesson(d("2027-03-02"), mapOf("b" to listOf(1))))
+    }
+
+    @Test fun recordingPagesOnATestDayTeachesThem() {
+        val p = plan(events = listOf(TestEvent("t", "Test", d("2027-03-03"), ALL_GROUPS, consumes = true)))
+        val r = GroupReport(p, p.groups[0])
+        assertEquals(emptyMap<String, List<Int>>(), r.plannedPages(d("2027-03-03")))
+        val g = r.recordLesson(d("2027-03-03"), mapOf("b" to listOf(1)))!!
+        assertEquals(DoneLesson(d("2027-03-03"), mapOf("b" to listOf(1)), edited = true), g.done.single())
+        val after = GroupReport(p.copy(groups = listOf(g)), g)
+        assertEquals(19, after.pages)
+        assertEquals((2..20).toList(), after.rows.flatMap { it.pages[0] })
+    }
+
+    @Test fun lessonPagesReadsPagesInTheBook() {
+        val b = Book("b", "Book", 5, 20)
+        assertEquals(listOf(5, 6, 7, 8, 10), lessonPages("8-5, 10; 6", b))
+        assertEquals(listOf(5, 6, 7), lessonPages(" 5–7 ", b))
+        assertEquals(emptyList<Int>(), lessonPages("", b))
+        assertEquals(emptyList<Int>(), lessonPages(" , ", b))
+        assertEquals(null, lessonPages("4", b))
+        assertEquals(null, lessonPages("19-21", b))
+        assertEquals(null, lessonPages("6, p7", b))
+        assertEquals(null, lessonPages("6-", b))
+    }
+
     @Test fun verdictMeasuresAgainstSustainablePace() {
         val fits = GroupReport(plan(), plan().groups[0]).verdict()
         assertEquals(Verdict.Fits(0.0, 2.0), fits)

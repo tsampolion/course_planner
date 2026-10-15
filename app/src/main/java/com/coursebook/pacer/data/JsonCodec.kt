@@ -22,11 +22,12 @@ import org.json.JSONObject
  * Dates are ISO strings and weekdays use the web page's numbering (0 = Sunday).
  *
  * Version 2 stores school years, each with its classes; version 3 adds each group's done lessons
- * (missing reads as none). Version 1 files and the web page's localStorage export store a flat
+ * (missing reads as none); version 4 flags done lessons whose pages the teacher recorded by hand
+ * (missing reads as not). Version 1 files and the web page's localStorage export store a flat
  * list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    private const val VERSION = 3
+    private const val VERSION = 4
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -106,6 +107,7 @@ object JsonCodec {
             .put("done", JSONArray(g.done.map { l ->
                 JSONObject().put("date", l.date.toString())
                     .put("pages", JSONObject(l.pages.filterValues { it.isNotEmpty() }.mapValues { collapse(it.value) } as Map<*, *>))
+                    .apply { if (l.edited) put("edited", true) }
             }))
     })
 
@@ -120,7 +122,11 @@ object JsonCodec {
             done = g.optJSONArray("done").objects().mapNotNull { l ->
                 val date = l.date("date") ?: return@mapNotNull null
                 val pages = l.optJSONObject("pages")
-                DoneLesson(date, pages?.names().strings().associateWith { parseRanges(pages!!.optString(it)).sorted() }.filterValues { it.isNotEmpty() })
+                DoneLesson(
+                    date,
+                    pages?.names().strings().associateWith { parseRanges(pages!!.optString(it)).sorted() }.filterValues { it.isNotEmpty() },
+                    l.optBoolean("edited", false),
+                )
             }.sortedBy { it.date },
         )
     }

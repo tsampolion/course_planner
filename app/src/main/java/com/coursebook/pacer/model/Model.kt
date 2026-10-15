@@ -18,8 +18,11 @@ data class Group(
     val done: List<DoneLesson> = emptyList(),
 )
 
-/** A lesson marked as taught: its date, and the pages it covered in each book (book id to pages). */
-data class DoneLesson(val date: LocalDate, val pages: Map<String, List<Int>> = emptyMap())
+/**
+ * A lesson marked as taught: its date, and the pages it covered in each book (book id to pages).
+ * [edited] is true when the teacher recorded pages other than the ones the schedule gave it.
+ */
+data class DoneLesson(val date: LocalDate, val pages: Map<String, List<Int>> = emptyMap(), val edited: Boolean = false)
 
 data class Closure(
     val id: String,

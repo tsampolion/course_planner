@@ -22,6 +22,21 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-15
+
+Record the pages a lesson actually covered when it didn't go to plan.
+
+### Added
+
+- Long-press a lesson and choose "Edit pages taught…" to type the pages it covered in each book, such as `5-8` or `5-8, 10`, or leave a book empty if you taught none of it. Each field starts with the lesson's planned pages (or the ones already recorded) and shows the plan underneath. Pages outside the book are refused.
+- Saving marks the lesson done with those pages. Pages it missed go back into the schedule, normally into the next lesson, and pages taught beyond the plan come off later lessons. Each book's remaining pages re-spread over the lessons left, by the same rule as ticking.
+- A lesson recorded with pages other than the plan's shows a small "edited" tag. Putting the planned pages back removes it.
+
+### Changed
+
+- The saved file is version 4: a done lesson can carry an `edited` flag. Version 1 to 3 files and the web page's export still load.
+- Ticking lessons that went to plan works as before, and schedules with no edited lessons are unchanged.
+
 ## [1.4.2] - 2026-10-15
 
 ### Fixed
@@ -154,7 +169,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/tsampolion/course_planner/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/tsampolion/course_planner/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/tsampolion/course_planner/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/tsampolion/course_planner/compare/v1.3.0...v1.4.0

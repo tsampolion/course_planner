@@ -10,6 +10,7 @@ import com.coursebook.pacer.engine.GroupReport
 import com.coursebook.pacer.engine.greekHolidays
 import com.coursebook.pacer.engine.markDone
 import com.coursebook.pacer.engine.markDoneUpTo
+import com.coursebook.pacer.engine.recordLesson
 import com.coursebook.pacer.engine.unmarkDone
 import com.coursebook.pacer.engine.unmarkDoneFrom
 import com.coursebook.pacer.model.ALL_GROUPS
@@ -334,6 +335,11 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     /** Ticks or unticks the lesson on [date] on its own. */
     fun toggleLesson(groupId: String, date: LocalDate) = editLessons(groupId) { r, g ->
         if (g.done.any { it.date == date }) g.unmarkDone(date) else r.markDone(setOf(date))
+    }
+
+    /** Marks the lesson on [date] done as having covered [pages] (book id to pages), in place of the planned ones. */
+    fun recordLesson(groupId: String, date: LocalDate, pages: Map<String, List<Int>>) = editLessons(groupId) { r, g ->
+        r.recordLesson(date, pages) ?: g
     }
 
     fun markDoneUpTo(groupId: String, date: LocalDate) = editLessons(groupId) { r, _ -> r.markDoneUpTo(date) }
