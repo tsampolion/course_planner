@@ -14,6 +14,7 @@ class SettingsStore(context: Context) {
         // A string, not a float, so 4.1 reads back as 4.1.
         pace = prefs.getString(PACE, null)?.toDoubleOrNull() ?: Settings.DEFAULT_PACE,
         scheduleByMonth = prefs.getBoolean(BY_MONTH, false),
+        welcomeSeen = prefs.getBoolean(WELCOME, false),
     ).sanitised()
 
     fun save(s: Settings) {
@@ -22,6 +23,7 @@ class SettingsStore(context: Context) {
             .putInt(MINS, s.lessonMins)
             .putString(PACE, s.pace.toString())
             .putBoolean(BY_MONTH, s.scheduleByMonth)
+            .putBoolean(WELCOME, s.welcomeSeen)
             .apply()
     }
 
@@ -32,5 +34,6 @@ class SettingsStore(context: Context) {
         const val MINS = "lessonMins"
         const val PACE = "pace"
         const val BY_MONTH = "scheduleByMonth"
+        const val WELCOME = "welcomeSeen"
     }
 }

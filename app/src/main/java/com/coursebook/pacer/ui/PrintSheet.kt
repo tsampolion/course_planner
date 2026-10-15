@@ -47,7 +47,8 @@ object PrintSheet {
             """
             body{font:10pt sans-serif;color:#000;margin:0}
             h3{font:600 14pt Georgia,serif;margin:0 0 2px}
-            .meta{font:9pt monospace;color:#333;margin-bottom:8px}
+            .meta{font:9pt monospace;color:#333;margin-bottom:4px}
+            .note{font:italic 8pt sans-serif;color:#555;margin-bottom:8px}
             table{border-collapse:collapse;width:100%;border:1px solid #aaa}
             th{text-align:left;font-size:8pt;letter-spacing:.06em;text-transform:uppercase;color:#333;padding:4px 8px;border-bottom:1px solid #aaa}
             td{padding:3px 8px;border-bottom:1px solid #ddd;white-space:nowrap}
@@ -66,6 +67,7 @@ object PrintSheet {
             if (r.blocked > 0) append(" (").append(r.blocked).append(" for tests)")
             append(" · ").append(r.pages).append(" pages · ").append(r.rate.fixed2()).append(" per teaching lesson · ")
             append(r.rows.first().date.fmt()).append(" to ").append(r.rows.last().date.fmt()).append("</div>")
+            append("<div class=note>").append(esc(PRINT_NOTE)).append("</div>")
             append("<table><thead><tr><th>#</th><th>Date</th>")
             plan.books.forEach { append("<th>").append(esc(it.name)).append("</th>") }
             append("</tr></thead><tbody>")

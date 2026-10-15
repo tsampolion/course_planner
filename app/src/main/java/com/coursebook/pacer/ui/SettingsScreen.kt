@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +68,7 @@ fun SettingsScreen(
     undoToast: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    var guide by rememberSaveable { mutableStateOf(false) }
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
     }
@@ -104,6 +106,11 @@ fun SettingsScreen(
             }
         }
         item(key = "backup") { BackupSection(yearCount, vm, toast, undoToast) }
+        item(key = "help") {
+            Section("Help") {
+                Column { LinkRow("Getting started", "What the app does, and the steps to a first schedule") { guide = true } }
+            }
+        }
         item(key = "about") {
             Section("About") {
                 Text("$APP_NAME $version", style = MaterialTheme.typography.bodyLarge)
@@ -112,6 +119,8 @@ fun SettingsScreen(
             }
         }
     }
+
+    if (guide) WelcomeDialog(onStart = null) { guide = false }
 }
 
 /** Export saves every school year to a file the teacher picks; Import reads one back after asking Add or Replace all. */

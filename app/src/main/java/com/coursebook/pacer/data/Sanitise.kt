@@ -11,7 +11,7 @@ import com.coursebook.pacer.model.newId
  * one done lesson per date, and ids that are unique where the screens list them. A repeated id gets a
  * new one; the first item with it keeps the days off, homework and positions aimed at it.
  * It also moves each group's next lesson past the lessons ticked in order ([settleNextLesson]): files from
- * 1.4.0 to 1.6.0 left it at the term start, so a later calendar edit brought past lessons back.
+ * 1.4.0 to 1.7.0 left it at the term start, so a later calendar edit brought past lessons back.
  * Other files the app saved itself come through unchanged. Pure Kotlin, so it is unit-tested without org.json.
  */
 fun sanitiseYears(years: List<SchoolYear>): List<SchoolYear> =

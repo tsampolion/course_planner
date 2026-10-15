@@ -83,6 +83,15 @@ fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
             .padding(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 16.dp, bottom = padding.calculateBottomPadding() + 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        if (year.classes.isEmpty()) {
+            GuideCard(
+                "Add your first class",
+                "A class is a set of books taught to one or more groups, like B1 Senior. " +
+                    "Check the term dates and days off in School year settings too.",
+                Modifier.widthIn(max = 480.dp).padding(bottom = 12.dp),
+                action = "Open Classes" to { vm.open(Screen.Classes) },
+            )
+        }
         // Centred and capped so tablets don't stretch the buttons.
         if (landscape) {
             Row(
@@ -253,6 +262,15 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
 
     ScreenList(padding, spacing = 10.dp) {
         item(key = "hint") { Hint("A class is a set of books taught to one or more groups. Each group keeps its own days and place in the books.") }
+        if (year.classes.isEmpty()) {
+            item(key = "guide") {
+                GuideCard(
+                    "Add your first class",
+                    "Tap New class below and give it a name. It starts with one group, Group A, taught on Mon, Wed and Fri; " +
+                        "you add its books and change its days on the class screen.",
+                )
+            }
+        }
         items(year.classes, key = { it.id }) { c ->
             val n = problems[c.id] ?: 0
             val groups = c.groups.joinToString(", ") { it.name }.ifEmpty { "No groups" }

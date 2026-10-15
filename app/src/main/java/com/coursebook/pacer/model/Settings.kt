@@ -11,7 +11,7 @@ enum class ThemeMode {
 
 /**
  * App-level preferences. They live outside the school years, so undo never touches them.
- * The new-class defaults match the sample class, so a fresh install behaves as before.
+ * The new-class defaults match the class the app used to start with (75-minute lessons, 4 pages each).
  */
 data class Settings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
@@ -21,6 +21,8 @@ data class Settings(
     val pace: Double = DEFAULT_PACE,
     /** Schedules show one month at a time, in tabs, instead of every month in one list. */
     val scheduleByMonth: Boolean = false,
+    /** The welcome guide was shown and closed, so a launch with no school years doesn't show it again. */
+    val welcomeSeen: Boolean = false,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(

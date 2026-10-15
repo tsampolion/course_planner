@@ -44,12 +44,13 @@ import java.time.LocalDate
 
 /**
  * The scrolling body every class-editing screen shares, with the problems this screen fixes on top.
- * The class screen also lists term problems, linked to School year settings.
+ * The class screen also lists term problems, linked to School year settings. [hide] is a problem
+ * a "Next step" card already explains.
  */
 @Composable
-private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: PaddingValues, content: LazyListScope.() -> Unit) {
-    val problems = remember(plan) {
-        Nav.problems(plan).filter { it.fix == screen || (screen == Screen.Class && it.fix == Screen.YearSettings) }
+private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: PaddingValues, hide: String? = null, content: LazyListScope.() -> Unit) {
+    val problems = remember(plan, hide) {
+        Nav.problems(plan).filter { (it.fix == screen || (screen == Screen.Class && it.fix == Screen.YearSettings)) && it.text != hide }
     }
     ScreenList(padding) {
         items(problems) { p -> ErrorBox(p.text, onFix = p.fix?.takeIf { it != screen }?.let { f -> { vm.open(f) } }) }
@@ -63,7 +64,30 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
     var addingBook by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
     var resetting by rememberSaveable { mutableStateOf(false) }
-    EditList(plan, Screen.Class, vm, padding) {
+    // A new class has a group but no books; the card replaces the red "Add at least one book." problem.
+    val hide = when {
+        plan.books.isEmpty() -> NO_BOOKS
+        plan.groups.isEmpty() -> NO_GROUPS
+        else -> null
+    }
+    EditList(plan, Screen.Class, vm, padding, hide) {
+        when (hide) {
+            NO_BOOKS -> item(key = "guide") {
+                GuideCard(
+                    "Add the books you teach from",
+                    "Add each coursebook with its first and last page, like Student's Book pp. 1–160. Each book is paced on its own. " +
+                        "Then check each group's lesson days below and tap Open schedule.",
+                    action = "Add a book" to { addingBook = true },
+                )
+            }
+            NO_GROUPS -> item(key = "guide") {
+                GuideCard(
+                    "Add a group",
+                    "A group is a set of students taught from these books, with its own lesson days and place in the books.",
+                    action = "Add group" to vm::addGroup,
+                )
+            }
+        }
         item(key = "class") {
             Section("Class") {
                 CommitField(plan.name, vm::renameClass, "Name", Modifier.fillMaxWidth())
@@ -123,6 +147,10 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
         ConfirmDelete(plan.name.ifBlank { "Class" }, "Its groups, books, tests and homework go too. Undo brings them back.", vm::deleteClass) { deleting = false }
     }
 }
+
+/** The problems ([Plan.problems]) that the class screen's "Next step" card covers. */
+private const val NO_BOOKS = "Add at least one book."
+private const val NO_GROUPS = "Add at least one group."
 
 @Composable
 private fun GroupEditor(plan: Plan, g: Group, vm: PacerViewModel) {

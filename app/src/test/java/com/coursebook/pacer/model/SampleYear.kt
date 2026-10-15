@@ -7,13 +7,11 @@ import java.time.DayOfWeek.THURSDAY
 import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
-import kotlin.random.Random
 
-private const val ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789"
-
-fun newId(): String = (1..7).map { ID_CHARS[Random.nextInt(ID_CHARS.length)] }.joinToString("")
-
-/** The starting year: the Greek 2026-27 school year with one class of two groups and three books. */
+/**
+ * The sample year the app used to start with, kept as a test fixture: the Greek 2026-27 school year with one class
+ * of two groups and three books. Since 1.7.0 a fresh install starts with no years.
+ */
 fun seedYear(): SchoolYear {
     fun d(s: String) = LocalDate.parse(s)
     fun off(label: String, from: String, to: String = from, who: String = ALL_GROUPS) =
@@ -64,19 +62,3 @@ fun seedYear(): SchoolYear {
 
 /** The sample class as the engine sees it. */
 fun seedPlan(): Plan = seedYear().let { it.planFor(it.classes.first()) }
-
-fun seedData(): AppData = AppData(years = listOf(seedYear()))
-
-/** What the "New school year" form starts with. */
-data class YearDraft(val name: String, val start: LocalDate, val end: LocalDate)
-
-/**
- * The year after the latest one already planned, or the one under way on [today] if that is later.
- * A school year counts as under way from July. Dates run from 1 September to 31 May.
- */
-fun suggestYear(years: List<SchoolYear>, today: LocalDate): YearDraft {
-    val current = if (today.monthValue >= 7) today.year else today.year - 1
-    val next = years.mapNotNull { it.start?.year }.maxOrNull()?.plus(1) ?: current
-    val y = maxOf(current, next)
-    return YearDraft("$y–" + ((y + 1) % 100).toString().padStart(2, '0'), LocalDate.of(y, 9, 1), LocalDate.of(y + 1, 5, 31))
-}

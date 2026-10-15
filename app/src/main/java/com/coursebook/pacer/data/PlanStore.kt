@@ -3,22 +3,24 @@ package com.coursebook.pacer.data
 import android.util.AtomicFile
 import android.util.Log
 import com.coursebook.pacer.model.AppData
-import com.coursebook.pacer.model.seedData
 import java.io.File
 import java.io.FileOutputStream
 
-/** Keeps every plan in one JSON file in app storage. Writes are atomic, so a crash never leaves half a file. */
+/**
+ * Keeps every plan in one JSON file in app storage. Writes are atomic, so a crash never leaves half a file.
+ * A fresh install, or a file that can't be read, starts with no school years.
+ */
 class PlanStore(dir: File) {
     private val file = AtomicFile(File(dir, "plans.json"))
 
     fun load(): AppData = try {
         JsonCodec.decode(file.readFully().decodeToString())
     } catch (e: java.io.FileNotFoundException) {
-        seedData()
+        EMPTY
     } catch (e: Exception) {
-        Log.w(TAG, "Unreadable plans file, kept as plans.json.bad; starting from the sample plan", e)
+        Log.w(TAG, "Unreadable plans file, kept as plans.json.bad; starting with no school years", e)
         runCatching { file.baseFile.copyTo(File(file.baseFile.path + ".bad"), overwrite = true) }
-        seedData()
+        EMPTY
     }
 
     /**
@@ -41,5 +43,6 @@ class PlanStore(dir: File) {
 
     private companion object {
         const val TAG = "PlanStore"
+        val EMPTY = AppData(years = emptyList())
     }
 }

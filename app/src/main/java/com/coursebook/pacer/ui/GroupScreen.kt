@@ -184,11 +184,15 @@ fun GroupScreen(
             }
         }
         item(key = "tickhint") {
-            Box(Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 6.dp)) {
+            Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Note(SCHEDULE_NOTE)
                 Hint(
                     "Tick a lesson once it's taught. Long-press a lesson to change the pages it covered, " +
                         "to mark everything up to it, or to undo from it.",
                 )
+                if (plan.books.isEmpty()) {
+                    GuideCard("Add this class's books", "Each lesson shows its pages once the class has books. Add them on the class screen.")
+                }
             }
         }
         if (lessons.isEmpty()) {

@@ -57,7 +57,7 @@ class SanitiseTest {
         assertEquals(c.groups.first().id, out[0].classes[0].groups.first().id)
     }
 
-    /** Files from 1.4.0 to 1.6.0 kept the term start as the next lesson after ticking. */
+    /** Files from 1.4.0 to 1.7.0 kept the term start as the next lesson after ticking. */
     @Test fun lessonsTickedInOrderMoveTheNextLessonOnRead() {
         val y = seedYear()
         val c = y.classes.first()

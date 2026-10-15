@@ -201,6 +201,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setDefaultMins(v: Int) = editSettings { it.copy(lessonMins = v) }
     fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }
     fun setScheduleByMonth(v: Boolean) = editSettings { it.copy(scheduleByMonth = v) }
+    fun setWelcomeSeen() = editSettings { it.copy(welcomeSeen = true) }
 
     // ---- school years ------------------------------------------------------
 
