@@ -10,6 +10,7 @@ import com.coursebook.pacer.model.Plan
 import com.coursebook.pacer.model.TestEvent
 import com.coursebook.pacer.model.seedPlan
 import java.time.DayOfWeek.MONDAY
+import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
@@ -133,6 +134,49 @@ class PacerTest {
             repeat(5) { val rr = GroupReport(base.copy(groups = listOf(one)), one); one = rr.markDone(setOf(rr.rows.first().date)) }
             assertEquals(ticked, one)
         }
+    }
+
+    /** Lessons ticked in order stay taught when the calendar changes later, as with the web page's rule. */
+    @Test fun tickedLessonsStayPastWhenTheCalendarChanges() {
+        val base = seedPlan()
+        val g0 = base.groups[0]
+        val r = GroupReport(base, g0)
+        // Monday, Wednesday and Friday lessons up to Friday 30 October, across the Ohi Day closure on the 28th.
+        val last = r.rows[21].date
+        assertEquals(d("2026-10-30"), last)
+        val ticked = r.markDoneUpTo(last)
+        assertEquals(last.plusDays(1), ticked.from)
+
+        // Adding Tuesday brings back no past Tuesday, and gives what moving on lesson by lesson gives.
+        var old = g0
+        repeat(22) { old = GroupReport(base.copy(groups = listOf(old)), old).afterNextLesson()!! }
+        val now = ticked.copy(days = ticked.days + TUESDAY)
+        val was = old.copy(days = old.days + TUESDAY)
+        val rows = GroupReport(base.copy(groups = listOf(now)), now).rows
+        assertEquals(d("2026-11-02"), rows.first().date)
+        assertEquals(GroupReport(base.copy(groups = listOf(was)), was).rows, rows)
+
+        // Removing a day off that is past doesn't bring it back either.
+        val open = base.copy(closures = base.closures.filter { it.label != "Ohi Day" })
+        assertTrue(d("2026-10-28") !in GroupReport(open, ticked).lessons)
+    }
+
+    @Test fun untickingPutsTheNextLessonBack() {
+        val p = plan()
+        val g0 = p.groups[0]
+        val r = GroupReport(p, g0)
+        val g = r.markDoneUpTo(r.rows[3].date)
+        assertEquals(d("2027-03-11"), g.from)
+
+        // Unticking Wednesday 3 March returns it as the next lesson, with the pages it would get back.
+        assertEquals(mapOf("b" to listOf(3, 4)), GroupReport(p.copy(groups = listOf(g)), g).plannedPages(d("2027-03-03")))
+        val back = g.unmarkDone(d("2027-03-03"))
+        assertEquals(d("2027-03-03"), back.from)
+        assertEquals(d("2027-03-03"), GroupReport(p.copy(groups = listOf(back)), back).rows.first().date)
+
+        // Unticking everything gives the group as it started; ticking out of order leaves the next lesson alone.
+        assertEquals(g0, g.unmarkDoneFrom(d("2027-03-01")))
+        assertEquals(g0.from, r.markDone(setOf(r.rows[2].date)).from)
     }
 
     @Test fun markingDoneWithATestMatchesTheOldRule() {

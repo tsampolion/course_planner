@@ -1,5 +1,6 @@
 package com.coursebook.pacer.data
 
+import com.coursebook.pacer.engine.settleNextLesson
 import com.coursebook.pacer.model.MAX_PAGE
 import com.coursebook.pacer.model.SchoolClass
 import com.coursebook.pacer.model.SchoolYear
@@ -9,15 +10,17 @@ import com.coursebook.pacer.model.newId
  * Makes years read from a file safe to show and save: page numbers from 0 to [MAX_PAGE], a finite pace,
  * one done lesson per date, and ids that are unique where the screens list them. A repeated id gets a
  * new one; the first item with it keeps the days off, homework and positions aimed at it.
- * Files the app saved itself come through unchanged, so this only touches hand-edited or damaged ones.
- * Pure Kotlin, so it is unit-tested without org.json.
+ * It also moves each group's next lesson past the lessons ticked in order ([settleNextLesson]): files from
+ * 1.4.0 to 1.6.0 left it at the term start, so a later calendar edit brought past lessons back.
+ * Other files the app saved itself come through unchanged. Pure Kotlin, so it is unit-tested without org.json.
  */
 fun sanitiseYears(years: List<SchoolYear>): List<SchoolYear> =
     unique(years, { it.id }) { y, id -> y.copy(id = id) }.map { y ->
-        y.copy(
+        val clean = y.copy(
             closures = unique(y.closures, { it.id }) { c, id -> c.copy(id = id) },
             classes = unique(y.classes, { it.id }) { c, id -> c.copy(id = id) }.map(::sanitiseClass),
         )
+        clean.copy(classes = clean.classes.map { c -> val plan = clean.planFor(c); c.copy(groups = c.groups.map(plan::settleNextLesson)) })
     }
 
 private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(

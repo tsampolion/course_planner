@@ -1,6 +1,7 @@
 package com.coursebook.pacer.data
 
 import com.coursebook.pacer.engine.GroupReport
+import com.coursebook.pacer.engine.markDoneUpTo
 import com.coursebook.pacer.model.Book
 import com.coursebook.pacer.model.DoneLesson
 import com.coursebook.pacer.model.Homework
@@ -54,6 +55,18 @@ class SanitiseTest {
             assertEquals(k.books.size, k.books.map { it.id }.toSet().size)
         }
         assertEquals(c.groups.first().id, out[0].classes[0].groups.first().id)
+    }
+
+    /** Files from 1.4.0 to 1.6.0 kept the term start as the next lesson after ticking. */
+    @Test fun lessonsTickedInOrderMoveTheNextLessonOnRead() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val g = c.groups.first()
+        val r = GroupReport(y.planFor(c), g)
+        val ticked = r.markDoneUpTo(r.rows[4].date)
+        val saved = ticked.copy(from = g.from)
+        val read = sanitiseYears(listOf(y.copy(classes = listOf(c.copy(groups = listOf(saved) + c.groups.drop(1))))))
+        assertEquals(ticked, read.single().classes.single().groups.first())
     }
 
     @Test fun aDateTickedTwiceKeepsItsFirstRecord() {

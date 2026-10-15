@@ -158,8 +158,10 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
             )
         }
     }
-    DateField(g.from ?: plan.start, { vm.setNextLesson(g.id, it) }, "Next lesson", Modifier.fillMaxWidth())
-    val count = remember(plan, g) { plan.lessonsFor(g).size }
+    val lessons = remember(plan, g) { plan.lessonsFor(g) }
+    // The first lesson still to teach; once lessons are ticked, the stored date is the day after the last one taught.
+    DateField(lessons.firstOrNull() ?: g.from ?: plan.start, { vm.setNextLesson(g.id, it) }, "Next lesson", Modifier.fillMaxWidth())
+    val count = lessons.size
     Row(verticalAlignment = Alignment.CenterVertically) {
         Hint("$count ${if (count == 1) "lesson" else "lessons"} left")
         Spacer(Modifier.weight(1f))
