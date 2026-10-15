@@ -13,20 +13,41 @@ android {
         // 26 gives java.time without core-library desugaring and adaptive icons without PNG fallbacks.
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "1.5.1"
+        versionCode = 12
+        versionName = "1.5.2"
         // English only: drops the translated strings that Compose and AndroidX ship.
         resourceConfigurations += "en"
     }
 
+    // CI signs releases with the permanent key (docs/SIGNING_BRIEF.md): it decodes the keystore to the
+    // path in SIGNING_KEYSTORE and passes its password in SIGNING_PASSWORD. Never change the alias.
+    val releaseKeystore = providers.environmentVariable("SIGNING_KEYSTORE").orNull?.takeIf { it.isNotBlank() }
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                val password = providers.environmentVariable("SIGNING_PASSWORD").orNull
+                require(!password.isNullOrEmpty()) { "SIGNING_KEYSTORE is set but SIGNING_PASSWORD is empty" }
+                storeFile = file(releaseKeystore)
+                storeType = "pkcs12"
+                storePassword = password
+                keyAlias = "release"
+                keyPassword = password
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            // A separate app, "Course Pacer (debug)", so debug builds never replace a release or its data.
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Signed with the debug key so `assembleRelease` yields an installable APK.
-            // Swap in a real signing config before publishing.
-            signingConfig = signingConfigs.getByName("debug")
+            // Without SIGNING_KEYSTORE (Android Studio, local builds) the debug key signs it, so it still installs,
+            // but it can't install over a release.
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

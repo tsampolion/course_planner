@@ -124,7 +124,7 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 
 ## 2. Permanent release signing key: every release installs over the last
 
-**Status:** agreed with the owner on 2026-10-15, to be done together in a session on the owner's laptop. Not started. It's a build and CI change, with no change to the app's code or the engine. When it's picked up, settle the open questions, fold the answers into `docs/SIGNING_BRIEF.md`, and follow the phases below in order without skipping any check.
+**Status:** in progress. The open questions were answered on 2026-10-15 and folded into [`docs/SIGNING_BRIEF.md`](SIGNING_BRIEF.md), which also says who does each step. The code change (Phase 2) is in 1.5.2. The key, the secrets and the checks that need the key (Phases 1 and 3 to 6) are the owner's, on the laptop. It's a build and CI change, with no change to the app's code or the engine. Mark it shipped only after Phase 6.
 
 ### The problem
 

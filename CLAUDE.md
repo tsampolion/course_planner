@@ -7,12 +7,12 @@ Course Pacer (formerly Coursebook Pacer): a single-module Kotlin + Jetpack Compo
 ```sh
 ./gradlew testDebugUnitTest                      # all unit tests (engine only)
 ./gradlew testDebugUnitTest --tests 'com.coursebook.pacer.engine.PacerTest.parsesRanges'   # one test
-./gradlew assembleRelease                        # R8-minified, debug-signed APK
-./gradlew installDebug                           # needs a device or emulator
+./gradlew assembleRelease                        # R8-minified APK, debug-signed unless SIGNING_KEYSTORE is set
+./gradlew installDebug                           # installs "Course Pacer (debug)"; needs a device or emulator
 ./gradlew lint
 ```
 
-CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRelease` on JDK 17. Any change has to pass both. When it passes on `main`, `.github/workflows/release.yml` tags `v<versionName>` and publishes the release.
+CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRelease` on JDK 17, then checks the APK's signing certificate. Any change has to pass all three. When it passes on `main`, `.github/workflows/release.yml` checks the certificate again, tags `v<versionName>` and publishes the release.
 
 ## Architecture
 
@@ -30,13 +30,18 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 - Declare versions in `gradle/libs.versions.toml`, not inline.
 - Compose only, with no XML layouts. Use the framework theme (`Theme.Pacer`), not AppCompat.
 - Keep `minSdk 26` (it lets `java.time` run without desugaring) and `resourceConfigurations += "en"`.
+- **The release signing key is permanent** (1.5.2, `docs/SIGNING_BRIEF.md`). CI signs release builds with it from the `SIGNING_KEYSTORE_B64` and `SIGNING_PASSWORD` secrets and checks the certificate against the `SIGNING_CERT_SHA256` variable; `main` fails without them.
+  - Never regenerate, replace or "fix" the signing key, and never change `keyAlias`, the secret names or the variable without the owner. A new key means every phone uninstalls again, which deletes its school years.
+  - Rotating the key needs APK Signature Scheme v3 (`apksigner rotate` and a signing lineage), which AGP doesn't do out of the box. If the key ever leaks, plan that as its own task.
+  - Never paste the keystore, its base64 or the password into a chat, an AI session, an issue, a pull request or a commit. If one is exposed, treat the key as leaked.
+  - Anyone with write access to the repository can read the secrets through a workflow, so write access stays with the owner.
 
 ## Gotchas
 
 - The JSON format has to stay readable from the web page's localStorage export (now through `migratePlans`). Weekdays are numbered **0 = Sunday**, unlike `java.time.DayOfWeek`, and dates are ISO strings. If you change the schema, bump `JsonCodec.VERSION` and keep reading old files.
 - Don't give the `edit` helpers a tag for structural edits (add or remove). Tags are for per-field typing, so it merges into one undo step.
 - `proguard-rules.pro` is empty because nothing uses reflection. If you add reflection or JNI, add keep rules and check `assembleRelease`.
-- The release build is signed with the debug key on purpose. Don't commit keystores (`*.jks` and `*.keystore` are gitignored).
+- Builds without `SIGNING_KEYSTORE` (Android Studio, `installDebug`, a local `assembleRelease`) are signed with the debug key, so they can't install over a release and a release can't install over them. Debug builds are a separate app (`com.coursebook.pacer.debug`, "Course Pacer (debug)") with their own data. Don't commit keystores (`*.jks`, `*.keystore` and `*.p12` are gitignored).
 - `data_extraction_rules.xml` backs up `plans.json` and `settings.xml`. If you add another stored file, update it.
 
 ## Workflow

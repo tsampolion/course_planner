@@ -24,6 +24,7 @@ build/
 /app/release/
 *.jks
 *.keystore
+*.p12
 
 # Logs and heap dumps
 *.log

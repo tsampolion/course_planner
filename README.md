@@ -59,13 +59,32 @@ cd course_planner
 
 To build in Android Studio, open the project folder and run the `app` configuration.
 
-The release build is signed with the debug key, so you can install it directly. Add your own signing config in `app/build.gradle.kts` before you publish to Play.
+A local `assembleRelease` is signed with your debug key, so you can install it directly. Releases from CI are signed with the permanent release key instead (see below), so a local build can't install over a release, and a release can't install over it. `installDebug` installs a separate app, "Course Pacer (debug)" (`com.coursebook.pacer.debug`), with its own data, so it never touches the installed release.
+
+To sign a local build with the release key (owner only), set the keystore path and password first, without putting the password in the shell history:
+
+```sh
+read -s SIGNING_PASSWORD; export SIGNING_PASSWORD SIGNING_KEYSTORE=/path/to/course-pacer-release.p12
+./gradlew assembleRelease
+unset SIGNING_PASSWORD SIGNING_KEYSTORE
+```
 
 ## Continuous integration
 
-[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, every pull request and on manual dispatch. It sets up JDK 17, runs `testDebugUnitTest`, builds `assembleRelease`, writes the APK size to the job summary, and uploads the APK as the `coursebook-pacer-apk` artifact.
+[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, every pull request and on manual dispatch. It sets up JDK 17, runs `testDebugUnitTest`, builds `assembleRelease`, checks the APK's signing certificate, writes the certificate and the APK size to the job summary, and uploads the APK as the `coursebook-pacer-apk` artifact.
 
-When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) reads `versionName` from `app/build.gradle.kts`. If the tag `vX.Y.Z` doesn't exist yet, it creates the tag and a GitHub release, with that version's `CHANGELOG.md` section as the notes and the APK attached. To tag an older merge, run it manually from the Actions tab with the commit SHA.
+Release signing uses two repository secrets and one variable (Settings → Secrets and variables → Actions). The brief is [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
+
+| Name | Kind | Holds |
+| --- | --- | --- |
+| `SIGNING_KEYSTORE_B64` | secret | the release keystore (`.p12`), base64-encoded |
+| `SIGNING_PASSWORD` | secret | its password |
+| `SIGNING_CERT_SHA256` | variable | the certificate's SHA-256 fingerprint, lowercase without colons |
+
+- On `main`, a missing secret, a missing variable, or a certificate that isn't `SIGNING_CERT_SHA256` fails the build, so nothing is published.
+- Other branches in this repository sign with the release key when the secrets are there, and the certificate check applies. Pull requests from forks get no secrets, so they're signed with the debug key and never publish.
+
+When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) reads `versionName` from `app/build.gradle.kts`. If the tag `vX.Y.Z` doesn't exist yet, it checks the APK's certificate against `SIGNING_CERT_SHA256` again, then creates the tag and a GitHub release, with that version's `CHANGELOG.md` section as the notes, a line naming the signing certificate, and the APK attached. To tag an older merge, run it manually from the Actions tab with the commit SHA.
 
 ## Project structure
 

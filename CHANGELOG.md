@@ -22,6 +22,20 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-10-15
+
+**Installing this release needs one last uninstall, which deletes the school years on that phone. Every release after it installs as an update and keeps them.** Before you uninstall, note each year's dates, classes, books and positions so you can type them in again.
+
+### Changed
+
+- Releases are signed with one permanent key. Until now each release had a different signing certificate, so Android refused to install it over the one before ("App not installed"), and the only way past that was to uninstall. From this release on, each new release installs as an update.
+- CI fails on `main` if the key is missing or the APK's certificate isn't the release certificate, so no release can go out signed with another key. The release workflow checks the certificate again and names it in the release notes, so you can check any APK against it.
+- Debug builds from Android Studio install as a separate app, "Course Pacer (debug)", with their own data. They no longer clash with an installed release.
+
+### Added
+
+- `docs/SIGNING_BRIEF.md`: the decisions for the release key, and who does each step.
+
 ## [1.5.1] - 2026-10-15
 
 ### Added
@@ -176,7 +190,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.2...HEAD
+[1.5.2]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/tsampolion/course_planner/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/tsampolion/course_planner/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/tsampolion/course_planner/compare/v1.4.1...v1.4.2

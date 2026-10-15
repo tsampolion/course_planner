@@ -1,0 +1,4 @@
+<resources>
+    <!-- Debug builds install beside the release as their own app (applicationIdSuffix ".debug"). -->
+    <string name="app_name">Course Pacer (debug)</string>
+</resources>
