@@ -17,8 +17,59 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Unit tests
         run: ./gradlew --no-daemon testDebugUnitTest
+      # Signs with the permanent key from the secrets (docs/SIGNING_BRIEF.md). Without them, main fails;
+      # other branches and pull requests from forks fall back to the debug key and never publish.
       - name: Release APK
-        run: ./gradlew --no-daemon assembleRelease
+        env:
+          SIGNING_KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_B64 }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        shell: bash
+        run: |
+          if [ -n "$SIGNING_KEYSTORE_B64" ]; then
+            if [ -z "$SIGNING_PASSWORD" ]; then
+              echo "::error::The SIGNING_KEYSTORE_B64 secret is set but SIGNING_PASSWORD is missing"
+              exit 1
+            fi
+            export SIGNING_KEYSTORE="$RUNNER_TEMP/release.p12"
+            trap 'rm -f "$SIGNING_KEYSTORE"' EXIT
+            printf '%s' "$SIGNING_KEYSTORE_B64" | tr -d ' \r\n' | base64 -d > "$SIGNING_KEYSTORE"
+            unset SIGNING_KEYSTORE_B64
+            echo "SIGNED_WITH_RELEASE_KEY=true" >> "$GITHUB_ENV"
+          elif [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            echo "::error::The SIGNING_KEYSTORE_B64 secret is missing. Builds on main must be signed with the release key."
+            exit 1
+          else
+            echo "::notice::No SIGNING_KEYSTORE_B64 secret: signing with the debug key. This APK can't install over a release."
+          fi
+          ./gradlew --no-daemon assembleRelease
+      - name: Check the signing certificate
+        env:
+          EXPECTED_SHA256: ${{ vars.SIGNING_CERT_SHA256 }}
+        shell: bash
+        run: |
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n 1)apksigner"
+          apk=$(ls app/build/outputs/apk/release/*.apk)
+          digests=$("$apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #[0-9]* certificate SHA-256 digest: //p')
+          digest=$(printf '%s\n' "$digests" | head -n 1)
+          echo "Signing certificate SHA-256: \`$digest\`" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "$SIGNED_WITH_RELEASE_KEY" != "true" ] && [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Signed with the debug key: not for release." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          expected=$(printf '%s' "$EXPECTED_SHA256" | tr -d ': \r\n' | tr 'A-F' 'a-f')
+          if [ -z "$expected" ]; then
+            echo "::error::The SIGNING_CERT_SHA256 variable is missing, so the release certificate can't be checked"
+            exit 1
+          fi
+          if [ "$(printf '%s\n' "$digests" | wc -l)" -ne 1 ]; then
+            echo "::error::The APK has more than one signer"
+            exit 1
+          fi
+          if [ "$digest" != "$expected" ]; then
+            echo "::error::The APK is signed with $digest, not the release certificate $expected"
+            exit 1
+          fi
+          echo "Matches the release certificate (SIGNING_CERT_SHA256)." | tee -a "$GITHUB_STEP_SUMMARY"
       - name: APK size
         run: ls -l app/build/outputs/apk/release/ | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4

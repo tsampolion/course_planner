@@ -83,6 +83,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
+      # Refuses an APK that isn't signed with the release certificate, and names the certificate in the notes.
       - name: Create tag and release
         if: steps.existing.outputs.exists == 'false'
         env:
@@ -90,12 +91,22 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
           VERSION: ${{ steps.version.outputs.version }}
           SHA: ${{ steps.version.outputs.sha }}
+          EXPECTED_SHA256: ${{ vars.SIGNING_CERT_SHA256 }}
+        shell: bash
         run: |
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n 1)apksigner"
+          expected=$(printf '%s' "$EXPECTED_SHA256" | tr -d ': \r\n' | tr 'A-F' 'a-f')
           shopt -s nullglob
           apks=()
           for f in apk/*.apk; do
+            digest=$("$apksigner" verify --print-certs "$f" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+            if [ -z "$expected" ] || [ "$digest" != "$expected" ]; then
+              echo "::error::$f is signed with '$digest', not the release certificate '$expected' (SIGNING_CERT_SHA256)"
+              exit 1
+            fi
             cp "$f" "coursebook-pacer-$VERSION.apk"
             apks+=("coursebook-pacer-$VERSION.apk")
+            printf '\nSigned with certificate SHA-256 `%s`.\n' "$digest" >> notes.md
           done
           gh release create "$TAG" "${apks[@]}" \
             --target "$SHA" \
