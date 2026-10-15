@@ -8,6 +8,10 @@ import com.coursebook.pacer.data.PlanStore
 import com.coursebook.pacer.data.SettingsStore
 import com.coursebook.pacer.engine.GroupReport
 import com.coursebook.pacer.engine.greekHolidays
+import com.coursebook.pacer.engine.markDone
+import com.coursebook.pacer.engine.markDoneUpTo
+import com.coursebook.pacer.engine.unmarkDone
+import com.coursebook.pacer.engine.unmarkDoneFrom
 import com.coursebook.pacer.model.ALL_GROUPS
 import com.coursebook.pacer.model.AppData
 import com.coursebook.pacer.model.Book
@@ -192,6 +196,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setTheme(v: ThemeMode) = editSettings { it.copy(theme = v) }
     fun setDefaultMins(v: Int) = editSettings { it.copy(lessonMins = v) }
     fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }
+    fun setScheduleByMonth(v: Boolean) = editSettings { it.copy(scheduleByMonth = v) }
 
     // ---- school years ------------------------------------------------------
 
@@ -298,13 +303,32 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setPosition(groupId: String, bookId: String, page: Int) =
         editGroup(groupId, "pos:$groupId:$bookId") { it.copy(pos = it.pos + (bookId to page)) }
 
-    fun resetPositions() = editClass { c -> c.copy(groups = c.groups.map { it.copy(pos = emptyMap(), from = data.year?.start) }) }
+    /** Starts every group over: first pages, the year's start, and no lessons marked done. */
+    fun resetPositions() = editClass { c ->
+        c.copy(groups = c.groups.map { it.copy(pos = emptyMap(), from = data.year?.start, done = emptyList()) })
+    }
 
-    fun markNextLessonDone(groupId: String) {
+    // ---- done lessons ------------------------------------------------------
+
+    /** Applies [change] to a group of the open class, given its current schedule. */
+    private fun editLessons(groupId: String, change: (GroupReport, Group) -> Group) {
         val plan = data.plan ?: return
         val g = plan.groups.firstOrNull { it.id == groupId } ?: return
-        val next = GroupReport(plan, g).afterNextLesson() ?: return
+        val next = change(GroupReport(plan, g), g)
         editGroup(groupId) { next }
+    }
+
+    /** Ticks or unticks the lesson on [date] on its own. */
+    fun toggleLesson(groupId: String, date: LocalDate) = editLessons(groupId) { r, g ->
+        if (g.done.any { it.date == date }) g.unmarkDone(date) else r.markDone(setOf(date))
+    }
+
+    fun markDoneUpTo(groupId: String, date: LocalDate) = editLessons(groupId) { r, _ -> r.markDoneUpTo(date) }
+
+    fun unmarkDoneFrom(groupId: String, date: LocalDate) = editLessons(groupId) { _, g -> g.unmarkDoneFrom(date) }
+
+    fun markNextLessonDone(groupId: String) = editLessons(groupId) { r, g ->
+        r.rows.firstOrNull()?.let { r.markDone(setOf(it.date)) } ?: g
     }
 
     // ---- tests -------------------------------------------------------------
@@ -325,7 +349,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         c.copy(
             books = c.books.filter { it.id != id },
             homework = c.homework.filter { it.bookId != id },
-            groups = c.groups.map { it.copy(pos = it.pos - id) },
+            groups = c.groups.map { g -> g.copy(pos = g.pos - id, done = g.done.map { it.copy(pages = it.pages - id) }) },
         )
     }
 

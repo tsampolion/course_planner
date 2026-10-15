@@ -157,7 +157,7 @@ private fun ScreenContent(
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return
             val report = remember(plan, group) { GroupReport(plan, group) }
             GroupScreen(
-                report, vm, padding,
+                report, settings.scheduleByMonth, vm, padding,
                 onCopy = {
                     copy(context, report.asTsv())
                     // Android 13+ shows its own copy confirmation.

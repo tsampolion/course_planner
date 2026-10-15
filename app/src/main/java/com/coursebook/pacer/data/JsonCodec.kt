@@ -1,8 +1,11 @@
 package com.coursebook.pacer.data
 
+import com.coursebook.pacer.engine.collapse
+import com.coursebook.pacer.engine.parseRanges
 import com.coursebook.pacer.model.AppData
 import com.coursebook.pacer.model.Book
 import com.coursebook.pacer.model.Closure
+import com.coursebook.pacer.model.DoneLesson
 import com.coursebook.pacer.model.Group
 import com.coursebook.pacer.model.Homework
 import com.coursebook.pacer.model.Plan
@@ -18,11 +21,12 @@ import org.json.JSONObject
  * Hand-written JSON mapping on the framework's org.json, so no serialization library ships in the APK.
  * Dates are ISO strings and weekdays use the web page's numbering (0 = Sunday).
  *
- * Version 2 stores school years, each with its classes. Version 1 files and the web page's
- * localStorage export store a flat list of plans; those still read, through [migratePlans].
+ * Version 2 stores school years, each with its classes; version 3 adds each group's done lessons
+ * (missing reads as none). Version 1 files and the web page's localStorage export store a flat
+ * list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    private const val VERSION = 2
+    private const val VERSION = 3
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -99,6 +103,10 @@ object JsonCodec {
             .put("days", JSONArray(g.days.map { it.value % 7 }))
             .put("from", g.from?.toString() ?: "")
             .put("pos", JSONObject(g.pos as Map<*, *>))
+            .put("done", JSONArray(g.done.map { l ->
+                JSONObject().put("date", l.date.toString())
+                    .put("pages", JSONObject(l.pages.filterValues { it.isNotEmpty() }.mapValues { collapse(it.value) } as Map<*, *>))
+            }))
     })
 
     private fun groups(a: JSONArray?): List<Group> = a.objects().map { g ->
@@ -109,6 +117,11 @@ object JsonCodec {
             days = g.optJSONArray("days").ints().map { DayOfWeek.of(if (it == 0) 7 else it) }.toSet(),
             from = g.date("from"),
             pos = pos?.names().strings().associateWith { pos!!.optInt(it) }.filterValues { it > 0 },
+            done = g.optJSONArray("done").objects().mapNotNull { l ->
+                val date = l.date("date") ?: return@mapNotNull null
+                val pages = l.optJSONObject("pages")
+                DoneLesson(date, pages?.names().strings().associateWith { parseRanges(pages!!.optString(it)).sorted() }.filterValues { it.isNotEmpty() })
+            }.sortedBy { it.date },
         )
     }
 

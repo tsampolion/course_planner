@@ -2,6 +2,7 @@ package com.coursebook.pacer.engine
 
 import com.coursebook.pacer.model.ALL_GROUPS
 import com.coursebook.pacer.model.Book
+import com.coursebook.pacer.model.DoneLesson
 import com.coursebook.pacer.model.Group
 import com.coursebook.pacer.model.Plan
 import com.coursebook.pacer.model.TestEvent
@@ -80,12 +81,19 @@ fun Plan.homeworkPages(groupId: String, bookId: String): Set<Int> {
 /** The next page this group teaches in [b]. Never before the book's first page. */
 fun position(g: Group, b: Book): Int = maxOf(b.first, g.pos[b.id] ?: b.first)
 
-/** Pages this group still has to cover in this book, in order. */
+/** Pages of this book the group covered in lessons marked done. */
+fun Group.taughtPages(bookId: String): Set<Int> = done.flatMapTo(HashSet()) { it.pages[bookId].orEmpty() }
+
+/**
+ * Pages this group still has to cover in this book, in order: from its position to the last page,
+ * minus skipped pages, homework, and pages covered in lessons marked done.
+ */
 fun Plan.remainingPages(g: Group, b: Book): List<Int> {
     val skip = parseRanges(b.skip)
     val hw = homeworkPages(g.id, b.id)
+    val taught = g.taughtPages(b.id)
     val out = ArrayList<Int>()
-    for (p in position(g, b)..b.last) if (p !in skip && p !in hw) out += p
+    for (p in position(g, b)..b.last) if (p !in skip && p !in hw && p !in taught) out += p
     return out
 }
 
@@ -107,15 +115,19 @@ fun Plan.closedDates(groupId: String): Map<LocalDate, String> {
     return out
 }
 
-/** Every lesson date left for this group: its weekdays, from its next lesson to term end, minus closures. */
+/**
+ * Every lesson date left for this group: its weekdays, from its next lesson to term end,
+ * minus closures and lessons marked done.
+ */
 fun Plan.lessonsFor(g: Group): List<LocalDate> {
     val end = end ?: return emptyList()
     var d = g.from ?: start ?: return emptyList()
     if (g.days.isEmpty()) return emptyList()
     val closed = closedDates(g.id)
+    val taught = g.done.mapTo(HashSet()) { it.date }
     val out = ArrayList<LocalDate>()
     while (!d.isAfter(end)) {
-        if (d.dayOfWeek in g.days && d !in closed) out += d
+        if (d.dayOfWeek in g.days && d !in closed && d !in taught) out += d
         d = d.plusDays(1)
     }
     return out
@@ -204,6 +216,37 @@ class GroupReport(val plan: Plan, val group: Group) {
         return group.copy(pos = pos, from = nextFrom)
     }
 }
+
+/**
+ * The group with the upcoming lessons on [dates] marked done, each keeping the pages the schedule
+ * gives it now. Lessons left undone keep their place, and the remaining pages re-spread over them.
+ * Marking lessons in order leaves the same schedule as [afterNextLesson], the web page's rule.
+ */
+fun GroupReport.markDone(dates: Set<LocalDate>): Group {
+    val fresh = rows.filter { it.date in dates }.map { r ->
+        DoneLesson(r.date, plan.books.zip(r.pages).filter { it.second.isNotEmpty() }.associate { (b, p) -> b.id to p })
+    }
+    if (fresh.isEmpty()) return group
+    return group.copy(done = (group.done + fresh).sortedBy { it.date })
+}
+
+/**
+ * Marks done every upcoming lesson on or before [date], one at a time, as if each were ticked
+ * after it was taught. The pages re-spread after each, so this matches [afterNextLesson] repeated.
+ */
+fun GroupReport.markDoneUpTo(date: LocalDate): Group {
+    var report = this
+    while (true) {
+        val next = report.rows.firstOrNull()?.takeIf { !it.date.isAfter(date) } ?: return report.group
+        report = GroupReport(plan, report.markDone(setOf(next.date)))
+    }
+}
+
+/** Returns the lesson on [date] to the schedule. */
+fun Group.unmarkDone(date: LocalDate): Group = copy(done = done.filter { it.date != date })
+
+/** Returns every done lesson on or after [date] to the schedule. */
+fun Group.unmarkDoneFrom(date: LocalDate): Group = copy(done = done.filter { it.date.isBefore(date) })
 
 sealed interface Verdict {
     data class Fits(val spare: Double, val sustain: Double) : Verdict
