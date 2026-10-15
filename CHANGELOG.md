@@ -33,6 +33,7 @@ Fixes from a full audit of 1.6.0: crashes and freezes from unusual numbers, numb
 - Editing a number could save a different one: changing a pace of 1.5 to 1.25 saved 12, because deleting the "5" reset the field to "1". Number fields now keep what you type, and fields with a lowest or highest value (a book's resume page, the lesson length) wait until the number is in range.
 - "Reset all positions", and the × on a group or a book, now ask first. They clear ticked lessons and the pages recorded for them.
 - Removing a group also removes the tests aimed only at it.
+- If the saved school years can't be read, the app now says so the first time it opens, instead of silently starting empty. **Save a copy…** puts the unreadable file somewhere you can reach, such as Drive. An earlier unreadable file is never overwritten.
 - Lessons ticked in order stay in the past. Adding a teaching day or removing a day off used to bring back earlier dates as lessons still to teach, with pages on them. Ticking now moves the group's next lesson past the lessons taught, as the web page did; unticking moves it back. Groups saved by 1.4.0 to 1.7.0 are fixed when the app opens. The class screen's "Next lesson" shows the first lesson still to teach.
 - A file with repeated ids, or a lesson ticked twice on one date, no longer crashes the screens that list them. Repeats get new ids when the file is read, and **Replace all** no longer keeps two years with one id.
 

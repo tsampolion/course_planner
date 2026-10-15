@@ -28,6 +28,7 @@ import com.coursebook.pacer.model.Settings
 import com.coursebook.pacer.model.TestEvent
 import com.coursebook.pacer.model.ThemeMode
 import com.coursebook.pacer.model.newId
+import java.io.File
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
@@ -53,8 +54,17 @@ private data class Snapshot(val years: List<SchoolYear>, val activeYear: String,
  * and opening another school year starts a fresh history.
  */
 class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore) : ViewModel() {
-    private val _state = MutableStateFlow(store.load().let { d -> stateFor(d, Nav.fromView(d.view), 0) })
+    private val loaded = store.load()
+    private val _state = MutableStateFlow(loaded.data.let { d -> stateFor(d, Nav.fromView(d.view), 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
+
+    /** Where an unreadable plans file was moved at launch, until the teacher closes the notice about it. */
+    private val _setAside = MutableStateFlow(loaded.setAside)
+    val setAside: StateFlow<File?> = _setAside.asStateFlow()
+
+    fun dismissSetAside() {
+        _setAside.value = null
+    }
 
     private val _settings = MutableStateFlow(settingsStore.load())
     val settings: StateFlow<Settings> = _settings.asStateFlow()

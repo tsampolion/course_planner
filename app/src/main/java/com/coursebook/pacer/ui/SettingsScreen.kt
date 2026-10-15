@@ -135,7 +135,7 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
         val text = vm.exportText()
         val years = count(yearCount, "school year")
         scope.launch {
-            val saved = withContext(Dispatchers.IO) { writeFile(context, uri, text) }
+            val saved = withContext(Dispatchers.IO) { writeFile(context, uri, text.encodeToByteArray()) }
             val name = withContext(Dispatchers.IO) { displayName(context, uri) }
             toast(if (saved) "Saved $years${name?.let { " to $it" }.orEmpty()}" else "Couldn't save the file. Try another place.")
         }
@@ -194,7 +194,7 @@ private fun ImportDialog(years: List<SchoolYear>, current: Int, onAdd: () -> Uni
 }
 
 /** Opens a system picker; a phone without one says so instead of crashing. */
-private fun openPicker(toast: (String) -> Unit, open: () -> Unit) {
+internal fun openPicker(toast: (String) -> Unit, open: () -> Unit) {
     try {
         open()
     } catch (e: android.content.ActivityNotFoundException) {
@@ -203,10 +203,10 @@ private fun openPicker(toast: (String) -> Unit, open: () -> Unit) {
 }
 
 /** Writes and truncates, so saving over an older export leaves none of it behind. Some providers only take "w". */
-private fun writeFile(context: Context, uri: Uri, text: String): Boolean = runCatching {
+internal fun writeFile(context: Context, uri: Uri, bytes: ByteArray): Boolean = runCatching {
     val out = runCatching { context.contentResolver.openOutputStream(uri, "wt") }.getOrNull()
         ?: context.contentResolver.openOutputStream(uri, "w")
-    requireNotNull(out).use { it.write(text.encodeToByteArray()) }
+    requireNotNull(out).use { it.write(bytes) }
 }.isSuccess
 
 /** Reads at most [MAX_IMPORT_BYTES]; anything larger can't be an export. */
