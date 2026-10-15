@@ -22,6 +22,26 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-15
+
+Lessons can be ticked as done, schedules can show one month at a time, and printing lets you choose classes and margins.
+
+### Added
+
+- Tick a lesson in the schedule once it's taught. Done lessons stay in the list, dimmed, with the pages they covered. Untick to put a lesson back.
+- Long-press a lesson for "Done up to here" and "Not done from here".
+- Ticking a lesson out of order leaves earlier lessons that aren't done in place, and the pages still to teach re-spread over the lessons left. Ticking in order gives exactly the schedule the web page's "Mark next lesson done" gives.
+- Schedules have an All months / By month toggle. By month shows one tab per month: swipe or tap a tab to move. It opens on the current month, and the choice is remembered.
+- Print or save PDF opens a dialog to choose which classes to print (all by default) and the margins: Narrow (8 mm), Normal (15 mm) or Wide (25 mm).
+
+### Changed
+
+- The year screen stacks its four buttons in portrait, full width, and puts them in one row in landscape.
+- "Mark next lesson done" now ticks the next lesson, which stays visible as done. The summary shows the group's next lesson and how many are done.
+- "Reset all positions" also clears done lessons.
+- The saved file is version 3: each group stores its done lessons. Version 1 and 2 files and the web page's export still load.
+- Copy, Share and Print cover the lessons still to come.
+
 ## [1.3.0] - 2026-10-10
 
 The app is now called Course Pacer, and plans are organised as school years that hold classes. Existing plans move over on first launch and schedule exactly as before.
@@ -122,7 +142,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/tsampolion/course_planner/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/tsampolion/course_planner/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tsampolion/course_planner/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/tsampolion/course_planner/compare/v1.0.2...v1.1.0

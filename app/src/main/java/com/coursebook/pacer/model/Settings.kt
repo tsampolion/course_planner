@@ -19,6 +19,8 @@ data class Settings(
     val lessonMins: Int = DEFAULT_MINS,
     /** Sustainable pace, in pages per lesson, for new classes. */
     val pace: Double = DEFAULT_PACE,
+    /** Schedules show one month at a time, in tabs, instead of every month in one list. */
+    val scheduleByMonth: Boolean = false,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(

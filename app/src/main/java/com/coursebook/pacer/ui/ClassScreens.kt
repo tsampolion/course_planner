@@ -153,7 +153,8 @@ private fun GroupEditor(plan: Plan, g: Group, vm: PacerViewModel) = Section(g.na
 @Composable
 fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
     var adding by rememberSaveable { mutableStateOf(false) }
-    val lessonDays = remember(plan) { plan.groups.associate { it.id to plan.lessonsFor(it).toHashSet() } }
+    // Lessons marked done are still lesson days.
+    val lessonDays = remember(plan) { plan.groups.associate { g -> g.id to (plan.lessonsFor(g) + g.done.map { it.date }).toHashSet() } }
     EditList(plan, Screen.Tests, vm, padding) {
         if (plan.events.isEmpty()) item(key = "empty") { Hint("No tests or worksheets scheduled.") }
         items(plan.events.sortedBy { it.date }, key = { it.id }) { e ->

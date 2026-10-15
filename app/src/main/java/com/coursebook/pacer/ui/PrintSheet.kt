@@ -16,12 +16,17 @@ import com.coursebook.pacer.model.Plan
  * Prints every group of every given plan (one per class), one group per page, through the system print dialog
  * (which also offers "Save as PDF"). Uses the platform WebView, so no PDF library ships in the APK.
  */
+/** Page margins for printing. */
+enum class PrintMargin(val label: String, val mm: Int) {
+    NARROW("Narrow", 8), NORMAL("Normal", 15), WIDE("Wide", 25),
+}
+
 object PrintSheet {
     // The print job reads the WebView after this call returns; keep it alive until the next job.
     private var webView: WebView? = null
 
-    fun print(context: Context, title: String, plans: List<Plan>) {
-        val html = html(plans)
+    fun print(context: Context, title: String, plans: List<Plan>, margin: PrintMargin = PrintMargin.NORMAL) {
+        val html = html(plans, margin)
         val view = WebView(context)
         webView = view
         view.webViewClient = object : WebViewClient() {
@@ -36,9 +41,10 @@ object PrintSheet {
 
     private fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    fun html(plans: List<Plan>): String = buildString {
+    fun html(plans: List<Plan>, margin: PrintMargin = PrintMargin.NORMAL): String = buildString {
+        append("<!doctype html><html><head><meta charset=\"utf-8\"><style>@page{margin:${margin.mm}mm}")
         append(
-            """<!doctype html><html><head><meta charset="utf-8"><style>
+            """
             body{font:10pt sans-serif;color:#000;margin:0}
             h3{font:600 14pt Georgia,serif;margin:0 0 2px}
             .meta{font:9pt monospace;color:#333;margin-bottom:8px}
