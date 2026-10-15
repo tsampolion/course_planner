@@ -94,12 +94,13 @@ jobs:
           EXPECTED_SHA256: ${{ vars.SIGNING_CERT_SHA256 }}
         shell: bash
         run: |
-          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n 1)apksigner"
+          # Pinned as in android.yml: newer apksigner versions print certificates differently.
+          apksigner="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           expected=$(printf '%s' "$EXPECTED_SHA256" | tr -d ': \r\n' | tr 'A-F' 'a-f')
           shopt -s nullglob
           apks=()
           for f in apk/*.apk; do
-            digest=$("$apksigner" verify --print-certs "$f" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+            digest=$("$apksigner" verify --print-certs "$f" | sed -n 's/^Signer.* certificate SHA-256 digest: //p' | sort -u)
             if [ -z "$expected" ] || [ "$digest" != "$expected" ]; then
               echo "::error::$f is signed with '$digest', not the release certificate '$expected' (SIGNING_CERT_SHA256)"
               exit 1

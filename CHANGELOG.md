@@ -22,7 +22,15 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
-## [1.5.2] - 2026-10-15
+## [1.5.3] - 2026-10-15
+
+**The first release signed with the permanent key. Installing it needs one last uninstall, which deletes the school years on that phone. Every release after it installs as an update and keeps them.** Before you uninstall, note each year's dates, classes, books and positions so you can type them in again. 1.5.2 below describes the change; it was never published.
+
+### Fixed
+
+- CI read no certificate from the release APK, so 1.5.2 stopped at the certificate check and wasn't published. The check took the newest `apksigner` on GitHub's runners, which prints certificates in another format. Both workflows now use build-tools 35.0.0, the version the build uses, and accept either format. If `apksigner` prints no certificate, the check now fails on every branch and shows its output, instead of passing a debug-signed build without one.
+
+## [1.5.2] - 2026-10-15 (not published)
 
 **Installing this release needs one last uninstall, which deletes the school years on that phone. Every release after it installs as an update and keeps them.** Before you uninstall, note each year's dates, classes, books and positions so you can type them in again.
 
@@ -190,8 +198,9 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.2...HEAD
-[1.5.2]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.2
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.5.3...HEAD
+[1.5.3]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.3
+[1.5.2]: https://github.com/tsampolion/course_planner/pull/12
 [1.5.1]: https://github.com/tsampolion/course_planner/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/tsampolion/course_planner/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/tsampolion/course_planner/compare/v1.4.1...v1.4.2
