@@ -324,15 +324,20 @@ sealed interface Verdict {
     data class Short(val by: Double, val sustain: Double, val needRate: Double, val cutPages: Int) : Verdict
 }
 
+/** Lessons of slack treated as none when judging a plan short; see [verdict]. */
+private const val FIT_TOLERANCE = 1e-9
+
 /** Measures the required pace against the pace the teacher can sustain. Null when there is nothing to measure. */
 fun GroupReport.verdict(): Verdict? {
     val sustain = plan.pace
     if (teaching == 0 || sustain <= 0) return null
     val gap = teaching - pages / sustain
-    return if (gap < 0) {
+    // A plan that fits exactly can come out a hair short in floating point (21 pages at 1.4 is 15.000000000000002
+    // lessons), which read "Short by 0.00 lessons". Far below anything the verdict shows, so it counts as fitting.
+    return if (gap < -FIT_TOLERANCE) {
         Verdict.Short(-gap, sustain, rate, kotlin.math.ceil(pages - teaching * sustain).toInt())
     } else {
-        Verdict.Fits(gap, sustain)
+        Verdict.Fits(gap.coerceAtLeast(0.0), sustain)
     }
 }
 

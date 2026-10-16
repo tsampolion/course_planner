@@ -12,6 +12,7 @@ import com.coursebook.pacer.model.Plan
 import com.coursebook.pacer.model.SchoolClass
 import com.coursebook.pacer.model.SchoolYear
 import com.coursebook.pacer.model.TestEvent
+import com.coursebook.pacer.model.newId
 import java.time.DayOfWeek
 import java.time.LocalDate
 import org.json.JSONArray
@@ -43,13 +44,13 @@ object JsonCodec {
         val view = o.optString("view", AppData.VIEW_SETUP)
         val years = o.optJSONArray("years")
         if (years == null) {
-            val plans = o.getJSONArray("plans").objects().map(::plan)
+            val plans = o.getJSONArray("plans").rows(::plan)
             require(plans.isNotEmpty())
             val d = migratePlans(plans, o.optString("activePlan", plans.first().id), view)
             return d.copy(years = sanitiseYears(d.years))
         }
         return AppData(
-            years = sanitiseYears(years.objects().map(::year)),
+            years = sanitiseYears(years.rows(::year)),
             activeYear = o.optString("activeYear", ""),
             activeClass = o.optString("activeClass", ""),
             view = view,
@@ -59,6 +60,8 @@ object JsonCodec {
     /**
      * Reads a file chosen for import: an export, a `plans.json` of any version, or the web page's export.
      * Refuses a newer version, which re-saving here would cut down, and anything that doesn't decode.
+     * org.json reads nested arrays by recursion, so a file of thousands of `[` overflows the stack;
+     * that is an Error, not an Exception, and is caught here too rather than closing the app.
      */
     fun readImport(text: String): ImportResult = try {
         if (JSONObject(text).optInt("version", 1) > VERSION) {
@@ -68,6 +71,8 @@ object JsonCodec {
             if (years.isEmpty()) ImportResult.NoYears else ImportResult.Years(years)
         }
     } catch (e: Exception) {
+        ImportResult.Unreadable
+    } catch (e: StackOverflowError) {
         ImportResult.Unreadable
     }
 
@@ -82,14 +87,14 @@ object JsonCodec {
         }))
 
     private fun year(o: JSONObject) = SchoolYear(
-        id = o.getString("id"),
+        id = o.id(),
         name = o.optString("name", "School year"),
         start = o.date("start"),
         end = o.date("end"),
         closures = closures(o.optJSONArray("closures")),
-        classes = o.optJSONArray("classes").objects().map { c ->
+        classes = o.optJSONArray("classes").rows { c ->
             SchoolClass(
-                id = c.getString("id"),
+                id = c.id(),
                 name = c.optString("name", "Class"),
                 mins = c.optInt("mins", 60),
                 pace = c.pace(),
@@ -103,7 +108,7 @@ object JsonCodec {
 
     /** A version-1 plan. Only read: new files store years. */
     private fun plan(o: JSONObject): Plan = Plan(
-        id = o.getString("id"),
+        id = o.id(),
         name = o.optString("name", "Plan"),
         start = o.date("start"),
         end = o.date("end"),
@@ -128,16 +133,16 @@ object JsonCodec {
             }))
     })
 
-    private fun groups(a: JSONArray?): List<Group> = a.objects().map { g ->
+    private fun groups(a: JSONArray?): List<Group> = a.rows { g ->
         val pos = g.optJSONObject("pos")
         Group(
-            id = g.getString("id"),
+            id = g.id(),
             name = g.optString("name", "Group"),
             days = g.optJSONArray("days").ints().map { DayOfWeek.of(if (it == 0) 7 else it) }.toSet(),
             from = g.date("from"),
             pos = pos?.names().strings().associateWith { pos!!.optInt(it) }.filterValues { it > 0 },
-            done = g.optJSONArray("done").objects().mapNotNull { l ->
-                val date = l.date("date") ?: return@mapNotNull null
+            done = g.optJSONArray("done").rows { l ->
+                val date = l.date("date") ?: return@rows null
                 val pages = l.optJSONObject("pages")
                 DoneLesson(
                     date,
@@ -153,9 +158,9 @@ object JsonCodec {
             .put("from", c.from.toString()).put("to", c.to.toString()).put("who", c.who)
     })
 
-    private fun closures(a: JSONArray?): List<Closure> = a.objects().mapNotNull { c ->
-        val from = c.date("from") ?: return@mapNotNull null
-        Closure(c.getString("id"), c.optString("label", "Day off"), from, c.date("to") ?: from, c.optString("who", "all"))
+    private fun closures(a: JSONArray?): List<Closure> = a.rows { c ->
+        val from = c.date("from") ?: return@rows null
+        Closure(c.id(), c.optString("label", "Day off"), from, c.date("to") ?: from, c.optString("who", "all"))
     }
 
     private fun books(list: List<Book>) = JSONArray(list.map { b ->
@@ -163,8 +168,8 @@ object JsonCodec {
             .put("skip", b.skip).put("due", b.due?.toString() ?: "")
     })
 
-    private fun books(a: JSONArray?): List<Book> = a.objects().map { b ->
-        Book(b.getString("id"), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
+    private fun books(a: JSONArray?): List<Book> = a.rows { b ->
+        Book(b.id(), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
             b.optString("skip", ""), b.date("due"))
     }
 
@@ -173,9 +178,11 @@ object JsonCodec {
             .put("from", h.from).put("to", h.to).put("when", h.setOn?.toString() ?: "")
     })
 
-    private fun homework(a: JSONArray?): List<Homework> = a.objects().map { h ->
-        Homework(h.getString("id"), h.getString("groupId"), h.getString("bookId"),
-            h.optInt("from"), h.optInt("to"), h.date("when"))
+    /** Homework names its group and book; without either it means nothing, so it is left out. */
+    private fun homework(a: JSONArray?): List<Homework> = a.rows { h ->
+        val group = h.text("groupId") ?: return@rows null
+        val book = h.text("bookId") ?: return@rows null
+        Homework(h.id(), group, book, h.optInt("from"), h.optInt("to"), h.date("when"))
     }
 
     private fun events(list: List<TestEvent>) = JSONArray(list.map { e ->
@@ -183,15 +190,28 @@ object JsonCodec {
             .put("who", e.who).put("consumes", e.consumes)
     })
 
-    private fun events(a: JSONArray?): List<TestEvent> = a.objects().mapNotNull { e ->
-        val date = e.date("date") ?: return@mapNotNull null
-        TestEvent(e.getString("id"), e.optString("name", "Test"), date, e.optString("who", "all"), e.optBoolean("consumes", true))
+    private fun events(a: JSONArray?): List<TestEvent> = a.rows { e ->
+        val date = e.date("date") ?: return@rows null
+        TestEvent(e.id(), e.optString("name", "Test"), date, e.optString("who", "all"), e.optBoolean("consumes", true))
     }
 
     private fun JSONObject.pace(): Double = optDouble("pace", 0.0).takeUnless { it.isNaN() } ?: 0.0
 
     private fun JSONObject.date(key: String): LocalDate? =
         optString(key, "").takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+
+    /** A non-blank string, or null. org.json reads a JSON null as the text "null", so that counts as missing too. */
+    private fun JSONObject.text(key: String): String? = optString(key, "").takeIf { it.isNotBlank() && it != "null" }
+
+    /** The item's id, or a new one when it's missing: the item is kept, though anything that pointed at it is lost. */
+    private fun JSONObject.id(): String = text("id") ?: newId()
+
+    /**
+     * Each object in the array through [read], leaving out those it returns null for or can't read,
+     * so one bad record costs only itself, not the whole file.
+     */
+    private fun <T : Any> JSONArray?.rows(read: (JSONObject) -> T?): List<T> =
+        objects().mapNotNull { runCatching { read(it) }.getOrNull() }
 
     private fun JSONArray?.objects(): List<JSONObject> =
         if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }

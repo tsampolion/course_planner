@@ -2,7 +2,9 @@ name: Release
 
 # Tags and publishes a GitHub release for the versionName in app/build.gradle.kts.
 # Runs after the Android workflow passes on a push to main. Nothing happens when the tag already exists.
-# Run it manually with a commit SHA to tag an older merge.
+# Run it manually with a commit SHA to tag an older merge: it fetches the APK from that commit's Android run, and
+# refuses to publish without one unless allow_no_apk is ticked (CI artifacts expire after 90 days). A release without
+# its APK can't be fixed by running again, since the tag then exists.
 on:
   workflow_run:
     workflows: [Android]
@@ -14,6 +16,10 @@ on:
         description: Commit SHA or branch to release
         required: true
         default: main
+      allow_no_apk:
+        description: Publish without an APK if that commit's Android run no longer has one
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -83,7 +89,24 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
+      - name: Find and download the APK built for this commit
+        if: steps.existing.outputs.exists == 'false' && github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.version.outputs.sha }}
+        shell: bash
+        run: |
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow Android --commit "$SHA" --event push --status success \
+            --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -z "$run" ]; then
+            echo "::warning::No successful Android run on a push of $SHA, so there is no APK to attach"
+            exit 0
+          fi
+          gh run download "$run" --repo "$GITHUB_REPOSITORY" --name coursebook-pacer-apk --dir apk \
+            || echo "::warning::Android run $run no longer has its APK (artifacts expire after 90 days)"
+
       # Refuses an APK that isn't signed with the release certificate, and names the certificate in the notes.
+      # Refuses to publish with no APK at all, unless a manual run allows it.
       - name: Create tag and release
         if: steps.existing.outputs.exists == 'false'
         env:
@@ -92,6 +115,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           SHA: ${{ steps.version.outputs.sha }}
           EXPECTED_SHA256: ${{ vars.SIGNING_CERT_SHA256 }}
+          ALLOW_NO_APK: ${{ inputs.allow_no_apk }}
         shell: bash
         run: |
           # Pinned as in android.yml: newer apksigner versions print certificates differently.
@@ -109,6 +133,10 @@ jobs:
             apks+=("coursebook-pacer-$VERSION.apk")
             printf '\nSigned with certificate SHA-256 `%s`.\n' "$digest" >> notes.md
           done
+          if [ "${#apks[@]}" -eq 0 ] && [ "$ALLOW_NO_APK" != "true" ]; then
+            echo "::error::No APK for $SHA, so $TAG was not created. Run it manually with allow_no_apk to publish without one."
+            exit 1
+          fi
           gh release create "$TAG" "${apks[@]}" \
             --target "$SHA" \
             --title "Course Pacer $VERSION" \
