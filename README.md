@@ -74,16 +74,16 @@ unset SIGNING_PASSWORD SIGNING_KEYSTORE
 
 [`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, every pull request and on manual dispatch. It sets up JDK 17, runs `testDebugUnitTest`, builds `assembleRelease`, checks the APK's signing certificate, writes the certificate and the APK size to the job summary, and uploads the APK as the `coursebook-pacer-apk` artifact.
 
-Release signing uses two repository secrets and one variable (Settings → Secrets and variables → Actions). The brief is [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
+Release signing uses two secrets in the `release` environment (Settings → Environments → `release`, limited to the `main` branch) and one repository variable (Settings → Secrets and variables → Actions). The brief is [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
 
 | Name | Kind | Holds |
 | --- | --- | --- |
-| `SIGNING_KEYSTORE_B64` | secret | the release keystore (`.p12`), base64-encoded |
-| `SIGNING_PASSWORD` | secret | its password |
+| `SIGNING_KEYSTORE_B64` | `release` environment secret | the release keystore (`.p12`), base64-encoded |
+| `SIGNING_PASSWORD` | `release` environment secret | its password |
 | `SIGNING_CERT_SHA256` | variable | the certificate's SHA-256 fingerprint, lowercase without colons |
 
 - On `main`, a missing secret, a missing variable, or a certificate that isn't `SIGNING_CERT_SHA256` fails the build, so nothing is published.
-- Other branches in this repository sign with the release key when the secrets are there, and the certificate check applies. Pull requests from forks get no secrets, so they're signed with the debug key and never publish.
+- Only builds of `main` use the `release` environment, so only they get the secrets. Other branches and every pull request are signed with the debug key and never publish, whatever their own build files do. Each `main` build shows on the repository page as a `release` deployment.
 
 When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) reads `versionName` from `app/build.gradle.kts`. If the tag `vX.Y.Z` doesn't exist yet, it checks the APK's certificate against `SIGNING_CERT_SHA256` again, then creates the tag and a GitHub release, with that version's `CHANGELOG.md` section as the notes, a line naming the signing certificate, and the APK attached. To tag an older merge, run it manually from the Actions tab with the commit SHA.
 
