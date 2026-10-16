@@ -58,7 +58,7 @@ import java.time.ZoneOffset
 val Mono = FontFamily.Monospace
 private val CardShape = RoundedCornerShape(6.dp)
 
-/** A titled white panel, like the page's setup panels. */
+/** A titled panel, like the page's setup panels. */
 @Composable
 fun Section(title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Surface(
