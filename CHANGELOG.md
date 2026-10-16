@@ -22,6 +22,25 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-15
+
+Fixes from a full audit of 1.6.0: crashes and freezes from unusual numbers, number fields that saved the wrong value, one-tap deletions, and past lessons coming back after a calendar change.
+
+### Fixed
+
+- A page number typed by mistake, such as 16000000, or one in an imported file, no longer freezes or crashes the app. Pages go up to 100,000; the page fields don't accept more, and files are capped when read.
+- A pace of "Infinity" or "1e400", typed or imported, no longer crashes the app when it saves. The pace fields only accept a real number, and a save that fails is logged instead of closing the app.
+- Editing a number could save a different one: changing a pace of 1.5 to 1.25 saved 12, because deleting the "5" reset the field to "1". Number fields now keep what you type, and fields with a lowest or highest value (a book's resume page, the lesson length) wait until the number is in range.
+- "Reset all positions", and the × on a group or a book, now ask first. They clear ticked lessons and the pages recorded for them.
+- Removing a group also removes the tests aimed only at it.
+- If the saved school years can't be read, the app now says so the first time it opens, instead of silently starting empty. **Save a copy…** puts the unreadable file somewhere you can reach, such as Drive. An earlier unreadable file is never overwritten.
+- Lessons ticked in order stay in the past. Adding a teaching day or removing a day off used to bring back earlier dates as lessons still to teach, with pages on them. Ticking now moves the group's next lesson past the lessons taught, as the web page did; unticking moves it back. Groups saved by 1.4.0 to 1.7.0 are fixed when the app opens. The class screen's "Next lesson" shows the first lesson still to teach.
+- A file with repeated ids, or a lesson ticked twice on one date, no longer crashes the screens that list them. Repeats get new ids when the file is read, and **Replace all** no longer keeps two years with one id.
+
+### Changed
+
+- The build uses `androidResources.localeFilters` in place of the deprecated `resourceConfigurations`. The APK still ships English only.
+
 ## [1.7.0] - 2026-10-15
 
 A fresh install now starts empty, with a short guide, instead of a made-up sample year.
@@ -227,7 +246,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/tsampolion/course_planner/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/tsampolion/course_planner/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tsampolion/course_planner/compare/v1.5.3...v1.6.0
 [1.5.3]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.3

@@ -252,7 +252,21 @@ class GroupReport(val plan: Plan, val group: Group) {
 fun GroupReport.markDone(dates: Set<LocalDate>): Group {
     val fresh = rows.filter { it.date in dates }.map { r -> DoneLesson(r.date, pagesByBook(r)) }
     if (fresh.isEmpty()) return group
-    return group.copy(done = (group.done + fresh).sortedBy { it.date })
+    return plan.settleNextLesson(group.copy(done = (group.done + fresh).sortedBy { it.date }))
+}
+
+/**
+ * [g] with its next lesson moved to the day after the last lesson ticked in order, that is, the last
+ * done lesson before the first lesson still to teach. Those lessons are in the past: adding a teaching
+ * day or removing a day off later must not bring back the dates between them as lessons to teach.
+ * Lessons ticked out of order leave it where it is, so the earlier ones keep their place. Never moves it back.
+ * In order this is the web page's rule, which moved the next lesson on with every lesson taught.
+ */
+fun Plan.settleNextLesson(g: Group): Group {
+    val from = g.from ?: start ?: return g
+    val next = lessonsFor(g).firstOrNull()
+    val last = g.done.lastOrNull { next == null || it.date.isBefore(next) }?.date ?: return g
+    return if (last.isBefore(from)) g else g.copy(from = last.plusDays(1))
 }
 
 /** A row's pages as book id to pages, leaving out books it gives none. */
@@ -284,7 +298,7 @@ fun GroupReport.recordLesson(date: LocalDate, pages: Map<String, List<Int>>): Gr
     // Saving a done lesson's pages unchanged keeps its flag, even if the plan has moved since it was ticked.
     val edited = if (old != null && taught == old.pages) old.edited else taught != planned
     val lesson = DoneLesson(date, taught, edited)
-    return group.copy(done = (group.done.filter { it.date != date } + lesson).sortedBy { it.date })
+    return plan.settleNextLesson(group.copy(done = (group.done.filter { it.date != date } + lesson).sortedBy { it.date }))
 }
 
 /**
@@ -299,11 +313,11 @@ fun GroupReport.markDoneUpTo(date: LocalDate): Group {
     }
 }
 
-/** Returns the lesson on [date] to the schedule. */
-fun Group.unmarkDone(date: LocalDate): Group = copy(done = done.filter { it.date != date })
+/** Returns the lesson on [date] to the schedule, moving the next lesson back to it if ticking had moved it past. */
+fun Group.unmarkDone(date: LocalDate): Group = copy(done = done.filter { it.date != date }, from = from?.let { minOf(it, date) })
 
-/** Returns every done lesson on or after [date] to the schedule. */
-fun Group.unmarkDoneFrom(date: LocalDate): Group = copy(done = done.filter { it.date.isBefore(date) })
+/** Returns every done lesson on or after [date] to the schedule, moving the next lesson back to [date] if needed. */
+fun Group.unmarkDoneFrom(date: LocalDate): Group = copy(done = done.filter { it.date.isBefore(date) }, from = from?.let { minOf(it, date) })
 
 sealed interface Verdict {
     data class Fits(val spare: Double, val sustain: Double) : Verdict

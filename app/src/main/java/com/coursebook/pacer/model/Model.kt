@@ -6,6 +6,12 @@ import java.time.LocalDate
 /** Closures and tests aimed at every group use this in place of a group id. */
 const val ALL_GROUPS = "all"
 
+/**
+ * The highest page number a book, a position or homework can use. The engine walks every page,
+ * so a typo such as 1600000 would otherwise freeze the app; real coursebooks stop far below this.
+ */
+const val MAX_PAGE = 100_000
+
 data class Group(
     val id: String,
     val name: String,

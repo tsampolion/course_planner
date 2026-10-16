@@ -84,6 +84,7 @@ private fun Screen.key(): String = toString()
 fun PacerApp(vm: PacerViewModel) {
     val ui by vm.state.collectAsState()
     val settings by vm.settings.collectAsState()
+    val setAside by vm.setAside.collectAsState()
     val screen = ui.screen
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
@@ -122,10 +123,11 @@ fun PacerApp(vm: PacerViewModel) {
         ) { s ->
             live += s.key()
             saved.SaveableStateProvider(s.key()) {
-                ScreenContent(s, ui.data, settings, vm, padding, toast, undoToast, context)
+                ScreenContent(s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context)
             }
         }
     }
+    setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
 }
 
 @Composable
@@ -133,6 +135,8 @@ private fun ScreenContent(
     s: Screen,
     data: AppData,
     settings: com.coursebook.pacer.model.Settings,
+    /** False while the notice about an unreadable file is open, so the welcome guide waits behind it. */
+    canWelcome: Boolean,
     vm: PacerViewModel,
     padding: PaddingValues,
     toast: (String) -> Unit,
@@ -146,7 +150,7 @@ private fun ScreenContent(
         Screen.Home -> HomeScreen(
             data, vm, padding,
             // Only for a first launch: someone who deletes every year later doesn't need it again.
-            welcome = !settings.welcomeSeen && data.years.isEmpty(),
+            welcome = canWelcome && !settings.welcomeSeen && data.years.isEmpty(),
             onDeleted = { undoToast("Deleted “$it”") },
         )
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)

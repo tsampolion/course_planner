@@ -13,10 +13,13 @@ android {
         // 26 gives java.time without core-library desugaring and adaptive icons without PNG fallbacks.
         minSdk = 26
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.7.0"
+        versionCode = 16
+        versionName = "1.7.1"
+    }
+
+    androidResources {
         // English only: drops the translated strings that Compose and AndroidX ship.
-        resourceConfigurations += "en"
+        localeFilters += "en"
     }
 
     // CI signs releases with the permanent key (docs/SIGNING_BRIEF.md): it decodes the keystore to the

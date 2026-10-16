@@ -71,6 +71,7 @@ import com.coursebook.pacer.engine.plannedPages
 import com.coursebook.pacer.engine.position
 import com.coursebook.pacer.engine.short
 import com.coursebook.pacer.engine.verdict
+import com.coursebook.pacer.model.MAX_PAGE
 import com.coursebook.pacer.model.Plan
 import com.coursebook.pacer.model.TestEvent
 import com.coursebook.pacer.ui.theme.Pacer
@@ -469,7 +470,7 @@ private fun Positions(report: GroupReport, vm: PacerViewModel) {
                     Text(b.name, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
                     b.due?.let { due -> Tag(if (st.crammed) "due passed" else "by ${due.fmtShort()}", warn = st.crammed) }
                 }
-                IntField(position(g, b), { vm.setPosition(g.id, b.id, it) }, "p.", Modifier.width(92.dp))
+                IntField(position(g, b), { vm.setPosition(g.id, b.id, it) }, "p.", Modifier.width(92.dp), min = b.first, max = MAX_PAGE + 1)
                 Text("${st.pages}", fontFamily = Mono, textAlign = TextAlign.End, modifier = Modifier.width(44.dp))
                 Text(
                     if (st.lessons > 0) st.rate.fixed2() else "—",
