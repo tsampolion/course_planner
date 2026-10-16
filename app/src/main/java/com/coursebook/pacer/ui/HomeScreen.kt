@@ -203,7 +203,7 @@ private fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss
     }
 }
 
-/** The launcher icon, drawn from the same artwork: the open book on the teal tile. */
+/** The launcher icon, drawn from the same artwork: the open book on the blue tile. */
 @Composable
 private fun Logo() {
     Box(

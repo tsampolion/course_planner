@@ -1,4 +1,5 @@
 <resources>
-    <color name="paper">#F2F5F2</color>
-    <color name="accent">#245E60</color>
+    <!-- Match PacerTheme: paper is the background the window shows before Compose draws, accent the launcher tile. -->
+    <color name="paper">#FAF9FD</color>
+    <color name="accent">#2E5A88</color>
 </resources>

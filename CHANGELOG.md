@@ -22,6 +22,17 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-16
+
+A new look: the app now uses EduInvoiceApp's colours, so the two apps look alike. Plans, schedules and settings are unchanged.
+
+### Changed
+
+- On Android 12 and later, the colours come from the wallpaper, as in EduInvoiceApp, including the screen shown while the app opens.
+- On older phones, the palette is EduInvoiceApp's navy blue, slate and green, with Material's red for warnings, in place of the web page's teal, sage and rust, in both the light and dark themes. EduInvoiceApp leaves some colours to Material's defaults, which are purple and pink; Course Pacer fills those from the same blue and green instead, and sets every colour itself, so a library update can't change them.
+- On every phone, warnings stay red and "Fits" stays green whatever the wallpaper, and the launcher icon and the logo on Home are EduInvoiceApp's blue. Android 13 and later can still tint the icon to the wallpaper with themed icons.
+- All text keeps at least 4.5:1 contrast with its background (WCAG AA), in both themes, with the app's own colours or the wallpaper's. "Fits" uses a slightly darker green than EduInvoiceApp's so it stays readable on panels. Where a wallpaper's tinted background would make tags, the next-step card and days off hard to read, they use a neutral one.
+
 ## [1.7.3] - 2026-10-16
 
 CI only. The app is the same as 1.7.2.
@@ -267,7 +278,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.3...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/tsampolion/course_planner/compare/v1.7.3...v1.8.0
 [1.7.3]: https://github.com/tsampolion/course_planner/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/tsampolion/course_planner/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/tsampolion/course_planner/compare/v1.7.0...v1.7.1
