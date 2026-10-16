@@ -39,8 +39,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/** [stack] is the back stack; its last entry is the screen on show. */
-data class UiState(val data: AppData, val undoDepth: Int, val stack: List<Screen> = Nav.root) {
+/**
+ * [stack] is the back stack; its last entry is the screen on show. [historyStep] changes whenever the undo history
+ * does (a step added, undone or cleared), so a snackbar's Undo can tell whether its change is still the latest.
+ */
+data class UiState(val data: AppData, val undoDepth: Int, val stack: List<Screen> = Nav.root, val historyStep: Long = 0) {
     val screen: Screen get() = stack.last()
 }
 
@@ -73,6 +76,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     private var lastTag: String? = null
     private var lastTime = 0L
     private var saveJob: Job? = null
+    private var historyStep = 0L
 
     private val data get() = _state.value.data
 
@@ -86,6 +90,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         if (!(tag != null && tag == lastTag && now - lastTime < COALESCE_MS)) {
             undoStack.addLast(Snapshot(before.years, before.activeYear, before.activeClass))
             if (undoStack.size > UNDO_LIMIT) undoStack.removeFirst()
+            historyStep++
         }
         lastTag = tag
         lastTime = now
@@ -115,7 +120,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
             next.activeClass != data.activeClass -> Nav.afterClassSwitch(stack)
             else -> stack
         }
-        _state.value = stateFor(next, s, undoStack.size)
+        _state.value = stateFor(next, s, undoStack.size).copy(historyStep = historyStep)
         scheduleSave()
     }
 
@@ -149,6 +154,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun undo() {
         val snap = undoStack.removeLastOrNull() ?: return
         lastTag = null
+        historyStep++
         val d = data
         val year = snap.years.firstOrNull { it.id == d.activeYear }
         val keep = year != null && (d.activeClass.isEmpty() || year.classes.any { it.id == d.activeClass })
@@ -158,9 +164,18 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         )
     }
 
+    /**
+     * Undoes the latest step only if it is still the one taken at [step] ([UiState.historyStep]). Home and Settings
+     * have no undo button, so their snackbar offers it; by the time it is tapped, another edit may have come after.
+     */
+    fun undoIfLatest(step: Long) {
+        if (step == historyStep) undo()
+    }
+
     private fun clearHistory() {
         undoStack.clear()
         lastTag = null
+        historyStep++
     }
 
     // ---- navigation (not undoable) -----------------------------------------

@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -89,12 +90,30 @@ fun PacerApp(vm: PacerViewModel) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val toast: (String) -> Unit = { msg -> scope.launch { snackbar.currentSnackbarData?.dismiss(); snackbar.showSnackbar(msg) } }
+    // The history step the snackbar's Undo takes back, or -1 when no Undo is on show.
+    var undoStep by remember { mutableLongStateOf(-1L) }
+    val toast: (String) -> Unit = { msg ->
+        undoStep = -1L
+        scope.launch { snackbar.currentSnackbarData?.dismiss(); snackbar.showSnackbar(msg) }
+    }
     // Deleting a year lands on Home, which has no undo button, so the snackbar offers it once.
+    // It undoes only its own change: called right after the change, it notes the step that change made.
     val undoToast: (String) -> Unit = { msg ->
+        val step = vm.state.value.historyStep
+        undoStep = step
         scope.launch {
             snackbar.currentSnackbarData?.dismiss()
-            if (snackbar.showSnackbar(msg, actionLabel = "Undo", duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) vm.undo()
+            val result = snackbar.showSnackbar(msg, actionLabel = "Undo", duration = SnackbarDuration.Long)
+            if (undoStep == step) undoStep = -1L
+            if (result == SnackbarResult.ActionPerformed) vm.undoIfLatest(step)
+        }
+    }
+    // Another edit, an undo, or opening a year (which clears the history) leaves the Undo on show pointing at
+    // something else, so it goes rather than undoing the wrong thing or nothing.
+    LaunchedEffect(ui.historyStep) {
+        if (undoStep >= 0 && undoStep != ui.historyStep) {
+            undoStep = -1L
+            snackbar.currentSnackbarData?.dismiss()
         }
     }
 

@@ -306,6 +306,22 @@ class PacerTest {
         assertEquals(5, short.cutPages)
     }
 
+    /** 21 pages at 1.4 a lesson is exactly 15 lessons, though floating point makes it 15.000000000000002. */
+    @Test fun aPlanThatFitsExactlyIsNotShort() {
+        val p = plan(books = listOf(Book("b", "Book", 1, 21))).copy(end = d("2027-04-19"), pace = 1.4)
+        val r = GroupReport(p, p.groups[0])
+        assertEquals(15, r.teaching)
+        val v = r.verdict()
+        assertTrue("$v", v is Verdict.Fits)
+        // Not "-0.00" either.
+        assertEquals(0.0, (v as Verdict.Fits).spare, 0.0)
+        // One page more is short by a real amount.
+        val more = plan(books = listOf(Book("b", "Book", 1, 22))).copy(end = d("2027-04-19"), pace = 1.4)
+        val short = GroupReport(more, more.groups[0]).verdict()
+        assertTrue("$short", short is Verdict.Short)
+        assertEquals(1, (short as Verdict.Short).cutPages)
+    }
+
     @Test fun orthodoxEasterKnownDates() {
         assertEquals(d("2024-05-05"), orthodoxEaster(2024))
         assertEquals(d("2025-04-20"), orthodoxEaster(2025))

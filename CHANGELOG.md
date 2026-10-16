@@ -22,6 +22,18 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-10-16
+
+The smaller fixes from the 1.6.0 audit.
+
+### Fixed
+
+- One damaged record, such as a group or book without an id, no longer makes the whole saved file, or an imported one, unreadable. The record gets a new id, or is left out if it can't be used (homework that names no group or book), and everything else loads.
+- The **Undo** on Home's and Settings' snackbar now only undoes its own change: the year you deleted or the import you made. If you make another change first, or open a school year, the snackbar goes away instead of undoing something else or nothing.
+- Importing a deliberately malformed file, deeply nested past what the reader handles, now says it can't be read instead of closing the app.
+- A plan that fits exactly no longer says "Short by 0.00 lessons… 0 fewer pages", a rounding slip in pages-per-lesson arithmetic (21 pages at 1.4 a lesson came out as 15.000000000000002 lessons).
+- Running the Release workflow by hand fetches the APK from that commit's Android run. If there isn't one, it stops instead of publishing a release without its APK, which a later run couldn't fix because the tag would exist. Tick **allow_no_apk** to publish without one on purpose.
+
 ## [1.7.1] - 2026-10-15
 
 Fixes from a full audit of 1.6.0: crashes and freezes from unusual numbers, number fields that saved the wrong value, one-tap deletions, and past lessons coming back after a calendar change.
@@ -246,7 +258,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.2...HEAD
+[1.7.2]: https://github.com/tsampolion/course_planner/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/tsampolion/course_planner/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/tsampolion/course_planner/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tsampolion/course_planner/compare/v1.5.3...v1.6.0
