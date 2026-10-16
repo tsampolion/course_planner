@@ -1,14 +1,19 @@
 package com.coursebook.pacer.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 
 /*
  * EduInvoiceApp's palette (tsampolion/EduInvoiceApp, ui/theme/Theme.kt), so the two apps look alike: navy-blue
@@ -20,7 +25,8 @@ import androidx.compose.ui.graphics.Color
  * Theme Builder's tertiary chroma (24; the green's own 53 turns them neon), the error roles from Material's baseline as in
  * EduInvoiceApp. Every role is set, so a Compose update can't change the look.
  *
- * No dynamic colour (EduInvoiceApp uses the wallpaper on Android 12 and later): the palette is the same on every phone.
+ * On Android 12 and later the scheme comes from the wallpaper instead, as in EduInvoiceApp, so this palette is what older
+ * phones show. Warnings and "fits" keep this palette's red and green on every phone (see extrasFor).
  */
 
 private val LightScheme = lightColorScheme(
@@ -75,23 +81,50 @@ data class PacerColors(
     val okSoft: Color,
 )
 
-/** The tokens as Material roles, the way EduInvoiceApp's status chips use them: green is good, error is a warning. */
-private fun extrasFor(scheme: ColorScheme, ok: Color) = PacerColors(
-    muted = scheme.onSurfaceVariant, line = scheme.outlineVariant, accentSoft = scheme.secondaryContainer,
-    warn = scheme.error, warnSoft = scheme.errorContainer, ok = ok, okSoft = scheme.tertiaryContainer,
-)
+/**
+ * The tokens as Material roles, the way EduInvoiceApp's status chips use them: green is good, error is a warning.
+ *
+ * Warnings and "fits" always take this palette's red and green, whatever [scheme] is. A wallpaper's tertiary can be any
+ * hue, and the newer Material colour spec lets error text on its own container fall to about 2:1. In light, "fits" is
+ * tone 40 of the green: it's body text on panels, where the tertiary itself (tone 46) falls just short of 4.5:1.
+ *
+ * The soft accent carries primary and muted text (tags, the guide card, days off). It's the tinted secondary container
+ * when both read at 4.5:1 on it, as in this palette and the default wallpaper style; some other styles' don't, and
+ * then it's the neutral container, which keeps both readable.
+ */
+private fun extrasFor(scheme: ColorScheme, dark: Boolean): PacerColors {
+    val own = if (dark) DarkScheme else LightScheme
+    val tinted = scheme.secondaryContainer
+    val readable = contrast(scheme.primary, tinted) >= 4.5f && contrast(scheme.onSurfaceVariant, tinted) >= 4.5f
+    return PacerColors(
+        muted = scheme.onSurfaceVariant, line = scheme.outlineVariant,
+        accentSoft = if (readable) tinted else scheme.surfaceContainerHighest,
+        warn = own.error, warnSoft = own.errorContainer,
+        ok = if (dark) own.tertiary else Color(0xFF1B6D24), okSoft = own.tertiaryContainer,
+    )
+}
 
-// "Fits" is body text on panels, where the light tertiary (tone 46) falls just short of 4.5:1, so it takes tone 40
-// of the same green.
-private val LightExtra = extrasFor(LightScheme, ok = Color(0xFF1B6D24))
-private val DarkExtra = extrasFor(DarkScheme, ok = DarkScheme.tertiary)
+/** The WCAG contrast ratio between two colours, from 1 to 21. */
+private fun contrast(a: Color, b: Color): Float {
+    val la = a.luminance()
+    val lb = b.luminance()
+    return (maxOf(la, lb) + 0.05f) / (minOf(la, lb) + 0.05f)
+}
 
-val LocalPacerColors = staticCompositionLocalOf { LightExtra }
+val LocalPacerColors = staticCompositionLocalOf { extrasFor(LightScheme, dark = false) }
 
 @Composable
 fun PacerTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    androidx.compose.runtime.CompositionLocalProvider(LocalPacerColors provides if (dark) DarkExtra else LightExtra) {
-        MaterialTheme(colorScheme = if (dark) DarkScheme else LightScheme, content = content)
+    val scheme = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        dark -> DarkScheme
+        else -> LightScheme
+    }
+    androidx.compose.runtime.CompositionLocalProvider(LocalPacerColors provides extrasFor(scheme, dark)) {
+        MaterialTheme(colorScheme = scheme, content = content)
     }
 }
 

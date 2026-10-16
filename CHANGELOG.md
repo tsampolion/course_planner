@@ -28,10 +28,10 @@ A new look: the app now uses EduInvoiceApp's colours, so the two apps look alike
 
 ### Changed
 
-- The palette is EduInvoiceApp's navy blue, slate and green, with Material's red for warnings, in place of the web page's teal, sage and rust. It covers both the light and dark themes, the screen shown while the app opens, the launcher icon and the logo on Home.
-- EduInvoiceApp leaves some colours to Material's defaults, which are purple and pink. Course Pacer fills those from the same blue and green instead, and sets every colour itself, so a library update can't change them.
-- The colours are the same on every phone. Unlike EduInvoiceApp, Course Pacer doesn't take them from the wallpaper on Android 12 and later.
-- All text keeps at least 4.5:1 contrast with its background (WCAG AA) in both themes. "Fits" uses a slightly darker green than EduInvoiceApp's so it stays readable on panels.
+- On Android 12 and later, the colours come from the wallpaper, as in EduInvoiceApp, including the screen shown while the app opens.
+- On older phones, the palette is EduInvoiceApp's navy blue, slate and green, with Material's red for warnings, in place of the web page's teal, sage and rust, in both the light and dark themes. EduInvoiceApp leaves some colours to Material's defaults, which are purple and pink; Course Pacer fills those from the same blue and green instead, and sets every colour itself, so a library update can't change them.
+- On every phone, warnings stay red and "Fits" stays green whatever the wallpaper, and the launcher icon and the logo on Home are EduInvoiceApp's blue. Android 13 and later can still tint the icon to the wallpaper with themed icons.
+- All text keeps at least 4.5:1 contrast with its background (WCAG AA), in both themes, with the app's own colours or the wallpaper's. "Fits" uses a slightly darker green than EduInvoiceApp's so it stays readable on panels. Where a wallpaper's tinted background would make tags, the next-step card and days off hard to read, they use a neutral one.
 
 ## [1.7.3] - 2026-10-16
 
