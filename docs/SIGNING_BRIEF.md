@@ -70,6 +70,14 @@ Phase 1 and every check in Phase 3 must pass before the pull request leaves draf
 
 Phase 3.1 and 3.3 were also run in the cloud session with a throwaway test keystore (made there, never committed, deleted afterwards) to prove that the Gradle config signs with a supplied PKCS12 file, and that the certificate check passes on a match and fails on a mismatch. That key has nothing to do with the release key.
 
+## Since 1.7.3: secrets only for `main`
+
+Repository secrets reached every build, including branch pushes and pull requests from this repository, and a branch's own build files run with them in reach. The secrets now live in a GitHub Environment instead:
+
+- **Environment** `release` (Settings → Environments), with deployment branches limited to `main` and no required reviewers. It holds `SIGNING_KEYSTORE_B64` and `SIGNING_PASSWORD`. `SIGNING_CERT_SHA256` stays a repository variable: it is public.
+- **`android.yml`** sets `environment: ${{ github.ref == 'refs/heads/main' && 'release' || '' }}` on the build job, so builds of `main` (pushes and manual runs) get the secrets and every other build gets none and falls back to the debug key, as forks always did. The workflow also sets `permissions: contents: read`.
+- **Then** the repository-level copies of the two secrets are deleted, so nothing but `main` can read them.
+
 ## Out of scope
 
 - Key rotation (APK Signature Scheme v3 lineage). Plan it as its own task if the key ever leaks.

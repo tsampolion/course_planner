@@ -22,6 +22,15 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-10-16
+
+CI only. The app is the same as 1.7.2.
+
+### Changed
+
+- The release signing secrets now sit in a GitHub Environment, `release`, that only `main` may use. Builds of other branches and pull requests no longer get them, so a branch's own build files can't reach the signing key; they're signed with the debug key and never publish, as pull requests from forks already were.
+- The Android workflow's token is read-only (`permissions: contents: read`).
+
 ## [1.7.2] - 2026-10-16
 
 The smaller fixes from the 1.6.0 audit.
@@ -258,7 +267,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.7.3...HEAD
+[1.7.3]: https://github.com/tsampolion/course_planner/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/tsampolion/course_planner/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/tsampolion/course_planner/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/tsampolion/course_planner/compare/v1.6.0...v1.7.0
