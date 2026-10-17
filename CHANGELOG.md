@@ -22,6 +22,22 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-17
+
+The EduSuite look, part one: Course Pacer's colours, type and shapes now follow the EduSuite style guide, the same base as Course Invoicer's, with teal as Course Pacer's own colour. The screens keep their layout; Home and the other screens are redesigned in the next releases. Plans and schedules are unchanged.
+
+### Changed
+
+- **Colours**: a soft lavender-grey paper, white panels, teal for buttons and highlights, rust for warnings and moss green for "fits", in light and dark. The year screen's buttons are now pastel tiles: sky for Classes, lilac for School year settings, mint for Overview (it turns to a warning tint when there are problems).
+- **Wallpaper colours are off** on Android 12 and later too (they came in with 1.8.0). Every phone shows the same colours, and teal tells Course Pacer apart from Course Invoicer.
+- **Type**: the Outfit typeface for all text, with page numbers, dates and counts still in a monospace font so they line up. Screen titles are 22sp.
+- **Shapes**: panels and list groups have 16dp corners and no outline, tiles 24dp, dialogs 28dp; buttons, chips and tags are pills, and "Add" buttons are full-width pill buttons. Labels above groups and tags are in sentence case instead of capitals.
+- All text keeps at least 4.5:1 contrast with its background (WCAG AA), and field outlines 3:1, in both themes. A unit test checks every pair the style guide lists.
+
+### Added
+
+- The Outfit typeface (SIL Open Font License 1.1), bundled as one 110 KB variable font. Its licence is in `third_party/outfit/OFL.txt` and is named in `LICENSE`.
+
 ## [2.0.0] - 2026-10-17
 
 Course Pacer joins the **EduSuite** apps, with Course Invoicer. This release changes the app's id, so it installs as a new app beside the old one: move your school years over with Export and Import (below). The schedules, the saved file's format and the rest of the app are unchanged; the new EduSuite look follows in the next releases.
@@ -298,7 +314,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/tsampolion/course_planner/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/tsampolion/course_planner/compare/v1.8.0...v2.0.0
 [1.8.0]: https://github.com/tsampolion/course_planner/compare/v1.7.3...v1.8.0
 [1.7.3]: https://github.com/tsampolion/course_planner/compare/v1.7.2...v1.7.3

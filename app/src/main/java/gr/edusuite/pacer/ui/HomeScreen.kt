@@ -1,6 +1,5 @@
 package gr.edusuite.pacer.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -42,16 +41,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.suggestYear
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
 /** "3 classes", "1 class", or [none] for zero. */
@@ -81,22 +78,22 @@ fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, welcom
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 40.dp, bottom = padding.calculateBottomPadding() + 72.dp),
+                .padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.xxl + Space.s, bottom = padding.calculateBottomPadding() + 72.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Logo()
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(Space.l))
             Text(
                 APP_NAME,
-                fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 28.sp,
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.semantics { heading() },
             )
             // The picker takes the space left and sits in its middle, scrolling once there are many years.
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Column(
-                    Modifier.widthIn(max = 480.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    Modifier.widthIn(max = 480.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = Space.xl),
+                    verticalArrangement = Arrangement.spacedBy(Space.m),
                 ) {
                     Eyebrow("School year")
                     if (years.isEmpty()) {
@@ -117,13 +114,13 @@ fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, welcom
             onClick = { vm.open(Screen.Settings) },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 12.dp, bottom = padding.calculateBottomPadding() + 12.dp)
+                .padding(end = Space.m, bottom = padding.calculateBottomPadding() + Space.m)
                 .size(56.dp)
                 .semantics { contentDescription = "Settings" },
             contentPadding = PaddingValues(0.dp),
         ) {
             // U+FE0E asks for the text glyph rather than an emoji.
-            Text("⚙︎", fontSize = 28.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text("⚙︎", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
         }
     }
 
@@ -148,15 +145,14 @@ private fun YearRow(y: SchoolYear, onOpen: () -> Unit, onRename: () -> Unit, onD
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(6.dp))
+            .clip(MaterialTheme.shapes.medium)
             .combinedClickable(onClick = onOpen, onLongClick = { menu = true }, onLongClickLabel = "Rename or delete"),
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, Pacer.colors.line),
+        shape = MaterialTheme.shapes.medium,
+        color = Pacer.colors.surface,
     ) {
-        Row(Modifier.padding(start = 14.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
-                Text(name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+        Row(Modifier.padding(start = Space.l, top = Space.xs, bottom = Space.xs), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f).padding(vertical = Space.s)) {
+                Text(name, style = MaterialTheme.typography.titleMedium)
                 Text(
                     "${y.dates()} · ${count(y.classes.size, "class", "classes", "no classes")}",
                     style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted,
@@ -167,7 +163,7 @@ private fun YearRow(y: SchoolYear, onOpen: () -> Unit, onRename: () -> Unit, onD
                     onClick = { menu = true },
                     contentPadding = PaddingValues(0.dp),
                     modifier = Modifier.size(48.dp).semantics { contentDescription = "More options for $name" },
-                ) { Text("⋮", fontSize = 22.sp, color = Pacer.colors.muted) }
+                ) { Text("⋮", style = MaterialTheme.typography.titleLarge, color = Pacer.colors.muted) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text("Rename") }, onClick = { menu = false; onRename() })
                     DropdownMenuItem(text = { Text("Delete", color = Pacer.colors.warn) }, onClick = { menu = false; onDelete() })
@@ -207,6 +203,7 @@ private fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss
 @Composable
 private fun Logo() {
     Box(
+        // The logo tile's corners are a quarter of its size (style guide §4), the one shape outside MaterialTheme.shapes.
         Modifier.size(88.dp).clip(RoundedCornerShape(22.dp)).background(colorResource(R.color.launcher_tile)),
         contentAlignment = Alignment.Center,
     ) {

@@ -29,6 +29,7 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 - **Approved dependencies only**: the Compose BOM with Material 3, `activity-compose`, `lifecycle-viewmodel-ktx`, and JUnit. Ask before adding anything, including kotlinx-serialization, Hilt, AppCompat or an icon library. Use the platform instead (`org.json`, `AtomicFile`, `WebView`, the clipboard, the share sheet).
 - Declare versions in `gradle/libs.versions.toml`, not inline.
 - Compose only, with no XML layouts. Use the framework theme (`Theme.Pacer`), not AppCompat.
+- **Tokens, not literals** (style guide §1). Colours live only in `ui/theme/Tokens.kt` (checked by `ContrastTest` against the guide's §2.5 and `docs/PACER_ACCENT_CONTRAST.md`), type in `Type.kt` (the bundled Outfit variable font, `res/font/outfit.ttf`, OFL; numbers in `Mono`), corners, `Space` and `Motion` in `Shape.kt`. Screens read `MaterialTheme` and `Pacer.colors`. Wallpaper (dynamic) colour stays off (§11).
 - **EduSuite look.** `docs/EDUSUITE_STYLE_GUIDE.md` is a byte-for-byte copy of the canonical guide in `tsampolion/EduInvoiceApp`; change it only together with that copy. Course Pacer's own accent contrast pairs live in `docs/PACER_ACCENT_CONTRAST.md`.
 - **Never change `applicationId` again** (`gr.edusuite.pacer`, 2.0.0). A new id installs a second app, and teachers have to move their school years by export and import.
 - Keep `minSdk 26` (it lets `java.time` run without desugaring) and `androidResources.localeFilters += "en"` (it replaced the deprecated `resourceConfigurations` in 1.7.1).

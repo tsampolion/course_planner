@@ -1,6 +1,5 @@
 package gr.edusuite.pacer.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -17,9 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -42,51 +44,142 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.model.Settings
+import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-val Mono = FontFamily.Monospace
-private val CardShape = RoundedCornerShape(6.dp)
-
-/** A titled panel, like the page's setup panels. */
+/**
+ * A group on a screen (§6 Section): an Eyebrow, then the content on a surface list group with 16dp corners.
+ * [trailing] is an optional text action next to the eyebrow, such as "See all".
+ */
 @Composable
-fun Section(title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = CardShape,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, Pacer.colors.line),
+fun Section(
+    title: String,
+    modifier: Modifier = Modifier,
+    trailing: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) { Eyebrow(title) }
+            trailing?.invoke()
+        }
+        ListGroup { Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) { content() } }
+    }
+}
+
+/** The surface rows sit on (§6 List row): 16dp corners, no border; rows inside are split by hairline `line` dividers. */
+@Composable
+fun ListGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = Pacer.colors.surface, content = content)
+}
+
+/** The label above a group (§6 Eyebrow): `labelMedium`, sentence case, muted, and a heading for TalkBack. */
+@Composable
+fun Eyebrow(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelMedium,
+        color = Pacer.colors.muted,
+        modifier = modifier.semantics { heading() },
+    )
+}
+
+/**
+ * The guide's base block (§6 Tile): a tile colour, 24dp corners, 16dp padding, no border. With [onClick] the whole
+ * tile is one touch target.
+ */
+@Composable
+fun Tile(
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    contentColor: Color = Pacer.colors.onTile,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val body: @Composable () -> Unit = {
+        Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.xs), content = content)
+    }
+    if (onClick != null) {
+        Surface(onClick = onClick, modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = color, contentColor = contentColor, content = body)
+    } else {
+        Surface(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = color, contentColor = contentColor, content = body)
+    }
+}
+
+/** A primary pill button (§6 Buttons): accent fill, 48dp tall. */
+@Composable
+fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    Button(onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 48.dp), shape = CircleShape) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+/** A secondary pill button: surfaceContainer fill with ink text. */
+@Composable
+fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    Button(
+        onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 48.dp), shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink),
+    ) { Text(text, style = MaterialTheme.typography.labelLarge) }
+}
+
+/** A tertiary button: text only, in the accent (or [color]). */
+@Composable
+fun TertiaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, color: Color = Color.Unspecified) {
+    TextButton(onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 48.dp), shape = CircleShape) {
+        Text(text, style = MaterialTheme.typography.labelLarge, color = color)
+    }
+}
+
+/** An icon button on a 40dp surface pill inside a 48dp touch target (§6 Buttons). [label] is what TalkBack reads. */
+@Composable
+fun PillIconButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Box(
+        modifier
+            .size(48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Eyebrow(title)
-            content()
+        Surface(shape = CircleShape, color = Pacer.colors.surface, contentColor = Pacer.colors.ink, modifier = Modifier.size(40.dp)) {
+            Box(contentAlignment = Alignment.Center) { content() }
         }
     }
 }
 
+/**
+ * Shown when a list has nothing yet (§6 EmptyState): a 120dp circle in a tile tint holding a symbol, a title, a muted
+ * line and an optional pill action.
+ */
 @Composable
-fun Eyebrow(text: String) {
-    Text(
-        text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.SemiBold,
-        letterSpacing = 1.sp,
-        color = Pacer.colors.muted,
-    )
+fun EmptyState(symbol: String, title: String, message: String, action: String? = null, onAction: (() -> Unit)? = null) {
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = Space.xxl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Space.l),
+    ) {
+        Surface(shape = CircleShape, color = Pacer.colors.tileSky, contentColor = Pacer.colors.onTile, modifier = Modifier.size(120.dp)) {
+            Box(contentAlignment = Alignment.Center) { Text(symbol, style = MaterialTheme.typography.displaySmall) }
+        }
+        Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted, textAlign = TextAlign.Center)
+        if (action != null && onAction != null) PrimaryButton(action, onAction)
+    }
 }
 
 @Composable
-fun Hint(text: String, modifier: Modifier = Modifier, color: androidx.compose.ui.graphics.Color = Pacer.colors.muted) {
+fun Hint(text: String, modifier: Modifier = Modifier, color: Color = Pacer.colors.muted) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = color, modifier = modifier)
 }
 
@@ -120,6 +213,7 @@ fun CommitField(
         placeholder = placeholder?.let { { Text(it) } },
         singleLine = true,
         textStyle = if (numeric) MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono) else MaterialTheme.typography.bodyLarge,
+        shape = MaterialTheme.shapes.small,
         keyboardOptions = KeyboardOptions(
             keyboardType = when {
                 decimal -> KeyboardType.Decimal
@@ -171,6 +265,7 @@ fun DateField(
             singleLine = true,
             label = { Text(label) },
             placeholder = { Text("Not set") },
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth(),
         )
         // The text field swallows taps; this layer takes them instead.
@@ -222,6 +317,7 @@ fun Picker(
             singleLine = true,
             label = { Text(label) },
             trailingIcon = { Text("▾", color = Pacer.colors.muted) },
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth(),
         )
         Box(Modifier.matchParentSize().padding(top = 8.dp).clickable(role = Role.DropdownList) { open = true })
@@ -233,25 +329,26 @@ fun Picker(
     }
 }
 
-/** A delete control drawn as a plain ×, as on the page. */
+/** A delete control drawn as a plain ×, in a 48dp touch target. */
 @Composable
 fun RemoveButton(what: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         contentPadding = PaddingValues(0.dp),
-        modifier = Modifier.size(40.dp).semantics { contentDescription = "Remove $what" },
-    ) { Text("×", fontSize = 22.sp, color = Pacer.colors.muted) }
+        shape = CircleShape,
+        modifier = Modifier.size(48.dp).semantics { contentDescription = "Remove $what" },
+    ) { Text("×", style = MaterialTheme.typography.headlineSmall, color = Pacer.colors.muted) }
 }
 
-/** One row in a setup list: title, optional tag, a mono detail line, and a remove button. */
+/** One row in a setup list (§6 List row): a title, an optional chip, a mono detail line, and a remove button. */
 @Composable
 fun ListItemRow(title: String, detail: String, tag: String? = null, warn: Boolean = false, onRemove: () -> Unit) {
-    Surface(shape = RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, Pacer.colors.line)) {
-        Row(Modifier.fillMaxWidth().padding(start = 10.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+    ListGroup {
+        Row(Modifier.fillMaxWidth().padding(start = Space.l, top = Space.xs, bottom = Space.xs), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f, fill = false))
-                    if (tag != null) Tag(tag, Modifier.padding(start = 6.dp))
+                    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
+                    if (tag != null) Tag(tag, Modifier.padding(start = Space.s))
                 }
                 Text(
                     detail,
@@ -265,113 +362,111 @@ fun ListItemRow(title: String, detail: String, tag: String? = null, warn: Boolea
     }
 }
 
+/**
+ * A status chip (§6): a pill in `labelSmall`, sentence case. On paper and surface it takes the accent's soft tint,
+ * or warnSoft with [warn]; [onTile] puts it on a tile, as a surface pill at 70%.
+ */
 @Composable
-fun Tag(text: String, modifier: Modifier = Modifier, warn: Boolean = false) {
+fun Tag(text: String, modifier: Modifier = Modifier, warn: Boolean = false, onTile: Boolean = false) {
+    val c = Pacer.colors
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(2.dp),
-        color = if (warn) Pacer.colors.warnSoft else Pacer.colors.accentSoft,
-        contentColor = if (warn) Pacer.colors.warn else MaterialTheme.colorScheme.primary,
+        shape = CircleShape,
+        color = when {
+            warn -> c.warnSoft
+            onTile -> c.surface.copy(alpha = 0.7f)
+            else -> c.accentSoft
+        },
+        contentColor = when {
+            warn -> c.onWarnSoft
+            onTile -> c.onTile
+            else -> c.onAccentSoft
+        },
     ) {
-        Text(
-            text.uppercase(),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.5.sp,
-            maxLines = 1,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
-        )
+        Text(text, style = MaterialTheme.typography.labelSmall, maxLines = 1, modifier = Modifier.padding(horizontal = Space.s, vertical = 2.dp))
     }
 }
 
-/** The dashed "Add a …" button at the foot of each list. */
+/** The "Add a …" button at the foot of each list: a secondary pill. */
 @Composable
 fun AddButton(text: String, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(4.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, Pacer.colors.line),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text(
-            "+ $text",
-            style = MaterialTheme.typography.labelLarge,
-            color = Pacer.colors.muted,
-            modifier = Modifier.padding(vertical = 10.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
-    }
+    SecondaryButton("+ $text", onClick, Modifier.fillMaxWidth())
 }
 
-/** A plan problem. With [onFix] it becomes a link to the screen that fixes it. */
+/**
+ * A warning banner (§6): a full-width warnSoft block with 16dp corners and on-warnSoft text. With [onFix] it links to
+ * the screen that fixes the problem.
+ */
 @Composable
 fun ErrorBox(text: String, onFix: (() -> Unit)? = null) {
     Surface(
-        shape = RoundedCornerShape(4.dp),
+        shape = MaterialTheme.shapes.medium,
         color = Pacer.colors.warnSoft,
-        contentColor = Pacer.colors.warn,
-        border = BorderStroke(1.dp, Pacer.colors.warn),
+        contentColor = Pacer.colors.onWarnSoft,
         modifier = Modifier.fillMaxWidth().then(if (onFix != null) Modifier.clickable(role = Role.Button, onClick = onFix) else Modifier),
     ) {
-        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(horizontal = Space.l, vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
             Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            if (onFix != null) Text("Fix ›", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 8.dp))
+            if (onFix != null) {
+                Text("Fix ›", style = MaterialTheme.typography.labelLarge, color = Pacer.colors.warn, modifier = Modifier.padding(start = Space.s))
+            }
         }
     }
 }
 
-/** A tappable row that opens another screen: a title, a muted summary, and a chevron. */
+/** A tappable row that opens another screen (§6 List row): a title, a muted summary, and a chevron. */
 @Composable
 fun LinkRow(title: String, detail: String, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick).padding(horizontal = 14.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onClick).padding(horizontal = Space.l, vertical = Space.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(title, style = MaterialTheme.typography.titleMedium)
             Text(detail, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
         }
-        Text("›", fontSize = 22.sp, color = Pacer.colors.muted, modifier = Modifier.padding(start = 8.dp))
+        Text("›", style = MaterialTheme.typography.headlineSmall, color = Pacer.colors.muted, modifier = Modifier.padding(start = Space.s))
     }
 }
 
-/** The scrolling body most screens share, inset by the scaffold's [padding]. */
+/** The scrolling body most screens share, inset by the scaffold's [padding]: 16dp edges, 12dp between items. */
 @Composable
-fun ScreenList(padding: PaddingValues, spacing: Dp = 14.dp, content: LazyListScope.() -> Unit) {
+fun ScreenList(padding: PaddingValues, spacing: Dp = Space.m, content: LazyListScope.() -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 12.dp, bottom = padding.calculateBottomPadding() + 32.dp),
+        contentPadding = PaddingValues(
+            start = Space.l, end = Space.l,
+            top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl,
+        ),
         verticalArrangement = Arrangement.spacedBy(spacing),
         content = content,
     )
 }
 
-/** A serif heading over a run of cards, such as "Books" or a class name. */
+/** A heading over a run of rows, such as "Books" or a class name. */
 @Composable
 fun Heading(text: String, modifier: Modifier = Modifier) {
     Text(
-        text, style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onBackground, modifier = modifier.padding(top = 6.dp).semantics { heading() },
+        text, style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground, modifier = modifier.padding(top = Space.s).semantics { heading() },
     )
 }
 
-/** A tappable card that opens something: a title, a muted summary, and a chevron. */
+/** A tappable row on its own list group: a title, a muted summary, and a chevron. With [warn] the summary is rust. */
 @Composable
 fun CardRow(title: String, detail: String, onClick: () -> Unit, warn: Boolean = false) {
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = CardShape,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, if (warn) Pacer.colors.warn else Pacer.colors.line),
+        shape = MaterialTheme.shapes.medium,
+        color = Pacer.colors.surface,
     ) {
-        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.heightIn(min = 48.dp).padding(horizontal = Space.l, vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(detail, style = MaterialTheme.typography.bodySmall, color = if (warn) Pacer.colors.warn else Pacer.colors.muted)
             }
-            Text("›", fontSize = 22.sp, color = Pacer.colors.muted, modifier = Modifier.padding(start = 8.dp))
+            Text("›", style = MaterialTheme.typography.headlineSmall, color = Pacer.colors.muted, modifier = Modifier.padding(start = Space.s))
         }
     }
 }
@@ -389,7 +484,10 @@ fun AddDialogFrame(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
-        text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() } },
+        text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.m)) { content() } },
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = Pacer.colors.surface,
+        tonalElevation = 0.dp,
         confirmButton = { TextButton(onClick = { onAdd(); onDismiss() }, enabled = canAdd) { Text(confirm) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
@@ -407,6 +505,9 @@ fun Confirm(title: String, detail: String, action: String, onConfirm: () -> Unit
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(detail) },
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = Pacer.colors.surface,
+        tonalElevation = 0.dp,
         confirmButton = { TextButton(onClick = { onConfirm(); onDismiss() }) { Text(action, color = Pacer.colors.warn) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
