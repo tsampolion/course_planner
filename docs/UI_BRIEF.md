@@ -1,5 +1,7 @@
 # Task: Restructure Coursebook Pacer's UI into a home screen, focused screens, and a settings screen
 
+> Historical (1.2.0). The look and the screen patterns now follow `docs/EDUSUITE_STYLE_GUIDE.md`; where this brief disagrees with the guide, the guide wins.
+
 ## Context
 Coursebook Pacer (this repo) currently has a single scaffold in `ui/PacerApp.kt`: a top bar
 with a plan dropdown and overflow menu, then a `ScrollableTabRow` with a "Setup" tab plus one

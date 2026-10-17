@@ -88,9 +88,12 @@ jobs:
             exit 1
           fi
           echo "Matches the release certificate (SIGNING_CERT_SHA256)." | tee -a "$GITHUB_STEP_SUMMARY"
-      - name: APK size
-        run: ls -l app/build/outputs/apk/release/ | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: APK size and package
+        run: |
+          ls -l app/build/outputs/apk/release/ | tee -a "$GITHUB_STEP_SUMMARY"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging app/build/outputs/apk/release/*.apk | head -n 1 \
+            | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
-          name: coursebook-pacer-apk
+          name: course-pacer-apk
           path: app/build/outputs/apk/release/*.apk
