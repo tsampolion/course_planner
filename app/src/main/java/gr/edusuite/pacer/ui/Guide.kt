@@ -20,6 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import gr.edusuite.pacer.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
@@ -31,10 +33,10 @@ import gr.edusuite.pacer.ui.theme.Space
 
 /** The four steps to a first schedule, as the welcome guide lists them. */
 private val STEPS = listOf(
-    "School year" to "Its first and last teaching day, and the days off.",
-    "Class" to "The lesson length and the pace you can sustain.",
-    "Books and groups" to "Each book's first and last page, and each group's lesson days.",
-    "Schedule" to "Open a group to see the pages for every lesson, and tick lessons as you teach them.",
+    R.string.guide_step_1_title to R.string.guide_step_1_detail,
+    R.string.guide_step_2_title to R.string.guide_step_2_detail,
+    R.string.guide_step_3_title to R.string.guide_step_3_detail,
+    R.string.guide_step_4_title to R.string.guide_step_4_detail,
 )
 
 /**
@@ -45,42 +47,41 @@ private val STEPS = listOf(
 fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Welcome to $APP_NAME") },
+        title = { Text(stringResource(R.string.guide_welcome, stringResource(R.string.app_name))) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                 Text(
-                    "$APP_NAME spreads your coursebook pages over the lessons left in the term, " +
-                        "so you can see whether each group will finish in time.",
+                    stringResource(R.string.guide_intro, stringResource(R.string.app_name)),
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                Text("Four steps to your first schedule:", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.guide_four_steps), style = MaterialTheme.typography.bodyMedium)
                 STEPS.forEachIndexed { i, (title, detail) ->
                     Tile(color = if (i % 2 == 0) Pacer.colors.tileLilac else Pacer.colors.tileSky) {
                         Surface(shape = CircleShape, color = Pacer.colors.accentSoft, contentColor = Pacer.colors.onAccentSoft) {
                             Box(Modifier.sizeIn(minWidth = Space.xxl, minHeight = Space.xxl).padding(Space.xs), contentAlignment = Alignment.Center) {
-                                Text("${i + 1}", style = MaterialTheme.typography.labelMedium, fontFamily = Mono)
+                                Text(stringResource(R.string.guide_step_number, i + 1), style = MaterialTheme.typography.labelMedium, fontFamily = Mono)
                             }
                         }
-                        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-                        Text(detail, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
+                        Text(stringResource(title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                        Text(stringResource(detail), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
                     }
                 }
-                Hint("Each screen says what to do next while it's empty. You can open this guide again from Settings.")
+                Hint(stringResource(R.string.guide_hint))
             }
         },
         shape = MaterialTheme.shapes.extraLarge,
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
         confirmButton = {
-            if (onStart != null) PrimaryButton("Create your school year", { onStart(); onDismiss() })
-            else PrimaryButton("Got it", onDismiss)
+            if (onStart != null) PrimaryButton(stringResource(R.string.guide_create_year), { onStart(); onDismiss() })
+            else PrimaryButton(stringResource(R.string.guide_got_it), onDismiss)
         },
-        dismissButton = if (onStart != null) ({ TertiaryButton("Not now", onDismiss) }) else null,
+        dismissButton = if (onStart != null) ({ TertiaryButton(stringResource(R.string.guide_not_now), onDismiss) }) else null,
     )
 }
 
 /**
- * A "Next step" card for a screen that is still empty. It says what to do and goes away
+ * A next-step card for a screen that is still empty. It says what to do and goes away
  * once that is done, so nothing about it is stored. [action] points to another screen or dialog;
  * leave it out when the screen's own add button sits right below.
  */
@@ -88,13 +89,13 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
 fun GuideCard(title: String, text: String, modifier: Modifier = Modifier, action: Pair<String, () -> Unit>? = null, onDismiss: (() -> Unit)? = null) {
     val c = Pacer.colors
     Tile(color = c.tileSky, modifier = modifier) {
-        Text("Next step", style = MaterialTheme.typography.labelMedium, color = c.onTileMuted)
+        Text(stringResource(R.string.guide_next_step), style = MaterialTheme.typography.labelMedium, color = c.onTileMuted)
         Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
         Text(text, style = MaterialTheme.typography.bodyMedium, color = c.onTileMuted)
         action?.let { (label, onClick) ->
             TertiaryButton(label, onClick, Modifier.padding(top = Space.s), color = c.onTile)
         }
-        onDismiss?.let { TertiaryButton("Dismiss", it, color = c.onTile) }
+        onDismiss?.let { TertiaryButton(stringResource(R.string.guide_dismiss), it, color = c.onTile) }
     }
 }
 
@@ -103,13 +104,10 @@ private const val ARITHMETIC =
     "The schedule is arithmetic, not advice: it spreads each book's pages evenly over the lessons left. " +
         "It can't know how your class is really doing, so go by what you actually teach"
 
-/** Shown above every group's schedule. */
-const val SCHEDULE_NOTE = "$ARITHMETIC and record it here as you go."
-
 /** Printed under every group's heading on the printed sheet. */
 const val PRINT_NOTE = "$ARITHMETIC."
 
-/** A quiet note with a thin bar, for [SCHEDULE_NOTE]. */
+/** A quiet note with a thin bar for the schedule explanation. */
 @Composable
 fun Note(text: String, modifier: Modifier = Modifier) {
     Row(modifier.fillMaxWidth().height(IntrinsicSize.Min)) {

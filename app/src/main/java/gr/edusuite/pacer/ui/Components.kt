@@ -1,5 +1,23 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import gr.edusuite.pacer.R
+import gr.edusuite.pacer.ui.theme.Motion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -120,11 +138,12 @@ fun Tile(
     contentColor: Color = Pacer.colors.onTile,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val interaction = remember { MutableInteractionSource() }
     val body: @Composable () -> Unit = {
         Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.xs), content = content)
     }
     if (onClick != null) {
-        Surface(onClick = onClick, modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = color, contentColor = contentColor, content = body)
+        Surface(onClick = onClick, interactionSource = interaction, modifier = modifier.pressFeedback(interaction).fillMaxWidth(), shape = MaterialTheme.shapes.large, color = color, contentColor = contentColor, content = body)
     } else {
         Surface(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = color, contentColor = contentColor, content = body)
     }
@@ -132,17 +151,27 @@ fun Tile(
 
 /** A primary pill button (§6 Buttons): accent fill, 48dp tall. */
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    Button(onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 48.dp), shape = CircleShape) {
-        Text(text, style = MaterialTheme.typography.labelLarge)
+fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, completed: Boolean = false) {
+    val interaction = remember { MutableInteractionSource() }
+    val motion = animationsEnabled()
+    val savedLabel = stringResource(R.string.component_saved)
+    Button(onClick = onClick, interactionSource = interaction, enabled = enabled, modifier = modifier.pressFeedback(interaction).heightIn(min = 48.dp), shape = CircleShape) {
+        AnimatedContent(completed, transitionSpec = {
+            if (motion) fadeIn(Motion.content()) togetherWith fadeOut(Motion.content())
+            else EnterTransition.None togetherWith ExitTransition.None
+        }, label = "save completion") { done ->
+            if (done) AppIcon(AppIcons.Check, contentDescription = savedLabel)
+            else Text(text, style = MaterialTheme.typography.labelLarge)
+        }
     }
 }
 
 /** A secondary pill button: surfaceContainer fill with ink text. */
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val interaction = remember { MutableInteractionSource() }
     Button(
-        onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 48.dp), shape = CircleShape,
+        onClick = onClick, interactionSource = interaction, enabled = enabled, modifier = modifier.pressFeedback(interaction).heightIn(min = 48.dp), shape = CircleShape,
         colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink),
     ) { Text(text, style = MaterialTheme.typography.labelLarge) }
 }
@@ -150,7 +179,8 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 /** A tertiary button: text only, in the accent (or [color]). */
 @Composable
 fun TertiaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, color: Color = Color.Unspecified) {
-    TextButton(onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 48.dp), shape = CircleShape) {
+    val interaction = remember { MutableInteractionSource() }
+    TextButton(onClick = onClick, interactionSource = interaction, enabled = enabled, modifier = modifier.pressFeedback(interaction).heightIn(min = 48.dp), shape = CircleShape) {
         Text(text, style = MaterialTheme.typography.labelLarge, color = color)
     }
 }
@@ -158,10 +188,11 @@ fun TertiaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
 /** An icon button on a 40dp surface pill inside a 48dp touch target (§6 Buttons). [label] is what TalkBack reads. */
 @Composable
 fun PillIconButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
     Box(
-        modifier
+        modifier.pressFeedback(interaction)
             .size(48.dp)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = interaction, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
@@ -176,14 +207,14 @@ fun PillIconButton(label: String, onClick: () -> Unit, modifier: Modifier = Modi
  * line and an optional pill action.
  */
 @Composable
-fun EmptyState(symbol: String, title: String, message: String, action: String? = null, onAction: (() -> Unit)? = null) {
+fun EmptyState(symbol: ImageVector, title: String, message: String, action: String? = null, onAction: (() -> Unit)? = null) {
     Column(
         Modifier.fillMaxWidth().padding(vertical = Space.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Space.l),
     ) {
         Surface(shape = CircleShape, color = Pacer.colors.tileSky, contentColor = Pacer.colors.onTile, modifier = Modifier.size(120.dp)) {
-            Box(contentAlignment = Alignment.Center) { Text(symbol, style = MaterialTheme.typography.displaySmall) }
+            Box(contentAlignment = Alignment.Center) { AppIcon(symbol, Modifier.size(48.dp)) }
         }
         Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })
         Text(message, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted, textAlign = TextAlign.Center)
@@ -212,6 +243,9 @@ fun CommitField(
     decimal: Boolean = false,
     placeholder: String? = null,
     sameValue: (typed: String, value: String) -> Boolean = { a, b -> a == b },
+    isValid: (String) -> Boolean = { true },
+    errorMessage: String = stringResource(R.string.component_invalid_value),
+    error: Boolean = false,
 ) {
     var text by remember { mutableStateOf(value) }
     var shown by remember { mutableStateOf(value) }
@@ -221,8 +255,10 @@ fun CommitField(
     }
     OutlinedTextField(
         value = text,
-        onValueChange = { text = it; onCommit(it) },
+        onValueChange = { text = it; if (isValid(it)) onCommit(it) },
         label = { Text(label) },
+        isError = error || !isValid(text),
+        supportingText = if (error || !isValid(text)) { { Text(errorMessage) } } else null,
         placeholder = placeholder?.let { { Text(it) } },
         singleLine = true,
         textStyle = if (numeric) MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono) else MaterialTheme.typography.bodyLarge,
@@ -234,7 +270,7 @@ fun CommitField(
                 else -> KeyboardType.Text
             },
         ),
-        modifier = modifier,
+        modifier = modifier.fieldFeedback(error || !isValid(text)),
     )
 }
 
@@ -247,6 +283,8 @@ fun IntField(value: Int, onCommit: (Int) -> Unit, label: String, modifier: Modif
     CommitField(
         value.toString(), { s -> s.trim().toIntOrNull()?.takeIf { it in min..max }?.let(onCommit) }, label, modifier, numeric = true,
         sameValue = { a, b -> a.trim().toIntOrNull() == b.trim().toIntOrNull() },
+        isValid = { it.trim().toIntOrNull()?.let { n -> n in min..max } == true },
+        errorMessage = stringResource(R.string.component_integer_range, min, max),
     )
 }
 
@@ -254,8 +292,10 @@ fun IntField(value: Int, onCommit: (Int) -> Unit, label: String, modifier: Modif
 @Composable
 fun PaceField(value: Double, onCommit: (Double) -> Unit, modifier: Modifier = Modifier) {
     CommitField(
-        value.plain(), { s -> Settings.parsePace(s)?.let(onCommit) }, "Pace you can sustain", modifier, numeric = true, decimal = true,
+        value.plain(), { s -> Settings.parsePace(s)?.let(onCommit) }, stringResource(R.string.component_pace), modifier, numeric = true, decimal = true,
         sameValue = { a, b -> Settings.parsePace(a) == Settings.parsePace(b) },
+        isValid = { Settings.parsePace(it) != null },
+        errorMessage = stringResource(R.string.component_pace_invalid),
     )
 }
 
@@ -270,6 +310,8 @@ fun DateField(
     clearable: Boolean = false,
 ) {
     var open by remember { mutableStateOf(false) }
+    val unset = stringResource(R.string.component_not_set)
+    val dateDescription = stringResource(R.string.component_date_description, label, value?.fmt() ?: unset)
     Box(modifier) {
         OutlinedTextField(
             value = value?.fmt() ?: "",
@@ -277,7 +319,7 @@ fun DateField(
             readOnly = true,
             singleLine = true,
             label = { Text(label) },
-            placeholder = { Text("Not set") },
+            placeholder = { Text(stringResource(R.string.component_not_set)) },
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -287,7 +329,7 @@ fun DateField(
                 .matchParentSize()
                 .padding(top = 8.dp)
                 .clickable(role = Role.Button) { open = true }
-                .semantics { contentDescription = "$label, ${value?.fmt() ?: "not set"}" },
+                .semantics { contentDescription = dateDescription },
         )
     }
     if (open) {
@@ -300,12 +342,12 @@ fun DateField(
                 TextButton(onClick = {
                     state.selectedDateMillis?.let { onChange(LocalDate.ofEpochDay(Math.floorDiv(it, 86_400_000L))) }
                     open = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.component_ok)) }
             },
             dismissButton = {
                 Row {
-                    if (clearable && value != null) TextButton(onClick = { onChange(null); open = false }) { Text("Clear") }
-                    TextButton(onClick = { open = false }) { Text("Cancel") }
+                    if (clearable && value != null) TextButton(onClick = { onChange(null); open = false }) { Text(stringResource(R.string.component_clear)) }
+                    TextButton(onClick = { open = false }) { Text(stringResource(R.string.component_cancel)) }
                 }
             },
         ) { DatePicker(state = state) }
@@ -329,7 +371,7 @@ fun Picker(
             readOnly = true,
             singleLine = true,
             label = { Text(label) },
-            trailingIcon = { Text("▾", color = Pacer.colors.muted) },
+            trailingIcon = { AppIcon(AppIcons.ArrowDropDown) },
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -345,12 +387,13 @@ fun Picker(
 /** A delete control drawn as a plain ×, in a 48dp touch target. */
 @Composable
 fun RemoveButton(what: String, onClick: () -> Unit) {
+    val removeDescription = stringResource(R.string.component_remove_what, what)
     TextButton(
         onClick = onClick,
         contentPadding = PaddingValues(0.dp),
         shape = CircleShape,
-        modifier = Modifier.size(48.dp).semantics { contentDescription = "Remove $what" },
-    ) { Text("×", style = MaterialTheme.typography.headlineSmall, color = Pacer.colors.muted) }
+        modifier = Modifier.size(48.dp).semantics { contentDescription = removeDescription },
+    ) { AppIcon(AppIcons.Close) }
 }
 
 /** One row in a setup list (§6 List row): a title, an optional chip, a mono detail line, and a remove button. */
@@ -358,6 +401,7 @@ fun RemoveButton(what: String, onClick: () -> Unit) {
 fun ListItemRow(title: String, detail: String, tag: String? = null, warn: Boolean = false, onRemove: () -> Unit) {
     ListGroup {
         Row(Modifier.fillMaxWidth().padding(start = Space.l, top = Space.xs, bottom = Space.xs), verticalAlignment = Alignment.CenterVertically) {
+            AppIcon(AppIcons.Info, Modifier.padding(end = Space.m))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
@@ -403,7 +447,11 @@ fun Tag(text: String, modifier: Modifier = Modifier, warn: Boolean = false, onTi
 /** The "Add a …" button at the foot of each list: a secondary pill. */
 @Composable
 fun AddButton(text: String, onClick: () -> Unit) {
-    SecondaryButton("+ $text", onClick, Modifier.fillMaxWidth())
+    val interaction = remember { MutableInteractionSource() }
+    Button(onClick = onClick, interactionSource = interaction, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).pressFeedback(interaction), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink)) {
+        AppIcon(AppIcons.Add, Modifier.padding(end = Space.s))
+        Text(text, style = MaterialTheme.typography.labelLarge)
+    }
 }
 
 /**
@@ -419,9 +467,10 @@ fun ErrorBox(text: String, onFix: (() -> Unit)? = null) {
         modifier = Modifier.fillMaxWidth().then(if (onFix != null) Modifier.clickable(role = Role.Button, onClick = onFix) else Modifier),
     ) {
         Row(Modifier.padding(horizontal = Space.l, vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
+            AppIcon(AppIcons.Warning, Modifier.padding(end = Space.s))
             Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             if (onFix != null) {
-                Text("Fix ›", style = MaterialTheme.typography.labelLarge, color = Pacer.colors.warn, modifier = Modifier.padding(start = Space.s))
+                Text(stringResource(R.string.component_fix), style = MaterialTheme.typography.labelLarge, color = Pacer.colors.warn, modifier = Modifier.padding(start = Space.s))
             }
         }
     }
@@ -434,11 +483,12 @@ fun LinkRow(title: String, detail: String, onClick: () -> Unit) {
         Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onClick).padding(horizontal = Space.l, vertical = Space.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        AppIcon(AppIcons.Info, Modifier.padding(end = Space.m))
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(detail, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
         }
-        Text("›", style = MaterialTheme.typography.headlineSmall, color = Pacer.colors.muted, modifier = Modifier.padding(start = Space.s))
+        AppIcon(AppIcons.ChevronRight, Modifier.padding(start = Space.s))
     }
 }
 
@@ -475,11 +525,12 @@ fun CardRow(title: String, detail: String, onClick: () -> Unit, warn: Boolean = 
         color = Pacer.colors.surface,
     ) {
         Row(Modifier.heightIn(min = 48.dp).padding(horizontal = Space.l, vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
+            AppIcon(AppIcons.Info, Modifier.padding(end = Space.m))
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(detail, style = MaterialTheme.typography.bodySmall, color = if (warn) Pacer.colors.warn else Pacer.colors.muted)
             }
-            Text("›", style = MaterialTheme.typography.headlineSmall, color = Pacer.colors.muted, modifier = Modifier.padding(start = Space.s))
+            AppIcon(AppIcons.ChevronRight, Modifier.padding(start = Space.s))
         }
     }
 }
@@ -491,7 +542,7 @@ fun AddDialogFrame(
     canAdd: Boolean,
     onAdd: () -> Unit,
     onDismiss: () -> Unit,
-    confirm: String = "Add",
+    confirm: String = stringResource(R.string.component_add),
     content: @Composable () -> Unit,
 ) {
     AlertDialog(
@@ -502,7 +553,7 @@ fun AddDialogFrame(
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
         confirmButton = { TextButton(onClick = { onAdd(); onDismiss() }, enabled = canAdd) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.component_cancel)) } },
     )
 }
 
@@ -521,6 +572,10 @@ fun SheetFrame(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    var completed by remember { mutableStateOf(false) }
+    val motion = animationsEnabled()
+    val saveLabel = stringResource(R.string.component_save)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = state,
@@ -535,7 +590,15 @@ fun SheetFrame(
         ) {
             Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
             content()
-            PrimaryButton(primary, { onPrimary(); onDismiss() }, Modifier.fillMaxWidth(), enabled = enabled)
+            PrimaryButton(primary, {
+                if (!completed) {
+                    onPrimary()
+                    if (primary == saveLabel && motion) {
+                        completed = true
+                        scope.launch { delay(600); onDismiss() }
+                    } else onDismiss()
+                }
+            }, Modifier.fillMaxWidth(), enabled = enabled && !completed, completed = completed)
         }
     }
 }
@@ -547,6 +610,9 @@ fun SheetFrame(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SwipeRow(what: String, onRemove: () -> Unit, content: @Composable () -> Unit) {
+    val removeDescription = stringResource(R.string.component_remove_what, what)
+    val optionsLabel = stringResource(R.string.component_options)
+    val motion = animationsEnabled()
     val state = rememberSwipeToDismissBoxState(confirmValueChange = { v ->
         if (v == SwipeToDismissBoxValue.EndToStart) onRemove()
         // The row leaves with the data; the box itself never stays dismissed.
@@ -557,17 +623,18 @@ fun SwipeRow(what: String, onRemove: () -> Unit, content: @Composable () -> Unit
         state = state,
         enableDismissFromStartToEnd = false,
         backgroundContent = {
+            val scale by animateFloatAsState(if (state.progress > .5f) 1.2f else 1f, if (motion) Motion.bouncy() else snap(), label = "swipe action")
             Box(
                 Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(Pacer.colors.warnSoft).padding(horizontal = Space.l),
                 contentAlignment = Alignment.CenterEnd,
-            ) { Text("Remove", style = MaterialTheme.typography.labelLarge, color = Pacer.colors.onWarnSoft) }
+            ) { Row(verticalAlignment = Alignment.CenterVertically) { AppIcon(AppIcons.Delete, Modifier.graphicsLayer { scaleX = scale; scaleY = scale }); Text(stringResource(R.string.component_remove), style = MaterialTheme.typography.labelLarge, color = Pacer.colors.onWarnSoft) } }
         },
-        modifier = Modifier.semantics { customActions = listOf(CustomAccessibilityAction("Remove $what") { onRemove(); true }) },
+        modifier = Modifier.animateContentSize(if (motion) Motion.settle() else snap()).semantics { customActions = listOf(CustomAccessibilityAction(removeDescription) { onRemove(); true }) },
     ) {
-        Box(Modifier.combinedClickable(onClick = {}, onLongClick = { menu = true }, onLongClickLabel = "Options")) {
+        Box(Modifier.combinedClickable(onClick = {}, onLongClick = { menu = true }, onLongClickLabel = optionsLabel)) {
             content()
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text("Remove") }, onClick = { menu = false; onRemove() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.component_remove)) }, onClick = { menu = false; onRemove() })
             }
         }
     }

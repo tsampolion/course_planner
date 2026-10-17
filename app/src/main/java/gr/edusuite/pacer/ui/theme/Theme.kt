@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import gr.edusuite.pacer.ui.PacerMotion
 
 /*
  * The EduSuite theme (docs/EDUSUITE_STYLE_GUIDE.md): shared neutrals and tiles, Course Pacer's teal accent, Outfit and
@@ -23,7 +24,7 @@ fun PacerTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () ->
             colorScheme = schemeFor(tokens, other, dark),
             typography = PacerTypography,
             shapes = PacerShapes,
-            content = content,
+            content = { PacerMotion(content) },
         )
     }
 }

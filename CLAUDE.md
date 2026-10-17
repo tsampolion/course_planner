@@ -41,6 +41,8 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRele
 
 ## Gotchas
 
+- **UI copy and icons (2.4.0).** Visible UI copy and accessibility labels belong in `res/values/strings.xml`, using `stringResource`/`pluralStringResource` in composition and `Context.getString`/`getQuantityString` in callbacks. `NoHardcodedTextTest` guards the UI sources. Engine strings, `Nav.problems`, PrintSheet's HTML and printed `PRINT_NOTE`, and stored model/ViewModel defaults remain Kotlin to keep the engine and data contracts independent of Android resources. The two `NO_BOOKS`/`NO_GROUPS` literals in ClassScreens are matching keys for `Nav.problems`, not rendered UI. Date/number formats, MIME types, file names, animation diagnostic labels and stable navigation/lazy keys are not translatable. Icons are approved Material Symbols Rounded outlined path data in `AppIcons.kt`, with Apache 2.0 attribution; never add an icon library. Use the shared motion/haptic helpers, and snap motion when animator duration scale is zero.
+
 - The JSON format has to stay readable from the web page's localStorage export (now through `migratePlans`). Weekdays are numbered **0 = Sunday**, unlike `java.time.DayOfWeek`, and dates are ISO strings. If you change the schema, bump `JsonCodec.VERSION` and keep reading old files.
 - Don't give the `edit` helpers a tag for structural edits (add or remove). Tags are for per-field typing, so it merges into one undo step.
 - `proguard-rules.pro` is empty because nothing uses reflection. If you add reflection or JNI, add keep rules and check `assembleRelease`.

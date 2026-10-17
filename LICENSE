@@ -57,3 +57,7 @@ under their own licences and are not covered by sections 1 to 3:
     Version 1.1 (third_party/outfit/OFL.txt).
   - AndroidX and Jetpack Compose libraries, fetched at build time, licensed
     under the Apache License, Version 2.0.
+  - Material Symbols Rounded outlined icon artwork, Copyright Google,
+    licensed under the Apache License, Version 2.0
+    (third_party/material-symbols/LICENSE.txt). Source and revision are
+    documented in third_party/material-symbols/README.md.

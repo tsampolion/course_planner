@@ -23,6 +23,9 @@ import androidx.compose.material3.FilterChip
 import gr.edusuite.pacer.engine.plain
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import gr.edusuite.pacer.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +47,7 @@ import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Space
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
@@ -52,9 +56,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private val THEMES = listOf(
-    ThemeMode.SYSTEM to "Follow the system",
-    ThemeMode.LIGHT to "Light",
-    ThemeMode.DARK to "Dark",
+    ThemeMode.SYSTEM to R.string.settings_theme_system,
+    ThemeMode.LIGHT to R.string.settings_theme_light,
+    ThemeMode.DARK to R.string.settings_theme_dark,
 )
 
 /**
@@ -72,6 +76,7 @@ fun SettingsScreen(
     undoToast: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    val segmentHaptic = rememberSegmentHaptic()
     var guide by rememberSaveable { mutableStateOf(false) }
     var defaults by rememberSaveable { mutableStateOf(false) }
     val version = remember {
@@ -84,7 +89,7 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(Space.l),
     ) {
         item(key = "theme") {
-            Section("Theme") {
+            Section(stringResource(R.string.settings_theme), modifier = Modifier.animateItem()) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth().selectableGroup(),
                     horizontalArrangement = Arrangement.spacedBy(Space.s),
@@ -94,8 +99,8 @@ fun SettingsScreen(
                         FilterChip(
                             modifier = Modifier.semantics { role = Role.RadioButton },
                             selected = settings.theme == mode,
-                            onClick = { vm.setTheme(mode) },
-                            label = { Text(label) },
+                            onClick = { if (settings.theme != mode) { segmentHaptic(); vm.setTheme(mode) } },
+                            label = { Text(stringResource(label)) },
                             shape = MaterialTheme.shapes.extraSmall,
                         )
                     }
@@ -103,33 +108,34 @@ fun SettingsScreen(
             }
         }
         item(key = "defaults") {
-            Section("New classes") {
-                LinkRow("Class defaults", "${settings.lessonMins} min · ${settings.pace.plain()} pages per lesson") { defaults = true }
-                Hint("Used when you add a class. Existing classes keep their own values, which you change on the class screen.")
+            Section(stringResource(R.string.settings_new_classes), modifier = Modifier.animateItem()) {
+                LinkRow(stringResource(R.string.settings_class_defaults), stringResource(R.string.settings_defaults_summary, settings.lessonMins, settings.pace.plain())) { defaults = true }
+                Hint(stringResource(R.string.settings_defaults_hint))
             }
         }
         item(key = "backup") { BackupSection(yearCount, vm, toast, undoToast) }
         item(key = "help") {
-            Section("Help") {
-                Column { LinkRow("Getting started", "What the app does, and the steps to a first schedule") { guide = true } }
+            Section(stringResource(R.string.settings_help), modifier = Modifier.animateItem()) {
+                Column { LinkRow(stringResource(R.string.settings_getting_started), stringResource(R.string.settings_getting_started_detail)) { guide = true } }
             }
         }
         item(key = "about") {
-            Section("About") {
-                Text("$APP_NAME $version", style = MaterialTheme.typography.bodyLarge)
-                Hint("School years are saved on this device and included in Android backups, along with these settings.")
-                Hint("Part of the EduSuite apps, alongside Course Invoicer.")
-                Hint("Outfit typeface: © The Outfit Project Authors, SIL Open Font License 1.1. AndroidX: Apache License 2.0.")
-                Hint("© 2026 Dimitrios Tsampallas. All rights reserved.")
+            Section(stringResource(R.string.settings_about), modifier = Modifier.animateItem()) {
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.bodyLarge)
+                Text(version, style = MaterialTheme.typography.bodyMedium, fontFamily = Mono)
+                Hint(stringResource(R.string.settings_local_storage))
+                Hint(stringResource(R.string.settings_suite))
+                Hint(stringResource(R.string.settings_credits))
+                Hint(stringResource(R.string.settings_copyright))
             }
         }
     }
 
     if (defaults) {
-        SheetFrame("New class defaults", "Done", true, {}, { defaults = false }) {
-            IntField(settings.lessonMins, vm::setDefaultMins, "Lesson length (min)", Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
+        SheetFrame(stringResource(R.string.settings_defaults_title), stringResource(R.string.settings_done), true, {}, { defaults = false }) {
+            IntField(settings.lessonMins, vm::setDefaultMins, stringResource(R.string.settings_lesson_length), Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
             PaceField(settings.pace, vm::setDefaultPace, Modifier.fillMaxWidth())
-            Hint("Changes are saved as you type and apply to new classes only.")
+            Hint(stringResource(R.string.settings_defaults_saved))
         }
     }
     if (guide) WelcomeDialog(onStart = null) { guide = false }
@@ -145,11 +151,14 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
     val exportTo = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         val text = vm.exportText()
-        val years = count(yearCount, "school year")
+        val years = context.resources.getQuantityString(R.plurals.settings_year_count, yearCount, yearCount)
         scope.launch {
             val saved = withContext(Dispatchers.IO) { writeFile(context, uri, text.encodeToByteArray()) }
             val name = withContext(Dispatchers.IO) { displayName(context, uri) }
-            toast(if (saved) "Saved $years${name?.let { " to $it" }.orEmpty()}" else "Couldn't save the file. Try another place.")
+            toast(if (saved) {
+                if (name == null) context.getString(R.string.settings_export_saved, years)
+                else context.getString(R.string.settings_export_saved_to, years, name)
+            } else context.getString(R.string.settings_save_error))
         }
     }
     val importFrom = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -157,26 +166,26 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
         scope.launch {
             when (val result = withContext(Dispatchers.IO) { readFile(context, uri) }) {
                 is ImportResult.Years -> importing = result.years
-                ImportResult.NoYears -> toast("That file holds no school years.")
-                ImportResult.Newer -> toast("That file comes from a newer version of $APP_NAME. Update the app, then import it.")
-                ImportResult.Unreadable -> toast("Couldn't read that file. Choose one exported from $APP_NAME or from the Coursebook Pacer web page.")
+                ImportResult.NoYears -> toast(context.getString(R.string.settings_import_empty))
+                ImportResult.Newer -> toast(context.getString(R.string.settings_import_newer, context.getString(R.string.app_name)))
+                ImportResult.Unreadable -> toast(context.getString(R.string.settings_import_unreadable, context.getString(R.string.app_name)))
             }
         }
     }
 
-    Section("Back up and restore") {
-        SecondaryButton("Export…", { openPicker(toast) { exportTo.launch(backupFileName(LocalDate.now())) } }, Modifier.fillMaxWidth(), enabled = yearCount > 0)
+    Section(stringResource(R.string.settings_backup)) {
+        SecondaryButton(stringResource(R.string.settings_export), { openPicker(context, toast) { exportTo.launch(backupFileName(LocalDate.now())) } }, Modifier.fillMaxWidth(), enabled = yearCount > 0)
         // Any type: phones label JSON files inconsistently, and a wrong pick is refused with a message.
-        SecondaryButton("Import…", { openPicker(toast) { importFrom.launch(arrayOf("*/*")) } }, Modifier.fillMaxWidth())
-        Hint("Export saves every school year to a file, in Downloads, Google Drive or wherever your phone offers. Import reads it back, on this phone or another, and also reads the Coursebook Pacer web page's export. Settings aren't included.")
-        Hint("Export before you uninstall the app or change phones: uninstalling deletes the school years.")
+        SecondaryButton(stringResource(R.string.settings_import), { openPicker(context, toast) { importFrom.launch(arrayOf("*/*")) } }, Modifier.fillMaxWidth())
+        Hint(stringResource(R.string.settings_backup_hint))
+        Hint(stringResource(R.string.settings_uninstall_hint))
     }
 
     importing?.let { years ->
         ImportDialog(
             years, yearCount,
-            onAdd = { vm.addImportedYears(years); undoToast("Added ${count(years.size, "school year")}") },
-            onReplace = { vm.replaceAllYears(years); undoToast("Replaced your school years with ${years.size} from the file") },
+            onAdd = { vm.addImportedYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_added, years.size, years.size)) },
+            onReplace = { vm.replaceAllYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_replaced, years.size, years.size)) },
             onDismiss = { importing = null },
         )
     }
@@ -184,32 +193,33 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
 
 @Composable
 private fun ImportDialog(years: List<SchoolYear>, current: Int, onAdd: () -> Unit, onReplace: () -> Unit, onDismiss: () -> Unit) {
-    val names = years.take(5).joinToString(", ") { it.name } + if (years.size > 5) " and ${years.size - 5} more" else ""
-    val here = if (current == 0) "There are no school years on this phone yet." else
-        "Add puts them beside the ${count(current, "school year")} on this phone. Replace all deletes those and keeps only the file's."
+    val names = years.take(5).joinToString(stringResource(R.string.settings_name_separator)) { it.name } +
+        if (years.size > 5) pluralStringResource(R.plurals.settings_more_years, years.size - 5, years.size - 5) else ""
+    val here = if (current == 0) stringResource(R.string.settings_no_years) else
+        pluralStringResource(R.plurals.settings_import_explanation, current, current)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Import ${count(years.size, "school year")}?") },
-        text = { Text("$names.\n\n$here You can undo it straight after.") },
+        title = { Text(pluralStringResource(R.plurals.settings_import_title, years.size, years.size)) },
+        text = { Text(stringResource(R.string.settings_import_body, names, here)) },
         shape = MaterialTheme.shapes.extraLarge,
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
         confirmButton = {
             Column {
-                if (current > 0) TertiaryButton("Replace all", { onReplace(); onDismiss() }, color = Pacer.colors.warn)
-                PrimaryButton("Add", { onAdd(); onDismiss() })
+                if (current > 0) TertiaryButton(stringResource(R.string.settings_replace), { onReplace(); onDismiss() }, color = Pacer.colors.warn)
+                PrimaryButton(stringResource(R.string.settings_add), { onAdd(); onDismiss() })
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_cancel)) } },
     )
 }
 
 /** Opens a system picker; a phone without one says so instead of crashing. */
-internal fun openPicker(toast: (String) -> Unit, open: () -> Unit) {
+internal fun openPicker(context: Context, toast: (String) -> Unit, open: () -> Unit) {
     try {
         open()
     } catch (e: android.content.ActivityNotFoundException) {
-        toast("This phone has no file picker.")
+        toast(context.getString(R.string.settings_no_picker))
     }
 }
 
