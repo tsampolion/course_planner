@@ -506,26 +506,6 @@ fun AddDialogFrame(
     )
 }
 
-/** Asks before deleting something big. Undo can still bring it back. */
-@Composable
-fun ConfirmDelete(name: String, detail: String, onDelete: () -> Unit, onDismiss: () -> Unit) =
-    Confirm("Delete “$name”?", detail, "Delete", onDelete, onDismiss)
-
-/** Asks before an edit that throws work away, with [action] in the warning colour. */
-@Composable
-fun Confirm(title: String, detail: String, action: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { Text(detail) },
-        shape = MaterialTheme.shapes.extraLarge,
-        containerColor = Pacer.colors.surface,
-        tonalElevation = 0.dp,
-        confirmButton = { TextButton(onClick = { onConfirm(); onDismiss() }) { Text(action, color = Pacer.colors.warn) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-    )
-}
-
 /**
  * A bottom sheet for a short edit (§6 Bottom sheet, §14 Act in place): a title, the fields, and the primary pill action
  * at the bottom, which stays off until [enabled]. Used for adds and renames of three fields or fewer.
