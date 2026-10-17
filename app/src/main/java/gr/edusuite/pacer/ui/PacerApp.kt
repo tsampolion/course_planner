@@ -39,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -50,7 +51,11 @@ import gr.edusuite.pacer.engine.lessonsFor
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/** How long a delete's Undo stays on show before accessibility adjustments (style guide §14). */
+private const val UNDO_MILLIS = 5_000L
 
 /** The app's name as the screens show it; the launcher label lives in strings.xml. */
 const val APP_NAME = "Course Pacer"
@@ -58,7 +63,6 @@ const val APP_NAME = "Course Pacer"
 private fun Screen.title(d: AppData): String = when (this) {
     Screen.Home -> APP_NAME
     Screen.Settings -> "Settings"
-    Screen.Year -> d.year?.name?.ifBlank { null } ?: "School year"
     Screen.YearSettings -> "School year settings"
     Screen.Overview -> "Overview"
     Screen.Classes -> "Classes"
@@ -71,7 +75,6 @@ private fun Screen.title(d: AppData): String = when (this) {
 /** The small line above the title: where this screen sits. */
 private fun Screen.context(d: AppData): String = when (this) {
     Screen.Home, Screen.Settings -> APP_NAME
-    Screen.Year -> "School year"
     Screen.YearSettings, Screen.Overview, Screen.Classes, Screen.Class -> d.year?.name.orEmpty()
     Screen.Tests, Screen.Homework, is Screen.Group -> listOfNotNull(d.year?.name, d.schoolClass?.name).joinToString(" · ")
 }
@@ -95,14 +98,19 @@ fun PacerApp(vm: PacerViewModel) {
         undoStep = -1L
         scope.launch { snackbar.currentSnackbarData?.dismiss(); snackbar.showSnackbar(msg) }
     }
-    // Deleting a year lands on Home, which has no undo button, so the snackbar offers it once.
-    // It undoes only its own change: called right after the change, it notes the step that change made.
+    // Deletes happen at once and offer Undo for 5 s (style guide §14 "Undo over confirm"), longer when the
+    // accessibility settings ask for more time. It undoes only its own change: called right after the change, it
+    // notes the step that change made.
+    val accessibility = LocalAccessibilityManager.current
+    val undoMillis = accessibility?.calculateRecommendedTimeoutMillis(UNDO_MILLIS, containsText = true, containsControls = true) ?: UNDO_MILLIS
     val undoToast: (String) -> Unit = { msg ->
         val step = vm.state.value.historyStep
         undoStep = step
         scope.launch {
             snackbar.currentSnackbarData?.dismiss()
-            val result = snackbar.showSnackbar(msg, actionLabel = "Undo", duration = SnackbarDuration.Long)
+            val timeout = launch { delay(undoMillis); if (undoStep == step) snackbar.currentSnackbarData?.dismiss() }
+            val result = snackbar.showSnackbar(msg, actionLabel = "Undo", duration = SnackbarDuration.Indefinite)
+            timeout.cancel()
             if (undoStep == step) undoStep = -1L
             if (result == SnackbarResult.ActionPerformed) vm.undoIfLatest(step)
         }
@@ -170,15 +178,15 @@ private fun ScreenContent(
             // Only for a first launch: someone who deletes every year later doesn't need it again.
             welcome = canWelcome && !settings.welcomeSeen && data.years.isEmpty(),
             onDeleted = { undoToast("Deleted “$it”") },
+            undoToast = undoToast,
         )
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
-        Screen.Year -> YearScreen(year ?: return, vm, padding)
-        Screen.YearSettings -> YearSettingsScreen(year ?: return, vm, padding, toast, onDeleted = { undoToast("Deleted “$it”") })
+        Screen.YearSettings -> YearSettingsScreen(year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast("Deleted “$it”") })
         Screen.Overview -> OverviewScreen(year ?: return, vm, padding)
         Screen.Classes -> ClassesScreen(year ?: return, vm, padding)
-        Screen.Class -> ClassScreen(plan ?: return, vm, padding)
-        Screen.Tests -> TestsScreen(plan ?: return, vm, padding)
-        Screen.Homework -> HomeworkScreen(plan ?: return, vm, padding)
+        Screen.Class -> ClassScreen(plan ?: return, vm, padding, undoToast)
+        Screen.Tests -> TestsScreen(plan ?: return, vm, padding, undoToast)
+        Screen.Homework -> HomeworkScreen(plan ?: return, vm, padding, undoToast)
         is Screen.Group -> {
             if (plan == null) return
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return

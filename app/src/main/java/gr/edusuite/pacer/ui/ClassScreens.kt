@@ -61,10 +61,8 @@ private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: Pa
 
 /** The open class: its name, lesson length and pace, books and groups, with tests and homework a tap away. */
 @Composable
-fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
+fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
     var addingBook by rememberSaveable { mutableStateOf(false) }
-    var deleting by rememberSaveable { mutableStateOf(false) }
-    var resetting by rememberSaveable { mutableStateOf(false) }
     // A new class has a group but no books; the card replaces the red "Add at least one book." problem.
     val hide = when {
         plan.books.isEmpty() -> NO_BOOKS
@@ -108,16 +106,19 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
             )
         }
         if (plan.books.isEmpty()) item(key = "nobooks") { Hint("No books yet.") }
-        items(plan.books, key = { it.id }) { b -> BookEditor(b, vm) }
+        items(plan.books, key = { it.id }) { b -> BookEditor(b, vm, undoToast) }
         item(key = "addbook") { AddButton("Add a book") { addingBook = true } }
 
         item(key = "groupshead") { Heading("Groups") }
         if (plan.groups.isEmpty()) item(key = "nogroups") { Hint("No groups yet. Add one for each set of students taught from these books.") }
-        items(plan.groups, key = { it.id }) { g -> GroupEditor(plan, g, vm) }
+        items(plan.groups, key = { it.id }) { g -> GroupEditor(plan, g, vm, undoToast) }
         item(key = "groupactions") {
             Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                 OutlinedButton(onClick = vm::addGroup) { Text("Add group") }
-                OutlinedButton(onClick = { resetting = true }, enabled = plan.groups.isNotEmpty()) { Text("Reset all positions") }
+                OutlinedButton(
+                    onClick = { vm.resetPositions(); undoToast("Positions reset") },
+                    enabled = plan.groups.isNotEmpty(),
+                ) { Text("Reset all positions") }
             }
         }
 
@@ -130,23 +131,20 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
             }
         }
         item(key = "delete") {
-            OutlinedButton(onClick = { deleting = true }, modifier = Modifier.padding(top = Space.s)) {
+            OutlinedButton(
+                onClick = {
+                    // Deleting the open class pops the class screens; the snackbar still offers Undo.
+                    val name = plan.name.ifBlank { "Class" }
+                    vm.deleteClass()
+                    undoToast("Deleted “$name”")
+                },
+                modifier = Modifier.padding(top = Space.s),
+            ) {
                 Text("Delete this class", color = Pacer.colors.warn)
             }
         }
     }
-    if (addingBook) AddBookDialog(vm) { addingBook = false }
-    if (resetting) {
-        Confirm(
-            "Reset all positions?",
-            "Every group goes back to the first pages and the year's start, and every lesson ticked in this class is cleared, " +
-                "with the pages recorded for it. Undo brings them back.",
-            "Reset", vm::resetPositions,
-        ) { resetting = false }
-    }
-    if (deleting) {
-        ConfirmDelete(plan.name.ifBlank { "Class" }, "Its groups, books, tests and homework go too. Undo brings them back.", vm::deleteClass) { deleting = false }
-    }
+    if (addingBook) AddBookSheet(vm) { addingBook = false }
 }
 
 /** The problems ([Plan.problems]) that the class screen's "Next step" card covers. */
@@ -154,16 +152,10 @@ private const val NO_BOOKS = "Add at least one book."
 private const val NO_GROUPS = "Add at least one group."
 
 @Composable
-private fun GroupEditor(plan: Plan, g: Group, vm: PacerViewModel) {
-    var removing by rememberSaveable { mutableStateOf(false) }
-    Section(g.name.ifBlank { "Group" }) { GroupFields(plan, g, vm) { removing = true } }
-    if (removing) {
-        ConfirmDelete(
-            g.name.ifBlank { "Group" },
-            "Its ticked lessons, homework, and the days off and tests aimed only at it go too. Undo brings them back.",
-            { vm.removeGroup(g.id) },
-        ) { removing = false }
-    }
+private fun GroupEditor(plan: Plan, g: Group, vm: PacerViewModel, undoToast: (String) -> Unit) {
+    val name = g.name.ifBlank { "Group" }
+    // Its ticked lessons, homework, and the days off and tests aimed only at it go too; Undo brings them back.
+    Section(name) { GroupFields(plan, g, vm) { vm.removeGroup(g.id); undoToast("Removed “$name”") } }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -200,7 +192,7 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
 }
 
 @Composable
-fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
+fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
     // Lessons marked done are still lesson days.
     val lessonDays = remember(plan) { plan.groups.associate { g -> g.id to (plan.lessonsFor(g) + g.done.map { it.date }).toHashSet() } }
@@ -215,7 +207,9 @@ fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
                 if (e.consumes) "takes the lesson" else "alongside the lesson",
                 if (hit) null else "not a lesson day",
             )
-            ListItemRow(e.name, parts.joinToString(" · "), tag, warn = !hit) { vm.removeEvent(e.id) }
+            val title = e.name.ifBlank { "Test" }
+            val remove = { vm.removeEvent(e.id); undoToast("Removed “$title”") }
+            SwipeRow(title, remove) { ListItemRow(e.name, parts.joinToString(" · "), tag, warn = !hit, onRemove = remove) }
         }
         item(key = "add") { AddButton("Add a test or worksheet") { adding = true } }
     }
@@ -223,16 +217,10 @@ fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
 }
 
 @Composable
-private fun BookEditor(b: Book, vm: PacerViewModel) {
-    var removing by rememberSaveable { mutableStateOf(false) }
-    Section(b.name.ifBlank { "Book" }) { BookFields(b, vm) { removing = true } }
-    if (removing) {
-        ConfirmDelete(
-            b.name.ifBlank { "Book" },
-            "Its positions, homework and the pages ticked lessons recorded in it go too. Undo brings them back.",
-            { vm.removeBook(b.id) },
-        ) { removing = false }
-    }
+private fun BookEditor(b: Book, vm: PacerViewModel, undoToast: (String) -> Unit) {
+    val name = b.name.ifBlank { "Book" }
+    // Its positions, homework and the pages ticked lessons recorded in it go too; Undo brings them back.
+    Section(name) { BookFields(b, vm) { vm.removeBook(b.id); undoToast("Removed “$name”") } }
 }
 
 @Composable
@@ -259,7 +247,7 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
 }
 
 @Composable
-fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
+fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
     EditList(plan, Screen.Homework, vm, padding) {
         item(key = "hint") {
@@ -272,7 +260,8 @@ fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
             val n = h.to - h.from + 1
             val title = "$book pp. ${h.from}" + if (h.to != h.from) "–${h.to}" else ""
             val detail = "$n ${if (n == 1) "page" else "pages"}" + (h.setOn?.let { " · set ${it.fmt()}" } ?: "")
-            ListItemRow(title, detail, group) { vm.removeHomework(h.id) }
+            val remove = { vm.removeHomework(h.id); undoToast("Removed “$title”") }
+            SwipeRow(title, remove) { ListItemRow(title, detail, group, onRemove = remove) }
         }
         item(key = "add") {
             if (plan.groups.isEmpty() || plan.books.isEmpty()) Hint("Add a group and a book first.")
@@ -282,7 +271,7 @@ fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
     if (adding) AddHomeworkDialog(plan, vm) { adding = false }
 }
 
-// ---- add dialogs ---------------------------------------------------------
+// ---- add dialogs and sheets ---------------------------------------------------------
 
 private fun whoOptions(plan: Plan, allFirst: Boolean): List<Pair<String, String>> {
     val groups = plan.groups.map { it.id to it.name }
@@ -308,15 +297,15 @@ private fun AddEventDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit
 }
 
 @Composable
-private fun AddBookDialog(vm: PacerViewModel, onDismiss: () -> Unit) {
+private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var first by rememberSaveable { mutableStateOf("1") }
     var last by rememberSaveable { mutableStateOf("") }
     val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
-    AddDialogFrame("Add a book", lastN != null, {
+    SheetFrame("Add a book", "Add", lastN != null, {
         vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!)
     }, onDismiss) {
-        CommitField(name, { name = it }, "Title", placeholder = "Companion")
+        CommitField(name, { name = it }, "Title", Modifier.fillMaxWidth(), placeholder = "Companion")
         Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
             CommitField(first, { first = it }, "First page", Modifier.weight(1f), numeric = true)
             CommitField(last, { last = it }, "Last page", Modifier.weight(1f), numeric = true)
