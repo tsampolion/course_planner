@@ -42,6 +42,7 @@ import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
@@ -75,8 +76,8 @@ fun SettingsScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 12.dp, bottom = padding.calculateBottomPadding() + 32.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
+        verticalArrangement = Arrangement.spacedBy(Space.l),
     ) {
         item(key = "theme") {
             Section("Theme") {
@@ -98,7 +99,7 @@ fun SettingsScreen(
         }
         item(key = "defaults") {
             Section("New classes") {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
                     IntField(settings.lessonMins, vm::setDefaultMins, "Lesson length (min)", Modifier.weight(1f), max = Settings.MAX_MINS)
                     PaceField(settings.pace, vm::setDefaultPace, Modifier.weight(1f))
                 }
@@ -153,7 +154,7 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
     }
 
     Section("Back up and restore") {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
             OutlinedButton(onClick = { openPicker(toast) { exportTo.launch(backupFileName(LocalDate.now())) } }, enabled = yearCount > 0) {
                 Text("Export…")
             }
@@ -183,6 +184,9 @@ private fun ImportDialog(years: List<SchoolYear>, current: Int, onAdd: () -> Uni
         onDismissRequest = onDismiss,
         title = { Text("Import ${count(years.size, "school year")}?") },
         text = { Text("$names.\n\n$here You can undo it straight after.") },
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = Pacer.colors.surface,
+        tonalElevation = 0.dp,
         confirmButton = {
             Row {
                 if (current > 0) TextButton(onClick = { onReplace(); onDismiss() }) { Text("Replace all", color = Pacer.colors.warn) }

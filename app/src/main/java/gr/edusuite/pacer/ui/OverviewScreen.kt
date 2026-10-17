@@ -1,6 +1,5 @@
 package gr.edusuite.pacer.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,10 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.WEEK
@@ -32,7 +27,9 @@ import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.engine.verdict
 import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 
 /** How every group in the year stands, class by class, with the year's problems first. */
 @Composable
@@ -42,7 +39,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues)
         year.classes.map { c -> val plan = year.planFor(c); c to plan.groups.map { GroupReport(plan, it) } }
     }
 
-    ScreenList(padding, spacing = 12.dp) {
+    ScreenList(padding) {
         items(problems) { p ->
             // A class's problem opens that class; the rest open the screen that fixes them.
             val fix: (() -> Unit)? = p.classId?.let { id -> { vm.openClass(id) } } ?: p.fix?.let { f -> { vm.open(f) } }
@@ -67,19 +64,18 @@ private fun GroupCard(report: GroupReport, onOpen: () -> Unit) {
     Surface(
         onClick = onOpen,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, Pacer.colors.line),
+        shape = MaterialTheme.shapes.medium,
+        color = Pacer.colors.surface,
     ) {
         Column {
             Box(Modifier.fillMaxWidth().height(3.dp).background(if (short) Pacer.colors.warn else MaterialTheme.colorScheme.primary))
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(g.name.ifBlank { "Group" }, style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold)
+                        Text(g.name.ifBlank { "Group" }, style = MaterialTheme.typography.titleMedium)
                         Hint(WEEK.filter { it in g.days }.joinToString(" · ") { it.short() }.ifEmpty { "No days set" })
                     }
-                    Text("›", fontSize = 22.sp, color = Pacer.colors.muted)
+                    Text("›", style = MaterialTheme.typography.headlineSmall, color = Pacer.colors.muted)
                 }
                 Row {
                     Stat("Lessons left", "${report.lessons.size}", Modifier.weight(1f))

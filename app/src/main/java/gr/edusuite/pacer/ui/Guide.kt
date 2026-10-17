@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -21,12 +20,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 
 /** The four steps to a first schedule, as the welcome guide lists them. */
 private val STEPS = listOf(
@@ -46,7 +47,7 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("Welcome to $APP_NAME") },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                 Text(
                     "$APP_NAME spreads your coursebook pages over the lessons left in the term, " +
                         "so you can see whether each group will finish in time.",
@@ -65,6 +66,9 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
                 Hint("Each screen says what to do next while it's empty. You can open this guide again from Settings.")
             }
         },
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = Pacer.colors.surface,
+        tonalElevation = 0.dp,
         confirmButton = {
             if (onStart != null) TextButton(onClick = { onStart(); onDismiss() }) { Text("Create a school year") }
             else TextButton(onClick = onDismiss) { Text("Got it") }
@@ -81,25 +85,22 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
 @Composable
 fun GuideCard(title: String, text: String, modifier: Modifier = Modifier, action: Pair<String, () -> Unit>? = null) {
     val c = Pacer.colors
+    // A flat accent-soft panel (style guide §4): no border or side bar.
     Row(
         modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .background(c.accentSoft, RoundedCornerShape(4.dp)),
+            .clip(MaterialTheme.shapes.medium)
+            .background(c.accentSoft),
     ) {
-        Box(Modifier.width(3.dp).fillMaxHeight().background(MaterialTheme.colorScheme.primary))
-        Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = if (action == null) 12.dp else 4.dp)) {
+        Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m, bottom = if (action == null) Space.m else Space.xs)) {
+            Text("Next step", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             Text(
-                "NEXT STEP", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.sp, color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold,
+                title, style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 2.dp).semantics { heading() },
             )
-            Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted, modifier = Modifier.padding(top = 4.dp))
+            Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted, modifier = Modifier.padding(top = Space.xs))
             action?.let { (label, onClick) ->
-                OutlinedButton(onClick = onClick, modifier = Modifier.padding(top = 8.dp, bottom = 6.dp)) { Text(label) }
+                OutlinedButton(onClick = onClick, modifier = Modifier.padding(top = Space.s, bottom = Space.xs)) { Text(label) }
             }
         }
     }
@@ -121,6 +122,6 @@ const val PRINT_NOTE = "$ARITHMETIC."
 fun Note(text: String, modifier: Modifier = Modifier) {
     Row(modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         Box(Modifier.width(2.dp).fillMaxHeight().background(Pacer.colors.line))
-        Text(text, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted, modifier = Modifier.padding(start = 10.dp, top = 2.dp, bottom = 2.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted, modifier = Modifier.padding(start = Space.m, top = 2.dp, bottom = 2.dp))
     }
 }
