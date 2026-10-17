@@ -22,6 +22,22 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-17
+
+### Changed
+
+- All screen copy, action messages and accessibility labels now use Android string resources; counts use plural resources. Engine messages, problem-routing messages, printed HTML and stored defaults remain in Kotlin.
+- Material Symbols Rounded outlined vectors replace text-glyph controls and provide leading row and tile icons. Back and directional chevrons mirror with layout direction. The Google artwork is credited under Apache 2.0 without adding an icon library.
+- Buttons and tiles spring to 96% while pressed, changing figures roll, list items animate, and expandable sections resize with a rotating chevron. The day strip's selected background slides between dates.
+- Toggles and selections give system haptic feedback. Invalid number and pace fields show their error, reject invalid persistence and shake once with reject feedback.
+- Screens slide and fade on the shared horizontal axis. Undo snackbars show a remaining-time bar while preserving the accessibility-adjusted timeout and the exact history-step check.
+- Motion observes the system animator setting live and snaps to the final state when animations are removed. Saving sheets briefly show a check before closing when animations are enabled.
+
+### Added
+
+- A JVM guard against hardcoded UI copy, including checks that catch interpolated prose and accessibility labels while permitting documented internal keys and data formats.
+- Material Symbols source attribution and the Apache 2.0 licence in `third_party/material-symbols`.
+
 ## [2.3.0] - 2026-10-17
 
 ### Changed
@@ -340,7 +356,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/tsampolion/course_planner/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/tsampolion/course_planner/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/tsampolion/course_planner/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/tsampolion/course_planner/compare/v2.0.0...v2.1.0

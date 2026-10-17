@@ -1,5 +1,14 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
+import gr.edusuite.pacer.R
+import gr.edusuite.pacer.ui.theme.Motion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -34,19 +43,23 @@ fun StatTile(label: String, value: String, modifier: Modifier = Modifier, color:
     Surface(modifier, shape = MaterialTheme.shapes.medium, color = color, contentColor = Pacer.colors.onTile) {
         Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
-            Text(value, style = MaterialTheme.typography.titleLarge, fontFamily = Mono)
+            AnimatedFigure(value)
             unit?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         }
     }
 }
 
 @Composable
-fun MoreOptions(title: String = "More options", modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun MoreOptions(title: String = stringResource(R.string.component_more_options), modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        TextButton(onClick = { expanded = !expanded }, modifier = Modifier.semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" }) {
+    val motion = animationsEnabled()
+    val haptic = rememberSegmentHaptic()
+    val description = stringResource(if (expanded) R.string.component_expanded else R.string.component_collapsed)
+    val rotation by animateFloatAsState(if (expanded) 180f else 0f, if (motion) Motion.content() else snap(), label = "expand")
+    Column(modifier.fillMaxWidth().animateContentSize(if (motion) Motion.settle() else snap()), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        TextButton(onClick = { haptic(); expanded = !expanded }, modifier = Modifier.semantics { stateDescription = description }) {
             Text(title)
-            Text(if (expanded) " ▴" else " ▾")
+            AppIcon(AppIcons.ExpandMore, Modifier.rotate(rotation))
         }
         if (expanded) Column(verticalArrangement = Arrangement.spacedBy(Space.m), content = content)
     }
@@ -88,37 +101,56 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
     val pager = rememberPagerState(initialPage = initial) { weeks }
     val scope = rememberCoroutineScope()
     val fontScale = LocalDensity.current.fontScale
+    val motion = animationsEnabled()
+    val haptic = rememberSegmentHaptic()
+    val previousLabel = stringResource(R.string.component_previous_week)
+    val nextLabel = stringResource(R.string.component_next_week)
+    val todayLabel = stringResource(R.string.component_today)
+    val lessonLabel = stringResource(R.string.component_lesson)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
       Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = { scope.launch { pager.animateScrollToPage(pager.currentPage - 1) } }, enabled = pager.currentPage > 0,
-            modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = "Previous week" }) { Text("‹") }
+        TextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage - 1) else pager.scrollToPage(pager.currentPage - 1) } }, enabled = pager.currentPage > 0,
+            modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = previousLabel }) { AppIcon(AppIcons.Back) }
         val weekStart = first.plusWeeks(pager.currentPage.toLong())
-        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Eyebrow("${weekStart.fmtShort()} – ${weekStart.plusDays(6).fmtShort()}") }
-        TextButton(onClick = { scope.launch { pager.animateScrollToPage(pager.currentPage + 1) } }, enabled = pager.currentPage < weeks - 1,
-            modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = "Next week" }) { Text("›") }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Eyebrow(stringResource(R.string.component_week_range, weekStart.fmtShort(), weekStart.plusDays(6).fmtShort())) }
+        TextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage + 1) else pager.scrollToPage(pager.currentPage + 1) } }, enabled = pager.currentPage < weeks - 1,
+            modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = nextLabel }) { AppIcon(AppIcons.Forward) }
       }
       BoxWithConstraints(Modifier.fillMaxWidth()) {
       val dayWidth = ((maxWidth - Space.xs * 6) / 7).coerceAtLeast(if (fontScale >= 2f) Space.xxl * 2 else Space.xl * 2)
       HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth(), key = { first.plusWeeks(it.toLong()).toString() }) { week ->
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-            (0L..6L).forEach { offset ->
-                val date = first.plusWeeks(week.toLong()).plusDays(offset)
-                val isSelected = date == selected
-                val valid = !date.isBefore(start) && !date.isAfter(end)
-                val ink = if (isSelected) Pacer.colors.paper else Pacer.colors.ink
-                Surface(
-                    modifier = Modifier.width(dayWidth).heightIn(min = Space.xxl * 2).semantics(mergeDescendants = true) {
-                        this.selected = isSelected
-                        contentDescription = date.toString() + (if (date == today) ", Today" else "") + (if (date in lessonDates) ", Lesson" else "")
-                    }.clickable(enabled = valid, role = Role.Tab) { onSelect(date) },
-                    shape = CircleShape, color = if (isSelected) Pacer.colors.ink else Pacer.colors.surfaceContainer,
-                    contentColor = ink,
-                ) {
-                    Column(Modifier.padding(vertical = Space.s), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(Modifier.size(Space.xs).background(if (date == today) ink else Color.Transparent, CircleShape))
-                        Text(date.dayOfWeek.short(), style = MaterialTheme.typography.labelSmall)
-                        Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.bodySmall, fontFamily = Mono)
-                        Box(Modifier.size(Space.xs).background(if (date in lessonDates) ink else Color.Transparent, CircleShape))
+        val weekStart = first.plusWeeks(week.toLong())
+        val index = ChronoUnit.DAYS.between(weekStart, selected).toInt()
+        val indicator by animateDpAsState((dayWidth + Space.xs) * index.coerceIn(0, 6), if (motion) Motion.settle() else snap(), label = "selected day")
+        var stripHeight by remember { mutableStateOf(0) }
+        val measuredHeight = with(LocalDensity.current) { stripHeight.toDp() }.coerceAtLeast(Space.xxl * 2)
+        Box(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                repeat(7) { Box(Modifier.width(dayWidth).height(measuredHeight).background(Pacer.colors.surfaceContainer, CircleShape)) }
+            }
+            if (index in 0..6) Box(Modifier.offset(x = indicator).width(dayWidth).height(measuredHeight).background(Pacer.colors.ink, CircleShape))
+            Row(Modifier.onSizeChanged { stripHeight = it.height }, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                (0L..6L).forEach { offset ->
+                    val date = weekStart.plusDays(offset)
+                    val isSelected = date == selected
+                    val valid = !date.isBefore(start) && !date.isAfter(end)
+                    val ink = if (isSelected) Pacer.colors.paper else Pacer.colors.ink
+                    val description = stringResource(R.string.component_day_description, date.toString(), if (date == today) todayLabel else "", if (date in lessonDates) lessonLabel else "")
+                    Box(
+                        modifier = Modifier.width(dayWidth).heightIn(min = Space.xxl * 2).semantics(mergeDescendants = true) {
+                            this.selected = isSelected
+                            contentDescription = description
+                        }.clickable(enabled = valid, role = Role.Tab) { haptic(); onSelect(date) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        androidx.compose.runtime.CompositionLocalProvider(LocalContentColor provides ink) {
+                            Column(Modifier.padding(vertical = Space.s), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Box(Modifier.size(Space.xs).background(if (date == today) ink else Color.Transparent, CircleShape))
+                                Text(date.dayOfWeek.short(), style = MaterialTheme.typography.labelSmall)
+                                Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.bodySmall, fontFamily = Mono)
+                                Box(Modifier.size(Space.xs).background(if (date in lessonDates) ink else Color.Transparent, CircleShape))
+                            }
+                        }
                     }
                 }
             }

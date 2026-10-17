@@ -40,10 +40,9 @@ fun nextLesson(year: SchoolYear, today: LocalDate): NextLesson? {
                 row.events.joinToString(" · ") { it.name }
             } else {
                 plan.books.zip(row.cells).filter { it.second.isNotEmpty() }.joinToString(" · ") { (b, cell) -> "${b.name} $cell" }
-                    .ifEmpty { "No pages" }
             }
             best = NextLesson(
-                c.id, g.id, c.name.ifBlank { "Class" }, g.name.ifBlank { "Group" }, row.date, row.blocked, what,
+                c.id, g.id, c.name, g.name, row.date, row.blocked, what,
                 overdue = row.date.isBefore(today),
             )
         }

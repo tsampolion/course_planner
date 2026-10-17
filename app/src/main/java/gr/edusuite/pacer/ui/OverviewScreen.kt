@@ -7,6 +7,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import gr.edusuite.pacer.R
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import gr.edusuite.pacer.engine.GroupReport
@@ -34,16 +37,16 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues)
         items(problems) { p ->
             // A class's problem opens that class; the rest open the screen that fixes them.
             val fix: (() -> Unit)? = p.classId?.let { id -> { vm.openClass(id) } } ?: p.fix?.let { f -> { vm.open(f) } }
-            ErrorBox(p.text, onFix = fix)
+            Box(Modifier.animateItem()) { ErrorBox(p.text, onFix = fix) }
         }
         if (classes.isEmpty()) item(key = "empty") {
-            EmptyState("+", "No classes yet", "Add a class to see how its groups are progressing.", "Open classes", { vm.open(Screen.Classes) })
+            EmptyState(AppIcons.Add, stringResource(R.string.overview_no_classes), stringResource(R.string.overview_empty_hint), stringResource(R.string.overview_open_classes), { vm.open(Screen.Classes) })
         }
         classes.forEach { (c, reports) ->
             item(key = "class:${c.id}") {
                 Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                    Eyebrow(c.name.ifBlank { "Class" })
-                    if (reports.isEmpty()) Hint("No groups in this class yet.")
+                    Eyebrow(c.name.ifBlank { stringResource(R.string.overview_class) })
+                    if (reports.isEmpty()) Hint(stringResource(R.string.overview_no_groups))
                     else TileGrid(reports) { r, tileModifier ->
                         GroupCard(r, tileModifier) { vm.openGroup(c.id, r.group.id) }
                     }
@@ -66,28 +69,29 @@ private fun GroupCard(report: GroupReport, modifier: Modifier = Modifier, onOpen
         null -> Pacer.colors.surfaceContainer
     }
     Tile(color, modifier = modifier.semantics(mergeDescendants = true) {}, onClick = onOpen) {
+        AppIcon(AppIcons.Groups)
         when (verdict) {
-            is Verdict.Fits -> Tag("On track", onTile = true)
-            is Verdict.Short -> Tag("Short by ${verdict.by.fixed2()} lessons", warn = true, onTile = true)
-            null -> if (report.teaching > 0 && plan.pace <= 0) Text("No pace set", style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
+            is Verdict.Fits -> Tag(stringResource(R.string.overview_on_track), onTile = true)
+            is Verdict.Short -> Tag(pluralStringResource(R.plurals.overview_short_chip, if (verdict.by == 1.0) 1 else 2, verdict.by.fixed2()), warn = true, onTile = true)
+            null -> if (report.teaching > 0 && plan.pace <= 0) Text(stringResource(R.string.overview_no_pace), style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
         }
-        Text(g.name.ifBlank { "Group" }, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-        Text(WEEK.filter { it in g.days }.joinToString(" · ") { it.short() }.ifEmpty { "No days set" }, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
-        TileGrid(listOf("Lessons left" to "${report.lessons.size}", "Pages left" to "${report.pages}", "Pace needed" to if (report.teaching > 0) report.rate.fixed2() else "—")) { (label, value), modifier ->
+        Text(g.name.ifBlank { stringResource(R.string.overview_group) }, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+        Text(WEEK.filter { it in g.days }.joinToString(" · ") { it.short() }.ifEmpty { stringResource(R.string.overview_no_days) }, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
+        TileGrid(listOf(stringResource(R.string.overview_lessons_left) to "${report.lessons.size}", stringResource(R.string.overview_pages_left) to "${report.pages}", stringResource(R.string.overview_pace_needed) to if (report.teaching > 0) report.rate.fixed2() else "—")) { (label, value), modifier ->
             Column(modifier.padding(vertical = Space.s), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                 Text(label, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
-                Text(value, style = MaterialTheme.typography.titleLarge, fontFamily = Mono)
+                AnimatedFigure(value, style = MaterialTheme.typography.titleLarge)
             }
         }
         when (verdict) {
-            is Verdict.Short -> Text("Short by ${verdict.by.fixed2()} lessons at ${verdict.sustain.plain()} pages each", style = MaterialTheme.typography.bodyMedium)
-            is Verdict.Fits -> Text("On track · ${verdict.spare.fixed2()} lessons to spare", style = MaterialTheme.typography.bodyMedium)
-            null -> if (report.teaching > 0 && plan.pace <= 0) Text("Set the pace you can sustain on the class screen to get a verdict.", style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
+            is Verdict.Short -> Text(pluralStringResource(R.plurals.overview_short, if (verdict.by == 1.0) 1 else 2, verdict.by.fixed2(), verdict.sustain.plain()), style = MaterialTheme.typography.bodyMedium)
+            is Verdict.Fits -> Text(pluralStringResource(R.plurals.overview_fits, if (verdict.spare == 1.0) 1 else 2, verdict.spare.fixed2()), style = MaterialTheme.typography.bodyMedium)
+            null -> if (report.teaching > 0 && plan.pace <= 0) Text(stringResource(R.string.overview_set_pace), style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
         }
         if (next != null) {
             val what = if (next.blocked) next.events.joinToString(" · ") { it.name }
-            else plan.books.zip(next.cells).filter { it.second.isNotEmpty() }.joinToString(" · ") { (b, c) -> "${b.name} $c" }.ifEmpty { "No pages" }
-            Text("Next: ${next.date.dayOfWeek.short()} ${next.date.fmtShort()} · $what", style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
-        } else Text("No lessons left in this term.", style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
+            else plan.books.zip(next.cells).filter { it.second.isNotEmpty() }.joinToString(" · ") { (b, c) -> "${b.name} $c" }.ifEmpty { stringResource(R.string.overview_no_pages) }
+            Text(stringResource(R.string.overview_next, next.date.dayOfWeek.short(), next.date.fmtShort(), what), style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
+        } else Text(stringResource(R.string.overview_no_lessons), style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
     }
 }

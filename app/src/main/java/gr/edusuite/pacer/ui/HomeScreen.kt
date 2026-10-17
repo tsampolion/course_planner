@@ -1,5 +1,11 @@
 package gr.edusuite.pacer.ui
 
+import android.content.Context
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,22 +88,18 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** "3 classes", "1 class", or [none] for zero. */
-fun count(n: Int, one: String, many: String = one + "s", none: String = "None yet") =
-    if (n == 0) none else "$n ${if (n == 1) one else many}"
-
 /** "9 Sep 2026 – 31 May 2027", or a prompt when either date is missing. */
-fun SchoolYear.dates(): String {
+fun SchoolYear.dates(context: Context): String {
     val s = start
     val e = end
-    return if (s != null && e != null) "${s.fmt()} – ${e.fmt()}" else "Dates not set"
+    return if (s != null && e != null) context.getString(R.string.home_date_range, s.fmt(), e.fmt()) else context.getString(R.string.home_dates_missing)
 }
 
 /** "Mon 19 Oct": a lesson or test date on a tile. */
-private fun LocalDate.tileDate(): String = "${dayOfWeek.short()} ${fmtShort()}"
+private fun LocalDate.tileDate(): String = format(DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault()))
 
 /** Today on the Home header, such as "Saturday 17 October". */
-private val HEADER_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.ENGLISH)
+private val HEADER_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.getDefault())
 
 /** Which class screen the class chooser opens for. */
 private const val CHOOSE_TESTS = "tests"
@@ -123,6 +125,7 @@ fun HomeScreen(
     // The year being renamed, by id, and the class screen waiting for a class to be chosen.
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var choosing by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
     val today = remember { LocalDate.now() }
     // The VM opens the latest year when none is open; until it has, show that one.
     val fallback = remember(data.years) { defaultYearId(data.years)?.let { id -> data.years.first { it.id == id } } }
@@ -148,13 +151,13 @@ fun HomeScreen(
                 Header(today) { vm.open(Screen.Settings) }
                 if (year == null) {
                     EmptyState(
-                        "+",
-                        "Create your school year",
-                        "Give it its first and last teaching day. The Greek public holidays can come in as days off.",
-                        "New school year",
+                        AppIcons.Add,
+                        stringResource(R.string.home_create_year),
+                        stringResource(R.string.home_create_year_hint),
+                        stringResource(R.string.home_new_year),
                     ) { adding = true }
                 } else {
-                    YearChip(year.name.ifBlank { "School year" }) { picking = true }
+                    YearChip(year.name.ifBlank { context.getString(R.string.home_year) }) { picking = true }
                     NextLessonCard(year, today, vm, undoToast)
                     TileGrid(
                         year, today, vm, oneColumn,
@@ -164,7 +167,7 @@ fun HomeScreen(
                     )
                 }
                 Text(
-                    "part of EduSuite apps",
+                    stringResource(R.string.home_suite),
                     style = MaterialTheme.typography.bodySmall,
                     fontStyle = FontStyle.Italic,
                     color = Pacer.colors.muted,
@@ -182,7 +185,7 @@ fun HomeScreen(
             data.years, year?.id, vm,
             onRename = { renaming = it },
             onDelete = { y ->
-                val name = y.name.ifBlank { "School year" }
+                val name = y.name.ifBlank { context.getString(R.string.home_year) }
                 vm.deleteYear(y.id)
                 onDeleted(name)
             },
@@ -194,7 +197,7 @@ fun HomeScreen(
     if (printing && year != null) PrintDialog(year) { printing = false }
     if (choosing != null && year != null) {
         val screen = if (choosing == CHOOSE_TESTS) Screen.Tests else Screen.Homework
-        ClassChooser(year, if (screen == Screen.Tests) "Tests for which class?" else "Homework for which class?", onDismiss = { choosing = null }) {
+        ClassChooser(year, if (screen == Screen.Tests) stringResource(R.string.home_choose_tests) else stringResource(R.string.home_choose_homework), onDismiss = { choosing = null }) {
             vm.openClassScreen(it, screen)
         }
     }
@@ -209,7 +212,7 @@ private fun openForClass(year: SchoolYear, vm: PacerViewModel, screen: Screen, c
     }
 }
 
-/** §6 "Home header": the logo, "Hello" over today's date, and Settings at the end. */
+/** §6 "Home header": the logo, a greeting over today's date, and Settings at the end. */
 @Composable
 private fun Header(today: LocalDate, onSettings: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -217,16 +220,16 @@ private fun Header(today: LocalDate, onSettings: () -> Unit) {
         Spacer(Modifier.width(Space.m))
         Column(Modifier.weight(1f)) {
             Text(
-                "Hello",
+                stringResource(R.string.home_hello),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Pacer.colors.ink,
                 modifier = Modifier.semantics { heading() },
             )
             Text(today.format(HEADER_DATE), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
         }
-        PillIconButton("Settings", onSettings) {
+        PillIconButton(stringResource(R.string.home_settings), onSettings) {
             // U+FE0E asks for the text glyph rather than an emoji.
-            Text("⚙︎", style = MaterialTheme.typography.titleLarge)
+            AppIcon(AppIcons.Settings)
         }
     }
 }
@@ -241,11 +244,11 @@ private fun YearChip(name: String, onClick: () -> Unit) {
         modifier = Modifier
             .heightIn(min = 48.dp)
             .clip(CircleShape)
-            .clickable(role = Role.Button, onClickLabel = "Change school year", onClick = onClick),
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.home_change_year), onClick = onClick),
     ) {
         Row(Modifier.padding(horizontal = Space.l, vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
             Text(name, style = MaterialTheme.typography.labelLarge)
-            Text(" ▾", style = MaterialTheme.typography.labelLarge, modifier = Modifier.clearAndSetSemantics { })
+            AppIcon(AppIcons.ExpandMore, Modifier.clearAndSetSemantics { })
         }
     }
 }
@@ -256,36 +259,39 @@ private fun YearChip(name: String, onClick: () -> Unit) {
  */
 @Composable
 private fun NextLessonCard(year: SchoolYear, today: LocalDate, vm: PacerViewModel, undoToast: (String) -> Unit) {
+    val context = LocalContext.current
+    val press = remember { MutableInteractionSource() }
     val next = remember(year, today) { nextLesson(year, today) }
     val c = Pacer.colors
     when {
         year.classes.isEmpty() -> GuideCard(
-            "Add your first class",
-            "A class holds its books, lesson days and groups. Add one and its next lesson shows here.",
-            action = "Add a class" to { vm.open(Screen.Classes) },
+            stringResource(R.string.home_add_first_class),
+            stringResource(R.string.home_first_class_hint),
+            action = stringResource(R.string.home_add_class) to { vm.open(Screen.Classes) },
         )
         next == null -> Tile(c.surfaceContainer, contentColor = c.ink, onClick = { vm.open(Screen.Overview) }) {
-            Text("No lessons left this term", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-            Text("Open Overview to see where each group stands.", style = MaterialTheme.typography.bodySmall, color = c.muted)
+            Text(stringResource(R.string.home_no_lessons), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+            Text(stringResource(R.string.home_overview_hint), style = MaterialTheme.typography.bodySmall, color = c.muted)
         }
         else -> Tile(c.accent, contentColor = c.onAccent, onClick = { vm.openGroup(next.classId, next.groupId) }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Next lesson", style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f).semantics { heading() })
-                if (next.overdue) Tag("Overdue", warn = true)
+                Text(stringResource(R.string.home_next_lesson), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f).semantics { heading() })
+                if (next.overdue) Tag(stringResource(R.string.home_overdue), warn = true)
             }
             Text(next.date.tileDate(), style = MaterialTheme.typography.headlineSmall, fontFamily = Mono, fontWeight = FontWeight.SemiBold)
-            Text("${next.className} · ${next.groupName}", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.home_pair, next.className.ifBlank { context.getString(R.string.home_class) }, next.groupName.ifBlank { context.getString(R.string.home_group) }), style = MaterialTheme.typography.titleMedium)
             // Book names and pages read as a sentence, so they stay in sans (§3: mono is for figures only).
-            Text(next.what, style = MaterialTheme.typography.bodyMedium)
+            Text(next.what.ifBlank { context.getString(R.string.home_no_pages) }, style = MaterialTheme.typography.bodyMedium)
             Button(
                 onClick = {
                     vm.markNextLessonDoneIn(next.classId, next.groupId)
-                    undoToast("Lesson marked done")
+                    undoToast(context.getString(R.string.home_lesson_done))
                 },
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink),
-                modifier = Modifier.padding(top = Space.s).heightIn(min = 48.dp),
-            ) { Text("Mark done", style = MaterialTheme.typography.labelLarge) }
+                interactionSource = press,
+                modifier = Modifier.pressFeedback(press).padding(top = Space.s).heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.home_mark_done), style = MaterialTheme.typography.labelLarge) }
         }
     }
 }
@@ -310,49 +316,50 @@ private fun TileGrid(
 
     val classes: @Composable (Modifier) -> Unit = { m ->
         HomeTile(
-            "Classes",
-            if (s.classes == 0) "None yet" else "${count(s.classes, "class", "classes")} · ${count(s.groups, "group", none = "no groups")}",
-            c.tileSky, { vm.open(Screen.Classes) }, m, dim = s.classes == 0, tall = tall,
+            stringResource(R.string.home_classes),
+            if (s.classes == 0) stringResource(R.string.home_none) else stringResource(R.string.home_pair, pluralStringResource(R.plurals.home_classes_count, s.classes, s.classes), pluralStringResource(R.plurals.home_groups_count, s.groups, s.groups)),
+            c.tileSky, { vm.open(Screen.Classes) }, m, dim = s.classes == 0, tall = tall, icon = AppIcons.School,
         )
     }
     val tests: @Composable (Modifier) -> Unit = { m ->
         val next = s.nextTest
         HomeTile(
-            "Tests",
-            if (next != null) "Next: ${next.first.tileDate()} · ${next.second}" else count(s.tests, "test"),
-            c.tileLilac, onTests, m, dim = s.tests == 0,
+            stringResource(R.string.home_tests),
+            if (next != null) stringResource(R.string.home_next_test, next.first.tileDate(), next.second) else pluralStringResource(R.plurals.home_tests_count, s.tests, s.tests),
+            c.tileLilac, onTests, m, dim = s.tests == 0, icon = AppIcons.Tests,
         )
     }
     val print: @Composable (Modifier) -> Unit = { m ->
-        HomeTile("Print or save PDF", "Choose classes and margins", c.surfaceContainer, onPrint, m, contentColor = c.ink, mutedColor = c.muted)
+        HomeTile(stringResource(R.string.home_print), stringResource(R.string.home_print_hint), c.surfaceContainer, onPrint, m, contentColor = c.ink, mutedColor = c.muted, icon = AppIcons.Print)
     }
     val overview: @Composable (Modifier) -> Unit = { m ->
         val problems = s.problems > 0
         HomeTile(
-            "Overview",
-            if (problems) count(s.problems, "problem") else "No problems · ${count(s.groups, "group", none = "no groups")}",
+            stringResource(R.string.home_overview),
+            if (problems) pluralStringResource(R.plurals.home_problems_count, s.problems, s.problems) else stringResource(R.string.home_no_problems, pluralStringResource(R.plurals.home_groups_count, s.groups, s.groups)),
             if (problems) c.warnSoft else c.tileMint, { vm.open(Screen.Overview) }, m,
             contentColor = if (problems) c.onWarnSoft else c.onTile,
             mutedColor = if (problems) c.onWarnSoft else c.onTileMuted,
             tall = tall,
-            tag = if (problems) "Needs a look" else null,
+            icon = AppIcons.Overview,
+            tag = if (problems) stringResource(R.string.home_needs_look) else null,
         )
     }
     val homework: @Composable (Modifier) -> Unit = { m ->
-        HomeTile("Homework", count(s.homework, "assignment", none = "Nothing assigned"), c.tileSky, onHomework, m, dim = s.homework == 0)
+        HomeTile(stringResource(R.string.home_homework), pluralStringResource(R.plurals.home_assignments_count, s.homework, s.homework), c.tileSky, onHomework, m, dim = s.homework == 0, icon = AppIcons.Homework)
     }
     val daysOff: @Composable (Modifier) -> Unit = { m ->
         val start = year.start
         val end = year.end
-        val off = count(s.daysOff, "day off", "days off", "no days off")
+        val off = pluralStringResource(R.plurals.home_days_off_count, s.daysOff, s.daysOff)
         HomeTile(
-            "Days off & dates",
-            if (start != null && end != null) "${start.fmtShort()} – ${end.fmtShort()} · $off" else off.replaceFirstChar { it.uppercase() },
+            stringResource(R.string.home_days_dates),
+            if (start != null && end != null) stringResource(R.string.home_dates_and_off, start.fmtShort(), end.fmtShort(), off) else off.replaceFirstChar { it.uppercase() },
             c.surfaceContainer, { vm.open(Screen.YearSettings) }, m,
             contentColor = c.ink, mutedColor = c.muted,
             // Words, not colour alone (§7), say the term still needs its dates.
-            tag = if (!s.datesSet) "Dates not set" else null,
-            tagWarn = true,
+            tag = if (!s.datesSet) stringResource(R.string.home_dates_missing) else null,
+            tagWarn = true, icon = AppIcons.Calendar,
         )
     }
 
@@ -390,6 +397,7 @@ private fun HomeTile(
     tall: Boolean = false,
     tag: String? = null,
     tagWarn: Boolean = false,
+    icon: ImageVector = AppIcons.Book,
 ) {
     Tile(
         color = if (dim) color.copy(alpha = 0.3f) else color,
@@ -399,6 +407,7 @@ private fun HomeTile(
     ) {
         Column(Modifier.alpha(if (dim) 0.6f else 1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
             // A warn tag is warnSoft on the tile; any other is a surface pill (§6 Status chip).
+            AppIcon(icon)
             tag?.let { Tag(it, warn = tagWarn, onTile = !tagWarn) }
             Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = mutedColor)
@@ -445,7 +454,7 @@ private fun YearPicker(
     onDismiss: () -> Unit,
 ) {
     val sorted = remember(years) { years.sortedByDescending { it.start } }
-    HomeSheet("School year", onDismiss) { close ->
+    HomeSheet(stringResource(R.string.home_year), onDismiss) { close ->
         Column(Modifier.selectableGroup()) {
             sorted.forEach { y ->
                 YearRow(
@@ -456,28 +465,31 @@ private fun YearPicker(
                 )
             }
         }
-        AddButton("New school year") { onNew(); close() }
+        AddButton(stringResource(R.string.home_new_year)) { onNew(); close() }
     }
 }
 
 /** A year in the picker: a radio, its name over its dates and class count, and a ⋮ menu. */
 @Composable
 private fun YearRow(y: SchoolYear, selected: Boolean, onOpen: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
-    var menu by remember { mutableStateOf(false) }
-    val name = y.name.ifBlank { "School year" }
+    var menu by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val tick = rememberSegmentHaptic()
+    val name = y.name.ifBlank { context.getString(R.string.home_year) }
+    val options = stringResource(R.string.home_options, name)
     Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .clip(MaterialTheme.shapes.medium)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onOpen),
+            .selectable(selected = selected, role = Role.RadioButton, onClick = { tick(); onOpen() }),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(selected = selected, onClick = null, modifier = Modifier.padding(horizontal = Space.m))
         Column(Modifier.weight(1f).padding(vertical = Space.s)) {
             Text(name, style = MaterialTheme.typography.titleMedium)
             Text(
-                "${y.dates()} · ${count(y.classes.size, "class", "classes", "no classes")}",
+                stringResource(R.string.home_pair, y.dates(context), pluralStringResource(R.plurals.home_classes_count, y.classes.size, y.classes.size)),
                 style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted,
             )
         }
@@ -485,11 +497,11 @@ private fun YearRow(y: SchoolYear, selected: Boolean, onOpen: () -> Unit, onRena
             TextButton(
                 onClick = { menu = true },
                 contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(48.dp).semantics { contentDescription = "Options for $name" },
-            ) { Text("⋮", style = MaterialTheme.typography.titleLarge, color = Pacer.colors.muted) }
+                modifier = Modifier.size(48.dp).semantics { contentDescription = options },
+            ) { AppIcon(AppIcons.MoreVert) }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text("Rename") }, onClick = { menu = false; onRename() })
-                DropdownMenuItem(text = { Text("Delete", color = Pacer.colors.warn) }, onClick = { menu = false; onDelete() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.home_rename)) }, onClick = { menu = false; onRename() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.home_delete), color = Pacer.colors.warn) }, onClick = { menu = false; onDelete() })
             }
         }
     }
@@ -498,9 +510,10 @@ private fun YearRow(y: SchoolYear, selected: Boolean, onOpen: () -> Unit, onRena
 /** Picks the class whose Tests or Homework to open, when the year has several. */
 @Composable
 private fun ClassChooser(year: SchoolYear, title: String, onDismiss: () -> Unit, onPick: (String) -> Unit) {
+    val context = LocalContext.current
     HomeSheet(title, onDismiss) { close ->
         year.classes.forEach { k ->
-            LinkRow(k.name.ifBlank { "Class" }, count(k.groups.size, "group", none = "No groups")) { onPick(k.id); close() }
+            LinkRow(k.name.ifBlank { context.getString(R.string.home_class) }, pluralStringResource(R.plurals.home_groups_count, k.groups.size, k.groups.size)) { onPick(k.id); close() }
         }
     }
 }
@@ -509,8 +522,8 @@ private fun ClassChooser(year: SchoolYear, title: String, onDismiss: () -> Unit,
 @Composable
 private fun RenameYearSheet(y: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
     var name by rememberSaveable { mutableStateOf(y.name) }
-    SheetFrame("Rename school year", "Save", name.isNotBlank(), { vm.renameYear(y.id, name.trim()) }, onDismiss) {
-        CommitField(name, { name = it }, "Name", Modifier.fillMaxWidth())
+    SheetFrame(stringResource(R.string.home_rename_year), stringResource(R.string.home_save), name.isNotBlank(), { vm.renameYear(y.id, name.trim()) }, onDismiss) {
+        CommitField(name, { name = it }, stringResource(R.string.home_name), Modifier.fillMaxWidth())
     }
 }
 
@@ -519,16 +532,19 @@ private fun RenameYearSheet(y: SchoolYear, vm: PacerViewModel, onDismiss: () -> 
 private fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss: () -> Unit) {
     val draft = remember { suggestYear(years, LocalDate.now()) }
     var name by rememberSaveable { mutableStateOf(draft.name) }
-    var start by remember { mutableStateOf<LocalDate?>(draft.start) }
-    var end by remember { mutableStateOf<LocalDate?>(draft.end) }
+    var startText by rememberSaveable { mutableStateOf(draft.start?.toString()) }
+    var endText by rememberSaveable { mutableStateOf(draft.end?.toString()) }
+    val start = startText?.let(LocalDate::parse)
+    val end = endText?.let(LocalDate::parse)
     var holidays by rememberSaveable { mutableStateOf(true) }
-    AddDialogFrame("New school year", name.isNotBlank(), { vm.newYear(name.trim(), start, end, holidays && start != null && end != null) }, onDismiss, confirm = "Create") {
-        CommitField(name, { name = it }, "Name", placeholder = draft.name)
-        DateField(start, { start = it }, "Starts")
-        DateField(end, { end = it }, "Ends")
+    val toggle = rememberToggleHaptic()
+    AddDialogFrame(stringResource(R.string.home_new_year), name.isNotBlank(), { vm.newYear(name.trim(), start, end, holidays && start != null && end != null) }, onDismiss, confirm = stringResource(R.string.home_create)) {
+        CommitField(name, { name = it }, stringResource(R.string.home_name), placeholder = draft.name)
+        DateField(start, { startText = it?.toString() }, stringResource(R.string.home_starts))
+        DateField(end, { endText = it?.toString() }, stringResource(R.string.home_ends))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = holidays, onCheckedChange = { holidays = it })
-            Text("Add the Greek public holidays as days off", style = MaterialTheme.typography.bodyMedium)
+            Checkbox(checked = holidays, onCheckedChange = { toggle(it); holidays = it })
+            Text(stringResource(R.string.home_holidays), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
