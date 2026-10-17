@@ -1,5 +1,9 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,15 +19,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
@@ -55,12 +55,14 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
                 )
                 Text("Four steps to your first schedule:", style = MaterialTheme.typography.bodyMedium)
                 STEPS.forEachIndexed { i, (title, detail) ->
-                    Row {
-                        Text("${i + 1}", fontFamily = Mono, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.width(22.dp))
-                        Column {
-                            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                            Text(detail, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
+                    Tile(color = if (i % 2 == 0) Pacer.colors.tileLilac else Pacer.colors.tileSky) {
+                        Surface(shape = CircleShape, color = Pacer.colors.accentSoft, contentColor = Pacer.colors.onAccentSoft) {
+                            Box(Modifier.sizeIn(minWidth = Space.xxl, minHeight = Space.xxl).padding(Space.xs), contentAlignment = Alignment.Center) {
+                                Text("${i + 1}", style = MaterialTheme.typography.labelMedium, fontFamily = Mono)
+                            }
                         }
+                        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                        Text(detail, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
                     }
                 }
                 Hint("Each screen says what to do next while it's empty. You can open this guide again from Settings.")
@@ -70,10 +72,10 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
         confirmButton = {
-            if (onStart != null) TextButton(onClick = { onStart(); onDismiss() }) { Text("Create a school year") }
-            else TextButton(onClick = onDismiss) { Text("Got it") }
+            if (onStart != null) PrimaryButton("Create your school year", { onStart(); onDismiss() })
+            else PrimaryButton("Got it", onDismiss)
         },
-        dismissButton = if (onStart != null) ({ TextButton(onClick = onDismiss) { Text("Later") } }) else null,
+        dismissButton = if (onStart != null) ({ TertiaryButton("Not now", onDismiss) }) else null,
     )
 }
 
@@ -83,26 +85,16 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
  * leave it out when the screen's own add button sits right below.
  */
 @Composable
-fun GuideCard(title: String, text: String, modifier: Modifier = Modifier, action: Pair<String, () -> Unit>? = null) {
+fun GuideCard(title: String, text: String, modifier: Modifier = Modifier, action: Pair<String, () -> Unit>? = null, onDismiss: (() -> Unit)? = null) {
     val c = Pacer.colors
-    // A flat accent-soft panel (style guide §4): no border or side bar.
-    Row(
-        modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(c.accentSoft),
-    ) {
-        Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m, bottom = if (action == null) Space.m else Space.xs)) {
-            Text("Next step", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            Text(
-                title, style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 2.dp).semantics { heading() },
-            )
-            Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted, modifier = Modifier.padding(top = Space.xs))
-            action?.let { (label, onClick) ->
-                OutlinedButton(onClick = onClick, modifier = Modifier.padding(top = Space.s, bottom = Space.xs)) { Text(label) }
-            }
+    Tile(color = c.tileSky, modifier = modifier) {
+        Text("Next step", style = MaterialTheme.typography.labelMedium, color = c.onTileMuted)
+        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = c.onTileMuted)
+        action?.let { (label, onClick) ->
+            TertiaryButton(label, onClick, Modifier.padding(top = Space.s), color = c.onTile)
         }
+        onDismiss?.let { TertiaryButton("Dismiss", it, color = c.onTile) }
     }
 }
 

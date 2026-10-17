@@ -1,9 +1,11 @@
 package gr.edusuite.pacer.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -21,19 +24,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -41,21 +47,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.WEEK
+import gr.edusuite.pacer.engine.closedDates
 import gr.edusuite.pacer.engine.collapse
 import gr.edusuite.pacer.engine.eventsOn
 import gr.edusuite.pacer.engine.fixed2
@@ -112,6 +122,7 @@ private fun lessonsOf(report: GroupReport): List<Lesson> {
 
 /** What a long-press on a lesson offers, and what tapping its tick does. */
 private class LessonActions(
+    val bookNames: List<String>,
     val toggle: (LocalDate) -> Unit,
     /** Opens "Pages taught" for the lesson. */
     val edit: (Lesson) -> Unit,
@@ -132,6 +143,7 @@ fun GroupScreen(
     padding: PaddingValues,
     onCopy: () -> Unit,
     onShare: () -> Unit,
+    undoToast: (String) -> Unit = {},
 ) {
     val plan = report.plan
     val g = report.group
@@ -140,46 +152,73 @@ fun GroupScreen(
     val lines = remember(months) {
         months.flatMap { (m, ls) -> listOf<Line>(Line.Month(m)) + ls.map { Line.Item(it) } }
     }
-    var editing by remember(g.id) { mutableStateOf<Lesson?>(null) }
-    val actions = remember(lessons, g.id) {
+    var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.firstOrNull() ?: LocalDate.now()).toString()) }
+    var selectedMonth by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    val editing = lessons.firstOrNull { it.date.toString() == editingDate }
+    val actions = remember(lessons, g.id, plan.books) {
         LessonActions(
-            toggle = { vm.toggleLesson(g.id, it) },
-            edit = { editing = it },
-            upTo = { vm.markDoneUpTo(g.id, it) },
-            notFrom = { vm.unmarkDoneFrom(g.id, it) },
+            bookNames = plan.books.map { it.name },
+            toggle = { vm.toggleLesson(g.id, it); undoToast("Lesson updated") },
+            edit = { editingDate = it.date.toString() },
+            upTo = { vm.markDoneUpTo(g.id, it); undoToast("Lessons marked done") },
+            notFrom = { vm.unmarkDoneFrom(g.id, it); undoToast("Lessons marked not done") },
             canUpTo = { d -> lessons.any { !it.done && !it.date.isAfter(d) } },
             canNotFrom = { d -> lessons.any { it.done && !it.date.isBefore(d) } },
         )
     }
     // By month opens on this month, or on the first month with a lesson still to come.
     val startPage = remember(months) {
-        val now = LocalDate.now().withDayOfMonth(1)
+        val now = selectedMonth?.let(LocalDate::parse) ?: LocalDate.now().withDayOfMonth(1)
         months.indexOfFirst { it.first == now }.takeIf { it >= 0 }
             ?: months.indexOfFirst { (_, ls) -> ls.any { !it.done } }.takeIf { it >= 0 }
             ?: 0
     }
     val pager = rememberPagerState(initialPage = startPage) { months.size }
     val scope = rememberCoroutineScope()
+    LaunchedEffect(pager.currentPage, months) {
+        months.getOrNull(pager.currentPage)?.let { selectedMonth = it.first.toString() }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentPadding = PaddingValues(top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
     ) {
-        item(key = "summary") { SummaryCard(report, vm, Modifier.padding(horizontal = Space.l)) }
+        item(key = "summary") {
+            SummaryCard(report, vm, Modifier.padding(horizontal = Space.l), undoToast) { next -> editingDate = next.date.toString() }
+        }
+        item(key = "daystrip") {
+            val start = plan.start
+            val end = plan.end
+            if (start != null && end != null) {
+                Column(Modifier.padding(horizontal = Space.l, vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                    Eyebrow("Term weeks")
+                    DayStrip(start, end, LocalDate.parse(selectedDay), lessons.map { it.date }.toSet(), { selectedDay = it.toString() })
+                    val lesson = lessons.firstOrNull { it.date.toString() == selectedDay }
+                    if (lesson != null) {
+                        LessonLine(lesson, actions)
+                    } else {
+                        val date = LocalDate.parse(selectedDay)
+                        val closure = plan.closedDates(g.id)[date]
+                        Hint(if (closure != null) "Day off: $closure" else "No lesson on ${date.fmt()}")
+                    }
+                }
+            }
+        }
         item(key = "ledgerhead") {
             Row(
                 Modifier.fillMaxWidth().padding(start = Space.l, end = Space.s, top = Space.xl, bottom = Space.xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("${g.name} · schedule", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                TextButton(onClick = onCopy, enabled = report.rows.isNotEmpty()) { Text("Copy") }
-                TextButton(onClick = onShare, enabled = report.rows.isNotEmpty()) { Text("Share") }
+                Text("Schedule", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                TertiaryButton("Copy", onCopy, enabled = report.rows.isNotEmpty())
+                TertiaryButton("Share", onShare, enabled = report.rows.isNotEmpty())
             }
         }
         item(key = "mode") {
             Row(Modifier.padding(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                FilterChip(selected = !byMonth, onClick = { vm.setScheduleByMonth(false) }, label = { Text("All months") })
-                FilterChip(selected = byMonth, onClick = { vm.setScheduleByMonth(true) }, label = { Text("By month") })
+                FilterChip(selected = !byMonth, onClick = { vm.setScheduleByMonth(false) }, label = { Text("All months") }, shape = CircleShape)
+                FilterChip(selected = byMonth, onClick = { vm.setScheduleByMonth(true) }, label = { Text("By month") }, shape = CircleShape)
             }
         }
         item(key = "tickhint") {
@@ -207,12 +246,12 @@ fun GroupScreen(
                         months.forEachIndexed { i, (m, _) ->
                             Tab(
                                 selected = pager.currentPage == i,
-                                onClick = { scope.launch { pager.animateScrollToPage(i) } },
+                                onClick = { selectedMonth = m.toString(); scope.launch { pager.animateScrollToPage(i) } },
                                 text = { Text("${m.monthShort()} ${m.year % 100}") },
                             )
                         }
                     }
-                    HeaderRow(plan)
+
                 }
             }
             item(key = "pager") {
@@ -224,7 +263,7 @@ fun GroupScreen(
                 }
             }
         } else {
-            stickyHeader(key = "cols") { HeaderRow(plan) }
+
             items(lines, key = { l -> if (l is Line.Item) "r${l.lesson.date}" else "m${(l as Line.Month).first}" }, contentType = { it::class }) { l ->
                 when (l) {
                     is Line.Month -> MonthRow(l.first)
@@ -234,34 +273,10 @@ fun GroupScreen(
         }
     }
 
-    editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it) }, { editing = null }) }
+    editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it); undoToast("Pages taught saved") }, { editingDate = null }) }
 }
 
-private val TickW = 40.dp
-private val NumW = 30.dp
-private val DateW = 92.dp
-
-@Composable
-private fun HeaderRow(plan: Plan) {
-    Column(Modifier.background(MaterialTheme.colorScheme.background)) {
-        Row(Modifier.fillMaxWidth().padding(start = Space.xs, end = Space.m, top = Space.s, bottom = Space.s)) {
-            HeadCell("✓", Modifier.width(TickW), center = true)
-            HeadCell("#", Modifier.width(NumW))
-            HeadCell("Date", Modifier.width(DateW))
-            plan.books.forEach { HeadCell(it.name, Modifier.weight(1f)) }
-        }
-        HorizontalDivider(color = Pacer.colors.line)
-    }
-}
-
-@Composable
-private fun HeadCell(text: String, modifier: Modifier, center: Boolean = false) {
-    Text(
-        text, modifier = modifier, maxLines = 2, style = MaterialTheme.typography.labelSmall,
-        color = Pacer.colors.muted, textAlign = if (center) TextAlign.Center else TextAlign.Start,
-    )
-}
-
+private val TickW = 48.dp
 @Composable
 private fun MonthRow(first: LocalDate) {
     Text(
@@ -275,7 +290,7 @@ private fun MonthRow(first: LocalDate) {
 @Composable
 private fun LessonLine(l: Lesson, actions: LessonActions) {
     val names = l.events.joinToString(" · ") { it.name }
-    var menu by remember { mutableStateOf(false) }
+    var menu by rememberSaveable(l.date.toString()) { mutableStateOf(false) }
     val edit = "Edit pages taught…"
     val upTo = "Done up to here"
     val notFrom = "Not done from here"
@@ -284,13 +299,14 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
             Row(
                 Modifier
                     .fillMaxWidth()
+                    .alpha(if (l.done) 0.6f else 1f)
                     .background(if (l.blocked) Pacer.colors.accentSoft else Pacer.colors.surface)
                     .pointerInput(l.date) { detectTapGestures(onLongPress = { menu = true }) }
                     .semantics {
                         customActions = listOf(
                             CustomAccessibilityAction(edit) { actions.edit(l); true },
-                            CustomAccessibilityAction(upTo) { actions.upTo(l.date); true },
-                            CustomAccessibilityAction(notFrom) { actions.notFrom(l.date); true },
+                            CustomAccessibilityAction(upTo) { if (actions.canUpTo(l.date)) { actions.upTo(l.date); true } else false },
+                            CustomAccessibilityAction(notFrom) { if (actions.canNotFrom(l.date)) { actions.notFrom(l.date); true } else false },
                         )
                     }
                     .padding(start = Space.xs, end = Space.m),
@@ -303,18 +319,18 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                         modifier = Modifier.semantics { contentDescription = "Lesson ${l.n} done" },
                     )
                 }
-                // Done lessons stay in the list, dimmed, with the pages they covered.
-                Row(Modifier.weight(1f).alpha(if (l.done) 0.5f else 1f), verticalAlignment = Alignment.CenterVertically) {
-                    Text("${l.n}", style = MaterialTheme.typography.bodyMedium, fontFamily = Mono, color = Pacer.colors.muted, modifier = Modifier.width(NumW))
-                    Column(Modifier.width(DateW)) {
-                        Text("${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", style = MaterialTheme.typography.bodyMedium)
-                        if (!l.blocked && names.isNotEmpty()) Tag(names, Modifier.padding(top = 2.dp))
-                        if (l.edited) Tag("edited", Modifier.padding(top = 2.dp))
+                Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.CenterVertically) {
+                        Text("#${l.n}", style = MaterialTheme.typography.labelMedium, fontFamily = Mono, color = Pacer.colors.muted)
+                        Text("${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", style = MaterialTheme.typography.titleMedium)
                     }
-                    if (l.blocked) {
-                        Text(names, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                    } else {
-                        l.cells.forEach { c -> Text(c, style = MaterialTheme.typography.bodyMedium, fontFamily = Mono, modifier = Modifier.weight(1f)) }
+                    if (names.isNotEmpty()) Surface(shape = CircleShape, color = Pacer.colors.tileLilac, contentColor = Pacer.colors.onTile) {
+                        Text(names, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = Space.s, vertical = Space.xs))
+                    }
+                    if (l.edited) Tag("Edited")
+                    if (l.done) Tag("Done")
+                    if (!l.blocked) l.cells.forEachIndexed { i, cell ->
+                        Text("${actions.bookNames.getOrElse(i) { "Book ${i + 1}" }}: $cell", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -336,17 +352,17 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
 private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<String, List<Int>>) -> Unit, onDismiss: () -> Unit) {
     val books = report.plan.books
     val planned = remember(report, l.date) { report.plannedPages(l.date).orEmpty() }
-    val texts = remember(report.group.id, l.date) {
+    val texts = rememberSaveable(report.group.id, l.date.toString(), saver = listSaver(save = { it.toList() }, restore = { it.toMutableStateList() })) {
         val now = report.group.done.firstOrNull { it.date == l.date }?.pages ?: planned
         mutableStateListOf(*books.map { b -> now[b.id]?.let(::collapse).orEmpty() }.toTypedArray())
     }
     val parsed = books.mapIndexed { i, b -> lessonPages(texts[i], b) }
-    AddDialogFrame(
-        title = "Lesson ${l.n} · ${l.date.dayOfWeek.short()} ${l.date.fmtShort()}",
-        canAdd = parsed.all { it != null },
-        onAdd = { onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() }) },
+    SheetFrame(
+        title = "Pages taught on ${l.date.dayOfWeek.short()} ${l.date.fmtShort()}",
+        enabled = parsed.all { it != null },
+        onPrimary = { onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() }) },
         onDismiss = onDismiss,
-        confirm = "Save",
+        primary = "Save",
     ) {
         Hint(
             "Pages taught from each book, like 5-8, 10. Leave a book empty if you taught none. " +
@@ -373,62 +389,60 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
 }
 
 @Composable
-private fun SummaryCard(report: GroupReport, vm: PacerViewModel, modifier: Modifier) {
+private fun SummaryCard(report: GroupReport, vm: PacerViewModel, modifier: Modifier, undoToast: (String) -> Unit, onEdit: (Lesson) -> Unit) {
     val plan = report.plan
     val g = report.group
     val verdict = remember(report) { report.verdict() }
-    val short = verdict is Verdict.Short
-
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = Pacer.colors.surface,
-    ) {
-        Column {
-            Box(Modifier.fillMaxWidth().height(3.dp).background(if (short) Pacer.colors.warn else MaterialTheme.colorScheme.primary))
-            Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
-                Column {
-                    Text(g.name, style = MaterialTheme.typography.titleLarge)
-                    val days = WEEK.filter { it in g.days }.joinToString(" · ") { it.short() }.ifEmpty { "no days set" }
-                    // Lessons marked done drop out, so the first one left is the next to teach.
-                    val from = report.lessons.firstOrNull()?.let { " · next " + it.fmt() } ?: ""
-                    val hours = (report.lessons.size * plan.mins / 60.0)
-                    Hint("$days$from · ${String.format(Locale.US, "%.1f", hours)} contact hours")
+    val next = lessonsOf(report).firstOrNull { !it.done }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+        if (next == null) {
+            Tile(Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink) {
+                Text("No lessons left in this term", style = MaterialTheme.typography.headlineSmall)
+            }
+        } else Tile(Pacer.colors.accent, contentColor = Pacer.colors.onAccent) {
+            Text("Next lesson #${next.n}", style = MaterialTheme.typography.labelLarge)
+            Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall, fontFamily = Mono)
+            if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
+            if (!next.blocked) plan.books.forEachIndexed { i, book ->
+                Text("${book.name}: ${next.cells.getOrElse(i) { "—" }}", style = MaterialTheme.typography.bodyLarge)
+            }
+            Button(
+                onClick = { vm.markNextLessonDone(g.id); undoToast("Lesson marked done") },
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surface, contentColor = Pacer.colors.ink),
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) { Text("Mark done", style = MaterialTheme.typography.labelLarge) }
+            TertiaryButton("Edit pages taught", { onEdit(next) }, color = Pacer.colors.onAccent)
+        }
+        val fontScale = LocalDensity.current.fontScale
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val figures = listOf("Lessons left" to "${report.lessons.size}", "Pages left" to "${report.pages}", "Pace needed" to if (report.teaching > 0) report.rate.fixed2() else "—")
+            val colors = listOf(Pacer.colors.tileSky, Pacer.colors.tileLilac, Pacer.colors.tileMint)
+            if (fontScale >= 2f || maxWidth < 360.dp - Space.l * 2) {
+                Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                    figures.forEachIndexed { i, stat -> StatTile(stat.first, stat.second, Modifier.fillMaxWidth(), color = colors[i], unit = if (i == 2) "pp/lesson" else null) }
                 }
-
-                Row {
-                    Stat("Lessons left", "${report.lessons.size}", Modifier.weight(1f))
-                    Stat("Pages left", "${report.pages}", Modifier.weight(1f))
-                }
-                Row {
-                    Stat("Required pace", if (report.teaching > 0) report.rate.fixed2() else "—", Modifier.weight(1f))
-                    Stat("Heaviest lesson", "${report.peak}", Modifier.weight(1f))
-                }
-
-                if (report.blocked > 0) {
-                    Hint(
-                        "${report.blocked} ${if (report.blocked == 1) "lesson goes" else "lessons go"} to tests or worksheets, " +
-                            "so the pages spread over ${report.teaching}.",
-                    )
-                }
-
-                when (verdict) {
-                    is Verdict.Short -> VerdictBox(
-                        "Short by ${verdict.by.fixed2()} lessons at ${verdict.sustain.plain()} pages each. Finishing needs " +
-                            "${verdict.needRate.fixed2()} per lesson, or ${verdict.cutPages} fewer pages.",
-                        bad = true,
-                    )
-                    is Verdict.Fits -> VerdictBox("Fits, with ${verdict.spare.fixed2()} lessons to spare at ${verdict.sustain.plain()} pages each.", bad = false)
-                    null -> Unit
-                }
-
-                if (report.banked > 0) Hint("${report.banked} pages banked as homework, already removed from the sequence.")
-
-                if (plan.books.isNotEmpty()) Positions(report, vm)
-
-                MonthBars(report)
+            } else Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+                figures.forEachIndexed { i, stat -> StatTile(stat.first, stat.second, Modifier.weight(1f), color = colors[i], unit = if (i == 2) "pp/lesson" else null) }
             }
         }
+        when (verdict) {
+            is Verdict.Short -> VerdictBox("Short by ${verdict.by.fixed2()} lessons at ${verdict.sustain.plain()} pages each. Finishing needs ${verdict.needRate.fixed2()} per lesson, or ${verdict.cutPages} fewer pages.", true)
+            is Verdict.Fits -> Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                Tag("On track")
+                VerdictBox("Fits, with ${verdict.spare.fixed2()} lessons to spare at ${verdict.sustain.plain()} pages each.", false)
+            }
+            null -> Hint(if (report.teaching == 0) "No teaching lessons to measure yet." else "Set a sustainable pace on the class screen to see the verdict.")
+        }
+        MoreOptions("More details") {
+            Stat("Heaviest lesson", "${report.peak}")
+            Stat("Contact hours", String.format(Locale.US, "%.1f", report.lessons.size * plan.mins / 60.0))
+            Stat("Pages banked as homework", "${report.banked}")
+            Stat("Blocked lessons", "${report.blocked}")
+            if (report.blocked > 0) Hint("${report.blocked} lessons go to tests or worksheets; pages spread over ${report.teaching} lessons.")
+            MonthBars(report)
+        }
+        if (plan.books.isNotEmpty()) Positions(report, vm)
     }
 }
 
@@ -456,39 +470,25 @@ private fun VerdictBox(text: String, bad: Boolean) {
 
 @Composable
 private fun Positions(report: GroupReport, vm: PacerViewModel) {
-    val plan = report.plan
-    val g = report.group
-    Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        HorizontalDivider(color = Pacer.colors.line)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Book", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.weight(1f))
-            Text("Resume", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(92.dp))
-            Text("Left", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(44.dp))
-            Text("Pace", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(50.dp))
-        }
-        plan.books.forEachIndexed { i, b ->
+    var bookId by rememberSaveable(report.group.id) { mutableStateOf<String?>(null) }
+    val book = report.plan.books.firstOrNull { it.id == bookId }
+    Section("Books") {
+        report.plan.books.forEachIndexed { i, b ->
             val st = report.bookStats[i]
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(b.name, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
-                    b.due?.let { due -> Tag(if (st.crammed) "due passed" else "by ${due.fmtShort()}", warn = st.crammed) }
+            Row(Modifier.fillMaxWidth().clickable { bookId = b.id }.padding(vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    Text(b.name, style = MaterialTheme.typography.titleMedium)
+                    Text("Resume p. ${position(report.group, b)} · ${st.pages} left · ${if (st.lessons > 0) st.rate.fixed2() else "—"} per lesson", style = MaterialTheme.typography.bodyMedium)
+                    b.due?.let { Tag(if (st.crammed) { if (it.isBefore(report.group.from ?: report.plan.start ?: LocalDate.now())) "Due passed" else "No lesson before due" } else "By ${it.fmtShort()}", warn = st.crammed) }
                 }
-                IntField(position(g, b), { vm.setPosition(g.id, b.id, it) }, "p.", Modifier.width(92.dp), min = b.first, max = MAX_PAGE + 1)
-                Text("${st.pages}", fontFamily = Mono, textAlign = TextAlign.End, modifier = Modifier.width(44.dp))
-                Text(
-                    if (st.lessons > 0) st.rate.fixed2() else "—",
-                    fontFamily = Mono, textAlign = TextAlign.End, modifier = Modifier.width(50.dp),
-                    color = if (b.due != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                )
             }
+            if (i < report.plan.books.lastIndex) HorizontalDivider(Modifier.padding(horizontal = Space.l), color = Pacer.colors.line)
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { vm.markNextLessonDone(g.id) }, enabled = report.lessons.isNotEmpty()) {
-                Text("Mark next lesson done")
-            }
-            if (g.done.isNotEmpty()) {
-                Hint("${g.done.size} ${if (g.done.size == 1) "lesson" else "lessons"} done", Modifier.padding(start = Space.m))
-            }
+    }
+    if (book != null) {
+        SheetFrame("${book.name} · position", "Done", true, {}, { bookId = null }) {
+            Hint("The next page to teach. Updating it redistributes the remaining pages over future lessons.")
+            IntField(position(report.group, book), { vm.setPosition(report.group.id, book.id, it) }, "Resume at page", Modifier.fillMaxWidth(), min = book.first, max = MAX_PAGE + 1)
         }
     }
 }
@@ -502,7 +502,7 @@ private fun MonthBars(report: GroupReport) {
         months.forEach { (m, n) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${m.monthShort()} ${m.year % 100}", style = MaterialTheme.typography.labelSmall, fontFamily = Mono, color = Pacer.colors.muted, modifier = Modifier.width(54.dp))
-                Box(Modifier.weight(1f).height(9.dp).clip(MaterialTheme.shapes.extraSmall).background(Pacer.colors.accentSoft)) {
+                Box(Modifier.weight(1f).height(9.dp).clip(CircleShape).background(Pacer.colors.accentSoft)) {
                     Box(Modifier.fillMaxHeight().fillMaxWidth(n.toFloat() / max).background(MaterialTheme.colorScheme.primary))
                 }
                 Spacer(Modifier.width(Space.s))

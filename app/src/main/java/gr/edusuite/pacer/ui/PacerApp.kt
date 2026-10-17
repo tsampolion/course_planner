@@ -199,6 +199,7 @@ private fun ScreenContent(
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) toast("Copied. Paste into a spreadsheet or Word.")
                 },
                 onShare = { share(context, "${plan.name} — ${report.group.name}", report.asTsv()) },
+                undoToast = undoToast,
             )
         }
     }
