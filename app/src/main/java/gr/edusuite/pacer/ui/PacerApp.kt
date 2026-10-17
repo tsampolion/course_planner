@@ -7,14 +7,31 @@ import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,8 +56,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +69,9 @@ import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.asTsv
 import gr.edusuite.pacer.engine.lessonsFor
 import gr.edusuite.pacer.model.AppData
+import gr.edusuite.pacer.R
+import gr.edusuite.pacer.ui.theme.Motion
+import gr.edusuite.pacer.ui.theme.Space
 import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
 import kotlinx.coroutines.delay
@@ -57,24 +80,21 @@ import kotlinx.coroutines.launch
 /** How long a delete's Undo stays on show before accessibility adjustments (style guide §14). */
 private const val UNDO_MILLIS = 5_000L
 
-/** The app's name as the screens show it; the launcher label lives in strings.xml. */
-const val APP_NAME = "Course Pacer"
-
-private fun Screen.title(d: AppData): String = when (this) {
-    Screen.Home -> APP_NAME
-    Screen.Settings -> "Settings"
-    Screen.YearSettings -> "School year settings"
-    Screen.Overview -> "Overview"
-    Screen.Classes -> "Classes"
-    Screen.Class -> d.schoolClass?.name?.ifBlank { null } ?: "Class"
-    Screen.Tests -> "Tests & worksheets"
-    Screen.Homework -> "Homework already assigned"
-    is Screen.Group -> d.schoolClass?.groups?.firstOrNull { it.id == id }?.name?.ifBlank { null } ?: "Group"
+private fun Screen.title(d: AppData, context: Context): String = when (this) {
+    Screen.Home -> context.getString(R.string.app_name)
+    Screen.Settings -> context.getString(R.string.app_settings)
+    Screen.YearSettings -> context.getString(R.string.app_year_settings)
+    Screen.Overview -> context.getString(R.string.app_overview)
+    Screen.Classes -> context.getString(R.string.app_classes)
+    Screen.Class -> d.schoolClass?.name?.ifBlank { null } ?: context.getString(R.string.app_class)
+    Screen.Tests -> context.getString(R.string.app_tests)
+    Screen.Homework -> context.getString(R.string.app_homework)
+    is Screen.Group -> d.schoolClass?.groups?.firstOrNull { it.id == id }?.name?.ifBlank { null } ?: context.getString(R.string.app_group)
 }
 
 /** The small line above the title: where this screen sits. */
-private fun Screen.context(d: AppData): String = when (this) {
-    Screen.Home, Screen.Settings -> APP_NAME
+private fun Screen.context(d: AppData, context: Context): String = when (this) {
+    Screen.Home, Screen.Settings -> context.getString(R.string.app_name)
     Screen.YearSettings, Screen.Overview, Screen.Classes, Screen.Class -> d.year?.name.orEmpty()
     Screen.Tests, Screen.Homework, is Screen.Group -> listOfNotNull(d.year?.name, d.schoolClass?.name).joinToString(" · ")
 }
@@ -109,7 +129,7 @@ fun PacerApp(vm: PacerViewModel) {
         scope.launch {
             snackbar.currentSnackbarData?.dismiss()
             val timeout = launch { delay(undoMillis); if (undoStep == step) snackbar.currentSnackbarData?.dismiss() }
-            val result = snackbar.showSnackbar(msg, actionLabel = "Undo", duration = SnackbarDuration.Indefinite)
+            val result = snackbar.showSnackbar(msg, actionLabel = context.getString(R.string.app_undo), duration = SnackbarDuration.Indefinite)
             timeout.cancel()
             if (undoStep == step) undoStep = -1L
             if (result == SnackbarResult.ActionPerformed) vm.undoIfLatest(step)
@@ -136,17 +156,35 @@ fun PacerApp(vm: PacerViewModel) {
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbar) },
+        snackbarHost = {
+            SnackbarHost(snackbar) { data ->
+                val motion = animationsEnabled()
+                val visible = remember(data) { MutableTransitionState(false).apply { targetState = true } }
+                AnimatedVisibility(visibleState = visible,
+                    enter = if (motion) slideInVertically(Motion.content()) { it } else EnterTransition.None,
+                    exit = if (motion) slideOutVertically(Motion.content()) { it } else ExitTransition.None,
+                ) { UndoSnackbar(data, undoStep >= 0, undoMillis) }
+            }
+        },
         topBar = {
             // Home is just the logo, the year picker and Settings, with no bar.
             if (screen != Screen.Home) ScreenBar(screen, ui.data, vm, undoDepth = if (screen == Screen.Settings) null else ui.undoDepth)
         },
     ) { padding ->
+        val motion = animationsEnabled()
         AnimatedContent(
-            targetState = screen,
-            transitionSpec = { fadeIn(tween(160)) togetherWith fadeOut(tween(120)) },
+            targetState = screen to ui.stack.size,
+            contentKey = { it.first },
+            transitionSpec = {
+                if (!motion) EnterTransition.None togetherWith ExitTransition.None
+                else {
+                    val direction = if (targetState.second < initialState.second) -1 else 1
+                    (slideInHorizontally(Motion.screen()) { it / 12 * direction } + fadeIn(Motion.screen())) togetherWith
+                        (slideOutHorizontally(Motion.screen()) { -it / 12 * direction } + fadeOut(Motion.screen()))
+                }
+            },
             label = "screen",
-        ) { s ->
+        ) { (s, _) ->
             live += s.key()
             saved.SaveableStateProvider(s.key()) {
                 ScreenContent(s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context)
@@ -177,11 +215,11 @@ private fun ScreenContent(
             data, vm, padding,
             // Only for a first launch: someone who deletes every year later doesn't need it again.
             welcome = canWelcome && !settings.welcomeSeen && data.years.isEmpty(),
-            onDeleted = { undoToast("Deleted “$it”") },
+            onDeleted = { undoToast(context.getString(R.string.app_deleted, it)) },
             undoToast = undoToast,
         )
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
-        Screen.YearSettings -> YearSettingsScreen(year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast("Deleted “$it”") })
+        Screen.YearSettings -> YearSettingsScreen(year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast(context.getString(R.string.app_deleted, it)) })
         Screen.Overview -> OverviewScreen(year ?: return, vm, padding)
         Screen.Classes -> ClassesScreen(year ?: return, vm, padding)
         Screen.Class -> ClassScreen(plan ?: return, vm, padding, undoToast)
@@ -196,7 +234,7 @@ private fun ScreenContent(
                 onCopy = {
                     copy(context, report.asTsv())
                     // Android 13+ shows its own copy confirmation.
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) toast("Copied. Paste into a spreadsheet or Word.")
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) toast(context.getString(R.string.app_copied))
                 },
                 onShare = { share(context, "${plan.name} — ${report.group.name}", report.asTsv()) },
                 undoToast = undoToast,
@@ -207,9 +245,7 @@ private fun ScreenContent(
 
 @Composable
 private fun UndoButton(vm: PacerViewModel, depth: Int) {
-    TextButton(onClick = vm::undo, enabled = depth > 0) {
-        Text(if (depth > 0) "Undo ($depth)" else "Undo")
-    }
+    TertiaryButton(if (depth > 0) pluralStringResource(R.plurals.app_undo_steps, depth, depth) else stringResource(R.string.app_undo), vm::undo, enabled = depth > 0)
 }
 
 /**
@@ -219,26 +255,29 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBar(screen: Screen, data: AppData, vm: PacerViewModel, undoDepth: Int?) {
+    val context = LocalContext.current
+    val segment = rememberSegmentHaptic()
     var groups by remember { mutableStateOf(false) }
     val plan = data.plan
     val switchable = screen is Screen.Group && plan != null && plan.groups.size > 1
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         navigationIcon = {
-            TextButton(onClick = { vm.back() }, modifier = Modifier.semantics { contentDescription = "Back" }) {
-                Text("←", style = MaterialTheme.typography.titleLarge)
-            }
+            PillIconButton(stringResource(R.string.app_back), { vm.back() }) { AppIcon(AppIcons.Back) }
         },
         title = {
             Box {
                 val heading = @Composable {
                     Column {
-                        Text(screen.context(data), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(
-                            screen.title(data) + if (switchable) " ▾" else "",
+                        Text(screen.context(data, context), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                          Text(
+                            screen.title(data, context),
                             style = MaterialTheme.typography.titleLarge,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground,
-                        )
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f, fill = false),
+                          )
+                          if (switchable) AppIcon(AppIcons.ExpandMore)
+                        }
                     }
                 }
                 if (switchable) TextButton(onClick = { groups = true }) { heading() } else heading()
@@ -248,11 +287,12 @@ private fun ScreenBar(screen: Screen, data: AppData, vm: PacerViewModel, undoDep
                         DropdownMenuItem(
                             text = {
                                 Row {
-                                    Text(g.name.ifBlank { "Group" }, fontWeight = if (screen == Screen.Group(g.id)) FontWeight.SemiBold else FontWeight.Normal)
-                                    Text("  $count", fontFamily = Mono, color = Pacer.colors.muted)
+                                    Text(g.name.ifBlank { context.getString(R.string.app_group) }, fontWeight = if (screen == Screen.Group(g.id)) FontWeight.SemiBold else FontWeight.Normal)
+                                    val description = pluralStringResource(R.plurals.app_lessons_left, count, count)
+                                    AnimatedFigure(count.toString(), Modifier.padding(start = Space.s).semantics { contentDescription = description }, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
                                 }
                             },
-                            onClick = { groups = false; vm.open(Screen.Group(g.id)) },
+                            onClick = { groups = false; segment(); vm.open(Screen.Group(g.id)) },
                         )
                     }
                 }
@@ -264,7 +304,31 @@ private fun ScreenBar(screen: Screen, data: AppData, vm: PacerViewModel, undoDep
 
 private fun copy(context: Context, text: String) {
     val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    cm.setPrimaryClip(ClipData.newPlainText("Schedule", text))
+    cm.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.app_schedule), text))
+}
+
+/** The Undo time limit is also expressed by the action; this optional visual never delays or controls Undo. */
+@Composable
+private fun UndoSnackbar(data: SnackbarData, undo: Boolean, durationMillis: Long) {
+    val enabled = animationsEnabled()
+    val progress = remember(data) { Animatable(1f) }
+    val started = remember(data) { android.os.SystemClock.elapsedRealtime() }
+    LaunchedEffect(data, enabled, undo, durationMillis) {
+        val remaining = (durationMillis - (android.os.SystemClock.elapsedRealtime() - started)).coerceAtLeast(0)
+        progress.snapTo(if (enabled && undo) remaining.toFloat() / durationMillis else 0f)
+        if (enabled && undo && remaining > 0) progress.animateTo(0f, tween(remaining.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(), easing = LinearEasing))
+    }
+    Snackbar(modifier = Modifier.padding(Space.m), action = {
+        data.visuals.actionLabel?.let { label ->
+            TextButton(onClick = data::performAction, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.inversePrimary)) { Text(label) }
+        }
+    }) {
+        Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            Text(data.visuals.message)
+            if (undo) LinearProgressIndicator(progress = { progress.value }, modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.inverseOnSurface, trackColor = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = .24f))
+        }
+    }
 }
 
 private fun share(context: Context, title: String, text: String) {
