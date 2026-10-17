@@ -15,7 +15,7 @@ import org.junit.Test
 
 class NavTest {
     private val home = listOf(Screen.Home)
-    private val classStack = listOf(Screen.Home, Screen.Year, Screen.Classes, Screen.Class)
+    private val classStack = listOf(Screen.Home, Screen.Classes, Screen.Class)
 
     @Test fun savedViewMapsToStack() {
         assertEquals(home, Nav.fromView(AppData.VIEW_SETUP))
@@ -26,15 +26,17 @@ class NavTest {
     @Test fun stackMapsToSavedView() {
         assertEquals(AppData.VIEW_SETUP, Nav.viewOf(home))
         assertEquals(AppData.VIEW_SETUP, Nav.viewOf(classStack))
-        assertEquals("ga", Nav.viewOf(listOf(Screen.Home, Screen.Year, Screen.Overview, Screen.Group("ga"))))
+        assertEquals("ga", Nav.viewOf(listOf(Screen.Home, Screen.Overview, Screen.Group("ga"))))
         // The round trip keeps an open group.
         assertEquals("ga", Nav.viewOf(Nav.fromView("ga")))
     }
 
     @Test fun pushAndPop() {
-        val year = Nav.push(home, Screen.Year)
-        assertEquals(listOf(Screen.Home, Screen.Year), year)
-        assertEquals(year, Nav.push(year, Screen.Year))
+        // Home's tiles open the year's screens straight from Home.
+        val year = Nav.push(home, Screen.Overview)
+        assertEquals(listOf(Screen.Home, Screen.Overview), year)
+        assertEquals(year, Nav.push(year, Screen.Overview))
+        assertEquals(listOf(Screen.Home, Screen.YearSettings), Nav.push(home, Screen.YearSettings))
         assertEquals(home, Nav.pop(year))
         assertEquals(home, Nav.pop(home))
         assertEquals(home, Nav.push(classStack, Screen.Home))
@@ -59,7 +61,7 @@ class NavTest {
         assertEquals(classStack, Nav.prune(stack, hasYear = true, hasClass = true, groupIds = setOf("ga")))
         assertEquals(stack, Nav.prune(stack, hasYear = true, hasClass = true, groupIds = setOf("gone")))
         // A deleted class closes back to Classes; a deleted year closes back to Home.
-        assertEquals(listOf(Screen.Home, Screen.Year, Screen.Classes), Nav.prune(stack, true, false, setOf("gone")))
+        assertEquals(listOf(Screen.Home, Screen.Classes), Nav.prune(stack, true, false, setOf("gone")))
         assertEquals(home, Nav.prune(stack, false, false, emptySet()))
         assertEquals(listOf(Screen.Home, Screen.Settings), Nav.prune(listOf(Screen.Settings), false, false, emptySet()))
         assertEquals(home, Nav.prune(emptyList(), false, false, emptySet()))
@@ -67,8 +69,8 @@ class NavTest {
 
     @Test fun switchingClassOrYearClosesItsScreens() {
         val tests = classStack + Screen.Tests
-        assertEquals(listOf(Screen.Home, Screen.Year, Screen.Classes), Nav.afterClassSwitch(tests))
-        assertEquals(listOf(Screen.Home, Screen.Year, Screen.Overview), Nav.afterClassSwitch(listOf(Screen.Home, Screen.Year, Screen.Overview, Screen.Group("g"))))
+        assertEquals(listOf(Screen.Home, Screen.Classes), Nav.afterClassSwitch(tests))
+        assertEquals(listOf(Screen.Home, Screen.Overview), Nav.afterClassSwitch(listOf(Screen.Home, Screen.Overview, Screen.Group("g"))))
         assertEquals(home, Nav.afterYearSwitch(tests))
     }
 
