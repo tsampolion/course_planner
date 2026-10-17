@@ -2,7 +2,9 @@
 
 [![Android](https://github.com/tsampolion/course_planner/actions/workflows/android.yml/badge.svg)](https://github.com/tsampolion/course_planner/actions/workflows/android.yml)
 
-A native Android version of the Coursebook Pacer web page, for teachers who have to get through one or more coursebooks by the end of term. For each group, it counts the lessons left, removes pages that are skipped or already set for homework, and splits the rest so every book lands on the final lesson.
+Course Pacer is part of the **EduSuite** apps, with [Course Invoicer](https://github.com/tsampolion/EduInvoiceApp). Both share one look, set out in [docs/EDUSUITE_STYLE_GUIDE.md](docs/EDUSUITE_STYLE_GUIDE.md); each has its own accent colour, teal for Course Pacer.
+
+It started as a native Android version of the Coursebook Pacer web page, for teachers who have to get through one or more coursebooks by the end of term. For each group, it counts the lessons left, removes pages that are skipped or already set for homework, and splits the rest so every book lands on the final lesson.
 
 The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHANGELOG.md](CHANGELOG.md), and features specified for later are in [docs/PLANNED_FEATURES.md](docs/PLANNED_FEATURES.md).
 
@@ -26,6 +28,17 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 - **Back up and restore** (in Settings): Export saves every school year to a file of your choice (Downloads, Google Drive and so on). Import reads that file, or the Coursebook Pacer web page's export, and asks whether to add its years beside yours or replace them; either can be undone.
 
 School years and settings are saved on the device and included in Android backup and device-to-device transfer. Uninstalling deletes them, so export first.
+
+### Moving your data to 2.0.0
+
+Since 2.0.0 the app's id is `gr.edusuite.pacer` (it was `com.coursebook.pacer`), so it installs beside the old Course Pacer instead of over it, and starts empty. To move your school years:
+
+1. In the old Course Pacer, open Settings → **Export…** and save the file.
+2. Install Course Pacer 2.0.0 or later.
+3. In the new app, open Settings → **Import…**, pick that file and choose **Add**.
+4. Check your years are there, then uninstall the old Course Pacer.
+
+Settings (theme and the defaults for new classes) aren't in the export, so set them again.
 
 ## Tech stack
 
@@ -60,7 +73,7 @@ cd course_planner
 
 To build in Android Studio, open the project folder and run the `app` configuration.
 
-A local `assembleRelease` is signed with your debug key, so you can install it directly. Releases from CI are signed with the permanent release key instead (see below), so a local build can't install over a release, and a release can't install over it. `installDebug` installs a separate app, "Course Pacer (debug)" (`com.coursebook.pacer.debug`), with its own data, so it never touches the installed release.
+A local `assembleRelease` is signed with your debug key, so you can install it directly. Releases from CI are signed with the permanent release key instead (see below), so a local build can't install over a release, and a release can't install over it. `installDebug` installs a separate app, "Course Pacer (debug)" (`gr.edusuite.pacer.debug`), with its own data, so it never touches the installed release.
 
 To sign a local build with the release key (owner only), set the keystore path and password first, without putting the password in the shell history:
 
@@ -72,7 +85,7 @@ unset SIGNING_PASSWORD SIGNING_KEYSTORE
 
 ## Continuous integration
 
-[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, every pull request and on manual dispatch. It sets up JDK 17, runs `testDebugUnitTest`, builds `assembleRelease`, checks the APK's signing certificate, writes the certificate and the APK size to the job summary, and uploads the APK as the `coursebook-pacer-apk` artifact.
+[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, every pull request and on manual dispatch. It sets up JDK 17, runs `testDebugUnitTest`, builds `assembleRelease`, checks the APK's signing certificate, writes the certificate and the APK size to the job summary, and uploads the APK as the `course-pacer-apk` artifact.
 
 Release signing uses two secrets in the `release` environment (Settings → Environments → `release`, limited to the `main` branch) and one repository variable (Settings → Secrets and variables → Actions). The brief is [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
 
@@ -95,7 +108,7 @@ When that workflow passes on `main`, [`.github/workflows/release.yml`](.github/w
 │   ├── build.gradle.kts              # SDK levels, R8, signing, dependencies
 │   ├── proguard-rules.pro            # empty on purpose: R8 defaults are enough
 │   └── src/
-│       ├── main/java/com/coursebook/pacer/
+│       ├── main/java/gr/edusuite/pacer/
 │       │   ├── MainActivity.kt       # hosts Compose, flushes saves in onStop
 │       │   ├── PacerApplication.kt   # composition root: creates the PlanStore and SettingsStore
 │       │   ├── model/                # SchoolYear, SchoolClass, Group, Book, Closure, Homework, TestEvent, Plan, Settings; ids and new-year defaults

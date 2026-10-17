@@ -8,7 +8,7 @@ Read `CLAUDE.md` and `docs/BRIEF.md` first; their rules are binding. Before this
 
 ## What to build
 
-1. **Rename.** The user-visible name becomes "Course Pacer" (`app_name`, Home, the logo's description, About, the release title, README, BRIEF, CLAUDE.md). Keep the package and `applicationId` `com.coursebook.pacer`; changing them would install a second app and strand saved plans.
+1. **Rename.** The user-visible name becomes "Course Pacer" (`app_name`, Home, the logo's description, About, the release title, README, BRIEF, CLAUDE.md). Keep the package and `applicationId` `com.coursebook.pacer`; changing them would install a second app and strand saved plans. (2.0.0 did change them, to `gr.edusuite.pacer`, when the app joined EduSuite; teachers move their data by export and import.)
 2. **Data model.**
    - `SchoolYear { id, name, start, end, closures, classes }`: the calendar every class shares.
    - `SchoolClass { id, name, mins, pace, groups, books, homework, events }`: what a plan was, minus the term and days off. Lesson length and pace are **per class**.

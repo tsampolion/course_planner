@@ -22,6 +22,26 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-17
+
+Course Pacer joins the **EduSuite** apps, with Course Invoicer. This release changes the app's id, so it installs as a new app beside the old one: move your school years over with Export and Import (below). The schedules, the saved file's format and the rest of the app are unchanged; the new EduSuite look follows in the next releases.
+
+### Changed
+
+- **New app id**, `gr.edusuite.pacer` (it was `com.coursebook.pacer`). Android treats it as a different app, so 2.0.0 installs beside the old Course Pacer instead of over it, and starts empty. To move your data:
+  1. In the old Course Pacer, open Settings → Export… and save the file.
+  2. Install this version.
+  3. Open Settings → Import…, pick that file and choose Add. The welcome guide shows first, because the new app has no school years yet.
+  4. Once your years are there, uninstall the old Course Pacer.
+
+  The theme and the defaults for new classes aren't in the export, so set them again in Settings. The debug build is now `gr.edusuite.pacer.debug`. The release signing key is the same.
+- **New launcher icon**, the EduSuite open book: Course Invoicer's pages with three pacing lines cut out of the right page, on a teal tile in both light and dark mode. Android 13 and later can tint it to the wallpaper with themed icons, and launchers that ask for a round icon get one. The logo on Home uses the same tile.
+- The release download is now `course-pacer-X.Y.Z.apk`, and the CI artifact is `course-pacer-apk`. The CI summary also shows the APK's package name and version.
+
+### Added
+
+- **EduSuite style guide** (`docs/EDUSUITE_STYLE_GUIDE.md`), a copy of the canonical guide shared with Course Invoicer, and Course Pacer's accent contrast ratios (`docs/PACER_ACCENT_CONTRAST.md`). The README links Course Invoicer.
+
 ## [1.8.0] - 2026-10-16
 
 A new look: the app now uses EduInvoiceApp's colours, so the two apps look alike. Plans, schedules and settings are unchanged.
@@ -278,7 +298,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/tsampolion/course_planner/compare/v1.8.0...v2.0.0
 [1.8.0]: https://github.com/tsampolion/course_planner/compare/v1.7.3...v1.8.0
 [1.7.3]: https://github.com/tsampolion/course_planner/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/tsampolion/course_planner/compare/v1.7.1...v1.7.2

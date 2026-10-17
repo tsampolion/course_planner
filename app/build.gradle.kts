@@ -5,16 +5,16 @@ plugins {
 }
 
 android {
-    namespace = "com.coursebook.pacer"
+    namespace = "gr.edusuite.pacer"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.coursebook.pacer"
+        applicationId = "gr.edusuite.pacer"
         // 26 gives java.time without core-library desugaring and adaptive icons without PNG fallbacks.
         minSdk = 26
         targetSdk = 35
-        versionCode = 19
-        versionName = "1.8.0"
+        versionCode = 20
+        versionName = "2.0.0"
     }
 
     androidResources {
