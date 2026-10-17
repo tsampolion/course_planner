@@ -1,6 +1,7 @@
 package gr.edusuite.pacer.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -47,9 +48,6 @@ import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
-/** What deleting a year takes with it, wherever it is deleted from. */
-const val YEAR_DELETE_DETAIL = "Its classes, groups, books and days off go too. You can undo it on the home screen."
-
 /**
  * Who a day off can apply to: everyone, a whole class, or one group. With a single class
  * the class level is left out, since it would mean the same as everyone.
@@ -80,7 +78,6 @@ private fun whoTag(year: SchoolYear, who: String): String? {
 @Composable
 fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
-    var deleting by rememberSaveable { mutableStateOf(false) }
     val problems = remember(year) { Nav.problems(year).filter { it.fix == Screen.YearSettings } }
 
     ScreenList(padding) {
@@ -94,14 +91,21 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
                 }
                 Hint("Every class paces up to the end date. Each group tracks its own next lesson on its class; the start is only the default.")
                 // Up here, not below a long list of days off, so it is easy to find.
-                OutlinedButton(onClick = { deleting = true }) { Text("Delete this school year", color = Pacer.colors.warn) }
+                // Its classes, groups, books and days off go too; onDeleted offers Undo on the home screen.
+                OutlinedButton(onClick = {
+                    val name = year.name.ifBlank { "School year" }
+                    vm.deleteYear(year.id)
+                    onDeleted(name)
+                }) { Text("Delete this school year", color = Pacer.colors.warn) }
             }
         }
         item(key = "offhead") { Heading("Days off") }
         if (year.closures.isEmpty()) item(key = "empty") { Hint("No days off yet.") }
         items(year.closures.sortedBy { it.from }, key = { it.id }) { c ->
             val detail = if (c.to == c.from) "${c.from.fmt()} · ${c.from.dayOfWeek.short()}" else "${c.from.fmt()} – ${c.to.fmt()}"
-            ListItemRow(c.label, detail, whoTag(year, c.who)) { vm.removeClosure(c.id) }
+            val title = c.label.ifBlank { "Day off" }
+            val remove = { vm.removeClosure(c.id); undoToast("Removed “$title”") }
+            SwipeRow(title, remove) { ListItemRow(c.label, detail, whoTag(year, c.who), onRemove = remove) }
         }
         item(key = "add") { AddButton("Add a day off") { adding = true } }
         item(key = "greek") {
@@ -118,24 +122,28 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
         }
     }
 
-    if (adding) AddClosureDialog(year, vm) { adding = false }
-    if (deleting) {
-        val name = year.name.ifBlank { "School year" }
-        ConfirmDelete(name, YEAR_DELETE_DETAIL, { vm.deleteYear(year.id); onDeleted(name) }) { deleting = false }
-    }
+    if (adding) AddClosureSheet(year, vm) { adding = false }
 }
 
+/** Reason and From up front; the end date and who it applies to sit behind More options (§14 Progressive disclosure). */
 @Composable
-private fun AddClosureDialog(year: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
+private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
     var label by rememberSaveable { mutableStateOf("") }
     var from by remember { mutableStateOf<LocalDate?>(null) }
     var to by remember { mutableStateOf<LocalDate?>(null) }
     var who by rememberSaveable { mutableStateOf(ALL_GROUPS) }
-    AddDialogFrame("Add a day off", from != null, { vm.addClosure(label.trim(), from!!, to, who) }, onDismiss) {
-        CommitField(label, { label = it }, "Reason", placeholder = "Christmas break")
-        DateField(from, { from = it }, "From")
-        DateField(to, { to = it }, "To (optional)", clearable = true)
-        Picker("Applies to", whoOptions(year), who, { who = it })
+    var more by rememberSaveable { mutableStateOf(false) }
+    SheetFrame("Add a day off", "Add", from != null, { vm.addClosure(label.trim(), from!!, to, who) }, onDismiss) {
+        CommitField(label, { label = it }, "Reason", Modifier.fillMaxWidth(), placeholder = "Christmas break")
+        DateField(from, { from = it }, "From", Modifier.fillMaxWidth())
+        Column(Modifier.fillMaxWidth().animateContentSize(), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+            if (more) {
+                DateField(to, { to = it }, "To (optional)", Modifier.fillMaxWidth(), clearable = true)
+                Picker("Applies to", whoOptions(year), who, { who = it }, Modifier.fillMaxWidth())
+            } else {
+                TertiaryButton("More options", { more = true })
+            }
+        }
     }
 }
 
@@ -168,8 +176,8 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
 
     if (adding) {
         var name by rememberSaveable { mutableStateOf("") }
-        AddDialogFrame("New class", true, { vm.newClass(name.trim()) }, { adding = false }, confirm = "Create") {
-            CommitField(name, { name = it }, "Name", placeholder = "B1 Senior")
+        SheetFrame("New class", "Add", true, { vm.newClass(name.trim()) }, { adding = false }) {
+            CommitField(name, { name = it }, "Name", Modifier.fillMaxWidth(), placeholder = "B1 Senior")
         }
     }
 }

@@ -178,6 +178,7 @@ private fun ScreenContent(
             // Only for a first launch: someone who deletes every year later doesn't need it again.
             welcome = canWelcome && !settings.welcomeSeen && data.years.isEmpty(),
             onDeleted = { undoToast("Deleted “$it”") },
+            undoToast = undoToast,
         )
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
         Screen.YearSettings -> YearSettingsScreen(year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast("Deleted “$it”") })
