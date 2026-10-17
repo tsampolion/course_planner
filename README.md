@@ -49,6 +49,7 @@ Settings (theme and the defaults for new classes) aren't in the export, so set t
 | Build | Gradle 8.14.3 (wrapper), Android Gradle Plugin 8.10.1, Kotlin DSL, version catalog in `gradle/libs.versions.toml` |
 | SDK | `minSdk 26`, `targetSdk 35`, `compileSdk 35` |
 | Libraries | `activity-compose`, `lifecycle-viewmodel-ktx`, and JUnit 4 for tests. Nothing else. |
+| Font | [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL Open Font License 1.1, [`third_party/outfit/OFL.txt`](third_party/outfit/OFL.txt)), bundled as one variable font |
 
 ## Getting started
 
