@@ -8,11 +8,9 @@ import gr.edusuite.pacer.model.SchoolYear
 
 /** Every destination in the app. Plain Kotlin, so the back stack rules are unit-testable. */
 sealed interface Screen {
-    /** The logo, the school-year picker and Settings. */
+    /** The open school year's dashboard: the next lesson, a tile for each part of the year, and the year picker. */
     data object Home : Screen
     data object Settings : Screen
-    /** The open year: Classes, School year settings, Overview and Print. */
-    data object Year : Screen
     /** Term dates, days off, and renaming or deleting the year. */
     data object YearSettings : Screen
     /** Every group in every class of the year, and the year's problems. */
@@ -45,10 +43,10 @@ data class Problem(val text: String, val fix: Screen?, val classId: String? = nu
 object Nav {
     val root: List<Screen> = listOf(Screen.Home)
 
-    /** The stack to start with for a saved [AppData.view]. A group reopens under its class, as if opened from Classes. */
+    /** The stack to start with for a saved [AppData.view]. A group reopens under its class, as if opened from Home's Classes tile. */
     fun fromView(view: String): List<Screen> =
         if (view == AppData.VIEW_SETUP || view.isBlank()) root
-        else listOf(Screen.Home, Screen.Year, Screen.Classes, Screen.Class, Screen.Group(view))
+        else listOf(Screen.Home, Screen.Classes, Screen.Class, Screen.Group(view))
 
     /** What to save in [AppData.view] for this stack. */
     fun viewOf(stack: List<Screen>): String =

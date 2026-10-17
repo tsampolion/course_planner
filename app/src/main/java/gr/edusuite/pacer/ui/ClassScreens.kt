@@ -61,7 +61,7 @@ private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: Pa
 
 /** The open class: its name, lesson length and pace, books and groups, with tests and homework a tap away. */
 @Composable
-fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
+fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
     var addingBook by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
     var resetting by rememberSaveable { mutableStateOf(false) }
@@ -200,7 +200,7 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
 }
 
 @Composable
-fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
+fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
     // Lessons marked done are still lesson days.
     val lessonDays = remember(plan) { plan.groups.associate { g -> g.id to (plan.lessonsFor(g) + g.done.map { it.date }).toHashSet() } }
@@ -259,7 +259,7 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
 }
 
 @Composable
-fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
+fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
     EditList(plan, Screen.Homework, vm, padding) {
         item(key = "hint") {

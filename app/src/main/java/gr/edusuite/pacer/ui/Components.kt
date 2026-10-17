@@ -1,6 +1,19 @@
 package gr.edusuite.pacer.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -511,4 +524,71 @@ fun Confirm(title: String, detail: String, action: String, onConfirm: () -> Unit
         confirmButton = { TextButton(onClick = { onConfirm(); onDismiss() }) { Text(action, color = Pacer.colors.warn) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
+}
+
+/**
+ * A bottom sheet for a short edit (§6 Bottom sheet, §14 Act in place): a title, the fields, and the primary pill action
+ * at the bottom, which stays off until [enabled]. Used for adds and renames of three fields or fewer.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SheetFrame(
+    title: String,
+    primary: String,
+    enabled: Boolean,
+    onPrimary: () -> Unit,
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = state,
+        shape = MaterialTheme.shapes.extraLarge.let { if (it is RoundedCornerShape) it.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)) else it },
+        containerColor = Pacer.colors.surface,
+        tonalElevation = 0.dp,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding()
+                .padding(start = Space.l, end = Space.l, bottom = Space.xl),
+            verticalArrangement = Arrangement.spacedBy(Space.m),
+        ) {
+            Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+            content()
+            PrimaryButton(primary, { onPrimary(); onDismiss() }, Modifier.fillMaxWidth(), enabled = enabled)
+        }
+    }
+}
+
+/**
+ * A list row that can be swiped away (§14 Act in place): swiping from the end reveals Remove behind it. The same
+ * action is in the row's long-press menu and in TalkBack's custom actions (§7), so nobody has to swipe.
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun SwipeRow(what: String, onRemove: () -> Unit, content: @Composable () -> Unit) {
+    val state = rememberSwipeToDismissBoxState(confirmValueChange = { v ->
+        if (v == SwipeToDismissBoxValue.EndToStart) onRemove()
+        // The row leaves with the data; the box itself never stays dismissed.
+        false
+    })
+    var menu by remember { mutableStateOf(false) }
+    SwipeToDismissBox(
+        state = state,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(Pacer.colors.warnSoft).padding(horizontal = Space.l),
+                contentAlignment = Alignment.CenterEnd,
+            ) { Text("Remove", style = MaterialTheme.typography.labelLarge, color = Pacer.colors.onWarnSoft) }
+        },
+        modifier = Modifier.semantics { customActions = listOf(CustomAccessibilityAction("Remove $what") { onRemove(); true }) },
+    ) {
+        Box(Modifier.combinedClickable(onClick = {}, onLongClick = { menu = true }, onLongClickLabel = "Options")) {
+            content()
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(text = { Text("Remove") }, onClick = { menu = false; onRemove() })
+            }
+        }
+    }
 }

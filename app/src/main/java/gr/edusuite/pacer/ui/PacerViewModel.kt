@@ -58,7 +58,7 @@ private data class Snapshot(val years: List<SchoolYear>, val activeYear: String,
  */
 class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore) : ViewModel() {
     private val loaded = store.load()
-    private val _state = MutableStateFlow(loaded.data.let { d -> stateFor(d, Nav.fromView(d.view), 0) })
+    private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.fromView(d.view), 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     /** Where an unreadable plans file was moved at launch, until the teacher closes the notice about it. */
@@ -113,8 +113,16 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     private fun editBook(id: String, tag: String? = null, change: (Book) -> Book) =
         editClass(tag) { c -> c.copy(books = c.books.map { if (it.id == id) change(it) else it }) }
 
+    /**
+     * Home always shows a year when there is one: with none open (a fresh import, the open year deleted), the one that
+     * starts last opens ([defaultYearId]).
+     */
+    private fun withDefaultYear(d: AppData): AppData =
+        if (d.year != null || d.years.isEmpty()) d else d.copy(activeYear = defaultYearId(d.years).orEmpty(), activeClass = "")
+
     /** Opening another year or class, by hand or through undo, closes the screens that showed the old one. */
-    private fun publish(next: AppData, stack: List<Screen> = _state.value.stack) {
+    private fun publish(proposed: AppData, stack: List<Screen> = _state.value.stack) {
+        val next = withDefaultYear(proposed)
         val s = when {
             next.activeYear != data.activeYear -> Nav.afterYearSwitch(stack)
             next.activeClass != data.activeClass -> Nav.afterClassSwitch(stack)
@@ -157,7 +165,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         historyStep++
         val d = data
         val year = snap.years.firstOrNull { it.id == d.activeYear }
-        val keep = year != null && (d.activeClass.isEmpty() || year.classes.any { it.id == d.activeClass })
+        // Undoing a delete of the open year opens it again, rather than staying on the year Home fell back to.
+        val reopens = d.years.none { it.id == snap.activeYear } && snap.years.any { it.id == snap.activeYear }
+        val keep = !reopens && year != null && (d.activeClass.isEmpty() || year.classes.any { it.id == d.activeClass })
         publish(
             if (keep) d.copy(years = snap.years)
             else d.copy(years = snap.years, activeYear = snap.activeYear, activeClass = snap.activeClass),
@@ -193,13 +203,11 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         return true
     }
 
-    /** Opens a school year from Home. Another year's edits can no longer be undone from here. */
-    fun openYear(id: String) {
-        if (id != data.activeYear) {
-            clearHistory()
-            publish(data.copy(activeYear = id, activeClass = ""), Nav.root)
-        }
-        open(Screen.Year)
+    /** Shows another school year on Home. Another year's edits can no longer be undone from here. */
+    fun selectYear(id: String) {
+        if (id == data.activeYear || data.years.none { it.id == id }) return
+        clearHistory()
+        publish(data.copy(activeYear = id, activeClass = ""), Nav.root)
     }
 
     fun openClass(id: String) {
@@ -207,10 +215,16 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         open(Screen.Class)
     }
 
-    /** Opens a group of any class in the open year, from Overview. */
+    /** Opens a group of any class in the open year, from Overview or Home. */
     fun openGroup(classId: String, groupId: String) {
         if (classId != data.activeClass) publish(data.copy(activeClass = classId))
         open(Screen.Group(groupId))
+    }
+
+    /** Opens a class's [Screen.Tests] or [Screen.Homework] from Home, over that class. */
+    fun openClassScreen(classId: String, screen: Screen) {
+        openClass(classId)
+        open(screen)
     }
 
     // ---- settings (not undoable, saved at once) ----------------------------
@@ -230,7 +244,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     // ---- school years ------------------------------------------------------
 
-    /** Creates a year with no classes and opens it. With [holidays], the Greek public holidays it touches come as days off. */
+    /** Creates a year with no classes and shows it on Home. With [holidays], the Greek public holidays it touches come as days off. */
     fun newYear(name: String, start: LocalDate?, end: LocalDate?, holidays: Boolean) {
         val days = if (holidays && start != null && end != null) {
             greekHolidays(start, end).map { (d, l) -> Closure(newId(), l, d, d, ALL_GROUPS) }
@@ -240,7 +254,6 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         val y = SchoolYear(newId(), name.ifBlank { "School year" }, start, end, days, emptyList())
         clearHistory()
         edit { it.copy(years = it.years + y, activeYear = y.id, activeClass = "") }
-        open(Screen.Year)
     }
 
     /** Renames any year, from Home or from its settings. */
@@ -249,8 +262,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     }
 
     /**
-     * Deletes any year, from Home or from its settings. Deleting the open year returns to Home.
-     * Home's snackbar offers undo once.
+     * Deletes any year, from Home or from its settings. Deleting the open year returns to Home, which shows the year
+     * that starts last; Home's snackbar offers undo, which opens the deleted year again.
      */
     fun deleteYear(id: String) = edit { d ->
         val open = d.activeYear == id
@@ -396,6 +409,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun markNextLessonDone(groupId: String) = editLessons(groupId) { r, g ->
         r.rows.firstOrNull()?.let { r.markDone(setOf(it.date)) } ?: g
     }
+
+    /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */
+    fun markNextLessonDoneIn(classId: String, groupId: String) = editYear { it.markNextLessonDone(classId, groupId) }
 
     // ---- tests -------------------------------------------------------------
 

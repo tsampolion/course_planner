@@ -104,7 +104,7 @@ fun HomeScreen(data: AppData, vm: PacerViewModel, padding: PaddingValues, welcom
                         )
                     }
                     years.forEach { y ->
-                        YearRow(y, onOpen = { vm.openYear(y.id) }, onRename = { renaming = y.id }, onDelete = { deleting = y.id })
+                        YearRow(y, onOpen = { vm.selectYear(y.id) }, onRename = { renaming = y.id }, onDelete = { deleting = y.id })
                     }
                     AddButton("New school year") { adding = true }
                 }
