@@ -10,9 +10,8 @@ The full brief is in [docs/BRIEF.md](docs/BRIEF.md). Release history is in [CHAN
 
 ## Features
 
-- **Home**: the logo, a picker for the school year, and Settings. Tap a year to open it, or add a new one (its name and dates are suggested, and the Greek public holidays can come as days off). Each year's ⋮ button (or a long-press) renames or deletes it.
-- **School year**: buttons for Classes, School year settings, Overview, and Print or save PDF, each with a one-line summary. They stack in portrait and sit in one row in landscape.
-- **School year settings**: the year's name, start and end dates, and a Delete button (it asks first, and Home offers undo); then days off for every class, one class or one group. One tap adds the Greek public holidays, which are worked out from Orthodox Easter.
+- **Home**: the open school year at a glance. A greeting with today's date and Settings at the top; a chip to switch, add, rename or delete school years; the **next lesson** across every class and group, with its pages and a **Mark done** button; and tiles for Classes, Overview, Tests, Homework, Days off & dates, and Print or save PDF, each with a live figure. A section with nothing in it yet shows its tile faded, and the tile still opens it.
+- **School year settings**: the year's name, start and end dates, and a Delete button (it deletes at once, and Home offers undo); then days off for every class, one class or one group. One tap adds the Greek public holidays, which are worked out from Orthodox Easter.
 - **Classes**: a class is a set of books taught to one or more groups. Add, open, rename or delete classes.
 - **Class**: lesson length and the pace in pages per lesson you can sustain; books (first and last page, skipped pages such as `8, 24-27`, and an optional finish-by date that re-paces only that book); groups (name, teaching weekdays, next-lesson date, and a reset for every group's position); and links to tests and homework.
 - **Tests and worksheets**: a test can take the whole lesson, which moves the pages forward, or run alongside it. The app warns when a test date isn't a lesson day.

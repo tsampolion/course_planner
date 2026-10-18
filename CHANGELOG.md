@@ -22,6 +22,20 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-17
+
+The EduSuite look, part two: a new Home that shows the open school year at a glance, and deletes that happen at once with Undo instead of asking first. Plans and schedules are unchanged.
+
+### Changed
+
+- **Home is the open school year's dashboard.** At the top: "Hello", today's date and Settings. Under it, a chip with the year's name: tap it to switch to another year, add one, or rename or delete one.
+- **Next lesson on Home.** A teal tile shows the next lesson across every class and group: its date, class and group, and the pages for each book (or the test that takes it), marked "Overdue" when its date has passed. **Mark done** ticks it there and then, with Undo, by the same rule as ticking it in the schedule. Tapping the tile opens that group.
+- **Tiles for the rest of the year:** Classes, Overview, Tests, Homework, Days off & dates, and Print or save PDF, each with a live figure ("3 classes · 7 groups", "Next: Mon 19 Oct · Unit 1 test", "2 problems"). A section with nothing in it yet shows its tile faded, and it still opens. At very large text sizes or on narrow screens the tiles stack in one column. The school year screen they replace is gone.
+- **Home always shows a year when there is one**: after an import, or when the open year is deleted, it shows the one that starts last. Undoing the delete opens the deleted year again.
+- **Deletes happen at once with Undo.** Deleting a school year, a class, a group or a book, and resetting every group's positions, no longer ask first: a message offers Undo for 5 seconds (longer if the phone's accessibility settings ask for more time). Import's Replace all still asks first.
+- **Swipe to remove.** Days off, tests and homework rows can be swiped away (from the right), with Undo. A long press and TalkBack's actions offer the same, and the × stays.
+- **Short adds open from the bottom of the screen**: a new class, a book, and a day off, whose To date and "Applies to" sit under More options.
+
 ## [2.1.0] - 2026-10-17
 
 The EduSuite look, part one: Course Pacer's colours, type and shapes now follow the EduSuite style guide, the same base as Course Invoicer's, with teal as Course Pacer's own colour. The screens keep their layout; Home and the other screens are redesigned in the next releases. Plans and schedules are unchanged.
@@ -314,7 +328,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/tsampolion/course_planner/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/tsampolion/course_planner/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/tsampolion/course_planner/compare/v1.8.0...v2.0.0
 [1.8.0]: https://github.com/tsampolion/course_planner/compare/v1.7.3...v1.8.0

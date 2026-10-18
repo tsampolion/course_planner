@@ -1,6 +1,7 @@
 package gr.edusuite.pacer.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -47,123 +48,6 @@ import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
-/** What deleting a year takes with it, wherever it is deleted from. */
-const val YEAR_DELETE_DETAIL = "Its classes, groups, books and days off go too. You can undo it on the home screen."
-
-/** One tile on the year screen: where it goes, a one-line summary of what is there, and its tile colour. */
-private data class YearTile(val title: String, val detail: String, val color: Color, val warn: Boolean = false, val onClick: () -> Unit)
-
-/**
- * The open school year: a button for each part of it. In portrait the buttons stack, full width,
- * so they stay readable on small phones; in landscape they sit in one row.
- */
-@Composable
-fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
-    var printing by rememberSaveable { mutableStateOf(false) }
-    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val problems = remember(year) { Nav.problems(year).size }
-    val groups = year.classes.sumOf { it.groups.size }
-    val c = Pacer.colors
-    // At most three tile hues side by side (style guide §2.2); Print sits on the neutral container.
-    val tiles = listOf(
-        YearTile("Classes", count(year.classes.size, "class", "classes"), c.tileSky) { vm.open(Screen.Classes) },
-        YearTile("School year settings", "${year.dates()} · ${count(year.closures.size, "day off", "days off", "no days off")}", c.tileLilac) {
-            vm.open(Screen.YearSettings)
-        },
-        YearTile("Overview", if (problems > 0) count(problems, "problem") else count(groups, "group"), c.tileMint, warn = problems > 0) {
-            vm.open(Screen.Overview)
-        },
-        YearTile("Print or save PDF", "Choose classes and margins", c.surfaceContainer) { printing = true },
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.l, bottom = padding.calculateBottomPadding() + Space.xxl),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        if (year.classes.isEmpty()) {
-            GuideCard(
-                "Add your first class",
-                "A class is a set of books taught to one or more groups, like B1 Senior. " +
-                    "Check the term dates and days off in School year settings too.",
-                Modifier.widthIn(max = 480.dp).padding(bottom = Space.m),
-                action = "Open Classes" to { vm.open(Screen.Classes) },
-            )
-        }
-        // Centred and capped so tablets don't stretch the buttons.
-        if (landscape) {
-            Row(
-                Modifier.widthIn(max = 960.dp).fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(Space.s),
-            ) {
-                tiles.forEach { t -> TileButton(t, Modifier.weight(1f).fillMaxHeight()) }
-            }
-        } else {
-            Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                tiles.forEach { t -> TileButton(t, Modifier.fillMaxWidth(), minHeight = 72.dp) }
-            }
-        }
-    }
-
-    if (printing) PrintDialog(year) { printing = false }
-}
-
-/** Picks which classes to print, all by default, and the page margins. */
-@Composable
-private fun PrintDialog(year: SchoolYear, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val chosen = remember(year.id) { mutableStateListOf(*year.classes.map { it.id }.toTypedArray()) }
-    var margin by rememberSaveable { mutableStateOf(PrintMargin.NORMAL) }
-    AddDialogFrame(
-        "Print or save PDF",
-        canAdd = chosen.isNotEmpty(),
-        onAdd = { PrintSheet.print(context, year.name, year.classes.filter { it.id in chosen }.map(year::planFor), margin) },
-        onDismiss = onDismiss,
-        confirm = "Print",
-    ) {
-        Eyebrow("Classes")
-        if (year.classes.isEmpty()) Hint("No classes yet.")
-        year.classes.forEach { c ->
-            val on = c.id in chosen
-            Row(
-                Modifier.fillMaxWidth().toggleable(value = on, role = Role.Checkbox) { if (on) chosen.remove(c.id) else chosen.add(c.id) },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Checkbox(checked = on, onCheckedChange = null)
-                Text(c.name.ifBlank { "Class" }, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = Space.m, top = Space.s, bottom = Space.s))
-            }
-        }
-        Eyebrow("Margins")
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-            PrintMargin.entries.forEach { m ->
-                FilterChip(selected = margin == m, onClick = { margin = m }, label = { Text(m.label) }, shape = MaterialTheme.shapes.extraSmall)
-            }
-        }
-        Hint("${margin.label}: ${margin.mm} mm on every side. Each group starts on a new page; the system print dialog then offers paper size, orientation and Save as PDF.")
-    }
-}
-
-/** A year tile. With problems it turns into a warning block (warnSoft, rust summary) instead of its own hue. */
-@Composable
-private fun TileButton(t: YearTile, modifier: Modifier, minHeight: Dp = 96.dp) {
-    val c = Pacer.colors
-    Tile(
-        color = if (t.warn) c.warnSoft else t.color,
-        modifier = modifier.heightIn(min = minHeight),
-        onClick = t.onClick,
-        contentColor = if (t.warn) c.onWarnSoft else c.onTile,
-    ) {
-        Text(t.title, style = MaterialTheme.typography.titleMedium)
-        Text(
-            t.detail, style = MaterialTheme.typography.bodySmall,
-            color = if (t.warn) c.warn else c.onTileMuted,
-            maxLines = 3, overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
 /**
  * Who a day off can apply to: everyone, a whole class, or one group. With a single class
  * the class level is left out, since it would mean the same as everyone.
@@ -192,9 +76,8 @@ private fun whoTag(year: SchoolYear, who: String): String? {
 
 /** The year's name, term dates and deleting it at the top, then its days off. */
 @Composable
-fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, onDeleted: (String) -> Unit) {
+fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
-    var deleting by rememberSaveable { mutableStateOf(false) }
     val problems = remember(year) { Nav.problems(year).filter { it.fix == Screen.YearSettings } }
 
     ScreenList(padding) {
@@ -208,14 +91,21 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
                 }
                 Hint("Every class paces up to the end date. Each group tracks its own next lesson on its class; the start is only the default.")
                 // Up here, not below a long list of days off, so it is easy to find.
-                OutlinedButton(onClick = { deleting = true }) { Text("Delete this school year", color = Pacer.colors.warn) }
+                // Its classes, groups, books and days off go too; onDeleted offers Undo on the home screen.
+                OutlinedButton(onClick = {
+                    val name = year.name.ifBlank { "School year" }
+                    vm.deleteYear(year.id)
+                    onDeleted(name)
+                }) { Text("Delete this school year", color = Pacer.colors.warn) }
             }
         }
         item(key = "offhead") { Heading("Days off") }
         if (year.closures.isEmpty()) item(key = "empty") { Hint("No days off yet.") }
         items(year.closures.sortedBy { it.from }, key = { it.id }) { c ->
             val detail = if (c.to == c.from) "${c.from.fmt()} · ${c.from.dayOfWeek.short()}" else "${c.from.fmt()} – ${c.to.fmt()}"
-            ListItemRow(c.label, detail, whoTag(year, c.who)) { vm.removeClosure(c.id) }
+            val title = c.label.ifBlank { "Day off" }
+            val remove = { vm.removeClosure(c.id); undoToast("Removed “$title”") }
+            SwipeRow(title, remove) { ListItemRow(c.label, detail, whoTag(year, c.who), onRemove = remove) }
         }
         item(key = "add") { AddButton("Add a day off") { adding = true } }
         item(key = "greek") {
@@ -232,24 +122,28 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
         }
     }
 
-    if (adding) AddClosureDialog(year, vm) { adding = false }
-    if (deleting) {
-        val name = year.name.ifBlank { "School year" }
-        ConfirmDelete(name, YEAR_DELETE_DETAIL, { vm.deleteYear(year.id); onDeleted(name) }) { deleting = false }
-    }
+    if (adding) AddClosureSheet(year, vm) { adding = false }
 }
 
+/** Reason and From up front; the end date and who it applies to sit behind More options (§14 Progressive disclosure). */
 @Composable
-private fun AddClosureDialog(year: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
+private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
     var label by rememberSaveable { mutableStateOf("") }
     var from by remember { mutableStateOf<LocalDate?>(null) }
     var to by remember { mutableStateOf<LocalDate?>(null) }
     var who by rememberSaveable { mutableStateOf(ALL_GROUPS) }
-    AddDialogFrame("Add a day off", from != null, { vm.addClosure(label.trim(), from!!, to, who) }, onDismiss) {
-        CommitField(label, { label = it }, "Reason", placeholder = "Christmas break")
-        DateField(from, { from = it }, "From")
-        DateField(to, { to = it }, "To (optional)", clearable = true)
-        Picker("Applies to", whoOptions(year), who, { who = it })
+    var more by rememberSaveable { mutableStateOf(false) }
+    SheetFrame("Add a day off", "Add", from != null, { vm.addClosure(label.trim(), from!!, to, who) }, onDismiss) {
+        CommitField(label, { label = it }, "Reason", Modifier.fillMaxWidth(), placeholder = "Christmas break")
+        DateField(from, { from = it }, "From", Modifier.fillMaxWidth())
+        Column(Modifier.fillMaxWidth().animateContentSize(), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+            if (more) {
+                DateField(to, { to = it }, "To (optional)", Modifier.fillMaxWidth(), clearable = true)
+                Picker("Applies to", whoOptions(year), who, { who = it }, Modifier.fillMaxWidth())
+            } else {
+                TertiaryButton("More options", { more = true })
+            }
+        }
     }
 }
 
@@ -282,8 +176,8 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
 
     if (adding) {
         var name by rememberSaveable { mutableStateOf("") }
-        AddDialogFrame("New class", true, { vm.newClass(name.trim()) }, { adding = false }, confirm = "Create") {
-            CommitField(name, { name = it }, "Name", placeholder = "B1 Senior")
+        SheetFrame("New class", "Add", true, { vm.newClass(name.trim()) }, { adding = false }) {
+            CommitField(name, { name = it }, "Name", Modifier.fillMaxWidth(), placeholder = "B1 Senior")
         }
     }
 }
