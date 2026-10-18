@@ -1,7 +1,6 @@
 package gr.edusuite.pacer.ui
 
 import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
@@ -23,7 +21,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,10 +32,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -47,13 +44,14 @@ import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
 /** What deleting a year takes with it, wherever it is deleted from. */
 const val YEAR_DELETE_DETAIL = "Its classes, groups, books and days off go too. You can undo it on the home screen."
 
-/** One button on the year screen: where it goes, and a one-line summary of what is there. */
-private data class Tile(val title: String, val detail: String, val warn: Boolean = false, val onClick: () -> Unit)
+/** One tile on the year screen: where it goes, a one-line summary of what is there, and its tile colour. */
+private data class YearTile(val title: String, val detail: String, val color: Color, val warn: Boolean = false, val onClick: () -> Unit)
 
 /**
  * The open school year: a button for each part of it. In portrait the buttons stack, full width,
@@ -65,22 +63,24 @@ fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val problems = remember(year) { Nav.problems(year).size }
     val groups = year.classes.sumOf { it.groups.size }
+    val c = Pacer.colors
+    // At most three tile hues side by side (style guide §2.2); Print sits on the neutral container.
     val tiles = listOf(
-        Tile("Classes", count(year.classes.size, "class", "classes")) { vm.open(Screen.Classes) },
-        Tile("School year settings", "${year.dates()} · ${count(year.closures.size, "day off", "days off", "no days off")}") {
+        YearTile("Classes", count(year.classes.size, "class", "classes"), c.tileSky) { vm.open(Screen.Classes) },
+        YearTile("School year settings", "${year.dates()} · ${count(year.closures.size, "day off", "days off", "no days off")}", c.tileLilac) {
             vm.open(Screen.YearSettings)
         },
-        Tile("Overview", if (problems > 0) count(problems, "problem") else count(groups, "group"), warn = problems > 0) {
+        YearTile("Overview", if (problems > 0) count(problems, "problem") else count(groups, "group"), c.tileMint, warn = problems > 0) {
             vm.open(Screen.Overview)
         },
-        Tile("Print or save PDF", "Choose classes and margins") { printing = true },
+        YearTile("Print or save PDF", "Choose classes and margins", c.surfaceContainer) { printing = true },
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 16.dp, bottom = padding.calculateBottomPadding() + 32.dp),
+            .padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.l, bottom = padding.calculateBottomPadding() + Space.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (year.classes.isEmpty()) {
@@ -88,7 +88,7 @@ fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
                 "Add your first class",
                 "A class is a set of books taught to one or more groups, like B1 Senior. " +
                     "Check the term dates and days off in School year settings too.",
-                Modifier.widthIn(max = 480.dp).padding(bottom = 12.dp),
+                Modifier.widthIn(max = 480.dp).padding(bottom = Space.m),
                 action = "Open Classes" to { vm.open(Screen.Classes) },
             )
         }
@@ -96,12 +96,12 @@ fun YearScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
         if (landscape) {
             Row(
                 Modifier.widthIn(max = 960.dp).fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(Space.s),
             ) {
                 tiles.forEach { t -> TileButton(t, Modifier.weight(1f).fillMaxHeight()) }
             }
         } else {
-            Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 tiles.forEach { t -> TileButton(t, Modifier.fillMaxWidth(), minHeight = 72.dp) }
             }
         }
@@ -132,36 +132,35 @@ private fun PrintDialog(year: SchoolYear, onDismiss: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(checked = on, onCheckedChange = null)
-                Text(c.name.ifBlank { "Class" }, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp))
+                Text(c.name.ifBlank { "Class" }, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = Space.m, top = Space.s, bottom = Space.s))
             }
         }
         Eyebrow("Margins")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
             PrintMargin.entries.forEach { m ->
-                FilterChip(selected = margin == m, onClick = { margin = m }, label = { Text(m.label) })
+                FilterChip(selected = margin == m, onClick = { margin = m }, label = { Text(m.label) }, shape = MaterialTheme.shapes.extraSmall)
             }
         }
         Hint("${margin.label}: ${margin.mm} mm on every side. Each group starts on a new page; the system print dialog then offers paper size, orientation and Save as PDF.")
     }
 }
 
+/** A year tile. With problems it turns into a warning block (warnSoft, rust summary) instead of its own hue. */
 @Composable
-private fun TileButton(t: Tile, modifier: Modifier, minHeight: Dp = 96.dp) {
-    Surface(
-        onClick = t.onClick,
+private fun TileButton(t: YearTile, modifier: Modifier, minHeight: Dp = 96.dp) {
+    val c = Pacer.colors
+    Tile(
+        color = if (t.warn) c.warnSoft else t.color,
         modifier = modifier.heightIn(min = minHeight),
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, if (t.warn) Pacer.colors.warn else Pacer.colors.line),
+        onClick = t.onClick,
+        contentColor = if (t.warn) c.onWarnSoft else c.onTile,
     ) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(t.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Text(
-                t.detail, style = MaterialTheme.typography.bodySmall,
-                color = if (t.warn) Pacer.colors.warn else Pacer.colors.muted,
-                maxLines = 3, overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(t.title, style = MaterialTheme.typography.titleMedium)
+        Text(
+            t.detail, style = MaterialTheme.typography.bodySmall,
+            color = if (t.warn) c.warn else c.onTileMuted,
+            maxLines = 3, overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -203,7 +202,7 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
         item(key = "year") {
             Section("School year") {
                 CommitField(year.name, { vm.renameYear(year.id, it) }, "Name", Modifier.fillMaxWidth())
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
                     DateField(year.start, vm::setStart, "Starts", Modifier.weight(1f))
                     DateField(year.end, vm::setEnd, "Ends", Modifier.weight(1f))
                 }
@@ -260,7 +259,7 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
     var adding by rememberSaveable { mutableStateOf(false) }
     val problems = remember(year) { Nav.problems(year).groupingBy { it.classId }.eachCount() }
 
-    ScreenList(padding, spacing = 10.dp) {
+    ScreenList(padding) {
         item(key = "hint") { Hint("A class is a set of books taught to one or more groups. Each group keeps its own days and place in the books.") }
         if (year.classes.isEmpty()) {
             item(key = "guide") {

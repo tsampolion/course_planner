@@ -1,6 +1,5 @@
 package gr.edusuite.pacer.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -22,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -46,16 +44,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.WEEK
@@ -74,7 +71,9 @@ import gr.edusuite.pacer.engine.verdict
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.TestEvent
+import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 import java.util.Locale
 import kotlinx.coroutines.launch
@@ -164,27 +163,27 @@ fun GroupScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
-        contentPadding = PaddingValues(top = padding.calculateTopPadding() + 12.dp, bottom = padding.calculateBottomPadding() + 32.dp),
+        contentPadding = PaddingValues(top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
     ) {
-        item(key = "summary") { SummaryCard(report, vm, Modifier.padding(horizontal = 16.dp)) }
+        item(key = "summary") { SummaryCard(report, vm, Modifier.padding(horizontal = Space.l)) }
         item(key = "ledgerhead") {
             Row(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 22.dp, bottom = 2.dp),
+                Modifier.fillMaxWidth().padding(start = Space.l, end = Space.s, top = Space.xl, bottom = Space.xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("${g.name} · schedule", style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Serif, modifier = Modifier.weight(1f))
+                Text("${g.name} · schedule", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 TextButton(onClick = onCopy, enabled = report.rows.isNotEmpty()) { Text("Copy") }
                 TextButton(onClick = onShare, enabled = report.rows.isNotEmpty()) { Text("Share") }
             }
         }
         item(key = "mode") {
-            Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.padding(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                 FilterChip(selected = !byMonth, onClick = { vm.setScheduleByMonth(false) }, label = { Text("All months") })
                 FilterChip(selected = byMonth, onClick = { vm.setScheduleByMonth(true) }, label = { Text("By month") })
             }
         }
         item(key = "tickhint") {
-            Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.s, bottom = Space.s), verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 Note(SCHEDULE_NOTE)
                 Hint(
                     "Tick a lesson once it's taught. Long-press a lesson to change the pages it covered, " +
@@ -196,13 +195,13 @@ fun GroupScreen(
             }
         }
         if (lessons.isEmpty()) {
-            item(key = "empty") { Box(Modifier.padding(16.dp)) { Hint("No lessons left in this range.") } }
+            item(key = "empty") { Box(Modifier.padding(Space.l)) { Hint("No lessons left in this range.") } }
         } else if (byMonth) {
             stickyHeader(key = "tabs") {
                 Column(Modifier.background(MaterialTheme.colorScheme.background)) {
                     ScrollableTabRow(
                         selectedTabIndex = pager.currentPage.coerceIn(0, months.lastIndex),
-                        edgePadding = 12.dp,
+                        edgePadding = Space.m,
                         containerColor = MaterialTheme.colorScheme.background,
                     ) {
                         months.forEachIndexed { i, (m, _) ->
@@ -245,7 +244,7 @@ private val DateW = 92.dp
 @Composable
 private fun HeaderRow(plan: Plan) {
     Column(Modifier.background(MaterialTheme.colorScheme.background)) {
-        Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)) {
+        Row(Modifier.fillMaxWidth().padding(start = Space.xs, end = Space.m, top = Space.s, bottom = Space.s)) {
             HeadCell("✓", Modifier.width(TickW), center = true)
             HeadCell("#", Modifier.width(NumW))
             HeadCell("Date", Modifier.width(DateW))
@@ -258,17 +257,17 @@ private fun HeaderRow(plan: Plan) {
 @Composable
 private fun HeadCell(text: String, modifier: Modifier, center: Boolean = false) {
     Text(
-        text.uppercase(), modifier = modifier, maxLines = 2, fontSize = 10.sp, letterSpacing = 0.6.sp,
-        fontWeight = FontWeight.SemiBold, color = Pacer.colors.muted, textAlign = if (center) TextAlign.Center else TextAlign.Start,
+        text, modifier = modifier, maxLines = 2, style = MaterialTheme.typography.labelSmall,
+        color = Pacer.colors.muted, textAlign = if (center) TextAlign.Center else TextAlign.Start,
     )
 }
 
 @Composable
 private fun MonthRow(first: LocalDate) {
     Text(
-        "${first.monthShort()} ${first.year}".uppercase(),
-        fontSize = 11.sp, letterSpacing = 0.8.sp, fontWeight = FontWeight.SemiBold, color = Pacer.colors.muted,
-        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 12.dp, vertical = 5.dp),
+        "${first.monthShort()} ${first.year}",
+        style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted,
+        modifier = Modifier.fillMaxWidth().background(Pacer.colors.surfaceContainer).padding(horizontal = Space.m, vertical = Space.xs),
     )
 }
 
@@ -285,7 +284,7 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .background(if (l.blocked) Pacer.colors.accentSoft else MaterialTheme.colorScheme.surfaceContainer)
+                    .background(if (l.blocked) Pacer.colors.accentSoft else Pacer.colors.surface)
                     .pointerInput(l.date) { detectTapGestures(onLongPress = { menu = true }) }
                     .semantics {
                         customActions = listOf(
@@ -294,7 +293,7 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                             CustomAccessibilityAction(notFrom) { actions.notFrom(l.date); true },
                         )
                     }
-                    .padding(start = 4.dp, end = 12.dp),
+                    .padding(start = Space.xs, end = Space.m),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.width(TickW), contentAlignment = Alignment.Center) {
@@ -306,16 +305,16 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                 }
                 // Done lessons stay in the list, dimmed, with the pages they covered.
                 Row(Modifier.weight(1f).alpha(if (l.done) 0.5f else 1f), verticalAlignment = Alignment.CenterVertically) {
-                    Text("${l.n}", fontFamily = Mono, fontSize = 13.sp, color = Pacer.colors.muted, modifier = Modifier.width(NumW))
+                    Text("${l.n}", style = MaterialTheme.typography.bodyMedium, fontFamily = Mono, color = Pacer.colors.muted, modifier = Modifier.width(NumW))
                     Column(Modifier.width(DateW)) {
-                        Text("${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", fontSize = 13.sp)
+                        Text("${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", style = MaterialTheme.typography.bodyMedium)
                         if (!l.blocked && names.isNotEmpty()) Tag(names, Modifier.padding(top = 2.dp))
                         if (l.edited) Tag("edited", Modifier.padding(top = 2.dp))
                     }
                     if (l.blocked) {
-                        Text(names, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                        Text(names, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
                     } else {
-                        l.cells.forEach { c -> Text(c, fontFamily = Mono, fontSize = 13.sp, modifier = Modifier.weight(1f)) }
+                        l.cells.forEach { c -> Text(c, style = MaterialTheme.typography.bodyMedium, fontFamily = Mono, modifier = Modifier.weight(1f)) }
                     }
                 }
             }
@@ -382,15 +381,14 @@ private fun SummaryCard(report: GroupReport, vm: PacerViewModel, modifier: Modif
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, Pacer.colors.line),
+        shape = MaterialTheme.shapes.medium,
+        color = Pacer.colors.surface,
     ) {
         Column {
             Box(Modifier.fillMaxWidth().height(3.dp).background(if (short) Pacer.colors.warn else MaterialTheme.colorScheme.primary))
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                 Column {
-                    Text(g.name, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold)
+                    Text(g.name, style = MaterialTheme.typography.titleLarge)
                     val days = WEEK.filter { it in g.days }.joinToString(" · ") { it.short() }.ifEmpty { "no days set" }
                     // Lessons marked done drop out, so the first one left is the next to teach.
                     val from = report.lessons.firstOrNull()?.let { " · next " + it.fmt() } ?: ""
@@ -437,17 +435,22 @@ private fun SummaryCard(report: GroupReport, vm: PacerViewModel, modifier: Modif
 @Composable
 fun Stat(k: String, v: String, modifier: Modifier = Modifier) {
     Column(modifier) {
-        Text(k.uppercase(), fontSize = 10.sp, letterSpacing = 0.7.sp, color = Pacer.colors.muted)
-        Text(v, fontFamily = Mono, fontSize = 19.sp)
+        Text(k, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
+        // A stat tile's figure (§6): mono in titleLarge, which is already SemiBold.
+        Text(v, style = MaterialTheme.typography.titleLarge, fontFamily = Mono)
     }
 }
 
 @Composable
 private fun VerdictBox(text: String, bad: Boolean) {
     val c = Pacer.colors
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (bad) c.warnSoft else c.okSoft, RoundedCornerShape(3.dp))) {
+    // The clip keeps the coloured bar inside the banner's corners.
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).clip(MaterialTheme.shapes.medium).background(if (bad) c.warnSoft else c.okSoft)) {
         Box(Modifier.width(3.dp).fillMaxHeight().background(if (bad) c.warn else c.ok))
-        Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp))
+        Text(
+            text, style = MaterialTheme.typography.bodyMedium, color = if (bad) c.onWarnSoft else c.onOkSoft,
+            modifier = Modifier.padding(horizontal = Space.m, vertical = Space.s),
+        )
     }
 }
 
@@ -455,13 +458,13 @@ private fun VerdictBox(text: String, bad: Boolean) {
 private fun Positions(report: GroupReport, vm: PacerViewModel) {
     val plan = report.plan
     val g = report.group
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
         HorizontalDivider(color = Pacer.colors.line)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("BOOK", fontSize = 10.sp, color = Pacer.colors.muted, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            Text("RESUME", fontSize = 10.sp, color = Pacer.colors.muted, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End, modifier = Modifier.width(92.dp))
-            Text("LEFT", fontSize = 10.sp, color = Pacer.colors.muted, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End, modifier = Modifier.width(44.dp))
-            Text("PACE", fontSize = 10.sp, color = Pacer.colors.muted, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End, modifier = Modifier.width(50.dp))
+            Text("Book", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.weight(1f))
+            Text("Resume", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(92.dp))
+            Text("Left", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(44.dp))
+            Text("Pace", style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(50.dp))
         }
         plan.books.forEachIndexed { i, b ->
             val st = report.bookStats[i]
@@ -484,7 +487,7 @@ private fun Positions(report: GroupReport, vm: PacerViewModel) {
                 Text("Mark next lesson done")
             }
             if (g.done.isNotEmpty()) {
-                Hint("${g.done.size} ${if (g.done.size == 1) "lesson" else "lessons"} done", Modifier.padding(start = 12.dp))
+                Hint("${g.done.size} ${if (g.done.size == 1) "lesson" else "lessons"} done", Modifier.padding(start = Space.m))
             }
         }
     }
@@ -495,15 +498,15 @@ private fun MonthBars(report: GroupReport) {
     val months = report.lessonsByMonth
     if (months.isEmpty()) return
     val max = months.maxOf { it.second }.coerceAtLeast(1)
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
         months.forEach { (m, n) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${m.monthShort()} ${m.year % 100}", fontFamily = Mono, fontSize = 11.sp, color = Pacer.colors.muted, modifier = Modifier.width(54.dp))
-                Box(Modifier.weight(1f).height(9.dp).background(Pacer.colors.accentSoft)) {
+                Text("${m.monthShort()} ${m.year % 100}", style = MaterialTheme.typography.labelSmall, fontFamily = Mono, color = Pacer.colors.muted, modifier = Modifier.width(54.dp))
+                Box(Modifier.weight(1f).height(9.dp).clip(MaterialTheme.shapes.extraSmall).background(Pacer.colors.accentSoft)) {
                     Box(Modifier.fillMaxHeight().fillMaxWidth(n.toFloat() / max).background(MaterialTheme.colorScheme.primary))
                 }
-                Spacer(Modifier.width(7.dp))
-                Text("$n", fontFamily = Mono, fontSize = 11.sp, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(22.dp))
+                Spacer(Modifier.width(Space.s))
+                Text("$n", style = MaterialTheme.typography.labelSmall, fontFamily = Mono, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(22.dp))
             }
         }
     }

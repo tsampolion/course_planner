@@ -42,14 +42,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.asTsv
 import gr.edusuite.pacer.engine.lessonsFor
 import gr.edusuite.pacer.model.AppData
+import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
 import kotlinx.coroutines.launch
 
@@ -218,17 +217,17 @@ private fun ScreenBar(screen: Screen, data: AppData, vm: PacerViewModel, undoDep
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         navigationIcon = {
             TextButton(onClick = { vm.back() }, modifier = Modifier.semantics { contentDescription = "Back" }) {
-                Text("←", fontSize = 22.sp)
+                Text("←", style = MaterialTheme.typography.titleLarge)
             }
         },
         title = {
             Box {
                 val heading = @Composable {
                     Column {
-                        Text(screen.context(data), fontSize = 11.sp, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(screen.context(data), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(
                             screen.title(data) + if (switchable) " ▾" else "",
-                            fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 20.sp,
+                            style = MaterialTheme.typography.titleLarge,
                             maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground,
                         )
                     }

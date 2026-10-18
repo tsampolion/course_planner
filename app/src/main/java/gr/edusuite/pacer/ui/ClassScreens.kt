@@ -27,7 +27,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.WEEK
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.lessonsFor
@@ -39,7 +38,9 @@ import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.Settings
+import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
 /**
@@ -91,7 +92,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
         item(key = "class") {
             Section("Class") {
                 CommitField(plan.name, vm::renameClass, "Name", Modifier.fillMaxWidth())
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
                     IntField(plan.mins, vm::setMins, "Lesson length (min)", Modifier.weight(1f), max = Settings.MAX_MINS)
                     PaceField(plan.pace, vm::setPace, Modifier.weight(1f))
                 }
@@ -114,7 +115,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
         if (plan.groups.isEmpty()) item(key = "nogroups") { Hint("No groups yet. Add one for each set of students taught from these books.") }
         items(plan.groups, key = { it.id }) { g -> GroupEditor(plan, g, vm) }
         item(key = "groupactions") {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                 OutlinedButton(onClick = vm::addGroup) { Text("Add group") }
                 OutlinedButton(onClick = { resetting = true }, enabled = plan.groups.isNotEmpty()) { Text("Reset all positions") }
             }
@@ -129,7 +130,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
             }
         }
         item(key = "delete") {
-            OutlinedButton(onClick = { deleting = true }, modifier = Modifier.padding(top = 8.dp)) {
+            OutlinedButton(onClick = { deleting = true }, modifier = Modifier.padding(top = Space.s)) {
                 Text("Delete this class", color = Pacer.colors.warn)
             }
         }
@@ -173,12 +174,13 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
         RemoveButton(g.name, onRemove)
     }
     // Seven chips need about 330dp; the row wraps its last chips on very narrow phones.
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
         WEEK.forEach { day ->
             FilterChip(
                 selected = day in g.days,
                 onClick = { vm.toggleDay(g.id, day) },
                 label = { Text(day.short()) },
+                shape = MaterialTheme.shapes.extraSmall,
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primary,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
@@ -239,11 +241,11 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
         CommitField(b.name, { vm.renameBook(b.id, it) }, "Title", Modifier.weight(1f))
         RemoveButton(b.name, onRemove)
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
         IntField(b.first, { vm.setFirstPage(b.id, it) }, "First page", Modifier.weight(1f), max = MAX_PAGE)
         IntField(b.last, { vm.setLastPage(b.id, it) }, "Last page", Modifier.weight(1f), max = MAX_PAGE)
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
         CommitField(b.skip, { vm.setSkip(b.id, it) }, "Skip pages", Modifier.weight(1f), placeholder = "8, 24–27")
         DateField(b.due, { vm.setDue(b.id, it) }, "Finish by", Modifier.weight(1f), clearable = true)
     }
@@ -315,7 +317,7 @@ private fun AddBookDialog(vm: PacerViewModel, onDismiss: () -> Unit) {
         vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!)
     }, onDismiss) {
         CommitField(name, { name = it }, "Title", placeholder = "Companion")
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
             CommitField(first, { first = it }, "First page", Modifier.weight(1f), numeric = true)
             CommitField(last, { last = it }, "Last page", Modifier.weight(1f), numeric = true)
         }
@@ -336,7 +338,7 @@ private fun AddHomeworkDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> U
     }, onDismiss) {
         Picker("Group", plan.groups.map { it.id to it.name }, group, { group = it })
         Picker("Book", plan.books.map { it.id to it.name }, book, { book = it })
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
             CommitField(from, { from = it }, "From p.", Modifier.weight(1f), numeric = true)
             CommitField(to, { to = it }, "To p.", Modifier.weight(1f), numeric = true)
         }

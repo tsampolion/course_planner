@@ -1,0 +1,98 @@
+package gr.edusuite.pacer.ui.theme
+
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
+
+private fun c(argb: Long) = Color(argb)
+
+/**
+ * The style guide's tokens on Material 3's roles (§2.1, §2.3, §2.4). Every role is set, so a Compose update can't change
+ * the look, and wallpaper (dynamic) colour is never used (§11): the accent is what identifies the app.
+ */
+internal fun schemeFor(t: Tokens, other: Tokens, dark: Boolean): ColorScheme {
+    val args = SchemeArgs(t, other)
+    return if (dark) darkColorScheme(
+        primary = args.primary, onPrimary = args.onPrimary, primaryContainer = args.soft, onPrimaryContainer = args.onSoft,
+        inversePrimary = args.inversePrimary, secondary = args.muted, onSecondary = args.surface,
+        secondaryContainer = args.soft, onSecondaryContainer = args.onSoft,
+        tertiary = c(t.ok), onTertiary = c(t.onOk), tertiaryContainer = c(t.okSoft), onTertiaryContainer = c(t.onOkSoft),
+        error = c(t.warn), onError = c(t.onWarn), errorContainer = c(t.warnSoft), onErrorContainer = c(t.onWarnSoft),
+        background = args.paper, onBackground = args.ink, surface = args.paper, onSurface = args.ink,
+        surfaceVariant = args.container, onSurfaceVariant = args.muted, surfaceTint = Color.Transparent,
+        inverseSurface = args.ink, inverseOnSurface = args.paper,
+        outline = c(t.outline), outlineVariant = c(t.line), scrim = Color.Black,
+        surfaceBright = args.surface, surfaceDim = args.paper,
+        surfaceContainerLowest = args.surface, surfaceContainerLow = args.surface, surfaceContainer = args.container,
+        surfaceContainerHigh = args.container, surfaceContainerHighest = args.container,
+    ) else lightColorScheme(
+        primary = args.primary, onPrimary = args.onPrimary, primaryContainer = args.soft, onPrimaryContainer = args.onSoft,
+        inversePrimary = args.inversePrimary, secondary = args.muted, onSecondary = args.surface,
+        secondaryContainer = args.soft, onSecondaryContainer = args.onSoft,
+        tertiary = c(t.ok), onTertiary = c(t.onOk), tertiaryContainer = c(t.okSoft), onTertiaryContainer = c(t.onOkSoft),
+        error = c(t.warn), onError = c(t.onWarn), errorContainer = c(t.warnSoft), onErrorContainer = c(t.onWarnSoft),
+        background = args.paper, onBackground = args.ink, surface = args.paper, onSurface = args.ink,
+        surfaceVariant = args.container, onSurfaceVariant = args.muted, surfaceTint = Color.Transparent,
+        inverseSurface = args.ink, inverseOnSurface = args.paper,
+        outline = c(t.outline), outlineVariant = c(t.line), scrim = Color.Black,
+        surfaceBright = args.surface, surfaceDim = args.container,
+        surfaceContainerLowest = args.surface, surfaceContainerLow = args.surface, surfaceContainer = args.container,
+        surfaceContainerHigh = args.container, surfaceContainerHighest = args.container,
+    )
+}
+
+private class SchemeArgs(t: Tokens, other: Tokens) {
+    val primary = c(t.accent)
+    val onPrimary = c(t.onAccent)
+    val soft = c(t.accentSoft)
+    val onSoft = c(t.onAccentSoft)
+    val inversePrimary = c(other.accent)
+    val paper = c(t.paper)
+    val surface = c(t.surface)
+    val container = c(t.surfaceContainer)
+    val muted = c(t.muted)
+    val ink = c(t.ink)
+}
+
+/** The guide's tokens that Material 3 has no role for, or that read better by their own name. */
+@Immutable
+data class PacerColors(
+    val paper: Color,
+    val surface: Color,
+    val surfaceContainer: Color,
+    val line: Color,
+    val outline: Color,
+    val muted: Color,
+    val ink: Color,
+    val tileLilac: Color,
+    val tileMint: Color,
+    val tileSky: Color,
+    val tileApricot: Color,
+    val tilePink: Color,
+    val onTile: Color,
+    val onTileMuted: Color,
+    val warn: Color,
+    val onWarn: Color,
+    val warnSoft: Color,
+    val onWarnSoft: Color,
+    val ok: Color,
+    val onOk: Color,
+    val okSoft: Color,
+    val onOkSoft: Color,
+    val accent: Color,
+    val onAccent: Color,
+    val accentSoft: Color,
+    val onAccentSoft: Color,
+)
+
+internal fun colorsFor(t: Tokens) = PacerColors(
+    paper = c(t.paper), surface = c(t.surface), surfaceContainer = c(t.surfaceContainer), line = c(t.line),
+    outline = c(t.outline), muted = c(t.muted), ink = c(t.ink),
+    tileLilac = c(t.tileLilac), tileMint = c(t.tileMint), tileSky = c(t.tileSky), tileApricot = c(t.tileApricot),
+    tilePink = c(t.tilePink), onTile = c(t.onTile), onTileMuted = c(t.onTileMuted),
+    warn = c(t.warn), onWarn = c(t.onWarn), warnSoft = c(t.warnSoft), onWarnSoft = c(t.onWarnSoft),
+    ok = c(t.ok), onOk = c(t.onOk), okSoft = c(t.okSoft), onOkSoft = c(t.onOkSoft),
+    accent = c(t.accent), onAccent = c(t.onAccent), accentSoft = c(t.accentSoft), onAccentSoft = c(t.onAccentSoft),
+)

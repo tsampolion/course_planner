@@ -46,3 +46,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED. IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM, DAMAGES OR
 OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 ITS USE.
+
+5. Third-party components
+
+The Software includes the following third-party components, which remain
+under their own licences and are not covered by sections 1 to 3:
+
+  - Outfit typeface (app/src/main/res/font/outfit.ttf), Copyright 2021 The
+    Outfit Project Authors, licensed under the SIL Open Font License,
+    Version 1.1 (third_party/outfit/OFL.txt).
+  - AndroidX and Jetpack Compose libraries, fetched at build time, licensed
+    under the Apache License, Version 2.0.

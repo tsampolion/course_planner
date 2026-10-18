@@ -1,6 +1,6 @@
 <resources>
     <!-- Match PacerTheme: paper is the background the window shows before Compose draws. -->
-    <color name="paper">#FAF9FD</color>
+    <color name="paper">#F6F5FA</color>
     <!-- The launcher icon's tile: Course Pacer's light accent in both modes (EduSuite style guide, "Launcher icon"). -->
     <color name="launcher_tile">#245E60</color>
 </resources>
