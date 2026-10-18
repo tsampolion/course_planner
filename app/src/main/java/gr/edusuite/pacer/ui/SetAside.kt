@@ -2,10 +2,15 @@ package gr.edusuite.pacer.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Modifier
+import gr.edusuite.pacer.ui.theme.Space
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -38,19 +43,21 @@ fun SetAsideDialog(file: File, toast: (String) -> Unit, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("Your school years couldn't be read") },
         text = {
-            Text(
-                "The saved file is damaged, so $APP_NAME started with no school years. The file is kept on this phone as it was. " +
-                    "Save a copy to keep it somewhere you can reach, or import a backup you exported earlier from Settings → Back up and restore.",
-            )
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                Tile(color = Pacer.colors.tileApricot) {
+                    Text("Your original file is safe", style = MaterialTheme.typography.titleMedium)
+                    Text("$APP_NAME started with no school years because the saved file could not be read. The original file is kept on this phone as it was.",
+                        style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
+                }
+                Text("Save a copy to keep it somewhere you can reach. You can also restore an earlier export from Settings → Back up and restore.", style = MaterialTheme.typography.bodyMedium)
+            }
         },
         shape = MaterialTheme.shapes.extraLarge,
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
-        dismissButton = {
-            TextButton(onClick = { openPicker(toast) { saveTo.launch("course-pacer-unreadable-${LocalDate.now()}.json") } }) {
-                Text("Save a copy…")
-            }
+        confirmButton = {
+            PrimaryButton("Save a copy…", { openPicker(toast) { saveTo.launch("course-pacer-unreadable-${LocalDate.now()}.json") } })
         },
+        dismissButton = { TertiaryButton("Close", onDismiss) },
     )
 }

@@ -5,6 +5,8 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,12 +16,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.FilterChip
+import gr.edusuite.pacer.engine.plain
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,10 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.data.ImportResult
 import gr.edusuite.pacer.data.JsonCodec
@@ -59,6 +61,7 @@ private val THEMES = listOf(
  * App-level preferences. None of these are edits to a school year, so undo does not cover them;
  * an import is, and its snackbar offers undo because this screen has no undo button.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     settings: Settings,
@@ -70,6 +73,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     var guide by rememberSaveable { mutableStateOf(false) }
+    var defaults by rememberSaveable { mutableStateOf(false) }
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
     }
@@ -81,28 +85,26 @@ fun SettingsScreen(
     ) {
         item(key = "theme") {
             Section("Theme") {
-                Column(Modifier.selectableGroup()) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().selectableGroup(),
+                    horizontalArrangement = Arrangement.spacedBy(Space.s),
+                    verticalArrangement = Arrangement.spacedBy(Space.xs),
+                ) {
                     THEMES.forEach { (mode, label) ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .selectable(selected = settings.theme == mode, role = Role.RadioButton) { vm.setTheme(mode) }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = settings.theme == mode, onClick = null)
-                            Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
-                        }
+                        FilterChip(
+                            modifier = Modifier.semantics { role = Role.RadioButton },
+                            selected = settings.theme == mode,
+                            onClick = { vm.setTheme(mode) },
+                            label = { Text(label) },
+                            shape = MaterialTheme.shapes.extraSmall,
+                        )
                     }
                 }
             }
         }
         item(key = "defaults") {
             Section("New classes") {
-                Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
-                    IntField(settings.lessonMins, vm::setDefaultMins, "Lesson length (min)", Modifier.weight(1f), max = Settings.MAX_MINS)
-                    PaceField(settings.pace, vm::setDefaultPace, Modifier.weight(1f))
-                }
+                LinkRow("Class defaults", "${settings.lessonMins} min · ${settings.pace.plain()} pages per lesson") { defaults = true }
                 Hint("Used when you add a class. Existing classes keep their own values, which you change on the class screen.")
             }
         }
@@ -116,11 +118,20 @@ fun SettingsScreen(
             Section("About") {
                 Text("$APP_NAME $version", style = MaterialTheme.typography.bodyLarge)
                 Hint("School years are saved on this device and included in Android backups, along with these settings.")
+                Hint("Part of the EduSuite apps, alongside Course Invoicer.")
+                Hint("Outfit typeface: © The Outfit Project Authors, SIL Open Font License 1.1. AndroidX: Apache License 2.0.")
                 Hint("© 2026 Dimitrios Tsampallas. All rights reserved.")
             }
         }
     }
 
+    if (defaults) {
+        SheetFrame("New class defaults", "Done", true, {}, { defaults = false }) {
+            IntField(settings.lessonMins, vm::setDefaultMins, "Lesson length (min)", Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
+            PaceField(settings.pace, vm::setDefaultPace, Modifier.fillMaxWidth())
+            Hint("Changes are saved as you type and apply to new classes only.")
+        }
+    }
     if (guide) WelcomeDialog(onStart = null) { guide = false }
 }
 
@@ -154,13 +165,9 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
     }
 
     Section("Back up and restore") {
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
-            OutlinedButton(onClick = { openPicker(toast) { exportTo.launch(backupFileName(LocalDate.now())) } }, enabled = yearCount > 0) {
-                Text("Export…")
-            }
-            // Any type: phones label JSON files inconsistently, and a wrong pick is refused with a message.
-            OutlinedButton(onClick = { openPicker(toast) { importFrom.launch(arrayOf("*/*")) } }) { Text("Import…") }
-        }
+        SecondaryButton("Export…", { openPicker(toast) { exportTo.launch(backupFileName(LocalDate.now())) } }, Modifier.fillMaxWidth(), enabled = yearCount > 0)
+        // Any type: phones label JSON files inconsistently, and a wrong pick is refused with a message.
+        SecondaryButton("Import…", { openPicker(toast) { importFrom.launch(arrayOf("*/*")) } }, Modifier.fillMaxWidth())
         Hint("Export saves every school year to a file, in Downloads, Google Drive or wherever your phone offers. Import reads it back, on this phone or another, and also reads the Coursebook Pacer web page's export. Settings aren't included.")
         Hint("Export before you uninstall the app or change phones: uninstalling deletes the school years.")
     }
@@ -188,9 +195,9 @@ private fun ImportDialog(years: List<SchoolYear>, current: Int, onAdd: () -> Uni
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
         confirmButton = {
-            Row {
-                if (current > 0) TextButton(onClick = { onReplace(); onDismiss() }) { Text("Replace all", color = Pacer.colors.warn) }
-                TextButton(onClick = { onAdd(); onDismiss() }) { Text("Add") }
+            Column {
+                if (current > 0) TertiaryButton("Replace all", { onReplace(); onDismiss() }, color = Pacer.colors.warn)
+                PrimaryButton("Add", { onAdd(); onDismiss() })
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },

@@ -22,6 +22,18 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-17
+
+### Changed
+
+- Redesigned the remaining screens around EduSuite tiles, grouped settings rows and bottom sheets. The pacing engine, saved data and ViewModel operations are unchanged.
+- Group view starts with the next lesson's book pages and Mark done with Undo. A weekly day strip shows today, lesson dates and the selected day. Lessons, pages and pace have responsive stat tiles; More details holds contact hours, the heaviest lesson, banked homework and month bars.
+- Book positions open in sheets. Schedule rows retain lesson ticks, edited/test status, long-press commands and TalkBack actions, with layouts that stack at large text sizes.
+- Classes, books and groups use tiles; class and school-year settings open in sheets. Reset and delete actions live under More options and still offer Undo.
+- Overview uses mint for on track, apricot for a shortfall and neutral tiles when no verdict is available, with problem banners first.
+- Tests and homework use swipe rows and add sheets. Test dates start from the selected group's next lesson, homework starts at its current book position, and past tests are collapsed.
+- Settings, the welcome guide and the unreadable-file notice follow the suite look. About includes the font and AndroidX credits.
+
 ## [2.2.0] - 2026-10-17
 
 The EduSuite look, part two: a new Home that shows the open school year at a glance, and deletes that happen at once with Undo instead of asking first. Plans and schedules are unchanged.
@@ -328,7 +340,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/tsampolion/course_planner/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/tsampolion/course_planner/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/tsampolion/course_planner/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/tsampolion/course_planner/compare/v1.8.0...v2.0.0
