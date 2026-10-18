@@ -49,6 +49,9 @@ Settings (theme and the defaults for new classes) aren't in the export, so set t
 | SDK | `minSdk 26`, `targetSdk 35`, `compileSdk 35` |
 | Libraries | `activity-compose`, `lifecycle-viewmodel-ktx`, and JUnit 4 for tests. Nothing else. |
 | Font | [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL Open Font License 1.1, [`third_party/outfit/OFL.txt`](third_party/outfit/OFL.txt)), bundled as one variable font |
+| Icons | Material Symbols Rounded, outlined, Copyright Google, Apache 2.0; path data in `ui/AppIcons.kt`, attribution in [`third_party/material-symbols`](third_party/material-symbols/) |
+
+Screen copy and accessibility labels are Android string resources, with plurals for counts. Buttons and tiles answer presses with a small spring, figures roll when they change, and lists and expandable sections animate into place. Selections give the system's haptic feedback. Invalid fields show their error and shake once. Screen transitions slide and fade; Undo shows its remaining time. With system animations removed, transitions snap to their end state.
 
 ## Getting started
 

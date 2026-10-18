@@ -50,6 +50,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import gr.edusuite.pacer.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -145,6 +149,8 @@ fun GroupScreen(
     onShare: () -> Unit,
     undoToast: (String) -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val segmentHaptic = rememberSegmentHaptic()
     val plan = report.plan
     val g = report.group
     val lessons = remember(report) { lessonsOf(report) }
@@ -159,10 +165,10 @@ fun GroupScreen(
     val actions = remember(lessons, g.id, plan.books) {
         LessonActions(
             bookNames = plan.books.map { it.name },
-            toggle = { vm.toggleLesson(g.id, it); undoToast("Lesson updated") },
+            toggle = { vm.toggleLesson(g.id, it); undoToast(context.getString(R.string.group_updated)) },
             edit = { editingDate = it.date.toString() },
-            upTo = { vm.markDoneUpTo(g.id, it); undoToast("Lessons marked done") },
-            notFrom = { vm.unmarkDoneFrom(g.id, it); undoToast("Lessons marked not done") },
+            upTo = { vm.markDoneUpTo(g.id, it); undoToast(context.getString(R.string.group_marked_done)) },
+            notFrom = { vm.unmarkDoneFrom(g.id, it); undoToast(context.getString(R.string.group_marked_not_done)) },
             canUpTo = { d -> lessons.any { !it.done && !it.date.isAfter(d) } },
             canNotFrom = { d -> lessons.any { it.done && !it.date.isBefore(d) } },
         )
@@ -192,7 +198,7 @@ fun GroupScreen(
             val end = plan.end
             if (start != null && end != null) {
                 Column(Modifier.padding(horizontal = Space.l, vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                    Eyebrow("Term weeks")
+                    Eyebrow(stringResource(R.string.group_term_weeks))
                     DayStrip(start, end, LocalDate.parse(selectedDay), lessons.map { it.date }.toSet(), { selectedDay = it.toString() })
                     val lesson = lessons.firstOrNull { it.date.toString() == selectedDay }
                     if (lesson != null) {
@@ -200,7 +206,7 @@ fun GroupScreen(
                     } else {
                         val date = LocalDate.parse(selectedDay)
                         val closure = plan.closedDates(g.id)[date]
-                        Hint(if (closure != null) "Day off: $closure" else "No lesson on ${date.fmt()}")
+                        Hint(if (closure != null) stringResource(R.string.group_day_off, closure) else stringResource(R.string.group_no_on_day, date.fmt()))
                     }
                 }
             }
@@ -210,31 +216,30 @@ fun GroupScreen(
                 Modifier.fillMaxWidth().padding(start = Space.l, end = Space.s, top = Space.xl, bottom = Space.xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Schedule", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                TertiaryButton("Copy", onCopy, enabled = report.rows.isNotEmpty())
-                TertiaryButton("Share", onShare, enabled = report.rows.isNotEmpty())
+                Text(stringResource(R.string.group_schedule_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                TertiaryButton(stringResource(R.string.group_copy), onCopy, enabled = report.rows.isNotEmpty())
+                TertiaryButton(stringResource(R.string.group_share), onShare, enabled = report.rows.isNotEmpty())
             }
         }
         item(key = "mode") {
             Row(Modifier.padding(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                FilterChip(selected = !byMonth, onClick = { vm.setScheduleByMonth(false) }, label = { Text("All months") }, shape = CircleShape)
-                FilterChip(selected = byMonth, onClick = { vm.setScheduleByMonth(true) }, label = { Text("By month") }, shape = CircleShape)
+                FilterChip(selected = !byMonth, onClick = { segmentHaptic(); vm.setScheduleByMonth(false) }, label = { Text(stringResource(R.string.group_all_months)) }, shape = CircleShape)
+                FilterChip(selected = byMonth, onClick = { segmentHaptic(); vm.setScheduleByMonth(true) }, label = { Text(stringResource(R.string.group_by_month)) }, shape = CircleShape)
             }
         }
         item(key = "tickhint") {
             Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.s, bottom = Space.s), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                Note(SCHEDULE_NOTE)
+                Note(stringResource(R.string.guide_schedule_note))
                 Hint(
-                    "Tick a lesson once it's taught. Long-press a lesson to change the pages it covered, " +
-                        "to mark everything up to it, or to undo from it.",
+                    stringResource(R.string.group_tick_hint),
                 )
                 if (plan.books.isEmpty()) {
-                    GuideCard("Add this class's books", "Each lesson shows its pages once the class has books. Add them on the class screen.")
+                    GuideCard(stringResource(R.string.group_add_books), stringResource(R.string.group_add_books_hint))
                 }
             }
         }
         if (lessons.isEmpty()) {
-            item(key = "empty") { Box(Modifier.padding(Space.l)) { Hint("No lessons left in this range.") } }
+            item(key = "empty") { Box(Modifier.padding(Space.l)) { Hint(stringResource(R.string.group_no_range)) } }
         } else if (byMonth) {
             stickyHeader(key = "tabs") {
                 Column(Modifier.background(MaterialTheme.colorScheme.background)) {
@@ -246,7 +251,7 @@ fun GroupScreen(
                         months.forEachIndexed { i, (m, _) ->
                             Tab(
                                 selected = pager.currentPage == i,
-                                onClick = { selectedMonth = m.toString(); scope.launch { pager.animateScrollToPage(i) } },
+                                onClick = { segmentHaptic(); selectedMonth = m.toString(); scope.launch { pager.animateScrollToPage(i) } },
                                 text = { Text("${m.monthShort()} ${m.year % 100}") },
                             )
                         }
@@ -267,13 +272,13 @@ fun GroupScreen(
             items(lines, key = { l -> if (l is Line.Item) "r${l.lesson.date}" else "m${(l as Line.Month).first}" }, contentType = { it::class }) { l ->
                 when (l) {
                     is Line.Month -> MonthRow(l.first)
-                    is Line.Item -> LessonLine(l.lesson, actions)
+                    is Line.Item -> Box(Modifier.animateItem()) { LessonLine(l.lesson, actions) }
                 }
             }
         }
     }
 
-    editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it); undoToast("Pages taught saved") }, { editingDate = null }) }
+    editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it); undoToast(context.getString(R.string.group_saved)) }, { editingDate = null }) }
 }
 
 private val TickW = 48.dp
@@ -286,14 +291,16 @@ private fun MonthRow(first: LocalDate) {
     )
 }
 
-/** A lesson: tick it on its own, or long-press for "Done up to here" and "Not done from here". */
+/** A lesson: tick it on its own, or long-press for stringResource(R.string.group_done_up_to) and stringResource(R.string.group_not_done_from). */
 @Composable
 private fun LessonLine(l: Lesson, actions: LessonActions) {
     val names = l.events.joinToString(" · ") { it.name }
     var menu by rememberSaveable(l.date.toString()) { mutableStateOf(false) }
-    val edit = "Edit pages taught…"
-    val upTo = "Done up to here"
-    val notFrom = "Not done from here"
+    val toggleHaptic = rememberToggleHaptic()
+    val doneDescription = stringResource(R.string.group_lesson_done_label, l.n)
+    val edit = stringResource(R.string.group_edit_pages_menu)
+    val upTo = stringResource(R.string.group_done_up_to)
+    val notFrom = stringResource(R.string.group_not_done_from)
     Box {
         Column {
             Row(
@@ -312,11 +319,12 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                     .padding(start = Space.xs, end = Space.m),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                AppIcon(AppIcons.Calendar)
                 Box(Modifier.width(TickW), contentAlignment = Alignment.Center) {
                     Checkbox(
                         checked = l.done,
-                        onCheckedChange = { actions.toggle(l.date) },
-                        modifier = Modifier.semantics { contentDescription = "Lesson ${l.n} done" },
+                        onCheckedChange = { toggleHaptic(it); actions.toggle(l.date) },
+                        modifier = Modifier.semantics { contentDescription = doneDescription },
                     )
                 }
                 Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
@@ -327,10 +335,10 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                     if (names.isNotEmpty()) Surface(shape = CircleShape, color = Pacer.colors.tileLilac, contentColor = Pacer.colors.onTile) {
                         Text(names, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = Space.s, vertical = Space.xs))
                     }
-                    if (l.edited) Tag("Edited")
-                    if (l.done) Tag("Done")
+                    if (l.edited) Tag(stringResource(R.string.group_edited))
+                    if (l.done) Tag(stringResource(R.string.group_done))
                     if (!l.blocked) l.cells.forEachIndexed { i, cell ->
-                        Text("${actions.bookNames.getOrElse(i) { "Book ${i + 1}" }}: $cell", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -358,16 +366,14 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
     }
     val parsed = books.mapIndexed { i, b -> lessonPages(texts[i], b) }
     SheetFrame(
-        title = "Pages taught on ${l.date.dayOfWeek.short()} ${l.date.fmtShort()}",
+        title = stringResource(R.string.group_pages_title, l.date.dayOfWeek.short(), l.date.fmtShort()),
         enabled = parsed.all { it != null },
         onPrimary = { onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() }) },
         onDismiss = onDismiss,
-        primary = "Save",
+        primary = stringResource(R.string.group_save),
     ) {
         Hint(
-            "Pages taught from each book, like 5-8, 10. Leave a book empty if you taught none. " +
-                "Pages left out go back into the schedule, and extra pages come off later lessons." +
-                if (l.done) "" else " Saving marks the lesson done.",
+            stringResource(R.string.group_pages_hint, if (l.done) "" else stringResource(R.string.group_saving_marks_done)),
         )
         books.forEachIndexed { i, b ->
             val bad = parsed[i] == null
@@ -375,14 +381,14 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
                 value = texts[i],
                 onValueChange = { texts[i] = it },
                 label = { Text(b.name) },
-                placeholder = { Text("none") },
+                placeholder = { Text(stringResource(R.string.group_none)) },
                 singleLine = true,
                 isError = bad,
                 supportingText = {
-                    Text(if (bad) "Use pages ${b.first}–${b.last}, like 5-8, 10" else "Planned: ${collapse(planned[b.id].orEmpty())}")
+                    Text(if (bad) stringResource(R.string.group_page_error, b.first, b.last) else stringResource(R.string.group_planned, collapse(planned[b.id].orEmpty())))
                 },
                 textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().fieldFeedback(bad),
             )
         }
     }
@@ -393,53 +399,54 @@ private fun SummaryCard(report: GroupReport, vm: PacerViewModel, modifier: Modif
     val plan = report.plan
     val g = report.group
     val verdict = remember(report) { report.verdict() }
+    val context = LocalContext.current
     val next = lessonsOf(report).firstOrNull { !it.done }
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.m)) {
         if (next == null) {
             Tile(Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink) {
-                Text("No lessons left in this term", style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(R.string.group_no_term_lessons), style = MaterialTheme.typography.headlineSmall)
             }
         } else Tile(Pacer.colors.accent, contentColor = Pacer.colors.onAccent) {
-            Text("Next lesson #${next.n}", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.group_next_number, next.n), style = MaterialTheme.typography.labelLarge)
             Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall, fontFamily = Mono)
             if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
             if (!next.blocked) plan.books.forEachIndexed { i, book ->
-                Text("${book.name}: ${next.cells.getOrElse(i) { "—" }}", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.group_book_pages, book.name, next.cells.getOrElse(i) { "—" }), style = MaterialTheme.typography.bodyLarge)
             }
             Button(
-                onClick = { vm.markNextLessonDone(g.id); undoToast("Lesson marked done") },
+                onClick = { vm.markNextLessonDone(g.id); undoToast(context.getString(R.string.group_lesson_done)) },
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surface, contentColor = Pacer.colors.ink),
                 modifier = Modifier.heightIn(min = 48.dp),
-            ) { Text("Mark done", style = MaterialTheme.typography.labelLarge) }
-            TertiaryButton("Edit pages taught", { onEdit(next) }, color = Pacer.colors.onAccent)
+            ) { Text(stringResource(R.string.group_mark_done), style = MaterialTheme.typography.labelLarge) }
+            TertiaryButton(stringResource(R.string.group_edit_pages), { onEdit(next) }, color = Pacer.colors.onAccent)
         }
         val fontScale = LocalDensity.current.fontScale
         BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val figures = listOf("Lessons left" to "${report.lessons.size}", "Pages left" to "${report.pages}", "Pace needed" to if (report.teaching > 0) report.rate.fixed2() else "—")
+            val figures = listOf(stringResource(R.string.group_lessons_left) to "${report.lessons.size}", stringResource(R.string.group_pages_left) to "${report.pages}", stringResource(R.string.group_pace_needed) to if (report.teaching > 0) report.rate.fixed2() else "—")
             val colors = listOf(Pacer.colors.tileSky, Pacer.colors.tileLilac, Pacer.colors.tileMint)
             if (fontScale >= 2f || maxWidth < 360.dp - Space.l * 2) {
                 Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                    figures.forEachIndexed { i, stat -> StatTile(stat.first, stat.second, Modifier.fillMaxWidth(), color = colors[i], unit = if (i == 2) "pp/lesson" else null) }
+                    figures.forEachIndexed { i, stat -> StatTile(stat.first, stat.second, Modifier.fillMaxWidth(), color = colors[i], unit = if (i == 2) stringResource(R.string.group_pace_unit) else null) }
                 }
             } else Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                figures.forEachIndexed { i, stat -> StatTile(stat.first, stat.second, Modifier.weight(1f), color = colors[i], unit = if (i == 2) "pp/lesson" else null) }
+                figures.forEachIndexed { i, stat -> StatTile(stat.first, stat.second, Modifier.weight(1f), color = colors[i], unit = if (i == 2) stringResource(R.string.group_pace_unit) else null) }
             }
         }
         when (verdict) {
-            is Verdict.Short -> VerdictBox("Short by ${verdict.by.fixed2()} lessons at ${verdict.sustain.plain()} pages each. Finishing needs ${verdict.needRate.fixed2()} per lesson, or ${verdict.cutPages} fewer pages.", true)
+            is Verdict.Short -> VerdictBox(stringResource(R.string.group_verdict_short, verdict.by.fixed2(), verdict.sustain.plain(), verdict.needRate.fixed2(), verdict.cutPages), true)
             is Verdict.Fits -> Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                Tag("On track")
-                VerdictBox("Fits, with ${verdict.spare.fixed2()} lessons to spare at ${verdict.sustain.plain()} pages each.", false)
+                Tag(stringResource(R.string.group_on_track))
+                VerdictBox(stringResource(R.string.group_verdict_fits, verdict.spare.fixed2(), verdict.sustain.plain()), false)
             }
-            null -> Hint(if (report.teaching == 0) "No teaching lessons to measure yet." else "Set a sustainable pace on the class screen to see the verdict.")
+            null -> Hint(if (report.teaching == 0) stringResource(R.string.group_no_measure) else stringResource(R.string.group_set_pace))
         }
-        MoreOptions("More details") {
-            Stat("Heaviest lesson", "${report.peak}")
-            Stat("Contact hours", String.format(Locale.US, "%.1f", report.lessons.size * plan.mins / 60.0))
-            Stat("Pages banked as homework", "${report.banked}")
-            Stat("Blocked lessons", "${report.blocked}")
-            if (report.blocked > 0) Hint("${report.blocked} lessons go to tests or worksheets; pages spread over ${report.teaching} lessons.")
+        MoreOptions(stringResource(R.string.group_details)) {
+            Stat(stringResource(R.string.group_peak), "${report.peak}")
+            Stat(stringResource(R.string.group_hours), String.format(Locale.US, "%.1f", report.lessons.size * plan.mins / 60.0))
+            Stat(stringResource(R.string.group_banked), "${report.banked}")
+            Stat(stringResource(R.string.group_blocked_lessons), "${report.blocked}")
+            if (report.blocked > 0) Hint(pluralStringResource(R.plurals.group_blocked, report.blocked, report.blocked, pluralStringResource(R.plurals.group_teaching_count, report.teaching, report.teaching)))
             MonthBars(report)
         }
         if (plan.books.isNotEmpty()) Positions(report, vm)
@@ -451,7 +458,7 @@ fun Stat(k: String, v: String, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(k, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
         // A stat tile's figure (§6): mono in titleLarge, which is already SemiBold.
-        Text(v, style = MaterialTheme.typography.titleLarge, fontFamily = Mono)
+        AnimatedFigure(v, style = MaterialTheme.typography.titleLarge.copy(fontFamily = Mono))
     }
 }
 
@@ -472,23 +479,25 @@ private fun VerdictBox(text: String, bad: Boolean) {
 private fun Positions(report: GroupReport, vm: PacerViewModel) {
     var bookId by rememberSaveable(report.group.id) { mutableStateOf<String?>(null) }
     val book = report.plan.books.firstOrNull { it.id == bookId }
-    Section("Books") {
+    Section(stringResource(R.string.group_books)) {
         report.plan.books.forEachIndexed { i, b ->
             val st = report.bookStats[i]
             Row(Modifier.fillMaxWidth().clickable { bookId = b.id }.padding(vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(AppIcons.Book)
+                Spacer(Modifier.width(Space.s))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     Text(b.name, style = MaterialTheme.typography.titleMedium)
-                    Text("Resume p. ${position(report.group, b)} · ${st.pages} left · ${if (st.lessons > 0) st.rate.fixed2() else "—"} per lesson", style = MaterialTheme.typography.bodyMedium)
-                    b.due?.let { Tag(if (st.crammed) { if (it.isBefore(report.group.from ?: report.plan.start ?: LocalDate.now())) "Due passed" else "No lesson before due" } else "By ${it.fmtShort()}", warn = st.crammed) }
+                    Text(pluralStringResource(R.plurals.group_book_summary, st.pages, position(report.group, b), st.pages, if (st.lessons > 0) st.rate.fixed2() else "—"), style = MaterialTheme.typography.bodyMedium)
+                    b.due?.let { Tag(if (st.crammed) { if (it.isBefore(report.group.from ?: report.plan.start ?: LocalDate.now())) stringResource(R.string.group_due_passed) else stringResource(R.string.group_no_before_due) } else stringResource(R.string.group_due, it.fmtShort()), warn = st.crammed) }
                 }
             }
             if (i < report.plan.books.lastIndex) HorizontalDivider(Modifier.padding(horizontal = Space.l), color = Pacer.colors.line)
         }
     }
     if (book != null) {
-        SheetFrame("${book.name} · position", "Done", true, {}, { bookId = null }) {
-            Hint("The next page to teach. Updating it redistributes the remaining pages over future lessons.")
-            IntField(position(report.group, book), { vm.setPosition(report.group.id, book.id, it) }, "Resume at page", Modifier.fillMaxWidth(), min = book.first, max = MAX_PAGE + 1)
+        SheetFrame(stringResource(R.string.group_position, book.name), stringResource(R.string.group_done), true, {}, { bookId = null }) {
+            Hint(stringResource(R.string.group_position_hint))
+            IntField(position(report.group, book), { vm.setPosition(report.group.id, book.id, it) }, stringResource(R.string.group_resume), Modifier.fillMaxWidth(), min = book.first, max = MAX_PAGE + 1)
         }
     }
 }
@@ -506,7 +515,7 @@ private fun MonthBars(report: GroupReport) {
                     Box(Modifier.fillMaxHeight().fillMaxWidth(n.toFloat() / max).background(MaterialTheme.colorScheme.primary))
                 }
                 Spacer(Modifier.width(Space.s))
-                Text("$n", style = MaterialTheme.typography.labelSmall, fontFamily = Mono, color = Pacer.colors.muted, textAlign = TextAlign.End, modifier = Modifier.width(22.dp))
+                AnimatedFigure(n.toString(), style = MaterialTheme.typography.labelSmall.copy(fontFamily = Mono), color = Pacer.colors.muted, modifier = Modifier.width(22.dp))
             }
         }
     }

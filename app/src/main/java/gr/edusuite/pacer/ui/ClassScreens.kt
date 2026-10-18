@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Switch
@@ -25,6 +26,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import gr.edusuite.pacer.R
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import gr.edusuite.pacer.engine.GroupReport
@@ -34,7 +39,6 @@ import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.lessonsFor
 import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.parseRanges
-import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Group
@@ -46,6 +50,7 @@ import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
+import java.time.DayOfWeek
 
 /**
  * The scrolling body every class-editing screen shares, with the problems this screen fixes on top.
@@ -66,6 +71,7 @@ private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: Pa
 /** The open class: its name, lesson length and pace, books and groups, with tests and homework a tap away. */
 @Composable
 fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
+    val context = LocalContext.current
     var addingBook by rememberSaveable { mutableStateOf(false) }
     var settings by rememberSaveable { mutableStateOf<String?>(null) }
     // A new class has a group but no books; the card replaces the red "Add at least one book." problem.
@@ -78,68 +84,67 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
         when (hide) {
             NO_BOOKS -> item(key = "guide") {
                 GuideCard(
-                    "Add the books you teach from",
-                    "Add each coursebook with its first and last page, like Student's Book pp. 1–160. Each book is paced on its own. " +
-                        "Then check each group's lesson days below and tap Open schedule.",
-                    action = "Add a book" to { addingBook = true },
+                    stringResource(R.string.class_add_the_books_you_teach_from),
+                    stringResource(R.string.class_book_guide),
+                    action = stringResource(R.string.class_add_a_book) to { addingBook = true },
                 )
             }
             NO_GROUPS -> item(key = "guide") {
                 GuideCard(
-                    "Add a group",
-                    "A group is a set of students taught from these books, with its own lesson days and place in the books.",
-                    action = "Add group" to vm::addGroup,
+                    stringResource(R.string.class_add_a_group),
+                    stringResource(R.string.class_a_group_is_a_set_of_students_taught_from_these_books_with_it),
+                    action = stringResource(R.string.class_add_group) to vm::addGroup,
                 )
             }
         }
         item(key = "class") {
-            Section("Class") {
-                LinkRow("Name", plan.name) { settings = "name" }
-                LinkRow("Lessons", "${plan.mins} min · ${plan.pace} pages per lesson") { settings = "lessons" }
+            Section(stringResource(R.string.class_class)) {
+                LinkRow(stringResource(R.string.class_name), plan.name) { settings = "name" }
+                LinkRow(stringResource(R.string.class_lessons), stringResource(R.string.class_lesson_settings, plan.mins, plan.pace)) { settings = "lessons" }
             }
         }
 
         item(key = "books") {
-            Section("Books", trailing = { TertiaryButton("Add", { addingBook = true }) }) {
-                Hint("Each book is paced on its own. Skipped pages apply to every group; homework applies to one group.")
-                if (plan.books.isEmpty()) Hint("No books yet.")
+            Section(stringResource(R.string.class_books), trailing = { TertiaryButton(stringResource(R.string.class_add), { addingBook = true }) }) {
+                Hint(stringResource(R.string.class_each_book_is_paced_on_its_own_skipped_pages_apply_to_every_g))
+                if (plan.books.isEmpty()) Hint(stringResource(R.string.class_no_books_yet))
                 TileGrid(plan.books) { book, modifier -> BookEditor(book, vm, undoToast, modifier) }
             }
         }
         item(key = "groups") {
-            Section("Groups", trailing = { TertiaryButton("Add", vm::addGroup) }) {
-                if (plan.groups.isEmpty()) Hint("Add a group for each set of students taught from these books.")
+            Section(stringResource(R.string.class_groups), trailing = { TertiaryButton(stringResource(R.string.class_add), vm::addGroup) }) {
+                if (plan.groups.isEmpty()) Hint(stringResource(R.string.class_add_a_group_for_each_set_of_students_taught_from_these_books))
                 TileGrid(plan.groups) { group, modifier -> GroupEditor(plan, group, vm, undoToast, modifier) }
             }
         }
 
         item(key = "more") {
-            Section("Tests and homework") {
+            Section(stringResource(R.string.class_tests_and_homework)) {
                 Column {
-                    LinkRow("Tests & worksheets", count(plan.events.size, "entry", "entries", "None scheduled")) { vm.open(Screen.Tests) }
-                    LinkRow("Homework already assigned", count(plan.homework.size, "assignment", none = "Nothing assigned")) { vm.open(Screen.Homework) }
+                    LinkRow(stringResource(R.string.class_tests_worksheets), pluralStringResource(R.plurals.class_entries, plan.events.size, plan.events.size)) { vm.open(Screen.Tests) }
+                    LinkRow(stringResource(R.string.class_homework_already_assigned), pluralStringResource(R.plurals.class_assignments, plan.homework.size, plan.homework.size)) { vm.open(Screen.Homework) }
                 }
             }
         }
         item(key = "delete") {
             MoreOptions {
-                TertiaryButton("Reset all positions", {
-                    vm.resetPositions(); undoToast("Positions reset")
+                TertiaryButton(stringResource(R.string.class_reset_all_positions), {
+                    vm.resetPositions(); undoToast(context.getString(R.string.class_positions_reset))
                 }, enabled = plan.groups.isNotEmpty(), color = Pacer.colors.warn)
-                TertiaryButton("Delete this class", {
-                    val name = plan.name.ifBlank { "Class" }
-                    vm.deleteClass(); undoToast("Deleted “$name”")
+                TertiaryButton(stringResource(R.string.class_delete_this_class), {
+                    val name = plan.name.ifBlank { context.getString(R.string.class_class) }
+                    vm.deleteClass(); undoToast(context.getString(R.string.class_deleted, name))
                 }, color = Pacer.colors.warn)
             }
         }
     }
-    if (settings != null) SheetFrame("Class settings", "Done", true, {}, { settings = null }) {
+    if (settings != null) SheetFrame(stringResource(R.string.class_class_settings), stringResource(R.string.class_done), true, {}, { settings = null }) {
         when (settings) {
-            "name" -> CommitField(plan.name, vm::renameClass, "Name", Modifier.fillMaxWidth())
+            "name" -> CommitField(plan.name, vm::renameClass, stringResource(R.string.class_name), Modifier.fillMaxWidth())
             "lessons" -> {
-                IntField(plan.mins, vm::setMins, "Lesson length (min)", Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
+                IntField(plan.mins, vm::setMins, stringResource(R.string.class_lesson_length_min), Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
                 PaceField(plan.pace, vm::setPace, Modifier.fillMaxWidth())
-                Hint("Pages per lesson is the benchmark the verdict measures against; it does not drive the schedule.")
+                Hint(stringResource(R.string.class_pages_per_lesson_is_the_benchmark_the_verdict_measures_again))
             }
         }
     }
@@ -153,26 +158,32 @@ private const val NO_GROUPS = "Add at least one group."
 
 @Composable
 private fun GroupEditor(plan: Plan, g: Group, vm: PacerViewModel, undoToast: (String) -> Unit, modifier: Modifier = Modifier) {
-    val name = g.name.ifBlank { "Group" }
+    val context = LocalContext.current
+    val fallbackName = stringResource(R.string.class_group)
+    val name = g.name.ifBlank { fallbackName }
     // Its ticked lessons, homework, and the days off and tests aimed only at it go too; Undo brings them back.
     var editing by rememberSaveable(g.id) { mutableStateOf(false) }
     val report = remember(plan, g) { GroupReport(plan, g) }
     Tile(Pacer.colors.tileLilac, modifier, onClick = { vm.open(Screen.Group(g.id)) }) {
+        AppIcon(AppIcons.Groups)
         Text(name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-        Text("${report.rows.size} lessons left" + (report.rows.firstOrNull()?.date?.let { " · next ${it.dayOfWeek.short()} ${it.fmtShort()}" } ?: ""), style = MaterialTheme.typography.bodyMedium)
-        Text(g.days.sortedBy { it.value }.joinToString(" · ") { it.short() }, color = Pacer.colors.onTileMuted)
-        SecondaryButton("Edit", { editing = true })
+        AnimatedFigure(report.rows.size.toString())
+        Text(pluralStringResource(R.plurals.class_lessons_unit, report.rows.size) + (report.rows.firstOrNull()?.date?.let { stringResource(R.string.class_next_suffix, stringResource(classDayResource(it.dayOfWeek)), it.fmtShort()) } ?: ""), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
+        val separator = stringResource(R.string.class_day_separator)
+        Text(g.days.sortedBy { it.value }.joinToString(separator) { day -> context.getString(classDayResource(day)) }, color = Pacer.colors.onTileMuted)
+        SecondaryButton(stringResource(R.string.class_edit), { editing = true })
     }
-    if (editing) SheetFrame(name, "Done", true, {}, { editing = false }) {
-        GroupFields(plan, g, vm) { editing = false; vm.removeGroup(g.id); undoToast("Removed “$name”") }
+    if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
+        GroupFields(plan, g, vm) { editing = false; vm.removeGroup(g.id); undoToast(context.getString(R.string.class_removed, name)) }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, onRemove: () -> Unit) {
+    val segmentHaptic = rememberSegmentHaptic()
     Row(verticalAlignment = Alignment.CenterVertically) {
-        CommitField(g.name, { vm.renameGroup(g.id, it) }, "Name", Modifier.weight(1f))
+        CommitField(g.name, { vm.renameGroup(g.id, it) }, stringResource(R.string.class_name), Modifier.weight(1f))
 
     }
     // Seven chips need about 330dp; the row wraps its last chips on very narrow phones.
@@ -180,8 +191,8 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
         WEEK.forEach { day ->
             FilterChip(
                 selected = day in g.days,
-                onClick = { vm.toggleDay(g.id, day) },
-                label = { Text(day.short()) },
+                onClick = { segmentHaptic(); vm.toggleDay(g.id, day) },
+                label = { Text(stringResource(classDayResource(day))) },
                 shape = MaterialTheme.shapes.extraSmall,
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -192,12 +203,15 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
     }
     val lessons = remember(plan, g) { plan.lessonsFor(g) }
     // The first lesson still to teach; once lessons are ticked, the stored date is the day after the last one taught.
-    DateField(lessons.firstOrNull() ?: g.from ?: plan.start, { vm.setNextLesson(g.id, it) }, "Next lesson", Modifier.fillMaxWidth())
-    MoreOptions { TertiaryButton("Remove group", onRemove, color = Pacer.colors.warn) }
+    DateField(lessons.firstOrNull() ?: g.from ?: plan.start, { vm.setNextLesson(g.id, it) }, stringResource(R.string.class_next_lesson), Modifier.fillMaxWidth())
+    MoreOptions { TertiaryButton(stringResource(R.string.class_remove_group), onRemove, color = Pacer.colors.warn) }
     val count = lessons.size
     Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        Hint("$count ${if (count == 1) "lesson" else "lessons"} left")
-        TextButton(onClick = { vm.open(Screen.Group(g.id)) }) { Text("Open schedule ›") }
+        AnimatedFigure(pluralStringResource(R.plurals.class_lessons_left, count, count), style = MaterialTheme.typography.bodyMedium)
+        TextButton(onClick = { vm.open(Screen.Group(g.id)) }) {
+            AppIcon(AppIcons.ChevronRight)
+            Text(stringResource(R.string.class_open_schedule))
+        }
     }
 }
 
@@ -208,39 +222,41 @@ fun TestsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
     val lessonDays = remember(plan) { plan.groups.associate { g -> g.id to (plan.lessonsFor(g) + g.done.map { it.date }).toHashSet() } }
     EditList(plan, Screen.Tests, vm, padding) {
         if (plan.events.isEmpty()) item(key = "empty") {
-            EmptyState("✎", "No tests yet", "Plan a test or worksheet for your next lesson.", "Add a test") { adding = true }
+            EmptyState(AppIcons.Tests, stringResource(R.string.class_no_tests_yet), stringResource(R.string.class_plan_a_test_or_worksheet_for_your_next_lesson), stringResource(R.string.class_add_a_test)) { adding = true }
         }
         item(key = "upcoming") {
-            Section("Upcoming") {
+            Section(stringResource(R.string.class_upcoming), modifier = Modifier.animateItem()) {
                 val upcoming = plan.events.filter { it.date >= today }.sortedBy { it.date }
-                if (upcoming.isEmpty() && plan.events.isNotEmpty()) Hint("No upcoming tests.")
+                if (upcoming.isEmpty() && plan.events.isNotEmpty()) Hint(stringResource(R.string.class_no_upcoming_tests))
                 upcoming.forEach { TestRow(plan, it, lessonDays, vm, undoToast) }
             }
         }
         val past = plan.events.filter { it.date < today }.sortedByDescending { it.date }
         if (past.isNotEmpty()) item(key = "past") {
-            MoreOptions("Past tests (${past.size})") { past.forEach { TestRow(plan, it, lessonDays, vm, undoToast) } }
+            MoreOptions(pluralStringResource(R.plurals.class_past_tests, past.size, past.size), modifier = Modifier.animateItem()) { past.forEach { TestRow(plan, it, lessonDays, vm, undoToast) } }
         }
-        item(key = "add") { PrimaryButton("Add a test", { adding = true }) }
+        item(key = "add") { PrimaryButton(stringResource(R.string.class_add_a_test), { adding = true }) }
     }
     if (adding) AddEventDialog(plan, vm) { adding = false }
 }
 
 @Composable
 private fun TestRow(plan: Plan, event: TestEvent, lessonDays: Map<String, Set<LocalDate>>, vm: PacerViewModel, undoToast: (String) -> Unit) {
-    val title = event.name.ifBlank { "Test" }
-    val group = if (event.who == ALL_GROUPS) "All groups" else plan.groups.firstOrNull { it.id == event.who }?.name ?: "Group"
+    val context = LocalContext.current
+    val fallbackName = stringResource(R.string.class_test)
+    val title = event.name.ifBlank { fallbackName }
+    val group = if (event.who == ALL_GROUPS) stringResource(R.string.class_all_groups) else plan.groups.firstOrNull { it.id == event.who }?.name ?: stringResource(R.string.class_group)
     val hit = plan.groups.any { (event.who == ALL_GROUPS || event.who == it.id) && event.date in lessonDays[it.id].orEmpty() }
-    val remove = { vm.removeEvent(event.id); undoToast("Removed “$title”") }
+    val remove = { vm.removeEvent(event.id); undoToast(context.getString(R.string.class_removed, title)) }
     SwipeRow(title, remove) {
         ListGroup {
             Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 DateBadge(event.date)
                 Text(title, style = MaterialTheme.typography.titleMedium)
-                Text("${event.date.dayOfWeek.short()} ${event.date.fmtShort()} · " + if (event.consumes) "takes the lesson" else "alongside the lesson", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.class_test_detail, stringResource(classDayResource(event.date.dayOfWeek)), event.date.fmtShort(), if (event.consumes) stringResource(R.string.class_takes_lesson) else stringResource(R.string.class_alongside_lesson)), style = MaterialTheme.typography.bodyMedium)
                 Tag(group)
-                if (!hit) Tag("Not a lesson day", warn = true)
-                TertiaryButton("Remove test", remove)
+                if (!hit) Tag(stringResource(R.string.class_not_a_lesson_day), warn = true)
+                TertiaryButton(stringResource(R.string.class_remove_test), remove)
             }
         }
     }
@@ -248,75 +264,78 @@ private fun TestRow(plan: Plan, event: TestEvent, lessonDays: Map<String, Set<Lo
 
 @Composable
 private fun BookEditor(b: Book, vm: PacerViewModel, undoToast: (String) -> Unit, modifier: Modifier = Modifier) {
-    val name = b.name.ifBlank { "Book" }
+    val context = LocalContext.current
+    val fallbackName = stringResource(R.string.class_book)
+    val name = b.name.ifBlank { fallbackName }
     // Its positions, homework and the pages ticked lessons recorded in it go too; Undo brings them back.
     var editing by rememberSaveable(b.id) { mutableStateOf(false) }
     val skipped = remember(b) { parseRanges(b.skip).count { it in b.first..b.last } }
     Tile(Pacer.colors.tileSky, modifier, onClick = { editing = true }) {
+        AppIcon(AppIcons.Book)
         Text(name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-        Text("pp. ${b.first}–${b.last}", style = MaterialTheme.typography.titleMedium, fontFamily = Mono)
-        Text("${maxOf(0, b.last - b.first + 1 - skipped)} teachable pages", color = Pacer.colors.onTileMuted)
-        if (b.skip.isNotBlank()) Tag("$skipped skipped", onTile = true)
-        b.due?.let { Tag("by ${it.fmtShort()}", onTile = true) }
+        Text(stringResource(R.string.class_page_range, b.first, b.last), style = MaterialTheme.typography.titleMedium)
+        Text(pluralStringResource(R.plurals.class_teachable, maxOf(0, b.last - b.first + 1 - skipped), maxOf(0, b.last - b.first + 1 - skipped)), color = Pacer.colors.onTileMuted)
+        if (b.skip.isNotBlank()) Tag(pluralStringResource(R.plurals.class_skipped, skipped, skipped), onTile = true)
+        b.due?.let { Tag(stringResource(R.string.class_due_by, it.fmtShort()), onTile = true) }
     }
-    if (editing) SheetFrame(name, "Done", true, {}, { editing = false }) {
-        BookFields(b, vm) { editing = false; vm.removeBook(b.id); undoToast("Removed “$name”") }
+    if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
+        BookFields(b, vm) { editing = false; vm.removeBook(b.id); undoToast(context.getString(R.string.class_removed, name)) }
     }
 }
 
 @Composable
 private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        CommitField(b.name, { vm.renameBook(b.id, it) }, "Title", Modifier.weight(1f))
+        CommitField(b.name, { vm.renameBook(b.id, it) }, stringResource(R.string.class_title), Modifier.weight(1f))
 
     }
     Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
-        IntField(b.first, { vm.setFirstPage(b.id, it) }, "First page", Modifier.fillMaxWidth(), max = MAX_PAGE)
-        IntField(b.last, { vm.setLastPage(b.id, it) }, "Last page", Modifier.fillMaxWidth(), max = MAX_PAGE)
+        IntField(b.first, { vm.setFirstPage(b.id, it) }, stringResource(R.string.class_first_page), Modifier.fillMaxWidth(), max = MAX_PAGE)
+        IntField(b.last, { vm.setLastPage(b.id, it) }, stringResource(R.string.class_last_page), Modifier.fillMaxWidth(), max = MAX_PAGE)
     }
     MoreOptions {
-        CommitField(b.skip, { vm.setSkip(b.id, it) }, "Skip pages", Modifier.fillMaxWidth(), placeholder = "8, 24–27")
-        DateField(b.due, { vm.setDue(b.id, it) }, "Finish by", Modifier.fillMaxWidth(), clearable = true)
-        if (b.due != null) Hint("Only this book re-paces. The others keep their own rate.")
-        TertiaryButton("Remove book", onRemove, color = Pacer.colors.warn)
+        CommitField(b.skip, { vm.setSkip(b.id, it) }, stringResource(R.string.class_skip_pages), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_8_24_27))
+        DateField(b.due, { vm.setDue(b.id, it) }, stringResource(R.string.class_finish_by), Modifier.fillMaxWidth(), clearable = true)
+        if (b.due != null) Hint(stringResource(R.string.class_only_this_book_re_paces_the_others_keep_their_own_rate))
+        TertiaryButton(stringResource(R.string.class_remove_book), onRemove, color = Pacer.colors.warn)
     }
     val skipN = remember(b.skip, b.first, b.last) { parseRanges(b.skip).count { it in b.first..b.last } }
     Text(
-        "pp. ${b.first}–${b.last} · ${maxOf(0, b.last - b.first + 1 - skipN)} teachable" +
-            if (skipN > 0) " ($skipN skipped)" else "",
+        stringResource(R.string.class_book_summary, stringResource(R.string.class_page_range, b.first, b.last), pluralStringResource(R.plurals.class_teachable, maxOf(0, b.last - b.first + 1 - skipN), maxOf(0, b.last - b.first + 1 - skipN))),
         style = MaterialTheme.typography.bodySmall, fontFamily = Mono, color = Pacer.colors.muted,
     )
 }
 
 @Composable
 fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
+    val context = LocalContext.current
     var adding by rememberSaveable { mutableStateOf(false) }
     EditList(plan, Screen.Homework, vm, padding) {
         item(key = "hint") {
-            Hint("Pages set for homework leave the classroom sequence. The rest re-spread, so the pace eases and the books still finish together.")
+            Hint(stringResource(R.string.class_pages_set_for_homework_leave_the_classroom_sequence_the_rest))
         }
         if (plan.homework.isEmpty()) item(key = "empty") {
-            EmptyState("+", "No homework assigned", "Assign pages to ease the classroom pace.",
-                if (plan.groups.isNotEmpty() && plan.books.isNotEmpty()) "Add homework" else null,
+            EmptyState(AppIcons.Homework, stringResource(R.string.class_no_homework_assigned), stringResource(R.string.class_assign_pages_to_ease_the_classroom_pace),
+                if (plan.groups.isNotEmpty() && plan.books.isNotEmpty()) stringResource(R.string.class_add_homework) else null,
                 if (plan.groups.isNotEmpty() && plan.books.isNotEmpty()) ({ adding = true }) else null)
         }
         plan.homework.groupBy { it.groupId }.forEach { (groupId, assignments) ->
             item(key = "group:$groupId") {
-                Section(plan.groups.firstOrNull { it.id == groupId }?.name ?: "Group") {
+                Section(plan.groups.firstOrNull { it.id == groupId }?.name ?: stringResource(R.string.class_group), modifier = Modifier.animateItem()) {
                     assignments.sortedBy { it.setOn ?: LocalDate.MIN }.forEach { h ->
-                        val book = plan.books.firstOrNull { it.id == h.bookId }?.name ?: "Book"
+                        val book = plan.books.firstOrNull { it.id == h.bookId }?.name ?: stringResource(R.string.class_book)
                         val n = h.to - h.from + 1
-                        val title = "$book pp. ${h.from}" + if (h.to != h.from) "–${h.to}" else ""
-                        val detail = "$n ${if (n == 1) "page" else "pages"}" + (h.setOn?.let { " · set ${it.fmtShort()}" } ?: "")
-                        val remove = { vm.removeHomework(h.id); undoToast("Removed “$title”") }
+                        val title = stringResource(R.string.class_homework_pages, book, h.from, h.to)
+                        val detail = pluralStringResource(R.plurals.class_pages, n, n) + (h.setOn?.let { stringResource(R.string.class_set_suffix, it.fmtShort()) } ?: "")
+                        val remove = { vm.removeHomework(h.id); undoToast(context.getString(R.string.class_removed, title)) }
                         SwipeRow(title, remove) { ListItemRow(title, detail, onRemove = remove) }
                     }
                 }
             }
         }
         item(key = "add") {
-            if (plan.groups.isEmpty() || plan.books.isEmpty()) Hint("Add a group and a book first.")
-            else PrimaryButton("Add homework", { adding = true })
+            if (plan.groups.isEmpty() || plan.books.isEmpty()) Hint(stringResource(R.string.class_add_a_group_and_a_book_first))
+            else PrimaryButton(stringResource(R.string.class_add_homework), { adding = true })
         }
     }
     if (adding) AddHomeworkDialog(plan, vm) { adding = false }
@@ -324,31 +343,34 @@ fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoT
 
 // ---- add dialogs and sheets ---------------------------------------------------------
 
+@Composable
 private fun whoOptions(plan: Plan, allFirst: Boolean): List<Pair<String, String>> {
     val groups = plan.groups.map { it.id to it.name }
-    val all = ALL_GROUPS to "All groups"
-    return if (allFirst) listOf(all) + groups.map { it.first to "${it.second} only" } else groups + all
+    val all = ALL_GROUPS to stringResource(R.string.class_all_groups)
+    return if (allFirst) listOf(all) + groups else groups + all
 }
 
 @Composable
 private fun AddEventDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit) {
+    val toggleHaptic = rememberToggleHaptic()
     var name by rememberSaveable { mutableStateOf("") }
     var dateText by rememberSaveable { mutableStateOf(plan.groups.firstOrNull()?.let { GroupReport(plan, it).rows.firstOrNull()?.date }?.toString()) }
     val date = dateText?.let(LocalDate::parse)
     var who by rememberSaveable { mutableStateOf(plan.groups.firstOrNull()?.id ?: ALL_GROUPS) }
     var consumes by rememberSaveable { mutableStateOf(true) }
-    SheetFrame("Add a test or worksheet", "Add", date != null, { vm.addEvent(name.trim(), date!!, who, consumes) }, onDismiss) {
-        CommitField(name, { name = it }, "Name", placeholder = "Unit 3 test")
-        Picker("Group", whoOptions(plan, allFirst = false), who, { selected ->
+    SheetFrame(stringResource(R.string.class_add_a_test_or_worksheet), stringResource(R.string.class_add), date != null, { vm.addEvent(name.trim(), date!!, who, consumes) }, onDismiss) {
+        CommitField(name, { name = it }, stringResource(R.string.class_name), placeholder = stringResource(R.string.class_unit_3_test))
+        Picker(stringResource(R.string.class_group), whoOptions(plan, allFirst = false), who, { selected ->
             who = selected
             dateText = plan.groups.filter { selected == ALL_GROUPS || it.id == selected }
                 .mapNotNull { GroupReport(plan, it).rows.firstOrNull()?.date }.minOrNull()?.toString()
         })
-        DateField(date, { dateText = it?.toString() }, "Date")
+        DateField(date, { dateText = it?.toString() }, stringResource(R.string.class_date))
         MoreOptions {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
-                Text("Takes the whole lesson", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                Switch(checked = consumes, onCheckedChange = { consumes = it })
+                Text(stringResource(R.string.class_takes_the_whole_lesson), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                Switch(checked = consumes, onCheckedChange = { toggleHaptic(it); consumes = it },
+                    thumbContent = { AppIcon(if (consumes) AppIcons.Check else AppIcons.Close, Modifier.size(Space.l)) })
             }
         }
     }
@@ -360,13 +382,14 @@ private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
     var first by rememberSaveable { mutableStateOf("1") }
     var last by rememberSaveable { mutableStateOf("") }
     val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
-    SheetFrame("Add a book", "Add", lastN != null, {
+    SheetFrame(stringResource(R.string.class_add_a_book), stringResource(R.string.class_add), lastN != null, {
         vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!)
     }, onDismiss) {
-        CommitField(name, { name = it }, "Title", Modifier.fillMaxWidth(), placeholder = "Companion")
+        CommitField(name, { name = it }, stringResource(R.string.class_title), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_companion))
         Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
-            CommitField(first, { first = it }, "First page", Modifier.fillMaxWidth(), numeric = true)
-            CommitField(last, { last = it }, "Last page", Modifier.fillMaxWidth(), numeric = true)
+            CommitField(first, { first = it }, stringResource(R.string.class_first_page), Modifier.fillMaxWidth(), numeric = true)
+            CommitField(last, { last = it }, stringResource(R.string.class_last_page), Modifier.fillMaxWidth(), numeric = true,
+                error = last.isNotBlank() && lastN == null, errorMessage = stringResource(R.string.component_integer_range, 1, MAX_PAGE))
         }
     }
 }
@@ -386,15 +409,27 @@ private fun AddHomeworkDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> U
     val setOn = setOnText?.let(LocalDate::parse)
     val fromN = from.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
     val toN = to.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: fromN
-    SheetFrame("Add homework", "Add", fromN != null && group != null && book != null, {
+    SheetFrame(stringResource(R.string.class_add_homework), stringResource(R.string.class_add), fromN != null && group != null && book != null, {
         vm.addHomework(group!!, book!!, fromN!!, toN!!, setOn)
     }, onDismiss) {
-        Picker("Group", plan.groups.map { it.id to it.name }, group, { group = it; from = currentPage(); to = "" })
-        Picker("Book", plan.books.map { it.id to it.name }, book, { book = it; from = currentPage(); to = "" })
+        Picker(stringResource(R.string.class_group), plan.groups.map { it.id to it.name }, group, { group = it; from = currentPage(); to = "" })
+        Picker(stringResource(R.string.class_book), plan.books.map { it.id to it.name }, book, { book = it; from = currentPage(); to = "" })
         Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
-            CommitField(from, { from = it }, "From p.", Modifier.fillMaxWidth(), numeric = true)
-            CommitField(to, { to = it }, "To p.", Modifier.fillMaxWidth(), numeric = true)
+            CommitField(from, { from = it }, stringResource(R.string.class_from_p), Modifier.fillMaxWidth(), numeric = true,
+                error = from.isNotBlank() && fromN == null, errorMessage = stringResource(R.string.component_integer_range, 1, MAX_PAGE))
+            CommitField(to, { to = it }, stringResource(R.string.class_to_p), Modifier.fillMaxWidth(), numeric = true)
         }
-        MoreOptions { DateField(setOn, { setOnText = it?.toString() }, "Set on (optional)", clearable = true) }
+        MoreOptions { DateField(setOn, { setOnText = it?.toString() }, stringResource(R.string.class_set_on_optional), clearable = true) }
     }
+}
+
+/** Resource ids keep weekday labels localised without changing the stored weekday convention. */
+private fun classDayResource(day: DayOfWeek): Int = when (day) {
+    DayOfWeek.MONDAY -> R.string.class_monday
+    DayOfWeek.TUESDAY -> R.string.class_tuesday
+    DayOfWeek.WEDNESDAY -> R.string.class_wednesday
+    DayOfWeek.THURSDAY -> R.string.class_thursday
+    DayOfWeek.FRIDAY -> R.string.class_friday
+    DayOfWeek.SATURDAY -> R.string.class_saturday
+    DayOfWeek.SUNDAY -> R.string.class_sunday
 }
