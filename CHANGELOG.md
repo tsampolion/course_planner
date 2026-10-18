@@ -22,6 +22,14 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-10-18
+
+### Changed
+
+- Home no longer ends with a floating *part of EduSuite apps* line; Settings → About already says the app is part of the EduSuite apps.
+- The EduSuite style guide describes a Home tile grid whose column count follows the screen width, with tiles gliding to new places when it changes, and keeps the suite line in Settings → About. The grid itself follows in 2.5.0.
+- Design spec and implementation plan for the Home and Settings rework in `docs/superpowers/`.
+
 ## [2.4.0] - 2026-10-17
 
 ### Changed
@@ -356,7 +364,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.4.1...HEAD
+[2.4.1]: https://github.com/tsampolion/course_planner/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/tsampolion/course_planner/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/tsampolion/course_planner/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/tsampolion/course_planner/compare/v2.1.0...v2.2.0
