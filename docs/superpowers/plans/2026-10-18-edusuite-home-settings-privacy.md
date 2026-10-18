@@ -40,12 +40,24 @@
   - Home: the Statements tile subtitle reads `N overdue` in red with an `Overdue` warning chip, and a warning banner above the grid says `N statements overdue · View`.
   - Students: rows with an overdue statement show an `Overdue` warning chip, and a banner says `N students have overdue statements`.
 - **E. Privacy (Invoicer, GDPR = Regulation (EU) 2016/679).** The teacher is the controller (Art. 4(7)). The app helps them comply and collects no more than it needs.
+  - **Statements are informational only** (D20, R14). They are not tax documents, and the tutor's fiscal receipts are issued outside the app. So no law requires keeping anything this app stores:
+    - the only legal basis is the lessons agreement, Art. 6(1)(b);
+    - retention is the tutor's own short rule;
+    - erasure must really remove the student's identity (no Art. 17(3)(b) exception).
+  - **Retention (owner's choice):** kept while lessons continue; after the last lesson, until everything is paid and for at most 12 months, then erased.
   1. **In-app notices.**
      - A hint on the student form: "Only what you need for lessons and billing. It stays on this device. Don't put health or other sensitive details in notes." Optional fields are labelled "(optional)".
      - A line on Statement details: "You are responsible for the personal data you keep here (GDPR). Share a privacy notice with your students."
      - A Settings → Privacy section with the same text, *Share privacy notice*, and a warning: "Backups are not encrypted: keep them somewhere only you can open."
   2. **Notice for parents.** An Art. 13 notice in English and Greek, filled from Statement details and shared as text through the share sheet. The fixed copy is below.
-  3. **Minimise and erase.** *Erase personal details* on a student clears class, guardian, phone, email and notes, archives them, and keeps the name only on lessons and statements already issued (Art. 17(3)(b)). *Delete* stays for students with no history (R6 unchanged).
+  3. **Minimise and erase.** *Erase student data* (owner's choice: anonymise):
+     - The student record becomes "Erased student", with class, guardian, phone, email and notes cleared, and is archived.
+     - Lesson notes and absence notes for that student are cleared.
+     - Every issued statement's frozen document has its `billTo` lines replaced by `Erased student`, keeping number, dates, lines and amounts. Numbering and past totals stay intact (R6).
+     - This is the one allowed change to an issued document (R12 exception, new rule R17).
+     - The 5 s Undo restores everything from an in-memory copy.
+     - Archived students whose last lesson is over 12 months ago and who owe nothing get a *Due for erasure* chip on Students.
+     - *Delete* stays for students with no history.
   4. **Export a student's data.** A JSON file with the student, their lessons and their statements, shared through the existing `FileProvider` (Art. 15, 20).
 
 ### Fixed copy: parent notice
@@ -62,13 +74,13 @@ What I keep
 The student's name and class, the guardian's name, the phone number and email you give me, the dates, length and fees of lessons, payments, and the statements I send you.
 
 Why, and on what legal basis
-To arrange and bill lessons, which is necessary for our agreement (GDPR Art. 6(1)(b)), and to keep the billing records the law requires (Art. 6(1)(c)).
+To arrange lessons and to let you know what they cost, which is necessary for our agreement (GDPR Art. 6(1)(b)). The statements I send are for your information only; they are not tax documents.
 
 Who receives it
-No one else. The data stays on my own device. It is not sent to any online service or outside the EU. I may show billing records to my accountant or the tax authority when the law requires it.
+No one else. The data stays on my own device and is not sent to any online service or outside the EU.
 
 How long
-While lessons continue, then for as long as Greek tax law requires me to keep billing records (generally five years from the end of the tax year). Contact details are erased when lessons end.
+While lessons continue. After the last lesson, until everything is paid and for no more than 12 months; then it is erased. Statements I have sent then keep only their number, dates and amounts, without your name.
 
 Your rights
 You may ask me for access to your data, its rectification or erasure, restriction of processing, to object to processing, and for a copy in a portable format (Art. 15–21), at the contact details above.
@@ -91,13 +103,13 @@ Names and lesson details are needed to arrange and bill lessons; phone, email an
 Το ονοματεπώνυμο και την τάξη του μαθητή, το όνομα του κηδεμόνα, το τηλέφωνο και το email που μου δίνετε, τις ημερομηνίες, τη διάρκεια και την αμοιβή των μαθημάτων, τις πληρωμές και τις καταστάσεις που σας στέλνω.
 
 Σκοπός και νομική βάση
-Η οργάνωση και η χρέωση των μαθημάτων, που είναι απαραίτητη για την εκτέλεση της συμφωνίας μας (άρθρο 6 παρ. 1 στοιχ. β ΓΚΠΔ), και η τήρηση των στοιχείων χρέωσης που επιβάλλει ο νόμος (άρθρο 6 παρ. 1 στοιχ. γ).
+Η οργάνωση των μαθημάτων και η ενημέρωσή σας για το κόστος τους, που είναι απαραίτητη για την εκτέλεση της συμφωνίας μας (άρθρο 6 παρ. 1 στοιχ. β ΓΚΠΔ). Οι καταστάσεις που σας στέλνω είναι μόνο ενημερωτικές· δεν αποτελούν φορολογικά παραστατικά.
 
 Αποδέκτες
-Κανείς άλλος. Τα δεδομένα βρίσκονται μόνο στη δική μου συσκευή. Δεν αποστέλλονται σε διαδικτυακή υπηρεσία ούτε εκτός ΕΕ. Μπορεί να τα δει ο λογιστής μου ή η φορολογική αρχή, όταν το απαιτεί ο νόμος.
+Κανείς άλλος. Τα δεδομένα βρίσκονται μόνο στη δική μου συσκευή και δεν αποστέλλονται σε διαδικτυακή υπηρεσία ούτε εκτός ΕΕ.
 
 Χρονικό διάστημα αποθήκευσης
-Όσο συνεχίζονται τα μαθήματα και στη συνέχεια για όσο διάστημα η ελληνική φορολογική νομοθεσία απαιτεί να τηρώ στοιχεία χρέωσης (κατά κανόνα πέντε έτη από τη λήξη του φορολογικού έτους). Τα στοιχεία επικοινωνίας διαγράφονται όταν τελειώσουν τα μαθήματα.
+Όσο συνεχίζονται τα μαθήματα. Μετά το τελευταίο μάθημα, έως ότου εξοφληθούν όλα και όχι περισσότερο από 12 μήνες· στη συνέχεια διαγράφονται. Οι καταστάσεις που σας έχω στείλει διατηρούν τότε μόνο τον αριθμό, τις ημερομηνίες και τα ποσά, χωρίς το όνομά σας.
 
 Τα δικαιώματά σας
 Έχετε δικαίωμα πρόσβασης στα δεδομένα σας, διόρθωσης ή διαγραφής τους, περιορισμού της επεξεργασίας, εναντίωσης στην επεξεργασία και φορητότητας των δεδομένων (άρθρα 15–21), στα παραπάνω στοιχεία επικοινωνίας.
@@ -111,8 +123,7 @@ Names and lesson details are needed to arrange and bill lessons; phone, email an
 **Sources:**
 - GDPR EN/EL official texts: [EUR-Lex EN](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679), [EUR-Lex EL](https://eur-lex.europa.eu/legal-content/EL/TXT/HTML/?uri=CELEX:32016R0679). The Art. 4(7), 6(1), 13, 15–22 wording was checked against both.
 - HDPA address and phone: [dpa.gr](https://www.dpa.gr/en/personal_data/controller_details_contact).
-- Five-year retention (Law 4174/2013 art. 13(2), Law 4308/2014): [taxlaw.gr](https://www.taxlaw.gr/en/special-topics/personal-data-retention-rules-currently-applicable-in-greece-2/), [e-forologia](https://www.e-forologia.gr/cms/viewContents.aspx?id=211361). The notice says "generally five years" because the tax-procedure code has since been recodified.
-- Invoicer statements are non-fiscal (R14).
+- Invoicer statements are non-fiscal and informational only (D20, R14; confirmed by the owner). Greek tax record-keeping periods therefore do not apply to this app's data, and the notice does not cite them.
 
 ## Global Constraints
 
@@ -130,6 +141,14 @@ Names and lesson details are needed to arrange and bill lessons; phone, email an
 - Invoicer's base is `Rebuild_v2`; its push is currently refused (GitHub App not installed for `eduinvoiceapp`).
 
 ## PR stack
+
+**Revision (2026-10-18, owner):** statements are informational only, not tax documents. Design E, the parent-notice copy, Review Focus 5 and Tasks I6/I7 were updated to match (contract basis only, a 12-month retention rule, anonymising erasure).
+
+**Progress (2026-10-18):**
+- **P-1 is done.** [course_planner#26](https://github.com/tsampolion/course_planner/pull/26) is open on `claude/app-ui-ux-improvements-sxtsi9` (2.4.1). The spec and plan copies are on that branch under `docs/superpowers/`. Tests, `assembleRelease` and lint pass locally (Android SDK installed at `/home/user/android-sdk`).
+- **Still to do here:** P-2 (`-grid`, 2.5.0).
+- **Still to do:** start the Invoicer session. Its prompt points at the plan copy on the P-1 branch, which the new session reads by attaching `tsampolion/course_planner` read-only.
+- **Already known:** the two style-guide copies were *already* different (Invoicer has guide v3: Outfit tabular figures). The suite edit is applied to the shared paragraphs only, and PR #26 says so.
 
 **Two sessions.**
 - *This* session runs the Pacer stack.
@@ -161,7 +180,7 @@ Each PR's base is the branch of the PR above it. The first PR targets the defaul
 | I-4 | `-overdue` | I3, I4 | **2.4.0** MINOR | Overdue rule, due note, red notices |
 | I-5 | `-privacy-hints` | I6a: student-form hint, "(optional)" labels, Statement-details notice line | **2.4.1** PATCH | Copy only |
 | I-6 | `-privacy-notice` | I6b: Settings Privacy section, EN/EL parent notice + share | **2.5.0** MINOR | New feature |
-| I-7 | `-data-rights` | I7, I8 | **2.6.0** MINOR | Erase + export |
+| I-7 | `-data-rights` | I7, I8 | **2.6.0** MINOR | Erase (anonymise) + erasure reminder + export |
 
 Every PR runs its repo's full check line before it is pushed:
 - Pacer: `testDebugUnitTest assembleRelease`
@@ -175,7 +194,11 @@ Each PR updates the docs it touches (PRODUCT_SPEC, CLAUDE.md), so the per-repo "
 2. **Statement issued on the last day of the month.** It is not overdue that day and is overdue the next day. Test `overdueFlipsOnFirstOfNextMonth` in I3.
 3. **Void, fully paid, or all-excused statements are never overdue.** Tests in I3 (`voidIsNeverOverdue`, `excusedOnlyStatementIsPaid`).
 4. **Blank optional business fields in the parent notice.** No dangling commas or empty lines. Test `noticeSkipsBlankFields` in I6.
-5. **Erasing a student with statements.** Issued documents keep the name (R12), contact fields are cleared, and the student is archived. Undo restores them within 5 s. Test `eraseKeepsStatementsAndClearsContact` in I7.
+5. **Erasing a student with statements.**
+   - Every issued document's `billTo` becomes `Erased student`, while its number, lines and total stay unchanged.
+   - The student record and the lesson notes hold no personal data.
+   - Undo restores all of it within 5 s.
+   - Test `eraseAnonymisesStatements` in I7.
 
 ---
 
@@ -426,24 +449,34 @@ Split across two PRs:
 - [ ] **Step 1: Write failing tests:**
   - `noticeNamesController` (contains the name and "controller" / "υπεύθυνος επεξεργασίας");
   - `noticeSkipsBlankFields` (name only → no ", ," and no "{");
-  - `noticeListsAllArt13Items` (EN contains "Art. 6(1)(b)", "Art. 15–21", "Hellenic Data Protection Authority", "five years"; EL contains "άρθρο 6 παρ. 1 στοιχ. β", "Αρχή Προστασίας Δεδομένων Προσωπικού Χαρακτήρα").
+  - `noticeListsAllArt13Items` (EN contains "Art. 6(1)(b)", "Art. 15–21", "Hellenic Data Protection Authority", "12 months", "not tax documents"; EL contains "άρθρο 6 παρ. 1 στοιχ. β", "Αρχή Προστασίας Δεδομένων Προσωπικού Χαρακτήρα", "12 μήνες");
+  - `noticeClaimsNoLegalObligation` (EN has no "6(1)(c)" and no "tax authority"; EL has no "στοιχ. γ").
 - [ ] **Step 2: Run** `./gradlew :core:test --tests '*PrivacyNoticeTest'`. Expected: FAIL.
 - [ ] **Step 3:** Implement, then wire the UI. *Share privacy notice* opens a two-option chooser (English / Ελληνικά) and calls `shareText`. When the name is blank, it first sends the user to Statement details with the snackbar "Add your name first".
 - [ ] **Step 4:** Run `./gradlew :core:test :app:testDebugUnitTest :app:lintDebug`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(privacy): GDPR notices and parent notice (EN/EL)`.
 
-### Task I7: Erase personal details
+### Task I7: Erase student data (anonymise) and the erasure reminder
 
 **Files:**
-- Modify `core/…/usecase/StudentUseCases.kt`: add `class ErasePersonalDetails(students: StudentRepository)` with `suspend operator fun invoke(studentId: Long): Undoable<Unit>`. It sets `className`, `guardianName`, `phone`, `email` and `notes` to "" and `archived = true`.
-- Modify `StudentDetailViewModel.kt`/`StudentDetailScreen.kt`: add a menu action *Erase personal details* with a `ConfirmDialog`. Its text: "Clears class, guardian, phone, email and notes, and archives the student. Lessons and issued statements keep the name, because billing records must be kept." The snackbar offers Undo.
-- Test: `core/src/test/…/usecase/StudentAndGroupUseCasesTest.kt`.
+- Modify `core/…/usecase/StudentUseCases.kt`. Add `class EraseStudentData(students: StudentRepository, lessons: LessonRepository, invoices: InvoiceRepository)` with `suspend operator fun invoke(studentId: Long): Undoable<Unit>`. It:
+  - sets the student to `firstName = "Erased student"`, `lastName = ""`, blank class/guardian/phone/email/notes, `archived = true`;
+  - clears `notes` and absence notes on the student's lessons (`updateLessons`);
+  - for each of the student's invoices, sets the frozen document (`setDocument`) to `billTo = listOf("Erased student")` and clears `notes`;
+  - undo restores all three from the copies it took.
+- Create `core/…/privacy/Retention.kt` with `fun dueForErasure(lastLesson: LocalDate?, outstanding: Money, today: LocalDate): Boolean`. It is true when there is a last lesson, nothing is owed, and `today` is more than 12 months after `lastLesson`.
+- Modify `StudentDetailViewModel.kt`/`StudentDetailScreen.kt`: add a menu action *Erase student data* with a `ConfirmDialog`. Its text: "Removes this student's name and details from the app. Their statements keep only number, dates and amounts. Use this when lessons have ended and everything is paid." The snackbar offers Undo.
+- Modify `StudentsViewModel.kt`/`StudentsScreen.kt`: archived rows get `StatusChip("Due for erasure", ChipTone.Neutral)`.
+- Docs: `docs/PRODUCT_SPEC.md` gets new rule **R17** (anonymising erasure, the one permitted change to an issued document) and a note under R12 pointing to it.
+- Tests: `core/src/test/…/usecase/StudentAndGroupUseCasesTest.kt`, `core/src/test/…/privacy/RetentionTest.kt`.
 
-- [ ] **Step 1: Write failing test** `eraseKeepsStatementsAndClearsContact`: after erase, the student's contact fields are blank, `archived` is true, the invoice document's `billTo` is unchanged, and undo restores the fields.
+- [ ] **Step 1: Write failing tests:**
+  - `eraseAnonymisesStatements`: after erase, each of the student's invoice documents has `billTo == listOf("Erased student")` with number and total unchanged; the student's name and contact fields hold no personal data; `archived` is true; the lesson notes are blank; undo restores everything.
+  - `dueForErasureAfterTwelveMonthsPaid`: last lesson 2025-09-30, nothing owed → false on 2026-09-30 and true on 2026-10-01; with money owed → false.
 - [ ] **Step 2: Run** `./gradlew :core:test`. Expected: FAIL.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Run again. Expected: PASS.
-- [ ] **Step 5:** Add rule **R17** to `PRODUCT_SPEC.md` and commit `feat(privacy): erase a student's personal details`.
+- [ ] **Step 5: Commit** `feat(privacy): erase a student's data by anonymising it`.
 
 ### Task I8: Export a student's data
 

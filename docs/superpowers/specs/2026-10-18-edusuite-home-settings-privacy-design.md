@@ -22,12 +22,24 @@ Agreed with the owner on 2026-10-18. The implementation plan is `docs/superpower
   - Home: the Statements tile subtitle reads `N overdue` in red with an `Overdue` warning chip, and a warning banner above the grid says `N statements overdue · View`.
   - Students: rows with an overdue statement show an `Overdue` warning chip, and a banner says `N students have overdue statements`.
 - **E. Privacy (Invoicer, GDPR = Regulation (EU) 2016/679).** The teacher is the controller (Art. 4(7)). The app helps them comply and collects no more than it needs.
+  - **Statements are informational only** (D20, R14). They are not tax documents, and the tutor's fiscal receipts are issued outside the app. So no law requires keeping anything this app stores:
+    - the only legal basis is the lessons agreement, Art. 6(1)(b);
+    - retention is the tutor's own short rule;
+    - erasure must really remove the student's identity (no Art. 17(3)(b) exception).
+  - **Retention (owner's choice):** kept while lessons continue; after the last lesson, until everything is paid and for at most 12 months, then erased.
   1. **In-app notices.**
      - A hint on the student form: "Only what you need for lessons and billing. It stays on this device. Don't put health or other sensitive details in notes." Optional fields are labelled "(optional)".
      - A line on Statement details: "You are responsible for the personal data you keep here (GDPR). Share a privacy notice with your students."
      - A Settings → Privacy section with the same text, *Share privacy notice*, and a warning: "Backups are not encrypted: keep them somewhere only you can open."
   2. **Notice for parents.** An Art. 13 notice in English and Greek, filled from Statement details and shared as text through the share sheet. The fixed copy is below.
-  3. **Minimise and erase.** *Erase personal details* on a student clears class, guardian, phone, email and notes, archives them, and keeps the name only on lessons and statements already issued (Art. 17(3)(b)). *Delete* stays for students with no history (R6 unchanged).
+  3. **Minimise and erase.** *Erase student data* (owner's choice: anonymise):
+     - The student record becomes "Erased student", with class, guardian, phone, email and notes cleared, and is archived.
+     - Lesson notes and absence notes for that student are cleared.
+     - Every issued statement's frozen document has its `billTo` lines replaced by `Erased student`, keeping number, dates, lines and amounts. Numbering and past totals stay intact (R6).
+     - This is the one allowed change to an issued document (R12 exception, new rule R17).
+     - The 5 s Undo restores everything from an in-memory copy.
+     - Archived students whose last lesson is over 12 months ago and who owe nothing get a *Due for erasure* chip on Students.
+     - *Delete* stays for students with no history.
   4. **Export a student's data.** A JSON file with the student, their lessons and their statements, shared through the existing `FileProvider` (Art. 15, 20).
 
 ### Fixed copy: parent notice
@@ -44,13 +56,13 @@ What I keep
 The student's name and class, the guardian's name, the phone number and email you give me, the dates, length and fees of lessons, payments, and the statements I send you.
 
 Why, and on what legal basis
-To arrange and bill lessons, which is necessary for our agreement (GDPR Art. 6(1)(b)), and to keep the billing records the law requires (Art. 6(1)(c)).
+To arrange lessons and to let you know what they cost, which is necessary for our agreement (GDPR Art. 6(1)(b)). The statements I send are for your information only; they are not tax documents.
 
 Who receives it
-No one else. The data stays on my own device. It is not sent to any online service or outside the EU. I may show billing records to my accountant or the tax authority when the law requires it.
+No one else. The data stays on my own device and is not sent to any online service or outside the EU.
 
 How long
-While lessons continue, then for as long as Greek tax law requires me to keep billing records (generally five years from the end of the tax year). Contact details are erased when lessons end.
+While lessons continue. After the last lesson, until everything is paid and for no more than 12 months; then it is erased. Statements I have sent then keep only their number, dates and amounts, without your name.
 
 Your rights
 You may ask me for access to your data, its rectification or erasure, restriction of processing, to object to processing, and for a copy in a portable format (Art. 15–21), at the contact details above.
@@ -73,13 +85,13 @@ Names and lesson details are needed to arrange and bill lessons; phone, email an
 Το ονοματεπώνυμο και την τάξη του μαθητή, το όνομα του κηδεμόνα, το τηλέφωνο και το email που μου δίνετε, τις ημερομηνίες, τη διάρκεια και την αμοιβή των μαθημάτων, τις πληρωμές και τις καταστάσεις που σας στέλνω.
 
 Σκοπός και νομική βάση
-Η οργάνωση και η χρέωση των μαθημάτων, που είναι απαραίτητη για την εκτέλεση της συμφωνίας μας (άρθρο 6 παρ. 1 στοιχ. β ΓΚΠΔ), και η τήρηση των στοιχείων χρέωσης που επιβάλλει ο νόμος (άρθρο 6 παρ. 1 στοιχ. γ).
+Η οργάνωση των μαθημάτων και η ενημέρωσή σας για το κόστος τους, που είναι απαραίτητη για την εκτέλεση της συμφωνίας μας (άρθρο 6 παρ. 1 στοιχ. β ΓΚΠΔ). Οι καταστάσεις που σας στέλνω είναι μόνο ενημερωτικές· δεν αποτελούν φορολογικά παραστατικά.
 
 Αποδέκτες
-Κανείς άλλος. Τα δεδομένα βρίσκονται μόνο στη δική μου συσκευή. Δεν αποστέλλονται σε διαδικτυακή υπηρεσία ούτε εκτός ΕΕ. Μπορεί να τα δει ο λογιστής μου ή η φορολογική αρχή, όταν το απαιτεί ο νόμος.
+Κανείς άλλος. Τα δεδομένα βρίσκονται μόνο στη δική μου συσκευή και δεν αποστέλλονται σε διαδικτυακή υπηρεσία ούτε εκτός ΕΕ.
 
 Χρονικό διάστημα αποθήκευσης
-Όσο συνεχίζονται τα μαθήματα και στη συνέχεια για όσο διάστημα η ελληνική φορολογική νομοθεσία απαιτεί να τηρώ στοιχεία χρέωσης (κατά κανόνα πέντε έτη από τη λήξη του φορολογικού έτους). Τα στοιχεία επικοινωνίας διαγράφονται όταν τελειώσουν τα μαθήματα.
+Όσο συνεχίζονται τα μαθήματα. Μετά το τελευταίο μάθημα, έως ότου εξοφληθούν όλα και όχι περισσότερο από 12 μήνες· στη συνέχεια διαγράφονται. Οι καταστάσεις που σας έχω στείλει διατηρούν τότε μόνο τον αριθμό, τις ημερομηνίες και τα ποσά, χωρίς το όνομά σας.
 
 Τα δικαιώματά σας
 Έχετε δικαίωμα πρόσβασης στα δεδομένα σας, διόρθωσης ή διαγραφής τους, περιορισμού της επεξεργασίας, εναντίωσης στην επεξεργασία και φορητότητας των δεδομένων (άρθρα 15–21), στα παραπάνω στοιχεία επικοινωνίας.
@@ -93,6 +105,5 @@ Names and lesson details are needed to arrange and bill lessons; phone, email an
 **Sources:**
 - GDPR EN/EL official texts: [EUR-Lex EN](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679), [EUR-Lex EL](https://eur-lex.europa.eu/legal-content/EL/TXT/HTML/?uri=CELEX:32016R0679). The Art. 4(7), 6(1), 13, 15–22 wording was checked against both.
 - HDPA address and phone: [dpa.gr](https://www.dpa.gr/en/personal_data/controller_details_contact).
-- Five-year retention (Law 4174/2013 art. 13(2), Law 4308/2014): [taxlaw.gr](https://www.taxlaw.gr/en/special-topics/personal-data-retention-rules-currently-applicable-in-greece-2/), [e-forologia](https://www.e-forologia.gr/cms/viewContents.aspx?id=211361). The notice says "generally five years" because the tax-procedure code has since been recodified.
-- Invoicer statements are non-fiscal (R14).
+- Invoicer statements are non-fiscal and informational only (D20, R14; confirmed by the owner). Greek tax record-keeping periods therefore do not apply to this app's data, and the notice does not cite them.
 
