@@ -22,6 +22,13 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-10-18
+
+### Changed
+
+- Home's tiles fill the screen: the grid has as many 160dp columns as the width fits (two on a phone held upright, four in landscape, up to six on a tablet), each tile dropping into the shortest column. The 480dp cap is gone; the next-lesson tile stays at most 560dp wide so its text stays readable. At 200% font or under 360dp the grid is one column, as before.
+- Turning the phone no longer restarts the screen, so the tiles glide to their new places (`Motion.settle`) when the column count changes. With animations removed they jump there.
+
 ## [2.4.1] - 2026-10-18
 
 ### Changed
@@ -364,7 +371,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.4.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/tsampolion/course_planner/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/tsampolion/course_planner/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/tsampolion/course_planner/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/tsampolion/course_planner/compare/v2.2.0...v2.3.0

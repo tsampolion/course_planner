@@ -93,3 +93,28 @@ fun homeSummary(year: SchoolYear, today: LocalDate): HomeSummary {
 /** The year Home opens when none is open: the one that starts last (a year with no start date comes last). Null when there are none. */
 fun defaultYearId(years: List<SchoolYear>): String? =
     years.maxWithOrNull(compareBy<SchoolYear, LocalDate?>(nullsFirst()) { it.start })?.id
+
+/**
+ * How many columns Home's tile grid gets (§6 "Tile grid"): as many [minDp] columns as [widthDp] fits, at least two and
+ * at most one per tile. [widthDp] is the grid's own width, inside the 16dp screen edges, so §6's "under 360dp" is under
+ * 328dp here; there, or at 200% font, the grid is one column.
+ */
+fun homeColumns(widthDp: Float, fontScale: Float, tiles: Int, minDp: Float = 160f, gapDp: Float = 8f): Int {
+    if (fontScale >= 2f || widthDp < 360f - 32f) return 1
+    val fits = ((widthDp + gapDp) / (minDp + gapDp)).toInt()
+    return fits.coerceIn(2, maxOf(2, tiles))
+}
+
+/**
+ * Where each tile of a masonry grid goes, as (column, y): in order, each tile drops into the column that is shortest so
+ * far, the leftmost on a tie, [gap] below the tile above it.
+ */
+fun masonryPlacement(heights: List<Int>, columns: Int, gap: Int): List<Pair<Int, Int>> {
+    val bottoms = IntArray(columns)
+    return heights.map { h ->
+        val column = bottoms.indices.minBy { bottoms[it] }
+        val y = bottoms[column]
+        bottoms[column] = y + h + gap
+        column to y
+    }
+}

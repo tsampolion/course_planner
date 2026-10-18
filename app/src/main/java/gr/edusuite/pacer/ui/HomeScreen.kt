@@ -131,8 +131,9 @@ fun HomeScreen(
     val dir = LocalLayoutDirection.current
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        // §6: at 200% font or under 360dp the grid becomes one column.
-        val oneColumn = LocalDensity.current.fontScale >= 2f || maxWidth < 360.dp
+        // §6: as many columns as the width fits; one at 200% font or under 360dp.
+        val gridWidth = maxWidth - padding.calculateStartPadding(dir) - padding.calculateEndPadding(dir) - Space.l * 2
+        val columns = homeColumns(gridWidth.value, LocalDensity.current.fontScale, HOME_TILES)
         Column(
             Modifier
                 .fillMaxSize()
@@ -145,7 +146,7 @@ fun HomeScreen(
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.xl)) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.xl)) {
                 Header(today) { vm.open(Screen.Settings) }
                 if (year == null) {
                     EmptyState(
@@ -156,9 +157,10 @@ fun HomeScreen(
                     ) { adding = true }
                 } else {
                     YearChip(year.name.ifBlank { context.getString(R.string.home_year) }) { picking = true }
-                    NextLessonCard(year, today, vm, undoToast)
+                    // The hero stays a readable width on a wide screen; the grid takes the whole width.
+                    Box(Modifier.widthIn(max = 560.dp)) { NextLessonCard(year, today, vm, undoToast) }
                     TileGrid(
-                        year, today, vm, oneColumn,
+                        year, today, vm, columns,
                         onTests = { openForClass(year, vm, Screen.Tests) { choosing = CHOOSE_TESTS } },
                         onHomework = { openForClass(year, vm, Screen.Homework) { choosing = CHOOSE_HOMEWORK } },
                         onPrint = { printing = true },
@@ -192,6 +194,9 @@ fun HomeScreen(
         }
     }
 }
+
+/** The tiles on Home's grid: Classes, Overview, Tests, Homework, Print, Days off. */
+private const val HOME_TILES = 6
 
 /** Opens a class's Tests or Homework: straight away with one class, through [choose] with several, or Classes with none. */
 private fun openForClass(year: SchoolYear, vm: PacerViewModel, screen: Screen, choose: () -> Unit) {
@@ -287,7 +292,7 @@ private fun NextLessonCard(year: SchoolYear, today: LocalDate, vm: PacerViewMode
 }
 
 /**
- * The bento grid (§6 "Tile grid"): two columns of mixed heights, or one in [oneColumn]. Three tile hues (sky, mint,
+ * The bento grid (§6 "Tile grid"): [columns] columns of mixed heights, tall tiles only beside other columns. Three tile hues (sky, mint,
  * lilac) plus neutral tiles, so the screen stays within §2.2's limit beside the accent hero.
  */
 @Composable
@@ -295,14 +300,14 @@ private fun TileGrid(
     year: SchoolYear,
     today: LocalDate,
     vm: PacerViewModel,
-    oneColumn: Boolean,
+    columns: Int,
     onTests: () -> Unit,
     onHomework: () -> Unit,
     onPrint: () -> Unit,
 ) {
     val s = remember(year, today) { homeSummary(year, today) }
     val c = Pacer.colors
-    val tall = !oneColumn
+    val tall = columns > 1
 
     val classes: @Composable (Modifier) -> Unit = { m ->
         HomeTile(
@@ -353,19 +358,9 @@ private fun TileGrid(
         )
     }
 
-    if (oneColumn) {
-        Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
-            listOf(classes, overview, tests, homework, daysOff, print).forEach { it(Modifier) }
-        }
-    } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                classes(Modifier); tests(Modifier); print(Modifier)
-            }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                overview(Modifier); homework(Modifier); daysOff(Modifier)
-            }
-        }
+    HomeGrid(columns) {
+        // Most-used first, so the tall tiles head the first two columns.
+        listOf(classes, overview, tests, homework, print, daysOff).forEach { it(Modifier.animatePlacement()) }
     }
 }
 
