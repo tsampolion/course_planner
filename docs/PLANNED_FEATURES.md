@@ -244,7 +244,7 @@ Answer the open questions below. The answers go into `docs/SIGNING_BRIEF.md`.
    - Afterwards, `unset SIGNING_PASSWORD SIGNING_KEYSTORE`.
 3. **Test the `main` guard's failure path**: run the step's shell logic locally with `GITHUB_REF=refs/heads/main` and an empty `SIGNING_KEYSTORE_B64`. It must exit non-zero with the error message. With a branch ref, it must fall through to the debug key.
 4. On the pull request, CI must be green, and the job summary must show the recorded fingerprint. The branch is in the same repository, so the secrets are available.
-5. Download the PR's `coursebook-pacer-apk` artifact and check it with `apksigner verify --print-certs`. It must show the same fingerprint.
+5. Download the PR's `course-pacer-apk` artifact and check it with `apksigner verify --print-certs`. It must show the same fingerprint.
 6. Install that APK on an emulator, uninstalling first, and check that the app opens and keeps a school year across a restart.
 
 #### Phase 4: merge and check the release
@@ -255,7 +255,7 @@ Answer the open questions below. The answers go into `docs/SIGNING_BRIEF.md`.
 #### Phase 5: move each phone over (once)
 
 1. **Before uninstalling**, decide what happens to the data on that phone (open question 4). Uninstalling deletes it, and Android backup won't restore it across the change of key.
-2. Uninstall Course Pacer (Settings → Apps → Course Pacer → Uninstall). Install the new release from <https://github.com/tsampolion/course_planner/releases/latest> (Assets → `coursebook-pacer-X.Y.Z.apk`), allowing the browser to install unknown apps.
+2. Uninstall Course Pacer (Settings → Apps → Course Pacer → Uninstall). Install the new release from <https://github.com/tsampolion/course_planner/releases/latest> (Assets → `course-pacer-X.Y.Z.apk`), allowing the browser to install unknown apps.
 3. Do the same on the emulator if it should run releases. Android Studio builds still clash with releases unless open question 3 changes that.
 
 #### Phase 6: prove the update path (at the next release)

@@ -17,7 +17,7 @@ Read `CLAUDE.md` first; its rules are binding. Android installs an update only w
 
 1. **Key type:** RSA 4096, signed SHA256withRSA, PKCS12, alias `release`, valid for 10,000 days (to about 2053). This is the `keytool` command in the planned-features entry, unchanged.
 2. **Version:** PATCH, 1.5.2 (`versionCode` 12). The `CHANGELOG.md` rules call build and CI changes PATCH. The changelog section's first line spells out the one last uninstall.
-3. **Debug builds beside the release:** yes. The debug build type gets `applicationIdSuffix = ".debug"` and the label "Course Pacer (debug)". Android Studio installs a separate app with its own data, which never clashes with or touches the real one. Release builds keep `com.coursebook.pacer`.
+3. **Debug builds beside the release:** yes. The debug build type gets `applicationIdSuffix = ".debug"` and the label "Course Pacer (debug)". Android Studio installs a separate app with its own data, which never clashes with or touches the real one. Release builds keep `com.coursebook.pacer` (since 2.0.0, `gr.edusuite.pacer`; the signing key is unchanged).
 4. **Data on phones before the switch:** phones that run a GitHub release can't keep their data through the switch. Any new build, whatever it contains, is signed with a different key from the one on the phone, so installing it needs an uninstall. Those phones re-enter their school years once after installing 1.5.2. Export and import of the saved file comes next, as its own feature with its own brief and pull request, so that from then on the data can be saved before any reinstall. **Merge order:** this change first, then export and import, so export arrives as the first update that installs over 1.5.2.
 5. **Fingerprint in the release notes:** yes. `release.yml` reads the certificate of each APK it attaches, refuses to publish if it isn't `SIGNING_CERT_SHA256`, and appends "Signed with certificate SHA-256 `…`" to the notes.
 6. **Google Play later:** nothing to decide now. If the app moves to Play, use Play App Signing with this key as the upload key. The 10,000-day validity already meets Play's rule (valid past 22 October 2033).
@@ -60,7 +60,7 @@ Read `CLAUDE.md` first; its rules are binding. Android installs an update only w
 | 3.2 | `assembleRelease` with the real key; `apksigner` shows the recorded fingerprint | Owner, laptop | To do |
 | 3.3 | The `main` guard fails without the secret and falls through to the debug key on a branch | Cloud session | Done |
 | 3.4 | Re-run CI on the pull request once the secrets exist: green, and the job summary shows the recorded fingerprint | Owner, GitHub Actions ("Re-run all jobs") | To do |
-| 3.5 | Download the pull request's `coursebook-pacer-apk` artifact; `apksigner` shows the same fingerprint | Owner, laptop | To do |
+| 3.5 | Download the pull request's `coursebook-pacer-apk` artifact (`course-pacer-apk` since 2.0.0); `apksigner` shows the same fingerprint | Owner, laptop | To do |
 | 3.6 | Install that APK on an emulator (uninstall first); the app opens and keeps a school year across a restart | Owner, laptop | To do |
 | 4 | Merge; check the release asset and its notes with `apksigner` | Owner | To do |
 | 5 | Move each phone over once (uninstall, install 1.5.2, re-enter the years) | Owner | To do |

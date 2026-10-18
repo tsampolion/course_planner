@@ -84,7 +84,7 @@ jobs:
         if: steps.existing.outputs.exists == 'false' && github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
-          name: coursebook-pacer-apk
+          name: course-pacer-apk
           path: apk
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -102,7 +102,9 @@ jobs:
             echo "::warning::No successful Android run on a push of $SHA, so there is no APK to attach"
             exit 0
           fi
-          gh run download "$run" --repo "$GITHUB_REPOSITORY" --name coursebook-pacer-apk --dir apk \
+          # Builds before 2.0.0 uploaded the APK as coursebook-pacer-apk.
+          gh run download "$run" --repo "$GITHUB_REPOSITORY" --name course-pacer-apk --dir apk \
+            || gh run download "$run" --repo "$GITHUB_REPOSITORY" --name coursebook-pacer-apk --dir apk \
             || echo "::warning::Android run $run no longer has its APK (artifacts expire after 90 days)"
 
       # Refuses an APK that isn't signed with the release certificate, and names the certificate in the notes.
@@ -129,8 +131,8 @@ jobs:
               echo "::error::$f is signed with '$digest', not the release certificate '$expected' (SIGNING_CERT_SHA256)"
               exit 1
             fi
-            cp "$f" "coursebook-pacer-$VERSION.apk"
-            apks+=("coursebook-pacer-$VERSION.apk")
+            cp "$f" "course-pacer-$VERSION.apk"
+            apks+=("course-pacer-$VERSION.apk")
             printf '\nSigned with certificate SHA-256 `%s`.\n' "$digest" >> notes.md
           done
           if [ "${#apks[@]}" -eq 0 ] && [ "$ALLOW_NO_APK" != "true" ]; then
