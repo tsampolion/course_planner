@@ -13,8 +13,8 @@ android {
         // 26 gives java.time without core-library desugaring and adaptive icons without PNG fallbacks.
         minSdk = 26
         targetSdk = 35
-        versionCode = 25
-        versionName = "2.4.1"
+        versionCode = 26
+        versionName = "2.5.0"
     }
 
     androidResources {

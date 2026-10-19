@@ -95,4 +95,28 @@ class HomeModelTest {
         assertEquals("u", defaultYearId(listOf(undated)))
         assertNull(defaultYearId(emptyList()))
     }
+
+    @Test
+    fun gridColumnsFollowTheWidth() {
+        assertEquals(2, homeColumns(328f, 1f, 6)) // a 360dp phone less its 16dp edges
+        assertEquals(2, homeColumns(380f, 1f, 6))
+        assertEquals(4, homeColumns(768f, 1f, 6)) // a phone in landscape
+        assertEquals(6, homeColumns(1248f, 1f, 6)) // never more columns than tiles
+    }
+
+    @Test
+    fun gridIsOneColumnAtLargeFontOrNarrowWidth() {
+        assertEquals(1, homeColumns(768f, 2f, 6))
+        assertEquals(1, homeColumns(300f, 1f, 6))
+    }
+
+    @Test
+    fun masonryPutsEachTileInTheShortestColumn() {
+        assertEquals(
+            listOf(0 to 0, 1 to 0, 1 to 108, 0 to 168),
+            masonryPlacement(listOf(160, 100, 100, 100), columns = 2, gap = 8),
+        )
+        // Ties go to the leftmost column.
+        assertEquals(listOf(0 to 0, 1 to 0, 2 to 0, 0 to 58), masonryPlacement(listOf(50, 50, 50, 50), columns = 3, gap = 8))
+    }
 }
