@@ -68,9 +68,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
@@ -166,14 +164,6 @@ fun HomeScreen(
                         onPrint = { printing = true },
                     )
                 }
-                Text(
-                    stringResource(R.string.home_suite),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontStyle = FontStyle.Italic,
-                    color = Pacer.colors.muted,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
     }

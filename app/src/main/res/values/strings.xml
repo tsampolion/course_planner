@@ -235,7 +235,6 @@
     <string name="home_create_year_hint">Give it its first and last teaching day. The Greek public holidays can come in as days off.</string>
     <string name="home_new_year">New school year</string>
     <string name="home_year">School year</string>
-    <string name="home_suite">part of EduSuite apps</string>
     <string name="home_choose_tests">Tests for which class?</string>
     <string name="home_choose_homework">Homework for which class?</string>
     <string name="home_hello">Hello</string>
