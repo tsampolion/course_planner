@@ -55,7 +55,8 @@ fun GroupReport.coverage(): Coverage? {
     val missing = HashMap<String, List<Int>>()
     val doubled = HashMap<String, List<Int>>()
     val stale = HashMap<String, List<Int>>()
-    for (b in plan.books) {
+    // Core books only: supplementary pages are placed by hand and never left out, doubled or stale.
+    for (b in plan.coreBooks) {
         val left = plan.remainingPages(group, b)
         val leftSet = left.toHashSet()
         val count = HashMap<Int, Int>()
@@ -102,14 +103,22 @@ private fun Plan.restoreSlots(before: Group, after: Group, id: () -> String = ::
  * the pages still to teach that no earlier lesson and no touched lesson has go over the untouched lessons from
  * [from] that fall in the term. Touched lessons and lessons before [from] never change; untouched lessons past the
  * term end are dropped. Re-pacing a plan nobody touched from its first lesson gives the proposed plan back.
+ * Only core pages move: supplementary pages stay in their lessons, and an untouched lesson past the term end that
+ * holds some stays too, without its core pages.
  */
 fun GroupReport.repaceFrom(from: Int): CustomPlan? {
     val c = group.custom ?: return null
     val days = teachingDates
     val k = from.coerceAtLeast(0)
-    val kept = c.lessons.filterIndexed { i, l -> i < days.size || i < k || l.touched }
+    val kept = c.lessons.withIndex().mapNotNull { (i, l) ->
+        when {
+            i < days.size || i < k || l.touched -> l
+            plan.hasSupplementary(l) -> l.copy(pages = plan.supplementaryOf(l.pages))
+            else -> null
+        }
+    }
     val targets = kept.indices.filter { it >= k && it < days.size && !kept[it].touched }
-    val out = kept.mapIndexed { i, l -> if (i in targets) l.copy(pages = emptyMap()) else l }.toMutableList()
+    val out = kept.mapIndexed { i, l -> if (i in targets) l.copy(pages = plan.supplementaryOf(l.pages)) else l }.toMutableList()
     if (targets.isEmpty()) return c.copy(lessons = out)
     val pools = plan.books.associate { b ->
         val covered = out.flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
@@ -134,14 +143,16 @@ fun GroupReport.repaceFrom(from: Int): CustomPlan? {
 
 /**
  * Takes out pages that need no teaching and pages an earlier lesson already teaches. A lesson the teacher never
- * touched and that is left with nothing to teach goes too.
+ * touched and that is left with nothing to teach goes too. Supplementary pages are left as they are.
  */
 fun GroupReport.tidy(): CustomPlan? {
     val c = group.custom ?: return null
     val left = plan.books.associate { b -> b.id to plan.remainingPages(group, b).toHashSet() }
     val seen = plan.books.associate { b -> b.id to HashSet<Int>() }
+    val supp = plan.supplementaryIds
     val out = c.lessons.mapNotNull { l ->
         val pages = l.pages.mapNotNull { (book, ps) ->
+            if (book in supp) return@mapNotNull book to ps
             val keep = ps.filter { p -> left[book]?.contains(p) == true && seen.getValue(book).add(p) }
             if (keep.isEmpty()) null else book to keep
         }.toMap()
@@ -152,18 +163,24 @@ fun GroupReport.tidy(): CustomPlan? {
 
 /**
  * Brings lessons past the term end back into it. Their pages re-spread over the untouched lessons after the last one
- * the teacher touched; if every lesson in the term is touched, they join the last lesson.
+ * the teacher touched; if every lesson in the term is touched, they join the last lesson. A lesson past the end that
+ * holds supplementary pages stays where it is, with only those, for the teacher to place again.
  */
 fun GroupReport.fitToTerm(): CustomPlan? {
     val c = group.custom ?: return null
     val days = teaching
     if (c.lessons.size <= days || days == 0) return c
     val inTerm = c.lessons.take(days)
+    val beyond = c.lessons.drop(days)
+    val keep = beyond.filter { plan.hasSupplementary(it) }.map { it.copy(pages = plan.supplementaryOf(it.pages)) }
     val k = inTerm.indexOfLast { it.touched } + 1
-    if (k < days) return GroupReport(plan, group.copy(custom = c.copy(lessons = inTerm)), Source.CUSTOM).repaceFrom(k)
+    if (k < days) {
+        val fitted = GroupReport(plan, group.copy(custom = c.copy(lessons = inTerm)), Source.CUSTOM).repaceFrom(k) ?: return c
+        return fitted.copy(lessons = fitted.lessons + keep)
+    }
     val last = inTerm.last()
-    val merged = c.lessons.drop(days).fold(last.pages) { acc, l -> mergePages(acc, l.pages) }
-    return c.copy(lessons = inTerm.dropLast(1) + last.copy(pages = merged, touched = true))
+    val merged = beyond.fold(last.pages) { acc, l -> mergePages(acc, plan.coreOf(l.pages)) }
+    return c.copy(lessons = inTerm.dropLast(1) + last.copy(pages = merged, touched = true) + keep)
 }
 
 /** The lesson [id] with [pages] and [note]. Changing its pages marks it touched, so re-pacing leaves it alone. */
@@ -186,7 +203,10 @@ fun CustomPlan.removeLesson(id: String): CustomPlan {
     val out = lessons.toMutableList().apply { removeAt(i) }
     if (gone.pages.isNotEmpty() && out.isNotEmpty()) {
         val j = minOf(i, out.lastIndex)
-        out[j] = out[j].copy(pages = mergePages(out[j].pages, gone.pages), touched = true)
+        val pages = mergePages(out[j].pages, gone.pages)
+        // Two lessons' core pages no longer describe one lesson's, so there is no saved base to restore.
+        val inLesson = (out[j].inLesson + gone.inLesson).filterTo(HashSet()) { it in pages }
+        out[j] = out[j].copy(pages = pages, touched = true, inLesson = inLesson, replacementBase = null)
     }
     return copy(lessons = out)
 }
@@ -205,13 +225,19 @@ fun CustomPlan.moveLesson(id: String, to: Int): CustomPlan {
 
 /**
  * [c] for another group of the class, [target]: the same lessons in the same order on the target's own days,
- * without the pages the target no longer has to teach. It replaces the target's own custom plan and becomes active.
+ * without the pages the target no longer has to teach (for a supplementary book, the pages it has already taught).
+ * It replaces the target's own custom plan and becomes active.
  */
 fun Plan.copyCustomPlan(c: CustomPlan, target: Group, id: () -> String = ::newId): CustomPlan {
-    val left = books.associate { b -> b.id to remainingPages(target, b).toHashSet() }
+    val left = books.associate { b ->
+        b.id to if (b.supplementary) (b.includedPages() - target.taughtPages(b.id)).toHashSet() else remainingPages(target, b).toHashSet()
+    }
+    val keep = { m: Map<String, List<Int>> ->
+        m.mapNotNull { (book, ps) -> ps.filter { left[book]?.contains(it) == true }.takeIf { it.isNotEmpty() }?.let { book to it } }.toMap()
+    }
     return CustomPlan(true, c.lessons.map { l ->
-        val pages = l.pages.mapNotNull { (book, ps) -> ps.filter { left[book]?.contains(it) == true }.takeIf { it.isNotEmpty() }?.let { book to it } }.toMap()
-        l.copy(id = id(), pages = pages)
+        val pages = keep(l.pages)
+        l.copy(id = id(), pages = pages, inLesson = l.inLesson.filterTo(HashSet()) { it in pages }, replacementBase = l.replacementBase?.let { coreOf(keep(it)) })
     })
 }
 

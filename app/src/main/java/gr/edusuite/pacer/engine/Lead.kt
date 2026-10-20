@@ -4,7 +4,7 @@ import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Plan
 
 /** The plan's lead book, or null when it names none of its books. */
-fun Plan.leadBook(): Book? = lead?.let { id -> books.firstOrNull { it.id == id } }
+fun Plan.leadBook(): Book? = lead?.let { id -> books.firstOrNull { it.id == id && !it.supplementary } }
 
 /** A book's unit start pages, in order. Empty when it has none. */
 fun Book.unitStarts(): List<Int> = parseRanges(units).sorted()
@@ -23,7 +23,8 @@ internal fun GroupReport.followLead(
     alloc: List<MutableList<List<Int>>>,
     pool: (Book) -> List<Int> = { plan.remainingPages(group, it) },
 ): List<MutableList<List<Int>>> {
-    val li = plan.books.indexOfFirst { it.id == plan.lead }
+    // A supplementary book never leads; none follows either, as it has no pages to pace.
+    val li = plan.books.indexOfFirst { it.id == plan.lead && !it.supplementary }
     if (li < 0) return alloc
     val lead = plan.books[li]
     val leadAlloc = alloc[li]
@@ -74,7 +75,7 @@ internal fun Plan.leadProblems(): List<String> {
     val lead = leadBook() ?: return emptyList()
     val n = lead.unitStarts().size
     if (n == 0) return emptyList()
-    return books.filter { it.id != lead.id && it.due == null }.mapNotNull { b ->
+    return books.filter { it.id != lead.id && it.due == null && !it.supplementary }.mapNotNull { b ->
         val m = b.unitStarts().size
         if (m == 0 || m == n) null
         else "${b.name}: its units don't match ${lead.name} ($m vs $n), so it follows page by page."

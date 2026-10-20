@@ -114,9 +114,11 @@ fun Group.taughtPages(bookId: String): Set<Int> = done.flatMapTo(HashSet()) { it
 
 /**
  * Pages this group still has to cover in this book, in order: from its position to the last page,
- * minus skipped pages, homework, and pages covered in lessons marked done.
+ * minus skipped pages, homework, and pages covered in lessons marked done. None for a supplementary book: it is never
+ * paced, only placed by hand (engine/Supplementary.kt).
  */
 fun Plan.remainingPages(g: Group, b: Book): List<Int> {
+    if (b.supplementary) return emptyList()
     val skip = parseRanges(b.skip)
     val hw = homeworkPages(g.id, b.id)
     val taught = g.taughtPages(b.id)
@@ -127,6 +129,7 @@ fun Plan.remainingPages(g: Group, b: Book): List<Int> {
 
 /** Pages still ahead that were set for homework, so no lesson has to teach them. */
 fun Plan.bankedPages(g: Group, b: Book): Int {
+    if (b.supplementary) return 0
     val skip = parseRanges(b.skip)
     val hw = homeworkPages(g.id, b.id)
     return (position(g, b)..b.last).count { it !in skip && it in hw }
@@ -219,8 +222,9 @@ class GroupReport(val plan: Plan, val group: Group, val source: Source = Source.
     internal val blockedByLesson: List<Boolean> = eventsByLesson.map { list -> list.any { it.consumes } }
     val teachingDates: List<LocalDate> = lessons.filterIndexed { i, _ -> !blockedByLesson[i] }
 
+    // A supplementary book keeps its place in the list, so indices match plan.books, with nothing to pace.
     val bookStats: List<BookStats> = plan.books.map { b ->
-        BookStats(plan.remainingPages(group, b).size, bookLessons(b, teachingDates))
+        if (b.supplementary) BookStats(0, 0) else BookStats(plan.remainingPages(group, b).size, bookLessons(b, teachingDates))
     }
 
     val pages: Int = bookStats.sumOf { it.pages }
@@ -250,7 +254,11 @@ class GroupReport(val plan: Plan, val group: Group, val source: Source = Source.
     }
 
     /** Most pages, summed over books, any single lesson carries. */
-    val peak: Int by lazy { rows.maxOfOrNull { r -> r.pages.sumOf { it.size } } ?: 0 }
+    val peak: Int by lazy {
+        // The core load: supplementary pages placed in a lesson don't count.
+        val core = plan.books.indices.filter { !plan.books[it].supplementary }
+        rows.maxOfOrNull { r -> core.sumOf { r.pages[it].size } } ?: 0
+    }
 
     /** Lessons per calendar month, in date order. */
     val lessonsByMonth: List<Pair<LocalDate, Int>> by lazy {
@@ -381,6 +389,10 @@ fun Plan.problems(): List<String> {
     val reports by lazy { groups.map { GroupReport(this, it) } }
     msgs += leadProblems()
     books.forEachIndexed { i, b ->
+        if (b.supplementary) {
+            if (parseInclude(b.include).isNullOrEmpty()) msgs += "${b.name}: list the pages you'll use."
+            return@forEachIndexed
+        }
         if (b.last < b.first) msgs += "${b.name}: the last page is before the first."
         if (b.due != null && e != null && b.due.isAfter(e)) {
             msgs += "${b.name}: the finish-by date falls after the term ends, so it has no effect."

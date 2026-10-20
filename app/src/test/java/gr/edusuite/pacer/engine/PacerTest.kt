@@ -343,4 +343,16 @@ class PacerTest {
     @Test fun seedPlanHasNoProblems() {
         assertEquals(emptyList<String>(), seedPlan().problems())
     }
+
+    /** A supplementary book (2.10.0) is never paced: the schedule, the figures and the verdict ignore it. */
+    @Test fun supplementaryBooksAreNeverPaced() {
+        val core = plan(books = listOf(Book("b", "Book", 1, 20)))
+        val with = core.copy(books = core.books + Book("s", "Companion", 4, 9, supplementary = true, include = "4-9"))
+        val a = GroupReport(core, core.groups[0])
+        val b = GroupReport(with, with.groups[0])
+        assertEquals(a.rows.map { it.pages[0] }, b.rows.map { it.pages[0] })
+        assertTrue(b.rows.all { it.pages[1].isEmpty() })
+        assertEquals(a.pages, b.pages)
+        assertEquals(a.verdict(), b.verdict())
+    }
 }

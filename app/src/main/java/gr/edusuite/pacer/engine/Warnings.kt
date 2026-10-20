@@ -53,7 +53,14 @@ fun GroupReport.catchUp(boost: Int): CatchUp? {
 private fun GroupReport.catchUpBase(id: () -> String): Pair<MutableList<PlannedLesson>, List<Int>> {
     val c = group.custom ?: toCustomPlan(id)
     val days = teaching
-    val kept = c.lessons.filterIndexed { i, l -> i < days || l.touched }.toMutableList()
+    // Supplementary pages stay put: an untouched lesson past the term that holds some keeps only those.
+    val kept = c.lessons.withIndex().mapNotNull { (i, l) ->
+        when {
+            i < days || l.touched -> l
+            plan.hasSupplementary(l) -> l.copy(pages = plan.supplementaryOf(l.pages))
+            else -> null
+        }
+    }.toMutableList()
     return kept to kept.indices.filter { it < days && !kept[it].touched }
 }
 
@@ -76,7 +83,7 @@ fun GroupReport.catchUpPlan(boost: Int, id: () -> String = ::newId): CustomPlan?
     val s100 = (plan.pace * 100).roundToLong()
     // By teaching slot, not by target order: the first cu.lessons days of the term carry the boost.
     val weightOf = targets.associateWith { if (it < cu.lessons) s100 + cu.boost * 100L else s100 }
-    for (t in targets) out[t] = out[t].copy(pages = emptyMap())
+    for (t in targets) out[t] = out[t].copy(pages = plan.supplementaryOf(out[t].pages))
     for (b in plan.books) {
         val covered = out.flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
         val pool = plan.remainingPages(group, b).filter { it !in covered }
@@ -94,6 +101,8 @@ data class BookLag(val bookId: String, val lessonsBehind: Double)
 
 /** Book index to (pages in the book, share of them taught); books with no pages are left out. */
 private fun GroupReport.progress(): Map<Int, Pair<Int, Double>> = plan.books.withIndex().mapNotNull { (i, b) ->
+    // Core books only: a supplementary book has no pace to fall behind.
+    if (b.supplementary) return@mapNotNull null
     val skip = parseRanges(b.skip)
     val total = if (b.last < b.first) 0 else (b.first..b.last).count { it !in skip }
     if (total == 0) null else i to (total to (total - plan.remainingPages(group, b).size).toDouble() / total)
@@ -115,7 +124,7 @@ private fun GroupReport.referenceFor(i: Int, prog: Map<Int, Pair<Int, Double>>, 
  * worst first. Needs at least two books; the reference book is never listed.
  */
 fun GroupReport.bookLags(reference: String? = null, threshold: Double = 2.0): List<BookLag> {
-    if (plan.books.size < 2) return emptyList()
+    if (plan.coreBooks.size < 2) return emptyList()
     val prog = progress()
     return prog.mapNotNull { (i, p) ->
         val rate = bookStats[i].rate
@@ -132,7 +141,7 @@ fun GroupReport.bookLags(reference: String? = null, threshold: Double = 2.0): Li
  */
 fun GroupReport.foldBacklog(bookId: String, over: Int, id: () -> String = ::newId): CustomPlan? {
     val i = plan.books.indexOfFirst { it.id == bookId }
-    if (i < 0 || plan.books.size < 2) return null
+    if (i < 0 || plan.coreBooks.size < 2) return null
     val b = plan.books[i]
     val prog = progress()
     val p = prog[i] ?: return null
