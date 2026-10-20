@@ -9,7 +9,10 @@ import gr.edusuite.pacer.data.PlanStore
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.LessonSave
 import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.parseInclude
+import gr.edusuite.pacer.engine.saveLesson
 import gr.edusuite.pacer.engine.catchUpPlan
 import gr.edusuite.pacer.engine.foldBacklog
 import gr.edusuite.pacer.engine.copyCustomPlan
@@ -457,6 +460,19 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
             else PlannedLesson(newId()).let { l -> c.insertLesson(at, l).editLesson(l.id, pages, note) }
         }
 
+    /**
+     * Saves teaching slot [slot] of the group's custom plan from the "Plan this lesson" sheet: core and supplementary
+     * pages, which count in the lesson, and the note, making the plan from the proposed one if the group has none.
+     * One undo step, re-pacing included. Returns false, changing nothing, when a page can't go there.
+     */
+    fun saveLesson(groupId: String, slot: Int, save: LessonSave): Boolean {
+        val plan = data.plan ?: return false
+        val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
+        val next = GroupReport(plan, g, if (g.custom != null) Source.CUSTOM else Source.PROPOSED).saveLesson(slot, save) ?: return false
+        editGroup(groupId) { it.copy(custom = next) }
+        return true
+    }
+
     fun removePlannedLesson(groupId: String, lessonId: String) = editCustom(groupId) { _, c -> c.removeLesson(lessonId) }
 
     fun movePlannedLesson(groupId: String, lessonId: String, to: Int) = editCustom(groupId) { _, c -> c.moveLesson(lessonId, to) }
@@ -498,6 +514,22 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     // ---- books -------------------------------------------------------------
 
+    /** Adds a supplementary book with the pages in [include]; its first and last pages are the lowest and highest. Ignores an unreadable list. */
+    fun addSupplementaryBook(name: String, include: String) {
+        val pages = parseInclude(include)?.takeIf { it.isNotEmpty() } ?: return
+        editClass { c ->
+            c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, pages.first(), pages.last(), supplementary = true, include = include.trim()))
+        }
+    }
+
+    /** Sets a supplementary book's pages, with its first and last pages. Ignores an empty or unreadable list. */
+    fun setInclude(id: String, v: String) {
+        val pages = parseInclude(v)?.takeIf { it.isNotEmpty() } ?: return
+        editBook(id, "binclude:$id") { it.copy(include = v.trim(), first = pages.first(), last = pages.last()) }
+    }
+
+    fun setCountInLesson(id: String, v: Boolean) = editBook(id, "bcount:$id") { it.copy(countInLesson = v) }
+
     fun addBook(name: String, first: Int, last: Int) = editClass { c ->
         c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, first.coerceAtMost(MAX_PAGE), last.coerceAtMost(MAX_PAGE)))
     }
@@ -511,7 +543,13 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
                 g.copy(
                     pos = g.pos - id,
                     done = g.done.map { it.copy(pages = it.pages - id) },
-                    custom = g.custom?.let { p -> p.copy(lessons = p.lessons.map { it.copy(pages = it.pages - id) }) },
+                    custom = g.custom?.let { p ->
+                        p.copy(lessons = p.lessons.map { l ->
+                            // The lesson keeps the core pages the teacher chose; with nothing left counting in it, its base goes.
+                            val inLesson = l.inLesson - id
+                            l.copy(pages = l.pages - id, inLesson = inLesson, replacementBase = if (inLesson.isEmpty()) null else l.replacementBase?.minus(id))
+                        })
+                    },
                 )
             },
         )
@@ -527,11 +565,13 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setLagLessons(v: Int) = editClass("class:lag") { it.copy(lagLessons = v.coerceIn(1, MAX_LAG_LESSONS)) }
 
     /** Makes book [id] the class's lead book, or with null lets every book keep its own pace. */
-    fun setLead(id: String?) = editClass { it.copy(lead = id?.takeIf { b -> it.books.any { book -> book.id == b } }) }
+    fun setLead(id: String?) = editClass { it.copy(lead = id?.takeIf { b -> it.books.any { book -> book.id == b && !book.supplementary } }) }
 
     // ---- homework ----------------------------------------------------------
 
     fun addHomework(groupId: String, bookId: String, from: Int, to: Int, setOn: LocalDate?) = editClass { c ->
+        // Supplementary books take no homework in this version.
+        if (c.books.any { it.id == bookId && it.supplementary }) return@editClass c
         c.copy(homework = c.homework + Homework(newId(), groupId, bookId, minOf(from, to).coerceAtMost(MAX_PAGE), maxOf(from, to).coerceAtMost(MAX_PAGE), setOn))
     }
 

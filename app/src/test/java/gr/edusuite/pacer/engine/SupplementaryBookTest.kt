@@ -239,4 +239,15 @@ class SupplementaryBookTest {
         assertEquals(listOf("#", "Date", "Day", "SB", "WB", "Companion"), lines[0].split("\t"))
         assertEquals("12", lines[1].split("\t")[5])
     }
+
+    @Test fun aLessonCanAlwaysKeepItsOwnCorePages() {
+        val p = plan()
+        val g = p.groups[0]
+        val c = GroupReport(p, g).toCustomPlan(ids())
+        // Lesson 2 also holds SB 1, which lesson 1 has: doubled, but still its own.
+        val messy = c.copy(lessons = c.lessons.toMutableList().apply { set(1, get(1).copy(pages = get(1).pages + ("a" to listOf(1, 3, 4)), touched = true)) })
+        val r = GroupReport(p, g.copy(custom = messy), Source.CUSTOM)
+        val out = r.saveLesson(1, LessonSave(mapOf("a" to listOf(1, 3, 4), "b" to listOf(2)), mapOf("c" to listOf(12)), emptySet(), ""), ids())
+        assertEquals(listOf(12), out!!.lessons[1].pages["c"])
+    }
 }

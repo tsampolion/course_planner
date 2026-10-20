@@ -599,4 +599,37 @@
         <item quantity="one">Over %d lesson</item>
         <item quantity="other">Over %d lessons</item>
     </plurals>
+    <string name="supp_tag">Supplementary</string>
+    <string name="supp_switch">Supplementary book</string>
+    <string name="supp_switch_hint">Never paced: you place its pages by hand in the lessons you choose, on top of the lesson or in it.</string>
+    <string name="supp_include">Pages you\'ll use</string>
+    <string name="supp_include_placeholder">4-7, 12, 30-33</string>
+    <string name="supp_include_error">List pages or ranges, like 4-7, 12</string>
+    <string name="supp_count_default">Count in the lesson by default</string>
+    <string name="supp_count_default_hint">When off, new placements come on top of the lesson. Each lesson keeps its own choice.</string>
+    <string name="supp_section">Supplementary</string>
+    <string name="supp_in_lesson">In the lesson</string>
+    <string name="supp_on_top">On top</string>
+    <string name="supp_unplaced">Not placed yet: %1$s</string>
+    <string name="supp_all_placed">Every page is placed or taught</string>
+    <string name="supp_page_error">Use pages it includes and hasn\'t used yet</string>
+    <string name="supp_add_pages">Add %1$s pages…</string>
+    <string name="supp_line">%1$s: %2$s</string>
+    <string name="supp_left">%1$s: %2$s not placed yet</string>
+    <string name="supp_stats">%1$d of %2$d pages placed · %3$d taught</string>
+    <string name="supp_replace_title">Pages to teach this lesson</string>
+    <string name="supp_replace_hint">%1$s counts in this lesson. Enter what each core book will teach: pages or ranges, blank for none, or 0 to leave a book out. Pages you give up move to the next lessons.</string>
+    <string name="supp_replace_apply">Apply</string>
+    <string name="supp_keep_title">Keep %1$s?</string>
+    <string name="supp_keep_text">Keep %1$s on pages %2$s, or skip it this lesson?</string>
+    <string name="supp_keep">Keep these pages</string>
+    <string name="supp_skip">Don\'t use this lesson</string>
+    <string name="supp_cancel">Cancel</string>
+    <string name="supp_choose_pages">Choose pages to teach…</string>
+    <string name="supp_restored">The lesson\'s core pages are back as they were before. Change them if you like.</string>
+    <string name="supp_save_failed">Some pages can\'t go in this lesson. Check the fields and try again.</string>
+    <plurals name="supp_pages">
+        <item quantity="one">%d page</item>
+        <item quantity="other">%d pages</item>
+    </plurals>
 </resources>

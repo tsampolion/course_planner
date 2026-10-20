@@ -47,6 +47,9 @@ import gr.edusuite.pacer.engine.monthShort
 import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.verdict
+import gr.edusuite.pacer.engine.includedPages
+import gr.edusuite.pacer.engine.placedPages
+import gr.edusuite.pacer.engine.taughtPages
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
@@ -154,6 +157,21 @@ private fun Positions(report: GroupReport, vm: PacerViewModel) {
     val book = report.plan.books.firstOrNull { it.id == bookId }
     Section(stringResource(R.string.group_books)) {
         report.plan.books.forEachIndexed { i, b ->
+            if (b.supplementary) {
+                // Placed by hand: how much of it is placed or taught, without a pace or a position to edit.
+                val total = remember(b.include) { b.includedPages().size }
+                Row(Modifier.fillMaxWidth().padding(vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(AppIcons.Book)
+                    Spacer(Modifier.width(Space.s))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                        Text(b.name, style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.supp_stats, report.placedPages(b).size, total, report.taughtPages(b).size), style = MaterialTheme.typography.bodyMedium)
+                        Tag(stringResource(R.string.supp_tag))
+                    }
+                }
+                if (i < report.plan.books.lastIndex) HorizontalDivider(Modifier.padding(horizontal = Space.l), color = Pacer.colors.line)
+                return@forEachIndexed
+            }
             val st = report.bookStats[i]
             Row(Modifier.fillMaxWidth().clickable { bookId = b.id }.padding(vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
                 AppIcon(AppIcons.Book)

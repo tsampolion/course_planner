@@ -90,7 +90,8 @@ data class LessonSave(
  * Saves lesson [slot] of the group's custom plan, made from the proposed plan if it has none ([toCustomPlan]); a slot
  * past its last lesson adds one. The save is whole or nothing: null when a page can't go there. Then:
  * - Supplementary pages must be included, not taught, and not in another lesson.
- * - Core pages must be the lesson's own, pages no lesson has yet, or pages of later lessons nobody touched.
+ * - Core pages must be the lesson's own (kept even if another lesson also has them), pages no lesson has yet, or pages
+ *   of later lessons nobody touched.
  * - The first in-lesson placement keeps the lesson's core pages as its [PlannedLesson.replacementBase]; the base goes
  *   when no in-lesson placement is left (the caller then passes the base back as [LessonSave.core] to restore it).
  * - The lesson becomes touched. When its core pages or what counts in it changed, the lessons after it re-pace once,
@@ -117,7 +118,8 @@ fun GroupReport.saveLesson(slot: Int, save: LessonSave, id: () -> String = ::new
     for ((bookId, pages) in core) {
         val b = plan.books.first { it.id == bookId }
         val held = others.filter { it.index < at || it.value.touched }.flatMapTo(HashSet()) { it.value.pages[bookId].orEmpty() }
-        val allowed = plan.remainingPages(group, b).filterTo(HashSet()) { it !in held }
+        // The lesson may always keep what it has, even pages another lesson also holds.
+        val allowed = plan.remainingPages(group, b).filterTo(HashSet()) { it !in held } + old.pages[bookId].orEmpty()
         if (pages.any { it !in allowed }) return null
     }
 

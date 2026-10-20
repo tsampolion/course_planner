@@ -6,6 +6,7 @@ import android.print.PrintManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.outputColumns
 import gr.edusuite.pacer.engine.fixed2
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.monthShort
@@ -69,8 +70,10 @@ object PrintSheet {
             append(r.rows.first().date.fmt()).append(" to ").append(r.rows.last().date.fmt()).append("</div>")
             append("<div class=note>").append(esc(PRINT_NOTE)).append("</div>")
             val notes = r.rows.any { it.note.isNotEmpty() }
+            // Every core book, and a supplementary book only when this group's table uses it.
+            val cols = r.outputColumns()
             append("<table><thead><tr><th>#</th><th>Date</th>")
-            plan.books.forEach { append("<th>").append(esc(it.name)).append("</th>") }
+            cols.forEach { append("<th>").append(esc(plan.books[it].name)).append("</th>") }
             if (notes) append("<th>Note</th>")
             append("</tr></thead><tbody>")
             var month = -1
@@ -78,7 +81,7 @@ object PrintSheet {
                 val key = row.date.year * 12 + row.date.monthValue
                 if (key != month) {
                     month = key
-                    append("<tr class=brk><td colspan=").append(2 + plan.books.size + if (notes) 1 else 0).append(">")
+                    append("<tr class=brk><td colspan=").append(2 + cols.size + if (notes) 1 else 0).append(">")
                         .append(row.date.monthShort()).append(' ').append(row.date.year).append("</td></tr>")
                 }
                 val names = esc(row.events.joinToString(" · ") { it.name })
@@ -88,9 +91,9 @@ object PrintSheet {
                 if (!row.blocked && names.isNotEmpty()) append(" <b>[").append(names).append("]</b>")
                 append("</td>")
                 if (row.blocked) {
-                    append("<td colspan=").append(plan.books.size).append("><b>").append(names).append("</b></td>")
+                    append("<td colspan=").append(cols.size).append("><b>").append(names).append("</b></td>")
                 } else {
-                    row.cells.forEach { append("<td class=pg>").append(it).append("</td>") }
+                    cols.forEach { append("<td class=pg>").append(row.cells[it]).append("</td>") }
                 }
                 if (notes) append("<td>").append(esc(row.note)).append("</td>")
                 append("</tr>")
