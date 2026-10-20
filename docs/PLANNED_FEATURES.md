@@ -9,7 +9,7 @@ How to use this file:
 
 ## 1. Focus blocks: one book on its own for a run of lessons
 
-**Status:** proposed (discussed while building 1.5.0). Not approved. It's an engine extension.
+**Status:** proposed (discussed while building 1.5.0). Not approved. It's an engine extension. Custom plans (§3) and the lead book (§4) cover part of it: a custom plan can give a run of lessons to one book by hand.
 
 ### The problem
 
@@ -288,3 +288,15 @@ Answer the open questions below. The answers go into `docs/SIGNING_BRIEF.md`.
 4. **Data on phones before the switch:** re-enter it after reinstalling, or build an export and import of `plans.json` first, through the share sheet and the system file picker using `JsonCodec`? That would be a separate planned feature. `docs/BRIEF.md` already expects importing the web page's data later.
 5. **Fingerprint in release notes:** append "Signed with certificate SHA-256 …" to each release's notes (recommended, so any APK can be checked against it)?
 6. **Google Play later?** If so, use Play App Signing with this key as the upload key. Nothing needs deciding now.
+
+## 3. Custom plans: the teacher's own plan built from the proposed one
+
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Ships in 2.7.0, after the Plan | Stats split of the group screen (2.6.0).
+
+## 4. Lead book: one book directs the pacing of the others
+
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). An engine extension that changes nothing when no lead book is set. Ships in 2.8.0.
+
+## 5. Pace and left-behind warnings with catch-up
+
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Ships in 2.9.0.
