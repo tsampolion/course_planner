@@ -491,6 +491,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     fun removeBook(id: String) = editClass { c ->
         c.copy(
+            lead = c.lead?.takeIf { it != id },
             books = c.books.filter { it.id != id },
             homework = c.homework.filter { it.bookId != id },
             groups = c.groups.map { g ->
@@ -508,6 +509,10 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setLastPage(id: String, v: Int) = editBook(id, "blast:$id") { it.copy(last = v.coerceAtMost(MAX_PAGE)) }
     fun setSkip(id: String, v: String) = editBook(id, "bskip:$id") { it.copy(skip = v) }
     fun setDue(id: String, v: LocalDate?) = editBook(id, "bdue:$id") { it.copy(due = v) }
+    fun setUnits(id: String, v: String) = editBook(id, "bunits:$id") { it.copy(units = v) }
+
+    /** Makes book [id] the class's lead book, or with null lets every book keep its own pace. */
+    fun setLead(id: String?) = editClass { it.copy(lead = id?.takeIf { b -> it.books.any { book -> book.id == b } }) }
 
     // ---- homework ----------------------------------------------------------
 

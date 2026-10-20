@@ -16,9 +16,13 @@ fun Book.unitStarts(): List<Int> = parseRanges(units).sorted()
  *
  * A follower's lesson i ends at round(c_i × n_B / n_L), halves up, where c_i is the lead's cumulative
  * pages after lesson i. When both books list the same number of units, the lead's place inside its unit
- * maps to the same fraction of the follower's unit instead.
+ * maps to the same fraction of the follower's unit instead. [pool] is each book's pages to place: its remaining
+ * pages for the proposed plan, or what re-pacing a custom plan has left to spread.
  */
-internal fun GroupReport.followLead(alloc: List<MutableList<List<Int>>>): List<MutableList<List<Int>>> {
+internal fun GroupReport.followLead(
+    alloc: List<MutableList<List<Int>>>,
+    pool: (Book) -> List<Int> = { plan.remainingPages(group, it) },
+): List<MutableList<List<Int>>> {
     val li = plan.books.indexOfFirst { it.id == plan.lead }
     if (li < 0) return alloc
     val lead = plan.books[li]
@@ -30,7 +34,7 @@ internal fun GroupReport.followLead(alloc: List<MutableList<List<Int>>>): List<M
     return alloc.mapIndexed { bi, a ->
         val b = plan.books[bi]
         if (bi == li || b.due != null) return@mapIndexed a
-        val rem = plan.remainingPages(group, b)
+        val rem = pool(b)
         if (rem.isEmpty()) return@mapIndexed a
         val bUnits = b.unitStarts()
         val ends = if (leadUnits.isNotEmpty() && leadUnits.size == bUnits.size) {

@@ -81,4 +81,18 @@ class LeadBookTest {
         val books = listOf(Book("sb", "SB", 1, 23), Book("wb", "WB", 1, 7, due = d("2027-03-15")))
         assertEquals(col(plan(books, null), 1), col(plan(books, "sb"), 1))
     }
+
+    /** A custom plan made with a lead book, re-paced untouched, is the proposed plan with the lead book again. */
+    @Test fun repacingACustomPlanFollowsTheLead() {
+        val p = plan(listOf(Book("sb", "SB", 1, 23, units = "1, 12"), Book("wb", "WB", 1, 7, units = "1, 4")), "sb")
+        val g = p.groups.first()
+        val mine = g.copy(custom = report(p).toCustomPlan())
+        val repaced = mine.copy(custom = GroupReport(p, mine, Source.CUSTOM).repaceFrom(0))
+        assertEquals(report(p).rows.map { it.pages }, GroupReport(p, repaced).rows.map { it.pages })
+        // Proportional too.
+        val q = p.copy(books = p.books.map { it.copy(units = "") })
+        val mine2 = g.copy(custom = report(q).toCustomPlan())
+        val repaced2 = mine2.copy(custom = GroupReport(q, mine2, Source.CUSTOM).repaceFrom(0))
+        assertEquals(report(q).rows.map { it.pages }, GroupReport(q, repaced2).rows.map { it.pages })
+    }
 }

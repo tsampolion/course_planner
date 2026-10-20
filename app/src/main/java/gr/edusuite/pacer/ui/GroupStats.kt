@@ -160,6 +160,7 @@ private fun Positions(report: GroupReport, vm: PacerViewModel) {
                 Spacer(Modifier.width(Space.s))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     Text(b.name, style = MaterialTheme.typography.titleMedium)
+                    if (b.id == report.plan.lead) Tag(stringResource(R.string.class_leads))
                     Text(pluralStringResource(R.plurals.group_book_summary, st.pages, position(report.group, b), st.pages, if (st.lessons > 0) st.rate.fixed2() else "—"), style = MaterialTheme.typography.bodyMedium)
                     b.due?.let { Tag(if (st.crammed) { if (it.isBefore(report.group.from ?: report.plan.start ?: LocalDate.now())) stringResource(R.string.group_due_passed) else stringResource(R.string.group_no_before_due) } else stringResource(R.string.group_due, it.fmtShort()), warn = st.crammed) }
                 }

@@ -554,4 +554,15 @@
         <item quantity="one">%d lesson after the term ends</item>
         <item quantity="other">%d lessons after the term ends</item>
     </plurals>
+    <string name="class_lead_book">Lead book</string>
+    <string name="class_lead_none">None: each book keeps its own pace</string>
+    <string name="class_lead_hint">The other books keep step with the lead book: when it is a third of the way through, so are they. A book with its own finish-by date keeps its own pace. Give the books unit start pages to keep them in step unit by unit.</string>
+    <string name="class_leads">Leads</string>
+    <string name="class_units">Unit start pages</string>
+    <string name="class_units_placeholder">1, 13, 25, 37</string>
+    <string name="class_units_hint">The page each unit starts on. When this book and the lead book have the same number of units, this book keeps step unit by unit.</string>
+    <plurals name="class_units">
+        <item quantity="one">%d unit</item>
+        <item quantity="other">%d units</item>
+    </plurals>
 </resources>

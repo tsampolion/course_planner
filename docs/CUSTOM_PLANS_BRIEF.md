@@ -33,5 +33,5 @@ With no custom plan, no lead book and no catch-up applied, every schedule stays 
 
 - [x] 2.6.0 Plan | Stats split
 - [x] 2.7.0 Custom plans
-- [ ] 2.8.0 Lead book
+- [x] 2.8.0 Lead book
 - [ ] 2.9.0 Pace and left-behind warnings with catch-up

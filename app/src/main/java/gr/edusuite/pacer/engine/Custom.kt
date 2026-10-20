@@ -111,14 +111,21 @@ fun GroupReport.repaceFrom(from: Int): CustomPlan? {
     val targets = kept.indices.filter { it >= k && it < days.size && !kept[it].touched }
     val out = kept.mapIndexed { i, l -> if (i in targets) l.copy(pages = emptyMap()) else l }.toMutableList()
     if (targets.isEmpty()) return c.copy(lessons = out)
-    for (b in plan.books) {
+    val pools = plan.books.associate { b ->
         val covered = out.flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
-        val pool = plan.remainingPages(group, b).filter { it !in covered }
-        if (pool.isEmpty()) continue
+        b.id to plan.remainingPages(group, b).filter { it !in covered }
+    }
+    val alloc = plan.books.map { b ->
+        val pool = pools.getValue(b.id)
         val due = b.due
         // Finish-by date before the first lesson re-paced: everything lands in it, as in the proposed plan.
         val m = (if (due == null) targets.size else targets.count { !days[it].isAfter(due) }).coerceAtLeast(1)
-        allocatePages(pool, m).forEachIndexed { j, pages ->
+        allocatePages(pool, m).toMutableList().apply { while (size < targets.size) add(emptyList()) }
+    }
+    // With a lead book the others keep step with it here too, as in the proposed plan.
+    followLead(alloc) { pools.getValue(it.id) }.forEachIndexed { bi, a ->
+        val b = plan.books[bi]
+        a.forEachIndexed { j, pages ->
             if (pages.isNotEmpty()) out[targets[j]] = out[targets[j]].let { it.copy(pages = it.pages + (b.id to pages)) }
         }
     }
