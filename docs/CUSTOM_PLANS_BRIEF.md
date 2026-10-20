@@ -1,6 +1,6 @@
 # Task: Custom plans, a lead book, pace warnings and a calmer group screen
 
-> Decision record, in progress: the Plan | Stats split was built in 2.6.0, custom plans in 2.7.0 and the lead book in 2.8.0; the warnings (2.9.0) follow. The code and CLAUDE.md describe the current app.
+> Decision record: built in 2.6.0 (the Plan | Stats split), 2.7.0 (custom plans), 2.8.0 (the lead book) and 2.9.0 (pace and left-behind warnings). The code and CLAUDE.md describe the current app.
 
 This is the improved version of two requests from the owner (2026-10-20). The answers to the clarifying questions are folded in. The design, with the engine rules and file-by-file changes, is `docs/superpowers/specs/2026-10-20-custom-plans-roadmap-design.md`.
 

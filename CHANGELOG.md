@@ -29,6 +29,7 @@ Keep `[Unreleased]` empty between pull requests.
 - **Catch up.** When a group is behind its sustainable pace, its Plan shows *Behind the pace by n pages · Catch up*. The sheet lets you pick **+1, +2 or +3 pages a lesson** and shows live how many lessons that takes and the day you're back on pace, with the first lessons it would change. If even that isn't enough for the term, it says so. *Apply catch-up* writes the extra pages into your custom plan, making one from the proposed plan if you have none.
 - **Bring a book back in step.** A book more than 2 lessons behind the lead book (or the other books) gets its own warning. The sheet spreads its backlog over the next **2, 4 or 6 lessons**, previews that book's pages, and applies them to your custom plan. The number of lessons before the warning appears is set on the class screen, under Lessons.
 - Lessons you planned by hand never change, and the proposed plan stays as it is. Once your custom plan fits every page into the term, the warnings stand down; the status chip still gives the verdict against your sustainable pace.
+- Implementation plan in `docs/superpowers/plans/2026-10-20-pace-warnings.md`, linked from the design spec.
 
 ### Changed
 
