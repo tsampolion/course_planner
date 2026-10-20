@@ -2,6 +2,16 @@
 
 Decisions agreed with the owner on 2026-10-20, and approved for implementation the same day. **Brief:** [SUPPLEMENTARY_BOOKS_BRIEF.md](../../SUPPLEMENTARY_BOOKS_BRIEF.md). **Plan:** [2026-10-20-supplementary-books.md](../plans/2026-10-20-supplementary-books.md). Read `CLAUDE.md` first.
 
+## As built (2.10.0)
+
+- **One engine save.** `GroupReport.saveLesson(slot, LessonSave)` is the single batch operation. A slot past the plan's last lesson adds a lesson. A lesson may always keep its own core pages, even ones another lesson also holds.
+- **Simpler toggle behaviour.**
+  - Toggling a book to "In the lesson" opens the window at once.
+  - Save stays disabled until the core pages are confirmed, and "Choose pages to teach…" reopens the window.
+  - A refused save is reported in a snackbar.
+- **Simpler entry points.** "Add <book> pages…" opens the same editor for the lesson; it doesn't focus one field. When a custom plan exists but the Proposed view is shown, supplementary planning is offered only from My plan.
+- **Free days.** A free teaching day with no lesson takes the new lesson at the end of the plan, which is the first free day.
+
 ## Scope and baseline
 
 Build on main 2.9.0 (versionCode 31, JSON 7), including `engine/Warnings.kt`. Ship one PR as 2.10.0 / 32 / JSON 8. The homework overhaul is separate.

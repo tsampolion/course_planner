@@ -1,6 +1,6 @@
 # Task: Supplementary books in chosen lessons
 
-> Approved by the owner on 2026-10-20; being built for 2.10.0.
+> Decision record: built in 2.10.0. The code and CLAUDE.md describe the current app.
 
 The owner's request, clarified on 2026-10-20:
 
@@ -33,13 +33,13 @@ The baseline is main at 2.9.0, versionCode 31, JSON version 7. This is one featu
 ## Done when
 
 - [x] Owner approves this brief, the spec and the implementation plan before product code changes.
-- [ ] Strict supplementary-book creation/editing and both lesson entry points work.
-- [ ] Replacement dialog edits the pages to teach, handles ranges, individual pages and `0`, and resolves unchanged ranges explicitly.
-- [ ] Placement, replacement, restoration and any custom-plan creation are one undo step per Save; cancellation changes nothing.
-- [ ] Core pages remain accounted for; automatic fixes keep supplementary placements and counting choices.
-- [ ] Ticking, unticking, per-group tracking, Home, Stats, TSV and Print work.
-- [ ] Version-8 persistence includes the restoration baseline; older exports still load.
+- [x] Strict supplementary-book creation/editing and both lesson entry points work.
+- [x] Replacement dialog edits the pages to teach, handles ranges, individual pages and `0`, and resolves unchanged ranges explicitly.
+- [x] Placement, replacement, restoration and any custom-plan creation are one undo step per Save; cancellation changes nothing.
+- [x] Core pages remain accounted for; automatic fixes keep supplementary placements and counting choices.
+- [x] Ticking, unticking, per-group tracking, Home, Stats, TSV and Print work.
+- [x] Version-8 persistence includes the restoration baseline; older exports still load.
 - [ ] Engine work is test-first; all unit tests, lint and release assembly pass locally and CI is green.
-- [ ] Version, CHANGELOG, README, CLAUDE.md and docs index are current. On shipping, replace this brief's pending banner with `> Decision record: built in 2.10.0. The code and CLAUDE.md describe the current app.`
+- [x] Version, CHANGELOG, README, CLAUDE.md and docs index are current. On shipping, replace this brief's pending banner with `> Decision record: built in 2.10.0. The code and CLAUDE.md describe the current app.`
 - [ ] One PR: `feat(class): supplementary books (2.10.0)`, with checks and phone checklist.
 - [ ] Checked on a device by the owner.
