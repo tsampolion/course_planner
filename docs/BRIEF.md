@@ -22,7 +22,7 @@ The pacing rules live in the page's JavaScript. Port them to plain Kotlin and gi
 
 ## Feature parity checklist
 
-- Plans (now school years, each holding classes): switch, rename, create, delete (with confirmation), undo (60 steps; edits to one field within 1.2 s count as one step).
+- Plans (now school years, each holding classes): switch, rename, create, delete (with a 5 s Undo), undo (60 steps; edits to one field within 1.2 s count as one step).
 - Term (the school year's dates; lesson length and pace per class): start, end, lesson length, sustainable pace.
 - Groups: name, teaching weekdays, next-lesson date, add, remove, reset all positions.
 - Days off: list, add (reason, from, to, applies to), remove, add Greek holidays.
