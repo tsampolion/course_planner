@@ -29,6 +29,7 @@ Keep `[Unreleased]` empty between pull requests.
 - **Lead book.** A class with two or more books can pick a *Lead book* on the class screen. The other books keep step with it: lesson by lesson, each one is as far through its pages as the lead book is through its own. A book with its own finish-by date keeps its own pace. The lead book's tile, and its row in a group's Stats, carry a *Leads* tag.
 - **Unit start pages** for each book (*1, 13, 25, 37*). When a book has the same number of units as the lead book, it keeps step unit by unit: it starts its unit 3 when the lead book starts its unit 3. If the counts differ, it keeps step page by page, and the class's problems say so.
 - Re-pacing a custom plan follows the lead book too.
+- Implementation plan in `docs/superpowers/plans/2026-10-20-lead-book.md`, linked from the design spec.
 
 ### Changed
 
