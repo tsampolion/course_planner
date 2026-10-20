@@ -22,6 +22,25 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-10-20
+
+### Added
+
+- **Custom plans.** *Create your custom plan* on a group's Plan copies the proposed schedule into the group's own plan, saved beside the proposed one, which never changes. Your plan then drives the schedule, ticking, Home's next lesson, Copy, Share and Print.
+  - **Plan a lesson** (long-press → *Plan this lesson…*): the pages from each book and a note (revision, video, speaking activity). The note shows on the lesson, on the next-lesson tiles, and in Copy, Share and Print.
+  - **Add a lesson before** any lesson, **remove** one (its pages join the next lesson), **move** one earlier or later, or drag it by its handle: it lifts, the other lessons glide out of its way, and each place it passes ticks.
+  - **Re-pace from here** spreads what's left over your untouched lessons by the usual rule. Lessons you planned by hand keep an accent edge and are never rewritten.
+  - **Coverage card:** a bar per book showing how many of the pages left have a lesson, plus a one-tap fix for each problem: pages left out (*Re-pace*), pages taught twice or already covered (*Tidy*), lessons after the term ends (*Fit to term*).
+  - **My plan | Proposed** shows either plan; lessons that differ say what the proposed plan teaches that day. *Use this plan* switches which one you teach from, and your plan stays either way.
+  - A day off or a test moves your content to the next lesson instead of re-spreading it.
+  - Done lessons are shared by both plans. Ticking takes the lesson on that day, unticking puts it back, and recording other pages leaves the rest of your plan as it is, flagging the pages left out.
+  - *Copy to…* gives another group the same lessons on its own days; *Delete my plan* goes back to the proposed one (with Undo).
+- Overview lists a custom plan that leaves pages out or runs past the term end, and opens its group.
+
+### Changed
+
+- The saved file is version 5: each group may carry its custom plan. Older files and the web page's export still load, as groups without one.
+
 ## [2.6.0] - 2026-10-20
 
 ### Changed
@@ -384,7 +403,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.6.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.7.0...HEAD
+[2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/tsampolion/course_planner/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/tsampolion/course_planner/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/tsampolion/course_planner/compare/v2.4.0...v2.4.1

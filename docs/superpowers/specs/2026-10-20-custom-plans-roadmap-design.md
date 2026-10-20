@@ -53,7 +53,10 @@ File: `app/src/main/java/gr/edusuite/pacer/ui/GroupScreen.kt` (split into `Group
 - `data class CustomPlan(val active: Boolean, val lessons: List<PlannedLesson>)`
 - `data class PlannedLesson(val id: String, val pages: Map<String, List<Int>>, val note: String = "", val touched: Boolean = false)`
 
-### Engine (new `engine/Custom.kt`; `Pacer.kt` untouched apart from an interface)
+### Engine (new `engine/Custom.kt`)
+
+> **As built (2.7.0):** there's no `Schedule` interface or separate `CustomReport`. `GroupReport` takes a `Source` (`ACTIVE`, the default, then `PROPOSED` or `CUSTOM`), and with a custom plan its `rows` come from `customRows`. Every caller (ticking, Home, Print, TSV, the verdict, `problems()`) therefore follows the active plan unchanged, and a group without a custom plan runs exactly the old code. Ticking in either plan takes the custom lesson on that day (`takeSlots`), so done lessons stay shared. Copying keeps the lessons' touched flags and drops pages the target has already taught; it doesn't re-pace. The bullets below are the original design.
+
 - `interface Schedule { plan; group; rows: List<Row>; lessons; teaching; pages; peak; rate; bookStats }`. `GroupReport` implements it unchanged. `Row` gains an optional `note: String = ""` and `planned: PlannedLesson? = null`, with defaults so existing callers compile.
 - `fun GroupReport.toCustomPlan(): CustomPlan` copies the teaching rows into untouched lessons (`newId()` from `model/Drafts.kt`).
 - `class CustomReport(plan, group) : Schedule`:

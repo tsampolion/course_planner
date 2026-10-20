@@ -17,7 +17,7 @@ class NoHardcodedTextTest {
         "ClassScreens.kt" to setOf("add", "books", "class", "delete", "empty", "groups", "guide", "hint", "lessons", "more", "name", "past", "upcoming", "group:"),
         "YearScreens.kt" to setOf("add", "delete", "empty", "end", "foot", "greek", "hint", "name", "offhead", "start", "year", "term", "more", "classes", "days-off"),
         "OverviewScreen.kt" to setOf("empty", "class:", "head:", "none:"),
-        "GroupScreen.kt" to setOf("daystrip", "empty", "hero", "ledgerhead", "mode", "pager", "status", "tabs", "tickhint", "r", "m"),
+        "GroupScreen.kt" to setOf("custom", "daystrip", "empty", "hero", "ledgerhead", "mode", "pager", "status", "tabs", "tickhint", "r", "m", "p", "L", "N"),
         "GroupStats.kt" to setOf("%.1f"),
         "HomeScreen.kt" to setOf("EEE d MMM", "EEEE d MMMM", "homework", "tests"),
         "PacerApp.kt" to setOf("screen", "text/plain"),

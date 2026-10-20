@@ -76,9 +76,21 @@ import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.runtime.mutableIntStateOf
+import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.coverage
+import gr.edusuite.pacer.engine.moveLesson
+import kotlinx.coroutines.delay
 
 private const val TAB_PLAN = 0
 private const val TAB_STATS = 1
+/** How long a new custom plan's lessons take to lift in, one after another. */
+private const val REVEAL_MS = 1000L
 
 /** One lesson as the schedule shows it: taught (from the group's done lessons) or still to come. */
 private data class Lesson(
@@ -91,6 +103,16 @@ private data class Lesson(
     val done: Boolean,
     /** Recorded with pages other than the planned ones. */
     val edited: Boolean = false,
+    /** The custom plan's note for the lesson. */
+    val note: String = "",
+    /** The custom plan's lesson on this day, its place in that plan, and whether the teacher changed it by hand. */
+    val lessonId: String? = null,
+    val index: Int = -1,
+    val touched: Boolean = false,
+    /** A teaching day the custom plan has no lesson for. */
+    val free: Boolean = false,
+    /** What the proposed plan teaches that day, when the custom plan shown teaches something else. */
+    val proposed: String? = null,
 )
 
 /** One line of the all-months list: a month heading or a lesson. */
@@ -99,8 +121,11 @@ private sealed interface Line {
     data class Item(val lesson: Lesson) : Line
 }
 
-/** Done lessons and the lessons still to come, in date order and numbered together. */
-private fun lessonsOf(report: GroupReport): List<Lesson> {
+/**
+ * Done lessons and the lessons still to come, in date order and numbered together. With [compare], each lesson of
+ * a custom plan that teaches something other than [compare] says what that plan teaches.
+ */
+private fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<Lesson> {
     val plan = report.plan
     val g = report.group
     val done = g.done.map { d ->
@@ -108,7 +133,19 @@ private fun lessonsOf(report: GroupReport): List<Lesson> {
         val blocked = d.pages.isEmpty() && events.any { it.consumes }
         Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited)
     }
-    val upcoming = report.rows.map { r -> Lesson(0, r.date, r.events, r.blocked, r.cells, done = false) }
+    val custom = report.custom
+    val places = custom?.lessons?.withIndex()?.associate { (i, l) -> l.id to (i to l.touched) }.orEmpty()
+    val other = compare?.rows?.associateBy { it.date }
+    val upcoming = report.rows.map { r ->
+        val place = r.lessonId?.let(places::get)
+        val proposed = other?.get(r.date)?.takeIf { custom != null && !r.blocked && it.cells != r.cells }
+            ?.let { o -> plan.books.zip(o.cells).joinToString(" · ") { (b, cell) -> "${b.name} $cell" } }
+        Lesson(
+            0, r.date, r.events, r.blocked, r.cells, done = false, note = r.note, lessonId = r.lessonId,
+            index = place?.first ?: -1, touched = place?.second ?: false,
+            free = custom != null && r.lessonId == null && !r.blocked, proposed = proposed,
+        )
+    }
     return (done + upcoming).sortedBy { it.date }.mapIndexed { i, l -> l.copy(n = i + 1) }
 }
 
@@ -124,6 +161,20 @@ private class LessonActions(
     val canUpTo: (LocalDate) -> Boolean,
     /** Some lesson on or after this date is done. */
     val canNotFrom: (LocalDate) -> Boolean,
+    /** The lessons shown are the ones being taught, so they can be ticked. A plan shown for comparison can't. */
+    val canTick: Boolean = true,
+    /** Set while a custom plan is shown: what its lessons' menus offer. */
+    val custom: CustomActions? = null,
+)
+
+/** What a lesson of a custom plan offers. [last] is the plan's last place. */
+private class CustomActions(
+    val last: Int,
+    val plan: (Lesson) -> Unit,
+    val addBefore: (Lesson) -> Unit,
+    val move: (Lesson, Int) -> Unit,
+    val repace: (Lesson) -> Unit,
+    val remove: (Lesson) -> Unit,
 )
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -139,9 +190,27 @@ fun GroupScreen(
 ) {
     val context = LocalContext.current
     val segmentHaptic = rememberSegmentHaptic()
+    val toggleHaptic = rememberToggleHaptic()
     val plan = report.plan
     val g = report.group
-    val lessons = remember(report) { lessonsOf(report) }
+    val custom = g.custom
+    // With a custom plan the schedule shows either plan; ticking works on the one in use.
+    var showMine by rememberSaveable(g.id) { mutableStateOf(true) }
+    val shown = remember(report, showMine) { if (custom == null) report else GroupReport(plan, g, if (showMine) Source.CUSTOM else Source.PROPOSED) }
+    val compare = remember(report, showMine) { if (custom != null && showMine) GroupReport(plan, g, Source.PROPOSED) else null }
+    // While a lesson is dragged, the others are laid out as if it had landed where it would land now.
+    var dragId by remember { mutableStateOf<String?>(null) }
+    var dragTo by remember { mutableIntStateOf(0) }
+    val viewed = remember(shown, dragId, dragTo) {
+        val id = dragId
+        val c = shown.custom
+        if (id == null || c == null) shown else GroupReport(plan, g.copy(custom = c.moveLesson(id, dragTo)), Source.CUSTOM)
+    }
+    var reveal by remember { mutableIntStateOf(0) }
+    LaunchedEffect(reveal) { if (reveal > 0) { delay(REVEAL_MS); reveal = 0 } }
+    val canTick = custom == null || showMine == custom.active
+    var planning by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    val lessons = remember(viewed, compare) { lessonsOf(viewed, compare) }
     val months = remember(lessons) { lessons.groupBy { it.date.withDayOfMonth(1) }.toList() }
     val lines = remember(months) {
         months.flatMap { (m, ls) -> listOf<Line>(Line.Month(m)) + ls.map { Line.Item(it) } }
@@ -150,7 +219,18 @@ fun GroupScreen(
     var selectedMonth by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     val editing = lessons.firstOrNull { it.date.toString() == editingDate }
-    val actions = remember(lessons, g.id, plan.books) {
+    val customActions = remember(shown, g.id) {
+        val c = shown.custom ?: return@remember null
+        CustomActions(
+            last = c.lessons.lastIndex,
+            plan = { l -> planning = if (l.lessonId != null) "L${l.lessonId}" else "N${c.lessons.size}" },
+            addBefore = { l -> planning = "N${l.index}" },
+            move = { l, to -> vm.movePlannedLesson(g.id, l.lessonId ?: return@CustomActions, to); undoToast(context.getString(R.string.custom_moved)) },
+            repace = { l -> vm.repaceFrom(g.id, l.index); undoToast(context.getString(R.string.custom_repaced)) },
+            remove = { l -> vm.removePlannedLesson(g.id, l.lessonId ?: return@CustomActions); undoToast(context.getString(R.string.custom_removed)) },
+        )
+    }
+    val actions = remember(lessons, g.id, plan.books, canTick, customActions) {
         LessonActions(
             bookNames = plan.books.map { it.name },
             toggle = { vm.toggleLesson(g.id, it); undoToast(context.getString(R.string.group_updated)) },
@@ -159,6 +239,8 @@ fun GroupScreen(
             notFrom = { vm.unmarkDoneFrom(g.id, it); undoToast(context.getString(R.string.group_marked_not_done)) },
             canUpTo = { d -> lessons.any { !it.done && !it.date.isAfter(d) } },
             canNotFrom = { d -> lessons.any { it.done && !it.date.isBefore(d) } },
+            canTick = canTick,
+            custom = customActions,
         )
     }
     // By month opens on this month, or on the first month with a lesson still to come.
@@ -183,8 +265,8 @@ fun GroupScreen(
             listOf(stringResource(R.string.group_tab_plan), stringResource(R.string.group_tab_stats)), tab, { tab = it },
             Modifier.padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.s),
         )
-        AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { sideways(targetState > initialState, motion) }) { shown ->
-            if (shown == TAB_STATS) GroupStats(report, vm, padding) else LazyColumn(
+        AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { sideways(targetState > initialState, motion) }) { view ->
+            if (view == TAB_STATS) GroupStats(report, vm, padding) else LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = planList,
                 contentPadding = PaddingValues(top = Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
@@ -194,6 +276,30 @@ fun GroupScreen(
                 }
                 item(key = "status") {
                     StatusChip(report, { tab = TAB_STATS }, Modifier.padding(start = Space.l, end = Space.l, top = Space.m))
+                }
+                item(key = "custom") {
+                    Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                        if (custom == null) {
+                            CreatePlanCard({
+                                toggleHaptic(true)
+                                vm.createCustomPlan(g.id)
+                                showMine = true
+                                reveal++
+                                undoToast(context.getString(R.string.custom_created))
+                            })
+                        } else {
+                            PlanSourceBar(custom, showMine, { showMine = it }, { vm.setCustomActive(g.id, showMine) })
+                            val cov = remember(shown) { shown.coverage() }
+                            if (showMine && cov != null) CoverageCard(
+                                shown, cov, plan.groups.filter { it.id != g.id },
+                                onRepace = { vm.repaceFrom(g.id, 0); undoToast(context.getString(R.string.custom_repaced)) },
+                                onTidy = { vm.tidyCustomPlan(g.id); undoToast(context.getString(R.string.custom_tidied)) },
+                                onFit = { vm.fitCustomPlanToTerm(g.id); undoToast(context.getString(R.string.custom_fitted)) },
+                                onCopy = { o -> vm.copyCustomPlan(g.id, o.id); undoToast(context.getString(R.string.custom_copied, o.name)) },
+                                onDelete = { vm.deleteCustomPlan(g.id); undoToast(context.getString(R.string.custom_deleted)) },
+                            )
+                        }
+                    }
                 }
                 item(key = "daystrip") {
                     val start = plan.start
@@ -270,15 +376,55 @@ fun GroupScreen(
                     }
                 } else {
 
-                    items(lines, key = { l -> if (l is Line.Item) "r${l.lesson.date}" else "m${(l as Line.Month).first}" }, contentType = { it::class }) { l ->
+                    items(lines, key = { l -> if (l is Line.Item) l.lesson.lessonId?.let { "p$it" } ?: "r${l.lesson.date}" else "m${(l as Line.Month).first}" }, contentType = { it::class }) { l ->
                         when (l) {
                             is Line.Month -> MonthRow(l.first)
-                            is Line.Item -> Box(Modifier.animateItem()) { LessonLine(l.lesson, actions) }
+                            is Line.Item -> {
+                                val ls = l.lesson
+                                val id = ls.lessonId
+                                val ca = actions.custom
+                                if (ca != null && id != null) {
+                                    DraggableLesson(
+                                        ls.index, ca.last, dragId == id, reveal,
+                                        onStart = { dragId = id; dragTo = ls.index },
+                                        onTarget = { dragTo = it },
+                                        onDrop = { commit ->
+                                            val to = dragTo
+                                            dragId = null
+                                            if (commit && custom?.lessons?.indexOfFirst { it.id == id } != to) {
+                                                vm.movePlannedLesson(g.id, id, to)
+                                                undoToast(context.getString(R.string.custom_moved))
+                                            }
+                                        },
+                                    ) { grip -> LessonLine(ls, actions, grip) }
+                                } else {
+                                    Box(Modifier.animateItem()) { LessonLine(ls, actions) }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    planning?.let { key ->
+        val c = shown.custom ?: return@let
+        val id = key.removePrefix("L").takeIf { key.startsWith("L") }
+        val at = key.removePrefix("N").toIntOrNull() ?: c.lessons.size
+        val planned = id?.let { i -> c.lessons.firstOrNull { it.id == i } }
+        if (id != null && planned == null) return@let
+        val lesson = id?.let { i -> lessons.firstOrNull { it.lessonId == i } }
+        PlannedLessonSheet(
+            title = lesson?.let { stringResource(R.string.custom_sheet_title, it.n, it.date.dayOfWeek.short(), it.date.fmtShort()) } ?: stringResource(R.string.custom_sheet_new),
+            report = shown,
+            key = key,
+            pages = planned?.pages.orEmpty(),
+            note = planned?.note.orEmpty(),
+            proposed = lesson?.let { compare?.plannedPages(it.date) },
+            onSave = { pages, note -> vm.savePlannedLesson(g.id, id, at, pages, note); undoToast(context.getString(R.string.custom_saved)) },
+            onDismiss = { planning = null },
+        )
     }
 
     editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it); undoToast(context.getString(R.string.group_saved)) }, { editingDate = null }) }
@@ -294,9 +440,13 @@ private fun MonthRow(first: LocalDate) {
     )
 }
 
-/** A lesson: tick it on its own, or long-press for stringResource(R.string.group_done_up_to) and stringResource(R.string.group_not_done_from). */
+/**
+ * A lesson: tick it on its own, or long-press for "Edit pages taught…", "Done up to here" and "Not done from here".
+ * A custom plan's lesson also offers planning its pages, adding a lesson before it, moving it, re-pacing from it and
+ * removing it, and is dragged by [grip]. Lessons the teacher changed by hand carry an accent edge.
+ */
 @Composable
-private fun LessonLine(l: Lesson, actions: LessonActions) {
+private fun LessonLine(l: Lesson, actions: LessonActions, grip: (@Composable (label: String) -> Unit)? = null) {
     val names = l.events.joinToString(" · ") { it.name }
     var menu by rememberSaveable(l.date.toString()) { mutableStateOf(false) }
     val toggleHaptic = rememberToggleHaptic()
@@ -304,29 +454,56 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
     val edit = stringResource(R.string.group_edit_pages_menu)
     val upTo = stringResource(R.string.group_done_up_to)
     val notFrom = stringResource(R.string.group_not_done_from)
+    val planIt = stringResource(if (l.lessonId != null) R.string.custom_plan_lesson else R.string.custom_add_here)
+    val addBefore = stringResource(R.string.custom_add_before)
+    val earlier = stringResource(R.string.custom_move_earlier)
+    val later = stringResource(R.string.custom_move_later)
+    val repace = stringResource(R.string.custom_repace_here)
+    val remove = stringResource(R.string.custom_remove)
+    val ca = actions.custom?.takeIf { !l.done && !l.blocked && (l.lessonId != null || l.free) }
+    val placed = ca != null && l.lessonId != null
+    val tick = actions.canTick
+    val hasMenu = tick || ca != null
     Box {
         Column {
             Row(
                 Modifier
                     .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
                     .alpha(if (l.done) 0.6f else 1f)
                     .background(if (l.blocked) Pacer.colors.accentSoft else Pacer.colors.surface)
-                    .pointerInput(l.date) { detectTapGestures(onLongPress = { menu = true }) }
+                    .pointerInput(l.date, hasMenu) { detectTapGestures(onLongPress = { if (hasMenu) menu = true }) }
                     .semantics {
-                        customActions = listOf(
-                            CustomAccessibilityAction(edit) { actions.edit(l); true },
-                            CustomAccessibilityAction(upTo) { if (actions.canUpTo(l.date)) { actions.upTo(l.date); true } else false },
-                            CustomAccessibilityAction(notFrom) { if (actions.canNotFrom(l.date)) { actions.notFrom(l.date); true } else false },
-                        )
+                        customActions = buildList {
+                            if (tick) {
+                                add(CustomAccessibilityAction(edit) { actions.edit(l); true })
+                                add(CustomAccessibilityAction(upTo) { if (actions.canUpTo(l.date)) { actions.upTo(l.date); true } else false })
+                                add(CustomAccessibilityAction(notFrom) { if (actions.canNotFrom(l.date)) { actions.notFrom(l.date); true } else false })
+                            }
+                            if (ca != null) {
+                                add(CustomAccessibilityAction(planIt) { ca.plan(l); true })
+                                if (placed) {
+                                    add(CustomAccessibilityAction(addBefore) { ca.addBefore(l); true })
+                                    if (l.index > 0) add(CustomAccessibilityAction(earlier) { ca.move(l, l.index - 1); true })
+                                    if (l.index < ca.last) add(CustomAccessibilityAction(later) { ca.move(l, l.index + 1); true })
+                                    add(CustomAccessibilityAction(repace) { ca.repace(l); true })
+                                    add(CustomAccessibilityAction(remove) { ca.remove(l); true })
+                                }
+                            }
+                        }
                     }
-                    .padding(start = Space.xs, end = Space.m),
+                    .padding(end = if (grip != null) 0.dp else Space.m),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                // The accent edge marks a lesson planned by hand, which re-pacing leaves alone.
+                Box(Modifier.width(3.dp).fillMaxHeight().background(if (l.touched && !l.done) Pacer.colors.accent else Color.Transparent))
+                Spacer(Modifier.width(Space.xs - 3.dp))
                 AppIcon(AppIcons.Calendar)
                 Box(Modifier.width(TickW), contentAlignment = Alignment.Center) {
                     Checkbox(
                         checked = l.done,
                         onCheckedChange = { toggleHaptic(it); actions.toggle(l.date) },
+                        enabled = tick,
                         modifier = Modifier.semantics { contentDescription = doneDescription },
                     )
                 }
@@ -340,17 +517,34 @@ private fun LessonLine(l: Lesson, actions: LessonActions) {
                     }
                     if (l.edited) Tag(stringResource(R.string.group_edited))
                     if (l.done) Tag(stringResource(R.string.group_done))
+                    if (l.free) Tag(stringResource(R.string.custom_free))
+                    if (l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
                     if (!l.blocked) l.cells.forEachIndexed { i, cell ->
                         Text(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell), style = MaterialTheme.typography.bodyMedium)
                     }
+                    l.proposed?.let { Hint(stringResource(R.string.custom_proposed_line, it)) }
                 }
+                if (grip != null) grip(stringResource(R.string.custom_drag, l.n))
             }
             HorizontalDivider(color = Pacer.colors.line)
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text(edit) }, onClick = { menu = false; actions.edit(l) })
-            DropdownMenuItem(text = { Text(upTo) }, enabled = actions.canUpTo(l.date), onClick = { menu = false; actions.upTo(l.date) })
-            DropdownMenuItem(text = { Text(notFrom) }, enabled = actions.canNotFrom(l.date), onClick = { menu = false; actions.notFrom(l.date) })
+            if (ca != null) {
+                DropdownMenuItem(text = { Text(planIt) }, onClick = { menu = false; ca.plan(l) })
+                if (placed) {
+                    DropdownMenuItem(text = { Text(addBefore) }, onClick = { menu = false; ca.addBefore(l) })
+                    DropdownMenuItem(text = { Text(earlier) }, enabled = l.index > 0, onClick = { menu = false; ca.move(l, l.index - 1) })
+                    DropdownMenuItem(text = { Text(later) }, enabled = l.index < ca.last, onClick = { menu = false; ca.move(l, l.index + 1) })
+                    DropdownMenuItem(text = { Text(repace) }, onClick = { menu = false; ca.repace(l) })
+                    DropdownMenuItem(text = { Text(remove) }, onClick = { menu = false; ca.remove(l) })
+                }
+                if (tick) HorizontalDivider(color = Pacer.colors.line)
+            }
+            if (tick) {
+                DropdownMenuItem(text = { Text(edit) }, onClick = { menu = false; actions.edit(l) })
+                DropdownMenuItem(text = { Text(upTo) }, enabled = actions.canUpTo(l.date), onClick = { menu = false; actions.upTo(l.date) })
+                DropdownMenuItem(text = { Text(notFrom) }, enabled = actions.canNotFrom(l.date), onClick = { menu = false; actions.notFrom(l.date) })
+            }
         }
     }
 }
@@ -412,6 +606,7 @@ private fun NextLessonTile(report: GroupReport, vm: PacerViewModel, modifier: Mo
         Text(stringResource(R.string.group_next_number, next.n), style = MaterialTheme.typography.labelLarge)
         Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall, fontFamily = Mono)
         if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
+        if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyLarge, fontStyle = FontStyle.Italic)
         if (!next.blocked) plan.books.forEachIndexed { i, book ->
             Text(stringResource(R.string.group_book_pages, book.name, next.cells.getOrElse(i) { "—" }), style = MaterialTheme.typography.bodyLarge)
         }

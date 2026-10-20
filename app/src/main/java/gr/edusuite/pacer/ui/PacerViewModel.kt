@@ -9,16 +9,28 @@ import gr.edusuite.pacer.data.PlanStore
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.copyCustomPlan
+import gr.edusuite.pacer.engine.editLesson
+import gr.edusuite.pacer.engine.fitToTerm
+import gr.edusuite.pacer.engine.insertLesson
+import gr.edusuite.pacer.engine.moveLesson
+import gr.edusuite.pacer.engine.removeLesson
+import gr.edusuite.pacer.engine.repaceFrom
+import gr.edusuite.pacer.engine.tidy
+import gr.edusuite.pacer.engine.toCustomPlan
+import gr.edusuite.pacer.engine.unmarkLesson
+import gr.edusuite.pacer.engine.unmarkLessonsFrom
 import gr.edusuite.pacer.engine.greekHolidays
 import gr.edusuite.pacer.engine.markDone
 import gr.edusuite.pacer.engine.markDoneUpTo
 import gr.edusuite.pacer.engine.recordLesson
-import gr.edusuite.pacer.engine.unmarkDone
-import gr.edusuite.pacer.engine.unmarkDoneFrom
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Closure
+import gr.edusuite.pacer.model.CustomPlan
+import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
 import gr.edusuite.pacer.model.MAX_PAGE
@@ -394,7 +406,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     /** Ticks or unticks the lesson on [date] on its own. */
     fun toggleLesson(groupId: String, date: LocalDate) = editLessons(groupId) { r, g ->
-        if (g.done.any { it.date == date }) g.unmarkDone(date) else r.markDone(setOf(date))
+        if (g.done.any { it.date == date }) r.plan.unmarkLesson(g, date) else r.markDone(setOf(date))
     }
 
     /** Marks the lesson on [date] done as having covered [pages] (book id to pages), in place of the planned ones. */
@@ -404,10 +416,60 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     fun markDoneUpTo(groupId: String, date: LocalDate) = editLessons(groupId) { r, _ -> r.markDoneUpTo(date) }
 
-    fun unmarkDoneFrom(groupId: String, date: LocalDate) = editLessons(groupId) { _, g -> g.unmarkDoneFrom(date) }
+    fun unmarkDoneFrom(groupId: String, date: LocalDate) = editLessons(groupId) { r, g -> r.plan.unmarkLessonsFrom(g, date) }
 
     fun markNextLessonDone(groupId: String) = editLessons(groupId) { r, g ->
         r.rows.firstOrNull()?.let { r.markDone(setOf(it.date)) } ?: g
+    }
+
+    // ---- custom plans ------------------------------------------------------
+
+    /** Applies [change] to the group's custom plan, laid out by a report that follows it. Does nothing when it has none. */
+    private fun editCustom(groupId: String, tag: String? = null, change: (GroupReport, CustomPlan) -> CustomPlan?) {
+        val plan = data.plan ?: return
+        val g = plan.groups.firstOrNull { it.id == groupId } ?: return
+        val c = g.custom ?: return
+        val next = change(GroupReport(plan, g, Source.CUSTOM), c) ?: return
+        editGroup(groupId, tag) { it.copy(custom = next) }
+    }
+
+    /** Makes the group's own plan from the proposed one and makes it active. The proposed plan stays as it is. */
+    fun createCustomPlan(groupId: String) = editLessons(groupId) { r, g ->
+        if (g.custom != null) g else g.copy(custom = GroupReport(r.plan, g, Source.PROPOSED).toCustomPlan())
+    }
+
+    /** Switches between the group's own plan ([active] true) and the proposed one, keeping both. */
+    fun setCustomActive(groupId: String, active: Boolean) = editCustom(groupId) { _, c -> c.copy(active = active) }
+
+    /** Deletes the group's own plan; the proposed one takes over. Undo brings it back. */
+    fun deleteCustomPlan(groupId: String) = editGroup(groupId) { it.copy(custom = null) }
+
+    /**
+     * Saves a lesson of the custom plan with [pages] and [note], in one undo step: lesson [lessonId], or with null
+     * a new lesson at position [at].
+     */
+    fun savePlannedLesson(groupId: String, lessonId: String?, at: Int, pages: Map<String, List<Int>>, note: String) =
+        editCustom(groupId) { _, c ->
+            if (lessonId != null) c.editLesson(lessonId, pages, note)
+            else PlannedLesson(newId()).let { l -> c.insertLesson(at, l).editLesson(l.id, pages, note) }
+        }
+
+    fun removePlannedLesson(groupId: String, lessonId: String) = editCustom(groupId) { _, c -> c.removeLesson(lessonId) }
+
+    fun movePlannedLesson(groupId: String, lessonId: String, to: Int) = editCustom(groupId) { _, c -> c.moveLesson(lessonId, to) }
+
+    fun repaceFrom(groupId: String, from: Int) = editCustom(groupId) { r, _ -> r.repaceFrom(from) }
+
+    fun tidyCustomPlan(groupId: String) = editCustom(groupId) { r, _ -> r.tidy() }
+
+    fun fitCustomPlanToTerm(groupId: String) = editCustom(groupId) { r, _ -> r.fitToTerm() }
+
+    /** Gives group [to] a copy of group [from]'s plan, replacing any it had, in one undo step. */
+    fun copyCustomPlan(from: String, to: String) {
+        val plan = data.plan ?: return
+        val c = plan.groups.firstOrNull { it.id == from }?.custom ?: return
+        val target = plan.groups.firstOrNull { it.id == to } ?: return
+        editGroup(to) { it.copy(custom = plan.copyCustomPlan(c, target)) }
     }
 
     /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */
@@ -431,7 +493,13 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         c.copy(
             books = c.books.filter { it.id != id },
             homework = c.homework.filter { it.bookId != id },
-            groups = c.groups.map { g -> g.copy(pos = g.pos - id, done = g.done.map { it.copy(pages = it.pages - id) }) },
+            groups = c.groups.map { g ->
+                g.copy(
+                    pos = g.pos - id,
+                    done = g.done.map { it.copy(pages = it.pages - id) },
+                    custom = g.custom?.let { p -> p.copy(lessons = p.lessons.map { it.copy(pages = it.pages - id) }) },
+                )
+            },
         )
     }
 

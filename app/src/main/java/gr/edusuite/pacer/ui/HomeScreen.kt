@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.ui.text.font.FontStyle
 import android.content.Context
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -277,6 +278,7 @@ private fun NextLessonCard(year: SchoolYear, today: LocalDate, vm: PacerViewMode
             Text(stringResource(R.string.home_pair, next.className.ifBlank { context.getString(R.string.home_class) }, next.groupName.ifBlank { context.getString(R.string.home_group) }), style = MaterialTheme.typography.titleMedium)
             // Book names and pages read as a sentence, so they stay in sans (§3: mono is for figures only).
             Text(next.what.ifBlank { context.getString(R.string.home_no_pages) }, style = MaterialTheme.typography.bodyMedium)
+            if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
             Button(
                 onClick = {
                     vm.markNextLessonDoneIn(next.classId, next.groupId)
