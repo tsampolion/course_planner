@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.data
 
+import gr.edusuite.pacer.engine.parseInclude
 import gr.edusuite.pacer.engine.settleNextLesson
 import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
@@ -29,19 +30,31 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
     pace = c.pace.takeIf { it.isFinite() && it >= 0 } ?: 0.0,
     groups = unique(c.groups, { it.id }) { g, id -> g.copy(id = id) }.map { g ->
         val books = c.books.mapTo(HashSet()) { it.id }
+        val supp = c.books.filter { it.supplementary }.mapTo(HashSet()) { it.id }
         g.copy(
             done = g.done.distinctBy { it.date },
             custom = g.custom?.let { p ->
                 p.copy(lessons = unique(p.lessons, { it.id }) { l, id -> l.copy(id = id) }.map { l ->
-                    l.copy(pages = l.pages.filterKeys { it in books }.mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE } }.filterValues { it.isNotEmpty() })
+                    val pages = l.pages.filterKeys { it in books }.mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE } }.filterValues { it.isNotEmpty() }
+                    l.copy(
+                        pages = pages,
+                        // Only supplementary books with pages in the lesson count in it; the base keeps core books only.
+                        inLesson = l.inLesson.filterTo(HashSet()) { it in supp && it in pages },
+                        replacementBase = l.replacementBase?.filterKeys { it in books && it !in supp }
+                            ?.mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE } }?.filterValues { it.isNotEmpty() },
+                    )
                 })
             },
         )
     },
-    books = unique(c.books, { it.id }) { b, id -> b.copy(id = id) }.map { b -> b.copy(first = page(b.first), last = page(b.last)) },
+    books = unique(c.books, { it.id }) { b, id -> b.copy(id = id) }.map { b ->
+        // A supplementary book's first and last pages come from its include list when it reads.
+        val inc = if (b.supplementary) parseInclude(b.include).orEmpty() else emptyList()
+        if (inc.isNotEmpty()) b.copy(first = inc.first(), last = inc.last()) else b.copy(first = page(b.first), last = page(b.last))
+    },
     homework = unique(c.homework, { it.id }) { h, id -> h.copy(id = id) }.map { h -> h.copy(from = page(h.from), to = page(h.to)) },
     events = unique(c.events, { it.id }) { e, id -> e.copy(id = id) },
-    lead = c.lead?.takeIf { id -> c.books.any { it.id == id } },
+    lead = c.lead?.takeIf { id -> c.books.any { it.id == id && !it.supplementary } },
     lagLessons = c.lagLessons.coerceIn(1, MAX_LAG_LESSONS),
 )
 
