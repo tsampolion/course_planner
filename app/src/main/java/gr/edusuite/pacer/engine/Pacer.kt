@@ -239,7 +239,7 @@ class GroupReport(val plan: Plan, val group: Group, val source: Source = Source.
             // Nothing after the finish-by date.
             while (a.size < teaching) a += emptyList<Int>()
             a
-        }
+        }.let { followLead(it) }
         var k = 0
         lessons.mapIndexed { i, date ->
             val blocked = blockedByLesson[i]
@@ -379,6 +379,7 @@ fun Plan.problems(): List<String> {
     }
     if (books.isEmpty()) msgs += "Add at least one book."
     val reports by lazy { groups.map { GroupReport(this, it) } }
+    msgs += leadProblems()
     books.forEachIndexed { i, b ->
         if (b.last < b.first) msgs += "${b.name}: the last page is before the first."
         if (b.due != null && e != null && b.due.isAfter(e)) {

@@ -41,6 +41,7 @@ import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.engine.unitStarts
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.Plan
@@ -108,7 +109,15 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             Section(stringResource(R.string.class_books), trailing = { TertiaryButton(stringResource(R.string.class_add), { addingBook = true }) }) {
                 Hint(stringResource(R.string.class_each_book_is_paced_on_its_own_skipped_pages_apply_to_every_g))
                 if (plan.books.isEmpty()) Hint(stringResource(R.string.class_no_books_yet))
-                TileGrid(plan.books) { book, modifier -> BookEditor(book, vm, undoToast, modifier) }
+                if (plan.books.size > 1) {
+                    Picker(
+                        stringResource(R.string.class_lead_book),
+                        listOf("" to stringResource(R.string.class_lead_none)) + plan.books.map { it.id to it.name.ifBlank { stringResource(R.string.class_book) } },
+                        plan.lead.orEmpty(), { vm.setLead(it.ifEmpty { null }) }, Modifier.fillMaxWidth(),
+                    )
+                    if (plan.lead != null) Hint(stringResource(R.string.class_lead_hint))
+                }
+                TileGrid(plan.books) { book, modifier -> BookEditor(book, book.id == plan.lead, vm, undoToast, modifier) }
             }
         }
         item(key = "groups") {
@@ -263,7 +272,7 @@ private fun TestRow(plan: Plan, event: TestEvent, lessonDays: Map<String, Set<Lo
 }
 
 @Composable
-private fun BookEditor(b: Book, vm: PacerViewModel, undoToast: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun BookEditor(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (String) -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val fallbackName = stringResource(R.string.class_book)
     val name = b.name.ifBlank { fallbackName }
@@ -277,6 +286,8 @@ private fun BookEditor(b: Book, vm: PacerViewModel, undoToast: (String) -> Unit,
         Text(pluralStringResource(R.plurals.class_teachable, maxOf(0, b.last - b.first + 1 - skipped), maxOf(0, b.last - b.first + 1 - skipped)), color = Pacer.colors.onTileMuted)
         if (b.skip.isNotBlank()) Tag(pluralStringResource(R.plurals.class_skipped, skipped, skipped), onTile = true)
         b.due?.let { Tag(stringResource(R.string.class_due_by, it.fmtShort()), onTile = true) }
+        if (leads) Tag(stringResource(R.string.class_leads), onTile = true)
+        if (b.units.isNotBlank()) Tag(pluralStringResource(R.plurals.class_units, b.unitStarts().size, b.unitStarts().size), onTile = true)
     }
     if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
         BookFields(b, vm) { editing = false; vm.removeBook(b.id); undoToast(context.getString(R.string.class_removed, name)) }
@@ -297,6 +308,8 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
         CommitField(b.skip, { vm.setSkip(b.id, it) }, stringResource(R.string.class_skip_pages), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_8_24_27))
         DateField(b.due, { vm.setDue(b.id, it) }, stringResource(R.string.class_finish_by), Modifier.fillMaxWidth(), clearable = true)
         if (b.due != null) Hint(stringResource(R.string.class_only_this_book_re_paces_the_others_keep_their_own_rate))
+        CommitField(b.units, { vm.setUnits(b.id, it) }, stringResource(R.string.class_units), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_units_placeholder))
+        Hint(stringResource(R.string.class_units_hint))
         TertiaryButton(stringResource(R.string.class_remove_book), onRemove, color = Pacer.colors.warn)
     }
     val skipN = remember(b.skip, b.first, b.last) { parseRanges(b.skip).count { it in b.first..b.last } }

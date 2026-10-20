@@ -8,7 +8,8 @@ import gr.edusuite.pacer.model.newId
 
 /**
  * Makes years read from a file safe to show and save: page numbers from 0 to [MAX_PAGE], a finite pace,
- * one done lesson per date, custom-plan pages only for the class's books, and ids that are unique where the screens list them. A repeated id gets a
+ * one done lesson per date, custom-plan pages only for the class's books, a lead book that is one of the
+ * class's books, and ids that are unique where the screens list them. A repeated id gets a
  * new one; the first item with it keeps the days off, homework and positions aimed at it.
  * It also moves each group's next lesson past the lessons ticked in order ([settleNextLesson]): files from
  * 1.4.0 to 1.7.0 left it at the term start, so a later calendar edit brought past lessons back.
@@ -39,6 +40,7 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
     books = unique(c.books, { it.id }) { b, id -> b.copy(id = id) }.map { b -> b.copy(first = page(b.first), last = page(b.last)) },
     homework = unique(c.homework, { it.id }) { h, id -> h.copy(id = id) }.map { h -> h.copy(from = page(h.from), to = page(h.to)) },
     events = unique(c.events, { it.id }) { e, id -> e.copy(id = id) },
+    lead = c.lead?.takeIf { id -> c.books.any { it.id == id } },
 )
 
 private fun page(p: Int) = p.coerceIn(0, MAX_PAGE)

@@ -22,6 +22,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-10-20
+
+### Added
+
+- **Lead book.** A class with two or more books can pick a *Lead book* on the class screen. The other books keep step with it: lesson by lesson, each one is as far through its pages as the lead book is through its own. A book with its own finish-by date keeps its own pace. The lead book's tile, and its row in a group's Stats, carry a *Leads* tag.
+- **Unit start pages** for each book (*1, 13, 25, 37*). When a book has the same number of units as the lead book, it keeps step unit by unit: it starts its unit 3 when the lead book starts its unit 3. If the counts differ, it keeps step page by page, and the class's problems say so.
+- Re-pacing a custom plan follows the lead book too.
+- Implementation plan in `docs/superpowers/plans/2026-10-20-lead-book.md`, linked from the design spec.
+
+### Changed
+
+- The saved file is version 6: classes may name a lead book, and books may list unit start pages. Older files still load, with no lead book.
+
 ## [2.7.0] - 2026-10-20
 
 ### Added
@@ -415,7 +428,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.7.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.8.0...HEAD
+[2.8.0]: https://github.com/tsampolion/course_planner/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.1...v2.7.0
 [2.6.1]: https://github.com/tsampolion/course_planner/compare/v2.6.0...v2.6.1
 [2.6.0]: https://github.com/tsampolion/course_planner/compare/v2.5.0...v2.6.0
