@@ -40,6 +40,7 @@ Keep `[Unreleased]` empty between pull requests.
 ### Changed
 
 - The saved file is version 5: each group may carry its custom plan. Older files and the web page's export still load, as groups without one.
+- Implementation plan for custom plans in `docs/superpowers/plans/2026-10-20-custom-plans.md`, linked from the design spec.
 
 ## [2.6.0] - 2026-10-20
 
