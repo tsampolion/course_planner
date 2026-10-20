@@ -3,6 +3,10 @@ package gr.edusuite.pacer.ui
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.draw.clip
 import androidx.compose.animation.core.snap
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.draw.rotate
@@ -25,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.short
@@ -62,6 +67,34 @@ fun MoreOptions(title: String = stringResource(R.string.component_more_options),
             AppIcon(AppIcons.ExpandMore, Modifier.rotate(rotation))
         }
         if (expanded) Column(verticalArrangement = Arrangement.spacedBy(Space.m), content = content)
+    }
+}
+
+/**
+ * A row of mutually exclusive choices (§5 chips): one ink pill slides from the old choice to the new one
+ * and never jumps. Each choice is a tab for accessibility, and switching ticks like a segment.
+ */
+@Composable
+fun SegmentedToggle(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val motion = animationsEnabled()
+    val haptic = rememberSegmentHaptic()
+    var height by remember { mutableIntStateOf(0) }
+    BoxWithConstraints(modifier.fillMaxWidth().background(Pacer.colors.surfaceContainer, CircleShape).padding(Space.xs)) {
+        val width = maxWidth / options.size.coerceAtLeast(1)
+        val offset by animateDpAsState(width * selected.coerceIn(0, options.lastIndex.coerceAtLeast(0)), if (motion) Motion.settle() else snap(), label = "segment")
+        val measured = with(LocalDensity.current) { height.toDp() }
+        Box(Modifier.offset { IntOffset(offset.roundToPx(), 0) }.width(width).height(measured).background(Pacer.colors.ink, CircleShape))
+        Row(Modifier.fillMaxWidth().onSizeChanged { height = it.height }.selectableGroup()) {
+            options.forEachIndexed { i, label ->
+                val on = i == selected
+                val ink by animateColorAsState(if (on) Pacer.colors.paper else Pacer.colors.ink, if (motion) Motion.quick() else snap(), label = "segment ink")
+                Box(
+                    Modifier.weight(1f).heightIn(min = 40.dp).clip(CircleShape)
+                        .selectable(selected = on, role = Role.Tab) { if (!on) { haptic(); onSelect(i) } },
+                    contentAlignment = Alignment.Center,
+                ) { Text(label, style = MaterialTheme.typography.labelLarge, color = ink, modifier = Modifier.padding(horizontal = Space.m, vertical = Space.s)) }
+            }
+        }
     }
 }
 

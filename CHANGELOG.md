@@ -22,6 +22,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-10-20
+
+### Changed
+
+- A group opens on its **Plan**: the next lesson with Mark done and Edit pages taught, a status chip, and the lesson-by-lesson schedule. A **Plan | Stats** toggle at the top switches views. Its ink pill slides between the two choices and the views slide sideways; with animations removed they snap. The plan keeps its scroll position when you come back.
+- **Stats** holds the figures that used to sit above the schedule: lessons left, pages left and pace needed, the verdict, the details (heaviest lesson, contact hours, banked homework, blocked lessons), lessons by month, and the books' positions.
+- The status chip under the next lesson reads *On track* or *Short by n lessons* in warning colours, and opens Stats. So a warning is never hidden behind the toggle.
+- The term weeks strip and the schedule tips fold away behind their own toggles, so the schedule starts higher up.
+
+### Added
+
+- Design and brief for the next features: custom plans built from the proposed one, a lead book, and pace and left-behind warnings with catch-up (`docs/CUSTOM_PLANS_BRIEF.md`, `docs/superpowers/specs/2026-10-20-custom-plans-roadmap-design.md`, `docs/PLANNED_FEATURES.md` §3–5).
+
 ## [2.5.0] - 2026-10-18
 
 ### Changed
@@ -371,7 +384,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.6.0...HEAD
+[2.6.0]: https://github.com/tsampolion/course_planner/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/tsampolion/course_planner/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/tsampolion/course_planner/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/tsampolion/course_planner/compare/v2.3.0...v2.4.0

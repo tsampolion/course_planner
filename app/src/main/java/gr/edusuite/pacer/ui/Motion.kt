@@ -58,6 +58,14 @@ fun AnimatedFigure(value: String, modifier: Modifier = Modifier, style: TextStyl
     }, label = "figure") { Text(it, style = style, fontFamily = Mono, color = color) }
 }
 
+/** Switching between sibling views: a shared-axis slide plus fade toward the side chosen (§5). */
+fun sideways(forward: Boolean, enabled: Boolean): ContentTransform {
+    if (!enabled) return EnterTransition.None togetherWith ExitTransition.None
+    val direction = if (forward) 1 else -1
+    return (slideInHorizontally(Motion.content()) { it / 12 * direction } + fadeIn(Motion.content())) togetherWith
+        (slideOutHorizontally(Motion.content()) { -it / 12 * direction } + fadeOut(Motion.quick()))
+}
+
 /** The same interaction source drives ripple and the 0.96 press response. */
 fun Modifier.pressFeedback(interactionSource: MutableInteractionSource): Modifier = composed {
     val pressed by interactionSource.collectIsPressedAsState()
