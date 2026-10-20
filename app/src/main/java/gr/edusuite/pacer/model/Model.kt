@@ -12,6 +12,10 @@ const val ALL_GROUPS = "all"
  */
 const val MAX_PAGE = 100_000
 
+/** A book this many lessons behind the others gets a warning, unless the class sets its own number. */
+const val DEFAULT_LAG_LESSONS = 2
+const val MAX_LAG_LESSONS = 20
+
 data class Group(
     val id: String,
     val name: String,
@@ -107,6 +111,8 @@ data class Plan(
     val events: List<TestEvent>,
     /** The lead book's id: books without a finish-by date follow its pace. Null when none leads. */
     val lead: String? = null,
+    /** How many lessons a book may fall behind the others before the group screen warns about it. */
+    val lagLessons: Int = DEFAULT_LAG_LESSONS,
 )
 
 /** A class: books taught to one or more groups, each with its own days and positions. */
@@ -122,6 +128,8 @@ data class SchoolClass(
     val events: List<TestEvent>,
     /** The lead book's id: books without a finish-by date follow its pace. Null when none leads. */
     val lead: String? = null,
+    /** How many lessons a book may fall behind the others before the group screen warns about it. */
+    val lagLessons: Int = DEFAULT_LAG_LESSONS,
 )
 
 /** A school year: the calendar every one of its classes shares. */
@@ -149,7 +157,7 @@ data class SchoolYear(
                 else -> null
             }
         }
-        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events, c.lead)
+        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events, c.lead, c.lagLessons)
     }
 }
 

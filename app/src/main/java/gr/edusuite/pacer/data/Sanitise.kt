@@ -1,6 +1,7 @@
 package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.engine.settleNextLesson
+import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
@@ -41,6 +42,7 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
     homework = unique(c.homework, { it.id }) { h, id -> h.copy(id = id) }.map { h -> h.copy(from = page(h.from), to = page(h.to)) },
     events = unique(c.events, { it.id }) { e, id -> e.copy(id = id) },
     lead = c.lead?.takeIf { id -> c.books.any { it.id == id } },
+    lagLessons = c.lagLessons.coerceIn(1, MAX_LAG_LESSONS),
 )
 
 private fun page(p: Int) = p.coerceIn(0, MAX_PAGE)
