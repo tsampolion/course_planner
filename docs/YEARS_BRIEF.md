@@ -1,5 +1,7 @@
 # Task: Rename to Course Pacer and organise the app as School years → Classes → Groups
 
+> Decision record: built in 1.3.0. The code and CLAUDE.md describe the current app.
+
 This is the improved version of the request "change the app's name to Course Pacer; the home screen shows the logo, settings and a school-year picker; a year leads to Classes (new naming for Groups) and School year settings; a class holds its books, its groups and their dates". The answers to the clarifying questions are folded in. Version 1.3.0 was built from it.
 
 ## Context
