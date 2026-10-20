@@ -83,6 +83,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.runtime.mutableIntStateOf
 import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.bookLags
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.moveLesson
 import kotlinx.coroutines.delay
@@ -210,6 +211,11 @@ fun GroupScreen(
     LaunchedEffect(reveal) { if (reveal > 0) { delay(REVEAL_MS); reveal = 0 } }
     val canTick = custom == null || showMine == custom.active
     var planning by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    var catchingUp by rememberSaveable(g.id) { mutableStateOf(false) }
+    var folding by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    // An active custom plan that fits every page into the term already answers the warnings.
+    val handled = remember(report) { report.custom != null && report.coverage()?.ok == true }
+    val lags = remember(report, handled) { if (handled) emptyList() else report.bookLags(plan.lead, plan.lagLessons.toDouble()) }
     val lessons = remember(viewed, compare) { lessonsOf(viewed, compare) }
     val months = remember(lessons) { lessons.groupBy { it.date.withDayOfMonth(1) }.toList() }
     val lines = remember(months) {
@@ -276,6 +282,9 @@ fun GroupScreen(
                 }
                 item(key = "status") {
                     StatusChip(report, { tab = TAB_STATS }, Modifier.padding(start = Space.l, end = Space.l, top = Space.m))
+                }
+                item(key = "warnings") {
+                    if (!handled) Warnings(report, lags, { catchingUp = true }, { folding = it.bookId }, Modifier.padding(start = Space.l, end = Space.l, top = Space.m))
                 }
                 item(key = "custom") {
                     Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m), verticalArrangement = Arrangement.spacedBy(Space.m)) {
@@ -425,6 +434,20 @@ fun GroupScreen(
             onSave = { pages, note -> vm.savePlannedLesson(g.id, id, at, pages, note); undoToast(context.getString(R.string.custom_saved)) },
             onDismiss = { planning = null },
         )
+    }
+
+    if (catchingUp) CatchUpSheet(report, { boost ->
+        vm.applyCatchUp(g.id, boost)
+        showMine = true
+        undoToast(context.getString(R.string.warn_caught_up))
+    }, { catchingUp = false })
+    folding?.let { id ->
+        val lag = lags.firstOrNull { it.bookId == id }
+        if (lag == null) folding = null else FoldSheet(report, lag, { over ->
+            vm.foldBacklog(g.id, id, over)
+            showMine = true
+            undoToast(context.getString(R.string.warn_folded, plan.books.firstOrNull { it.id == id }?.name.orEmpty()))
+        }, { folding = null })
     }
 
     editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it); undoToast(context.getString(R.string.group_saved)) }, { editingDate = null }) }

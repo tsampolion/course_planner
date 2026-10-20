@@ -565,4 +565,38 @@
         <item quantity="one">%d unit</item>
         <item quantity="other">%d units</item>
     </plurals>
+    <string name="class_lag_lessons">Warn when a book is this many lessons behind</string>
+    <string name="class_lag_hint">The group screen warns when one book falls this far behind the lead book (or the others), and offers to bring it back in step.</string>
+    <string name="warn_catch_up">Catch up</string>
+    <string name="warn_catch_up_title">Catch up</string>
+    <string name="warn_apply_catch_up">Apply catch-up</string>
+    <string name="warn_on_pace">This group is on pace. Nothing to catch up.</string>
+    <string name="warn_boost">+%1$d a lesson</string>
+    <string name="warn_catch_up_plan">Teach %1$s pages a lesson until then, and you\'re back on pace by %2$s %3$s.</string>
+    <string name="warn_infeasible">Even at this pace the term\'s %1$d lessons are not enough. Take a bigger step, skip pages or set some for homework.</string>
+    <string name="warn_bigger_step">Bigger step</string>
+    <string name="warn_writes_custom">This goes into your custom plan (one is made from the proposed plan if you have none). The proposed plan stays as it is, and lessons you planned by hand don\'t change.</string>
+    <string name="warn_first_lessons">First lessons</string>
+    <string name="warn_fold">Bring in step</string>
+    <string name="warn_fold_title">Bring %1$s back in step</string>
+    <string name="warn_apply_fold">Apply</string>
+    <string name="warn_book_behind">%1$s is %2$s lessons behind the others</string>
+    <string name="warn_caught_up">Catch-up added to your plan</string>
+    <string name="warn_folded">%1$s brought back in step</string>
+    <plurals name="warn_behind">
+        <item quantity="one">%1$d page more than %2$s pages a lesson fits in the term.</item>
+        <item quantity="other">%1$d pages more than %2$s pages a lesson fit in the term.</item>
+    </plurals>
+    <plurals name="warn_behind_short">
+        <item quantity="one">Behind the pace by %d page</item>
+        <item quantity="other">Behind the pace by %d pages</item>
+    </plurals>
+    <plurals name="warn_lessons_word">
+        <item quantity="one">lesson to catch up</item>
+        <item quantity="other">lessons to catch up</item>
+    </plurals>
+    <plurals name="warn_over">
+        <item quantity="one">Over %d lesson</item>
+        <item quantity="other">Over %d lessons</item>
+    </plurals>
 </resources>

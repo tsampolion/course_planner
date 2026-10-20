@@ -41,6 +41,7 @@ import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.engine.unitStarts
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.MAX_PAGE
@@ -154,6 +155,10 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
                 IntField(plan.mins, vm::setMins, stringResource(R.string.class_lesson_length_min), Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
                 PaceField(plan.pace, vm::setPace, Modifier.fillMaxWidth())
                 Hint(stringResource(R.string.class_pages_per_lesson_is_the_benchmark_the_verdict_measures_again))
+                if (plan.books.size > 1) {
+                    IntField(plan.lagLessons, vm::setLagLessons, stringResource(R.string.class_lag_lessons), Modifier.fillMaxWidth(), min = 1, max = MAX_LAG_LESSONS)
+                    Hint(stringResource(R.string.class_lag_hint))
+                }
             }
         }
     }

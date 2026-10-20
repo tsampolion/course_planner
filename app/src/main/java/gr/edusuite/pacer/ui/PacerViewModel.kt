@@ -10,6 +10,8 @@ import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.catchUpPlan
+import gr.edusuite.pacer.engine.foldBacklog
 import gr.edusuite.pacer.engine.copyCustomPlan
 import gr.edusuite.pacer.engine.editLesson
 import gr.edusuite.pacer.engine.fitToTerm
@@ -33,6 +35,7 @@ import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
+import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
@@ -464,6 +467,16 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     fun fitCustomPlanToTerm(groupId: String) = editCustom(groupId) { r, _ -> r.fitToTerm() }
 
+    /**
+     * Writes a catch-up of [boost] extra pages a lesson into the group's custom plan, making one from the proposed
+     * plan first if it has none, in one undo step. Lessons planned by hand don't change.
+     */
+    fun applyCatchUp(groupId: String, boost: Int) = editLessons(groupId) { r, g -> r.catchUpPlan(boost)?.let { g.copy(custom = it) } ?: g }
+
+    /** Brings book [bookId] back in step over the next [over] lessons of the group's custom plan, as [applyCatchUp] does. */
+    fun foldBacklog(groupId: String, bookId: String, over: Int) =
+        editLessons(groupId) { r, g -> r.foldBacklog(bookId, over)?.let { g.copy(custom = it) } ?: g }
+
     /** Gives group [to] a copy of group [from]'s plan, replacing any it had, in one undo step. */
     fun copyCustomPlan(from: String, to: String) {
         val plan = data.plan ?: return
@@ -510,6 +523,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setSkip(id: String, v: String) = editBook(id, "bskip:$id") { it.copy(skip = v) }
     fun setDue(id: String, v: LocalDate?) = editBook(id, "bdue:$id") { it.copy(due = v) }
     fun setUnits(id: String, v: String) = editBook(id, "bunits:$id") { it.copy(units = v) }
+
+    fun setLagLessons(v: Int) = editClass("class:lag") { it.copy(lagLessons = v.coerceIn(1, MAX_LAG_LESSONS)) }
 
     /** Makes book [id] the class's lead book, or with null lets every book keep its own pace. */
     fun setLead(id: String?) = editClass { it.copy(lead = id?.takeIf { b -> it.books.any { book -> book.id == b } }) }

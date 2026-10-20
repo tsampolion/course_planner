@@ -22,6 +22,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-10-20
+
+### Added
+
+- **Catch up.** When a group is behind its sustainable pace, its Plan shows *Behind the pace by n pages · Catch up*. The sheet lets you pick **+1, +2 or +3 pages a lesson** and shows live how many lessons that takes and the day you're back on pace, with the first lessons it would change. If even that isn't enough for the term, it says so. *Apply catch-up* writes the extra pages into your custom plan, making one from the proposed plan if you have none.
+- **Bring a book back in step.** A book more than 2 lessons behind the lead book (or the other books) gets its own warning. The sheet spreads its backlog over the next **2, 4 or 6 lessons**, previews that book's pages, and applies them to your custom plan. The number of lessons before the warning appears is set on the class screen, under Lessons.
+- Lessons you planned by hand never change, and the proposed plan stays as it is. Once your custom plan fits every page into the term, the warnings stand down; the status chip still gives the verdict against your sustainable pace.
+- Implementation plan in `docs/superpowers/plans/2026-10-20-pace-warnings.md`, linked from the design spec.
+
+### Changed
+
+- The saved file is version 7: a class may store its own left-behind threshold. Older files still load, with a threshold of 2 lessons.
+
 ## [2.8.0] - 2026-10-20
 
 ### Added
@@ -428,7 +441,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.8.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.9.0...HEAD
+[2.9.0]: https://github.com/tsampolion/course_planner/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/tsampolion/course_planner/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.1...v2.7.0
 [2.6.1]: https://github.com/tsampolion/course_planner/compare/v2.6.0...v2.6.1

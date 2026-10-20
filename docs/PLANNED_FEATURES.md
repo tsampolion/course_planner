@@ -136,4 +136,4 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 
 ## 5. Pace and left-behind warnings with catch-up
 
-**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Ships in 2.9.0.
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Shipped in 2.9.0.

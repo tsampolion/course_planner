@@ -6,6 +6,7 @@ import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.CustomPlan
+import gr.edusuite.pacer.model.DEFAULT_LAG_LESSONS
 import gr.edusuite.pacer.model.DoneLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
@@ -27,11 +28,12 @@ import org.json.JSONObject
  * Version 2 stores school years, each with its classes; version 3 adds each group's done lessons
  * (missing reads as none); version 4 flags done lessons whose pages the teacher recorded by hand
  * (missing reads as not); version 5 adds each group's custom plan (missing reads as none); version 6
- * adds each class's lead book and each book's unit start pages (missing reads as none). Version 1
+ * adds each class's lead book and each book's unit start pages (missing reads as none); version 7 adds the
+ * lessons a book may fall behind before a warning (missing reads as the default). Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 6
+    const val VERSION = 7
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -88,6 +90,7 @@ object JsonCodec {
                 .put("groups", groups(c.groups)).put("books", books(c.books))
                 .put("homework", homework(c.homework)).put("events", events(c.events))
                 .also { o -> c.lead?.let { o.put("lead", it) } }
+                .also { o -> if (c.lagLessons != DEFAULT_LAG_LESSONS) o.put("lagLessons", c.lagLessons) }
         }))
 
     private fun year(o: JSONObject) = SchoolYear(
@@ -107,6 +110,7 @@ object JsonCodec {
                 homework = homework(c.optJSONArray("homework")),
                 events = events(c.optJSONArray("events")),
                 lead = c.optString("lead", "").ifBlank { null },
+                lagLessons = c.optInt("lagLessons", DEFAULT_LAG_LESSONS),
             )
         },
     )
