@@ -125,3 +125,15 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 ## 2. Permanent release signing key: every release installs over the last
 
 **Status:** shipped in 1.5.3. How it works now: [`docs/SIGNING_BRIEF.md`](SIGNING_BRIEF.md).
+
+## 3. Custom plans: the teacher's own plan built from the proposed one
+
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Ships in 2.7.0, after the Plan | Stats split of the group screen (2.6.0).
+
+## 4. Lead book: one book directs the pacing of the others
+
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). An engine extension that changes nothing when no lead book is set. Ships in 2.8.0.
+
+## 5. Pace and left-behind warnings with catch-up
+
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Ships in 2.9.0.

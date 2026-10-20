@@ -26,7 +26,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 ### Changed
 
-- Documentation only. `docs/SIGNING_BRIEF.md` is now a short "Release signing" page that keeps the rules and drops the owner-only steps. `README.md` is about half as long and points to the new docs index, `docs/README.md`.
+- Documentation only. `docs/SIGNING_BRIEF.md` is now a short "Release signing" page that keeps the rules and drops the owner-only steps. `README.md` is about 40% shorter and points to the new docs index, `docs/README.md`.
 - `CLAUDE.md` links the docs index, states the signing rules more tightly, and gains two rules: docs stay current with each pull request, and the public docs carry no plans or notes about other repositories, security weaknesses, or how keys and secrets are handled.
 
 ### Removed

@@ -1,5 +1,7 @@
 # Documentation Cleanup Implementation Plan
 
+Shipped as 2.6.1 (versionCode 28): `main` moved to 2.6.0 during the work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Trim, correct and index the public documentation, remove owner-only material, and add the "docs stay current" rule (2.5.1).
@@ -35,7 +37,7 @@
 - [ ] **Step 1:** `git rm` the four files.
 - [ ] **Step 2:** In `PLANNED_FEATURES.md`, replace entry 2 with a heading and one line: shipped in 1.5.3, see `SIGNING_BRIEF.md`.
 - [ ] **Step 3:** Rewrite `SIGNING_BRIEF.md` as "Release signing", under 350 words, with the decision-record banner. It must state: one permanent key; only `main` builds get the secrets (the `release` environment); other branches and PRs use the debug key and never publish; CI checks the certificate against `SIGNING_CERT_SHA256` and `release.yml` checks it again and puts it in the notes; debug builds are `gr.edusuite.pacer.debug`; never change the key, `keyAlias`, secret names or variable; leaks mean v3 rotation as its own task. Drop everything else.
-- [ ] **Step 4: Check.** `grep -rnE "keytool|gh secret set|USB|password manager|cloud session|required reviewers|2a1a02fc" docs/` prints nothing.
+- [ ] **Step 4: Check.** `grep -rnE "keytool|gh secret set|cloud session|required reviewers|2a1a02fc" docs/` prints nothing.
 - [ ] **Step 5: Commit** `docs: remove owner-only and finished material`.
 
 ### Task 2: Docs index, banners, BRIEF refresh

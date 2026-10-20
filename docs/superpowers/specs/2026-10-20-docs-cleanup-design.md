@@ -2,9 +2,11 @@
 
 Agreed with the owner on 2026-10-20. Version 2.5.1 (PATCH: documentation only).
 
+Shipped as 2.6.1 (versionCode 28): `main` moved to 2.6.0 during the work.
+
 ## Why
 
-The repository is public and stays public (making it private would drop the `release` environment on GitHub Free). The docs had grown to about 30,000 words. Some of it is owner-only or risky to publish, some is out of date, and nothing says which document is current.
+The repository is public and stays public. The docs had grown to about 30,000 words. Some of it is owner-only or risky to publish, some is out of date, and nothing says which document is current.
 
 ## Decisions
 

@@ -14,7 +14,7 @@ Each one records why a feature was built. The code and `CLAUDE.md` describe the 
 
 - [YEARS_BRIEF.md](YEARS_BRIEF.md): school years, classes and groups (1.3.0).
 - [LESSON_PAGES_BRIEF.md](LESSON_PAGES_BRIEF.md): recording the pages a lesson actually covered (1.5.0).
-- [SIGNING_BRIEF.md](SIGNING_BRIEF.md): the permanent release signing key (1.5.3).
+- [SIGNING_BRIEF.md](SIGNING_BRIEF.md): the permanent release signing key (built in 1.5.3; secrets limited to `main` since 1.7.3).
 - [BACKUP_BRIEF.md](BACKUP_BRIEF.md): export and import of school years (1.6.0).
 - [CUSTOM_PLANS_BRIEF.md](CUSTOM_PLANS_BRIEF.md): custom plans, a lead book and pace warnings (in progress; the 2.6.0 group screen split is its first part).
 - [superpowers/](superpowers/): brainstorming specs and plans for Course Pacer only.
