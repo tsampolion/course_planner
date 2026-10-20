@@ -68,6 +68,8 @@ data class Book(
     val skip: String = "",
     /** Finish-by date. Only this book re-paces to meet it. */
     val due: LocalDate? = null,
+    /** Unit start pages as free text such as "1, 13, 25, 37". Links this book's units to the lead book's. */
+    val units: String = "",
 )
 
 data class Homework(
@@ -103,6 +105,8 @@ data class Plan(
     val books: List<Book>,
     val homework: List<Homework>,
     val events: List<TestEvent>,
+    /** The lead book's id: books without a finish-by date follow its pace. Null when none leads. */
+    val lead: String? = null,
 )
 
 /** A class: books taught to one or more groups, each with its own days and positions. */
@@ -116,6 +120,8 @@ data class SchoolClass(
     val books: List<Book>,
     val homework: List<Homework>,
     val events: List<TestEvent>,
+    /** The lead book's id: books without a finish-by date follow its pace. Null when none leads. */
+    val lead: String? = null,
 )
 
 /** A school year: the calendar every one of its classes shares. */
@@ -143,7 +149,7 @@ data class SchoolYear(
                 else -> null
             }
         }
-        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events)
+        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events, c.lead)
     }
 }
 

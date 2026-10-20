@@ -26,11 +26,12 @@ import org.json.JSONObject
  *
  * Version 2 stores school years, each with its classes; version 3 adds each group's done lessons
  * (missing reads as none); version 4 flags done lessons whose pages the teacher recorded by hand
- * (missing reads as not); version 5 adds each group's custom plan (missing reads as none). Version 1 files and the web page's localStorage export store a flat
- * list of plans; those still read, through [migratePlans].
+ * (missing reads as not); version 5 adds each group's custom plan (missing reads as none); version 6
+ * adds each class's lead book and each book's unit start pages (missing reads as none). Version 1
+ * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 5
+    const val VERSION = 6
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -86,6 +87,7 @@ object JsonCodec {
             JSONObject().put("id", c.id).put("name", c.name).put("mins", c.mins).put("pace", c.pace)
                 .put("groups", groups(c.groups)).put("books", books(c.books))
                 .put("homework", homework(c.homework)).put("events", events(c.events))
+                .also { o -> c.lead?.let { o.put("lead", it) } }
         }))
 
     private fun year(o: JSONObject) = SchoolYear(
@@ -104,6 +106,7 @@ object JsonCodec {
                 books = books(c.optJSONArray("books")),
                 homework = homework(c.optJSONArray("homework")),
                 events = events(c.optJSONArray("events")),
+                lead = c.optString("lead", "").ifBlank { null },
             )
         },
     )
@@ -182,11 +185,12 @@ object JsonCodec {
     private fun books(list: List<Book>) = JSONArray(list.map { b ->
         JSONObject().put("id", b.id).put("name", b.name).put("first", b.first).put("last", b.last)
             .put("skip", b.skip).put("due", b.due?.toString() ?: "")
+            .also { o -> if (b.units.isNotBlank()) o.put("units", b.units) }
     })
 
     private fun books(a: JSONArray?): List<Book> = a.rows { b ->
         Book(b.id(), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
-            b.optString("skip", ""), b.date("due"))
+            b.optString("skip", ""), b.date("due"), b.optString("units", ""))
     }
 
     private fun homework(list: List<Homework>) = JSONArray(list.map { h ->
