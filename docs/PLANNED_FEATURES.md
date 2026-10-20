@@ -128,7 +128,7 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 
 ## 3. Custom plans: the teacher's own plan built from the proposed one
 
-**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Ships in 2.7.0, after the Plan | Stats split of the group screen (2.6.0).
+**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Shipped in 2.7.0, after the Plan | Stats split of the group screen (2.6.0).
 
 ## 4. Lead book: one book directs the pacing of the others
 

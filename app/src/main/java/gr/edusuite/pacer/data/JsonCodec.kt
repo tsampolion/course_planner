@@ -5,9 +5,11 @@ import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Closure
+import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.DoneLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
+import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
@@ -24,11 +26,11 @@ import org.json.JSONObject
  *
  * Version 2 stores school years, each with its classes; version 3 adds each group's done lessons
  * (missing reads as none); version 4 flags done lessons whose pages the teacher recorded by hand
- * (missing reads as not). Version 1 files and the web page's localStorage export store a flat
+ * (missing reads as not); version 5 adds each group's custom plan (missing reads as none). Version 1 files and the web page's localStorage export store a flat
  * list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 4
+    const val VERSION = 5
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -128,10 +130,28 @@ object JsonCodec {
             .put("pos", JSONObject(g.pos as Map<*, *>))
             .put("done", JSONArray(g.done.map { l ->
                 JSONObject().put("date", l.date.toString())
-                    .put("pages", JSONObject(l.pages.filterValues { it.isNotEmpty() }.mapValues { collapse(it.value) } as Map<*, *>))
+                    .put("pages", pages(l.pages))
                     .apply { if (l.edited) put("edited", true) }
             }))
+            .apply { g.custom?.let { put("custom", custom(it)) } }
     })
+
+    private fun pages(p: Map<String, List<Int>>) = JSONObject(p.filterValues { it.isNotEmpty() }.mapValues { collapse(it.value) } as Map<*, *>)
+
+    private fun pages(o: JSONObject?): Map<String, List<Int>> =
+        o?.names().strings().associateWith { parseRanges(o!!.optString(it)).sorted() }.filterValues { it.isNotEmpty() }
+
+    private fun custom(c: CustomPlan) = JSONObject().put("active", c.active).put("lessons", JSONArray(c.lessons.map { l ->
+        JSONObject().put("id", l.id).put("pages", pages(l.pages))
+            .apply { if (l.note.isNotEmpty()) put("note", l.note) }
+            .apply { if (l.touched) put("touched", true) }
+    }))
+
+    private fun custom(o: JSONObject?): CustomPlan? = o?.let {
+        CustomPlan(it.optBoolean("active", true), it.optJSONArray("lessons").rows { l ->
+            PlannedLesson(l.id(), pages(l.optJSONObject("pages")), l.optString("note", ""), l.optBoolean("touched", false))
+        })
+    }
 
     private fun groups(a: JSONArray?): List<Group> = a.rows { g ->
         val pos = g.optJSONObject("pos")
@@ -143,13 +163,9 @@ object JsonCodec {
             pos = pos?.names().strings().associateWith { pos!!.optInt(it) }.filterValues { it > 0 },
             done = g.optJSONArray("done").rows { l ->
                 val date = l.date("date") ?: return@rows null
-                val pages = l.optJSONObject("pages")
-                DoneLesson(
-                    date,
-                    pages?.names().strings().associateWith { parseRanges(pages!!.optString(it)).sorted() }.filterValues { it.isNotEmpty() },
-                    l.optBoolean("edited", false),
-                )
+                DoneLesson(date, pages(l.optJSONObject("pages")), l.optBoolean("edited", false))
             }.sortedBy { it.date },
+            custom = runCatching { custom(g.optJSONObject("custom")) }.getOrNull(),
         )
     }
 

@@ -35,8 +35,10 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues)
 
     ScreenList(padding) {
         items(problems) { p ->
-            // A class's problem opens that class; the rest open the screen that fixes them.
-            val fix: (() -> Unit)? = p.classId?.let { id -> { vm.openClass(id) } } ?: p.fix?.let { f -> { vm.open(f) } }
+            // A class's problem opens that class, or its group for a custom plan's; the rest open the screen that fixes them.
+            val fix: (() -> Unit)? = p.classId?.let { id ->
+                { (p.fix as? Screen.Group)?.let { vm.openGroup(id, it.id) } ?: vm.openClass(id) }
+            } ?: p.fix?.let { f -> { vm.open(f) } }
             Box(Modifier.animateItem()) { ErrorBox(p.text, onFix = fix) }
         }
         if (classes.isEmpty()) item(key = "empty") {

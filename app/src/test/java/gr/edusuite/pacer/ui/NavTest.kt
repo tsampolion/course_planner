@@ -2,6 +2,7 @@ package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolClass
@@ -96,6 +97,9 @@ class NavTest {
             listOf(Screen.Class),
             Nav.problems(plan(books = listOf(Book("b", "Workbook", 1, 20, due = LocalDate.parse("2027-06-01"))))).map { it.fix },
         )
+        // A custom plan that leaves pages out opens its group.
+        val gap = Group("g", "Group A", setOf(MONDAY), null, custom = CustomPlan(true, emptyList()))
+        assertEquals(listOf(Screen.Group("g")), Nav.problems(plan(groups = listOf(gap))).map { it.fix })
     }
 
     private fun schoolClass(id: String, name: String, books: List<Book> = listOf(Book("b", "Workbook", 1, 20))) =

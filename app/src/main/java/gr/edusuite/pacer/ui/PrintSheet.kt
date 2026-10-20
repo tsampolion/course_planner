@@ -68,15 +68,17 @@ object PrintSheet {
             append(" · ").append(r.pages).append(" pages · ").append(r.rate.fixed2()).append(" per teaching lesson · ")
             append(r.rows.first().date.fmt()).append(" to ").append(r.rows.last().date.fmt()).append("</div>")
             append("<div class=note>").append(esc(PRINT_NOTE)).append("</div>")
+            val notes = r.rows.any { it.note.isNotEmpty() }
             append("<table><thead><tr><th>#</th><th>Date</th>")
             plan.books.forEach { append("<th>").append(esc(it.name)).append("</th>") }
+            if (notes) append("<th>Note</th>")
             append("</tr></thead><tbody>")
             var month = -1
             for (row in r.rows) {
                 val key = row.date.year * 12 + row.date.monthValue
                 if (key != month) {
                     month = key
-                    append("<tr class=brk><td colspan=").append(2 + plan.books.size).append(">")
+                    append("<tr class=brk><td colspan=").append(2 + plan.books.size + if (notes) 1 else 0).append(">")
                         .append(row.date.monthShort()).append(' ').append(row.date.year).append("</td></tr>")
                 }
                 val names = esc(row.events.joinToString(" · ") { it.name })
@@ -90,6 +92,7 @@ object PrintSheet {
                 } else {
                     row.cells.forEach { append("<td class=pg>").append(it).append("</td>") }
                 }
+                if (notes) append("<td>").append(esc(row.note)).append("</td>")
                 append("</tr>")
             }
             append("</tbody></table></section>")

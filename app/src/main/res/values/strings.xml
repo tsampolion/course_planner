@@ -494,4 +494,64 @@
         <item quantity="one">Short by %s lesson</item>
         <item quantity="other">Short by %s lessons</item>
     </plurals>
+    <string name="custom_create_title">Create your custom plan</string>
+    <string name="custom_create_body">Start from this schedule and make it yours: change a lesson\'s pages, add revision lessons, move lessons around, add notes. The proposed plan stays as your fallback.</string>
+    <string name="custom_create">Create my plan</string>
+    <string name="custom_created">Custom plan created</string>
+    <string name="custom_mine">My plan</string>
+    <string name="custom_proposed">Proposed</string>
+    <string name="custom_preview_mine">Your plan is ready. You\'re teaching from the proposed plan.</string>
+    <string name="custom_preview_proposed">The proposed plan, for comparison. You\'re teaching from your plan.</string>
+    <string name="custom_use_this">Use this plan</string>
+    <string name="custom_now_mine">Teaching from your plan</string>
+    <string name="custom_now_proposed">Teaching from the proposed plan</string>
+    <string name="custom_your_plan">Your plan</string>
+    <string name="custom_book_cover">%1$d of %2$d pages planned</string>
+    <string name="custom_all_covered">Every page has a lesson</string>
+    <string name="custom_fix_repace">Re-pace</string>
+    <string name="custom_fix_tidy">Tidy</string>
+    <string name="custom_fix_fit">Fit to term</string>
+    <string name="custom_repace_all">Re-pace untouched lessons</string>
+    <string name="custom_copy_to">Copy to…</string>
+    <string name="custom_copied">Plan copied to %1$s</string>
+    <string name="custom_delete">Delete my plan</string>
+    <string name="custom_deleted">Custom plan deleted</string>
+    <string name="custom_repaced">Plan re-paced</string>
+    <string name="custom_tidied">Plan tidied</string>
+    <string name="custom_fitted">Plan fitted to the term</string>
+    <string name="custom_hint">Long-press a lesson to plan its pages, add a lesson, move it or re-pace from it. Drag the handle to move a lesson. Lessons you change keep an accent edge, and re-pacing never touches them.</string>
+    <string name="custom_plan_lesson">Plan this lesson…</string>
+    <string name="custom_add_before">Add a lesson before</string>
+    <string name="custom_add_here">Plan a lesson here…</string>
+    <string name="custom_move_earlier">Move earlier</string>
+    <string name="custom_move_later">Move later</string>
+    <string name="custom_repace_here">Re-pace from here</string>
+    <string name="custom_remove">Remove lesson</string>
+    <string name="custom_removed">Lesson removed; its pages joined the next one</string>
+    <string name="custom_moved">Lesson moved</string>
+    <string name="custom_free">Free lesson</string>
+    <string name="custom_proposed_line">Proposed: %1$s</string>
+    <string name="custom_drag">Drag to move lesson %1$d</string>
+    <string name="custom_sheet_title">Lesson %1$d · %2$s %3$s</string>
+    <string name="custom_sheet_new">New lesson</string>
+    <string name="custom_sheet_hint">The pages this lesson will teach from each book, like 5-8, 10. Leave a book empty for none. Saving keeps the lesson as you wrote it when the plan is re-paced.</string>
+    <string name="custom_note">Note</string>
+    <string name="custom_note_placeholder">Revision, video, speaking activity…</string>
+    <string name="custom_saved">Lesson planned</string>
+    <plurals name="custom_missing">
+        <item quantity="one">%d page left out</item>
+        <item quantity="other">%d pages left out</item>
+    </plurals>
+    <plurals name="custom_doubled">
+        <item quantity="one">%d page taught twice</item>
+        <item quantity="other">%d pages taught twice</item>
+    </plurals>
+    <plurals name="custom_stale">
+        <item quantity="one">%d page already covered</item>
+        <item quantity="other">%d pages already covered</item>
+    </plurals>
+    <plurals name="custom_overflow">
+        <item quantity="one">%d lesson after the term ends</item>
+        <item quantity="other">%d lessons after the term ends</item>
+    </plurals>
 </resources>

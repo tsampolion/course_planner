@@ -22,6 +22,26 @@ data class Group(
     val pos: Map<String, Int> = emptyMap(),
     /** Lessons marked as taught, in date order. Their dates and pages leave the schedule. */
     val done: List<DoneLesson> = emptyList(),
+    /** The teacher's own plan, built from the proposed one. Null when the group has none. */
+    val custom: CustomPlan? = null,
+)
+
+/**
+ * The teacher's own plan for a group: the lessons still to teach, in order. Dates are not stored; lesson k
+ * takes the group's k-th teaching day, so a day off or a test moves the content to the next lesson and keeps it.
+ * [active] is true when it drives the schedule; false keeps it beside the proposed plan, unused.
+ */
+data class CustomPlan(val active: Boolean, val lessons: List<PlannedLesson>)
+
+/**
+ * One lesson of a [CustomPlan]: the pages it teaches from each book (book id to pages) and a note.
+ * [touched] is true once the teacher changed its pages, inserted it or moved it by hand; re-pacing never rewrites it.
+ */
+data class PlannedLesson(
+    val id: String,
+    val pages: Map<String, List<Int>> = emptyMap(),
+    val note: String = "",
+    val touched: Boolean = false,
 )
 
 /**

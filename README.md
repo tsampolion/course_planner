@@ -16,6 +16,7 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 - **School year**: term dates and days off. One tap adds the Greek public holidays, worked out from Orthodox Easter.
 - **Classes, books and groups**: a class has a lesson length, a pace, books and groups. A book has its first and last page, skipped pages such as `8, 24-27`, and an optional finish-by date. A group has teaching weekdays and a next-lesson date.
 - **Group**: a Plan | Stats toggle. Plan shows the next lesson, a status chip (on track or short) and the lesson-by-lesson schedule. Stats shows lessons, pages and pace left, the verdict, details and the book positions.
+- **Custom plans**: *Create your custom plan* turns the proposed schedule into the group's own plan, kept beside it. Plan a lesson's pages and a note, add, remove or drag lessons, and re-pace from any lesson; lessons you change by hand are never rewritten. A coverage card flags pages left out, taught twice or past the term end, each with a one-tap fix, and *My plan | Proposed* switches back at any time.
 - **Done lessons**: tick a lesson once it is taught. Long-press for "Done up to here" or "Not done from here". Ticking out of order re-spreads the pages still to teach.
 - **Pages taught**: long-press a lesson and choose "Edit pages taught…" to record the pages it really covered. Missed pages go back into the schedule and the rest re-spread.
 - **Tests and homework**: a test can take the whole lesson or run alongside it. Homework already set drops its pages from the lessons.

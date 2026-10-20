@@ -23,11 +23,12 @@ fun Double.fixed2(): String = String.format(Locale.US, "%.2f", this)
 /** 4.0 to "4", 4.25 to "4.25". */
 fun Double.plain(): String = if (this == Math.floor(this) && !isInfinite()) toLong().toString() else toString()
 
-/** The schedule as tab-separated text, ready to paste into a spreadsheet or Word. */
+/** The schedule as tab-separated text, ready to paste into a spreadsheet or Word. A custom plan's notes get a last column. */
 fun GroupReport.asTsv(): String {
     val books = plan.books
+    val notes = rows.any { it.note.isNotEmpty() }
     val lines = ArrayList<String>()
-    lines += (listOf("#", "Date", "Day") + books.map { it.name }).joinToString("\t")
+    lines += (listOf("#", "Date", "Day") + books.map { it.name } + if (notes) listOf("Note") else emptyList()).joinToString("\t")
     for (r in rows) {
         val names = r.events.joinToString(" / ") { it.name }
         val cells = if (r.blocked) {
@@ -35,7 +36,7 @@ fun GroupReport.asTsv(): String {
         } else {
             r.cells.mapIndexed { i, c -> if (i == 0 && names.isNotEmpty()) "$c  [$names]" else c }
         }
-        lines += (listOf(r.n.toString(), r.date.fmt(), r.date.dayOfWeek.short()) + cells).joinToString("\t")
+        lines += (listOf(r.n.toString(), r.date.fmt(), r.date.dayOfWeek.short()) + cells + if (notes) listOf(r.note.replace('\t', ' ').replace('\n', ' ')) else emptyList()).joinToString("\t")
     }
     return lines.joinToString("\n")
 }

@@ -2,6 +2,7 @@ package gr.edusuite.pacer.engine
 
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.DoneLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
@@ -183,18 +184,39 @@ data class Row(
     val blocked: Boolean,
     /** Pages per book, in the plan's book order. */
     val pages: List<List<Int>>,
+    /** The custom plan's note for this lesson; blank in the proposed plan. */
+    val note: String = "",
+    /** The custom plan's lesson on this day, or null (the proposed plan, a test, or a day the custom plan leaves free). */
+    val lessonId: String? = null,
 ) {
     val cells: List<String> get() = if (blocked) pages.map { "" } else pages.map(::collapse)
 }
 
+/** Which plan a [GroupReport] lays out. */
+enum class Source {
+    /** The group's custom plan when it is active, otherwise the proposed one. */
+    ACTIVE,
+    /** The engine's plan, the web page's rule, whatever the group has. */
+    PROPOSED,
+    /** The group's custom plan, active or not; the proposed plan when it has none. */
+    CUSTOM,
+}
+
 /**
  * Everything the group screen, the print sheet and the error list need for one group,
- * computed in a single pass.
+ * computed in a single pass. [source] picks the plan its rows follow; the figures that don't
+ * depend on the rows (lessons, pages left, the verdict) are the same for both.
  */
-class GroupReport(val plan: Plan, val group: Group) {
+class GroupReport(val plan: Plan, val group: Group, val source: Source = Source.ACTIVE) {
+    /** The custom plan the rows follow, or null for the proposed plan. */
+    val custom: CustomPlan? = when (source) {
+        Source.PROPOSED -> null
+        Source.CUSTOM -> group.custom
+        Source.ACTIVE -> group.custom?.takeIf { it.active }
+    }
     val lessons: List<LocalDate> = plan.lessonsFor(group)
-    private val eventsByLesson: List<List<TestEvent>> = lessons.map { plan.eventsOn(group, it) }
-    private val blockedByLesson: List<Boolean> = eventsByLesson.map { list -> list.any { it.consumes } }
+    internal val eventsByLesson: List<List<TestEvent>> = lessons.map { plan.eventsOn(group, it) }
+    internal val blockedByLesson: List<Boolean> = eventsByLesson.map { list -> list.any { it.consumes } }
     val teachingDates: List<LocalDate> = lessons.filterIndexed { i, _ -> !blockedByLesson[i] }
 
     val bookStats: List<BookStats> = plan.books.map { b ->
@@ -208,6 +230,7 @@ class GroupReport(val plan: Plan, val group: Group) {
     val rate: Double get() = if (teaching > 0) pages.toDouble() / teaching else 0.0
 
     val rows: List<Row> by lazy {
+        custom?.let { return@lazy customRows(it) }
         val alloc = plan.books.mapIndexed { i, b ->
             var m = bookStats[i].lessons
             // Finish-by date before the next lesson: everything lands at once.
@@ -252,7 +275,7 @@ class GroupReport(val plan: Plan, val group: Group) {
 fun GroupReport.markDone(dates: Set<LocalDate>): Group {
     val fresh = rows.filter { it.date in dates }.map { r -> DoneLesson(r.date, pagesByBook(r)) }
     if (fresh.isEmpty()) return group
-    return plan.settleNextLesson(group.copy(done = (group.done + fresh).sortedBy { it.date }))
+    return plan.settleNextLesson(group.copy(done = (group.done + fresh).sortedBy { it.date }, custom = plan.takeSlots(group, dates)))
 }
 
 /**
@@ -270,7 +293,7 @@ fun Plan.settleNextLesson(g: Group): Group {
 }
 
 /** A row's pages as book id to pages, leaving out books it gives none. */
-private fun GroupReport.pagesByBook(r: Row): Map<String, List<Int>> =
+internal fun GroupReport.pagesByBook(r: Row): Map<String, List<Int>> =
     plan.books.zip(r.pages).filter { it.second.isNotEmpty() }.associate { (b, p) -> b.id to p }
 
 /**
@@ -279,7 +302,7 @@ private fun GroupReport.pagesByBook(r: Row): Map<String, List<Int>> =
  * one of the group's lessons.
  */
 fun GroupReport.plannedPages(date: LocalDate): Map<String, List<Int>>? {
-    val report = if (group.done.any { it.date == date }) GroupReport(plan, group.unmarkDone(date)) else this
+    val report = if (group.done.any { it.date == date }) GroupReport(plan, plan.unmarkLesson(group, date), source) else this
     return report.rows.firstOrNull { it.date == date }?.let { pagesByBook(it) }
 }
 
@@ -298,7 +321,8 @@ fun GroupReport.recordLesson(date: LocalDate, pages: Map<String, List<Int>>): Gr
     // Saving a done lesson's pages unchanged keeps its flag, even if the plan has moved since it was ticked.
     val edited = if (old != null && taught == old.pages) old.edited else taught != planned
     val lesson = DoneLesson(date, taught, edited)
-    return plan.settleNextLesson(group.copy(done = (group.done.filter { it.date != date } + lesson).sortedBy { it.date }))
+    val custom = plan.takeSlots(group, setOf(date))
+    return plan.settleNextLesson(group.copy(done = (group.done.filter { it.date != date } + lesson).sortedBy { it.date }, custom = custom))
 }
 
 /**
@@ -309,7 +333,7 @@ fun GroupReport.markDoneUpTo(date: LocalDate): Group {
     var report = this
     while (true) {
         val next = report.rows.firstOrNull()?.takeIf { !it.date.isAfter(date) } ?: return report.group
-        report = GroupReport(plan, report.markDone(setOf(next.date)))
+        report = GroupReport(plan, report.markDone(setOf(next.date)), source)
     }
 }
 
@@ -367,6 +391,13 @@ fun Plan.problems(): List<String> {
                     "All ${st.pages} pages land in the next lesson."
             }
         }
+    }
+    for (g in groups) {
+        if (g.custom?.active != true) continue
+        val cov = GroupReport(this, g).coverage() ?: continue
+        val n = cov.missingCount
+        if (n > 0) msgs += "${g.name}'s plan leaves $n ${if (n == 1) "page" else "pages"} out."
+        if (cov.overflow > 0) msgs += "${g.name}'s plan has ${cov.overflow} ${if (cov.overflow == 1) "lesson" else "lessons"} after the term ends."
     }
     return msgs
 }

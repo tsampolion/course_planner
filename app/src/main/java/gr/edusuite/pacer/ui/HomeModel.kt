@@ -23,6 +23,8 @@ data class NextLesson(
     val what: String,
     /** The date has passed and the lesson is still not marked done. */
     val overdue: Boolean,
+    /** The custom plan's note for the lesson, or blank. */
+    val note: String = "",
 )
 
 /**
@@ -44,6 +46,7 @@ fun nextLesson(year: SchoolYear, today: LocalDate): NextLesson? {
             best = NextLesson(
                 c.id, g.id, c.name, g.name, row.date, row.blocked, what,
                 overdue = row.date.isBefore(today),
+                note = row.note,
             )
         }
     }

@@ -8,7 +8,7 @@ import gr.edusuite.pacer.model.newId
 
 /**
  * Makes years read from a file safe to show and save: page numbers from 0 to [MAX_PAGE], a finite pace,
- * one done lesson per date, and ids that are unique where the screens list them. A repeated id gets a
+ * one done lesson per date, custom-plan pages only for the class's books, and ids that are unique where the screens list them. A repeated id gets a
  * new one; the first item with it keeps the days off, homework and positions aimed at it.
  * It also moves each group's next lesson past the lessons ticked in order ([settleNextLesson]): files from
  * 1.4.0 to 1.7.0 left it at the term start, so a later calendar edit brought past lessons back.
@@ -25,7 +25,17 @@ fun sanitiseYears(years: List<SchoolYear>): List<SchoolYear> =
 
 private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
     pace = c.pace.takeIf { it.isFinite() && it >= 0 } ?: 0.0,
-    groups = unique(c.groups, { it.id }) { g, id -> g.copy(id = id) }.map { g -> g.copy(done = g.done.distinctBy { it.date }) },
+    groups = unique(c.groups, { it.id }) { g, id -> g.copy(id = id) }.map { g ->
+        val books = c.books.mapTo(HashSet()) { it.id }
+        g.copy(
+            done = g.done.distinctBy { it.date },
+            custom = g.custom?.let { p ->
+                p.copy(lessons = unique(p.lessons, { it.id }) { l, id -> l.copy(id = id) }.map { l ->
+                    l.copy(pages = l.pages.filterKeys { it in books }.mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE } }.filterValues { it.isNotEmpty() })
+                })
+            },
+        )
+    },
     books = unique(c.books, { it.id }) { b, id -> b.copy(id = id) }.map { b -> b.copy(first = page(b.first), last = page(b.last)) },
     homework = unique(c.homework, { it.id }) { h, id -> h.copy(id = id) }.map { h -> h.copy(from = page(h.from), to = page(h.to)) },
     events = unique(c.events, { it.id }) { e, id -> e.copy(id = id) },
