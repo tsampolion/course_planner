@@ -1,6 +1,6 @@
 # Custom plans, lead book, pace warnings and the Plan | Stats split: design
 
-Agreed with the owner on 2026-10-20 in a brainstorming session. The brief for teachers' words is `docs/CUSTOM_PLANS_BRIEF.md`; the implementation plans are `docs/superpowers/plans/2026-10-20-plan-stats-split.md` (PR1, 2.6.0) `docs/superpowers/plans/2026-10-20-custom-plans.md` (PR2, 2.7.0) and `docs/superpowers/plans/2026-10-20-lead-book.md` (PR3, 2.8.0). Later PRs get their own plan when they start.
+Agreed with the owner on 2026-10-20 in a brainstorming session. The brief for teachers' words is `docs/CUSTOM_PLANS_BRIEF.md`; the implementation plans are `docs/superpowers/plans/2026-10-20-plan-stats-split.md` (PR1, 2.6.0), `docs/superpowers/plans/2026-10-20-custom-plans.md` (PR2, 2.7.0) and `docs/superpowers/plans/2026-10-20-lead-book.md` (PR3, 2.8.0). Later PRs get their own plan when they start.
 
 ## Context
 
