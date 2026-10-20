@@ -185,7 +185,6 @@
     <string name="group_lessons_left">Lessons left</string>
     <string name="group_pages_left">Pages left</string>
     <string name="group_pace">Required pace</string>
-    <string name="group_details">More details</string>
     <string name="group_peak">Heaviest lesson</string>
     <string name="group_hours">Contact hours</string>
     <string name="group_banked">Pages banked as homework</string>
@@ -218,6 +217,13 @@
     <string name="group_day_off">Day off: %1$s</string>
     <string name="group_no_on_day">No lesson on %1$s</string>
     <string name="group_next_number">Next lesson #%1$d</string>
+    <string name="group_tab_plan">Plan</string>
+    <string name="group_tab_stats">Stats</string>
+    <string name="group_status_short">Short by %1$s lessons</string>
+    <string name="group_open_stats">Open stats</string>
+    <string name="group_tips">Tips</string>
+    <string name="group_details_title">Details</string>
+    <string name="group_by_month_title">Lessons by month</string>
     <string name="group_pages_title">Pages taught on %1$s %2$s</string>
     <plurals name="group_blocked">
         <item quantity="one">%1$d lesson goes to tests or worksheets; pages spread over %2$s.</item>

@@ -9,7 +9,7 @@ How to use this file:
 
 ## 1. Focus blocks: one book on its own for a run of lessons
 
-**Status:** proposed (discussed while building 1.5.0). Not approved. It's an engine extension.
+**Status:** proposed (discussed while building 1.5.0). Not approved. It's an engine extension. Custom plans (§3) and the lead book (§4) cover part of it: a custom plan can give a run of lessons to one book by hand.
 
 ### The problem
 
