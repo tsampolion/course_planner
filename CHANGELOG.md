@@ -42,6 +42,17 @@ Keep `[Unreleased]` empty between pull requests.
 - The saved file is version 5: each group may carry its custom plan. Older files and the web page's export still load, as groups without one.
 - Implementation plan for custom plans in `docs/superpowers/plans/2026-10-20-custom-plans.md`, linked from the design spec.
 
+## [2.6.1] - 2026-10-20
+
+### Changed
+
+- Documentation only. `docs/SIGNING_BRIEF.md` is now a short "Release signing" page that keeps the rules and drops the owner-only steps. `README.md` is about 40% shorter and points to the new docs index, `docs/README.md`.
+- `CLAUDE.md` links the docs index, states the signing rules more tightly, and gains two rules: docs stay current with each pull request, and the public docs carry no plans or notes about other repositories, security weaknesses, or how keys and secrets are handled.
+
+### Removed
+
+- Finished feedback notes, UI brief, plans and checklists from `docs/`.
+
 ## [2.6.0] - 2026-10-20
 
 ### Changed
@@ -405,7 +416,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.7.0...HEAD
-[2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.0...v2.7.0
+[2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.1...v2.7.0
+[2.6.1]: https://github.com/tsampolion/course_planner/compare/v2.6.0...v2.6.1
 [2.6.0]: https://github.com/tsampolion/course_planner/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/tsampolion/course_planner/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/tsampolion/course_planner/compare/v2.4.0...v2.4.1

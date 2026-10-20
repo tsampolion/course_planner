@@ -1,6 +1,8 @@
 # Task: Export and import school years
 
-This is the follow-up agreed while settling the signing key (`docs/SIGNING_BRIEF.md`, decision 4), with the answers to its questions folded in. Version 1.6.0 was built from it.
+> Decision record: built in 1.6.0. The code and CLAUDE.md describe the current app.
+
+This is the follow-up agreed while settling the signing key (`docs/SIGNING_BRIEF.md`), with the answers to its questions folded in. Version 1.6.0 was built from it.
 
 ## Context
 

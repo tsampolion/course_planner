@@ -1,5 +1,7 @@
 # Task: Record the pages a lesson actually covered
 
+> Decision record: built in 1.5.0. The code and CLAUDE.md describe the current app.
+
 This is the improved version of the request "let the teacher add custom page coverage in a lesson: Lesson 5 might plan pages 5–6 from the Student's book, 6–7 from the grammar and 8 from the workbook, but the teacher does 5–8 from the Student's, 6–8 from the grammar and leaves the workbook for the next lesson". The answers to the clarifying questions are folded in. Version 1.5.0 was built from it.
 
 ## Context
