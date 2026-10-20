@@ -2,6 +2,8 @@
 
 This is the improved version of the original request ("turn the Coursebook Pacer page into a lightweight, fast Android app"). The app in this repository was built from it. The app is now called Course Pacer; since 1.3.0 plans are organised as school years and classes (see `docs/YEARS_BRIEF.md`).
 
+The screen structure has changed since this brief: Home is now the open school year's dashboard, with Classes, Class and Group screens below it. `CLAUDE.md` describes the current app; this file keeps the original port scope and the parity checklist.
+
 ## Goal
 
 Port the Coursebook Pacer web page (a single HTML file with inline JavaScript) to a native Android app. The app must do everything the page does, with exactly the same scheduling results. It must start fast and keep a small APK.
@@ -28,7 +30,7 @@ The pacing rules live in the page's JavaScript. Port them to plain Kotlin and gi
 - Books: title, first and last page, skipped pages, finish-by date, count of teachable pages, add, remove.
 - Homework already assigned: list, add, remove.
 - Error list: missing term dates, a term that ends before it starts, groups with no days, finished groups, books with bad page ranges or finish-by dates that do nothing or leave no lesson.
-- Group tab: summary card, verdict, per-book resume position, pages left and pace, "Mark next lesson done" (since 1.4.0 also per-lesson ticks; since 1.5.0 the pages each done lesson actually covered, see `docs/LESSON_PAGES_BRIEF.md`), lessons per month, and the lesson-by-lesson schedule grouped by month.
+- Group screen: summary card, verdict, per-book resume position, pages left and pace, "Mark next lesson done" (since 1.4.0 also per-lesson ticks; since 1.5.0 the pages each done lesson actually covered, see `docs/LESSON_PAGES_BRIEF.md`), lessons per month, and the lesson-by-lesson schedule grouped by month.
 - Output: copy the schedule as tab-separated text, share it, and print or save every group's schedule as PDF.
 
 ## Technical rules
