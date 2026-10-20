@@ -46,6 +46,13 @@ data class PlannedLesson(
     val pages: Map<String, List<Int>> = emptyMap(),
     val note: String = "",
     val touched: Boolean = false,
+    /** The supplementary books whose pages count in this lesson, taking the room of core pages the teacher chose. */
+    val inLesson: Set<String> = emptySet(),
+    /**
+     * The lesson's core pages (book id to pages) just before its first in-lesson placement, so removing the last one can
+     * restore them. Null when there is none to restore; an empty map means the lesson had no core pages.
+     */
+    val replacementBase: Map<String, List<Int>>? = null,
 )
 
 /**
@@ -74,6 +81,15 @@ data class Book(
     val due: LocalDate? = null,
     /** Unit start pages as free text such as "1, 13, 25, 37". Links this book's units to the lead book's. */
     val units: String = "",
+    /**
+     * A supplementary book (a companion, a reader) is never paced: the teacher places its pages by hand in chosen
+     * lessons. Its pages are [include], not first to last minus skipped; first and last are its lowest and highest.
+     */
+    val supplementary: Boolean = false,
+    /** A supplementary book's pages, as free text such as "4-7, 12, 30-33". */
+    val include: String = "",
+    /** Whether a new placement of this supplementary book counts in the lesson (true) or comes on top (false). */
+    val countInLesson: Boolean = false,
 )
 
 data class Homework(

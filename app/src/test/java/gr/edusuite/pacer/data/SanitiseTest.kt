@@ -3,6 +3,8 @@ package gr.edusuite.pacer.data
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.markDoneUpTo
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.CustomPlan
+import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.DoneLesson
 import gr.edusuite.pacer.model.Homework
 import gr.edusuite.pacer.model.MAX_PAGE
@@ -77,5 +79,25 @@ class SanitiseTest {
         val g = c.groups.first().copy(done = listOf(first, DoneLesson(d)))
         val out = sanitiseYears(listOf(y.copy(classes = listOf(c.copy(groups = listOf(g)))))).single()
         assertEquals(listOf(first), out.classes.single().groups.single().done)
+    }
+
+    @Test fun supplementaryBooksAndTheirPlacementsAreKeptConsistent() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val g = c.groups.first()
+        val comp = Book("s", "Companion", 1, 1, supplementary = true, include = "12-15, 30")
+        val lesson = PlannedLesson(
+            "x", mapOf(c.books.first().id to listOf(1), "s" to listOf(12)), touched = true,
+            inLesson = setOf("s", c.books.first().id, "gone"), replacementBase = mapOf(c.books.first().id to listOf(1, 2), "s" to listOf(13)),
+        )
+        val dirty = c.copy(books = c.books + comp, lead = "s", groups = listOf(g.copy(custom = CustomPlan(true, listOf(lesson)))) + c.groups.drop(1))
+        val out = sanitiseYears(listOf(y.copy(classes = listOf(dirty)))).single().classes.single()
+        // Its first and last pages come from the include list, and it can't lead.
+        assertEquals(12, out.books.last().first)
+        assertEquals(30, out.books.last().last)
+        assertEquals(null, out.lead)
+        val l = out.groups.first().custom!!.lessons.single()
+        assertEquals(setOf("s"), l.inLesson)
+        assertEquals(mapOf(c.books.first().id to listOf(1, 2)), l.replacementBase)
     }
 }

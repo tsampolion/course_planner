@@ -41,7 +41,9 @@ fun nextLesson(year: SchoolYear, today: LocalDate): NextLesson? {
             val what = if (row.blocked) {
                 row.events.joinToString(" · ") { it.name }
             } else {
-                plan.books.zip(row.cells).filter { it.second.isNotEmpty() }.joinToString(" · ") { (b, cell) -> "${b.name} $cell" }
+                // A supplementary book shows only where the lesson has its pages.
+                plan.books.indices.filter { i -> row.cells[i].isNotEmpty() && (!plan.books[i].supplementary || row.pages[i].isNotEmpty()) }
+                    .joinToString(" · ") { i -> "${plan.books[i].name} ${row.cells[i]}" }
             }
             best = NextLesson(
                 c.id, g.id, c.name, g.name, row.date, row.blocked, what,

@@ -86,6 +86,9 @@ import gr.edusuite.pacer.engine.Source
 import gr.edusuite.pacer.engine.bookLags
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.moveLesson
+import gr.edusuite.pacer.engine.supplementaryBooks
+import gr.edusuite.pacer.engine.includedPages
+import gr.edusuite.pacer.engine.unplacedPages
 import kotlinx.coroutines.delay
 
 private const val TAB_PLAN = 0
@@ -114,6 +117,10 @@ private data class Lesson(
     val free: Boolean = false,
     /** What the proposed plan teaches that day, when the custom plan shown teaches something else. */
     val proposed: String? = null,
+    /** Its place among the teaching days still to come (the custom plan's lesson there, or the one a save would make). */
+    val slot: Int = -1,
+    /** The supplementary books that count in this planned lesson. */
+    val inLesson: Set<String> = emptySet(),
 )
 
 /** One line of the all-months list: a month heading or a lesson. */
@@ -136,7 +143,9 @@ private fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<L
     }
     val custom = report.custom
     val places = custom?.lessons?.withIndex()?.associate { (i, l) -> l.id to (i to l.touched) }.orEmpty()
+    val counting = custom?.lessons?.associate { it.id to it.inLesson }.orEmpty()
     val other = compare?.rows?.associateBy { it.date }
+    var slot = 0
     val upcoming = report.rows.map { r ->
         val place = r.lessonId?.let(places::get)
         val proposed = other?.get(r.date)?.takeIf { custom != null && !r.blocked && it.cells != r.cells }
@@ -145,6 +154,7 @@ private fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<L
             0, r.date, r.events, r.blocked, r.cells, done = false, note = r.note, lessonId = r.lessonId,
             index = place?.first ?: -1, touched = place?.second ?: false,
             free = custom != null && r.lessonId == null && !r.blocked, proposed = proposed,
+            slot = if (r.blocked) -1 else slot++, inLesson = r.lessonId?.let(counting::get).orEmpty(),
         )
     }
     return (done + upcoming).sortedBy { it.date }.mapIndexed { i, l -> l.copy(n = i + 1) }
@@ -153,6 +163,12 @@ private fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<L
 /** What a long-press on a lesson offers, and what tapping its tick does. */
 private class LessonActions(
     val bookNames: List<String>,
+    val bookIds: List<String> = emptyList(),
+    /** Per book, in the plan's order: a supplementary book, shown only where it has pages. */
+    val supplementary: List<Boolean> = emptyList(),
+    /** The supplementary books' ids and names, and what "Add <book> pages…" opens; null when there are none or it can't be planned here. */
+    val addSupplementary: ((Lesson) -> Unit)? = null,
+    val supplementaryBooks: List<Pair<String, String>> = emptyList(),
     val toggle: (LocalDate) -> Unit,
     /** Opens "Pages taught" for the lesson. */
     val edit: (Lesson) -> Unit,
@@ -236,9 +252,15 @@ fun GroupScreen(
             remove = { l -> vm.removePlannedLesson(g.id, l.lessonId ?: return@CustomActions); undoToast(context.getString(R.string.custom_removed)) },
         )
     }
+    // Supplementary pages are planned in the custom plan: from it, or from the proposed plan when there is none yet.
+    val planSupplementary = plan.supplementaryBooks.isNotEmpty() && (customActions != null || (custom == null && canTick))
     val actions = remember(lessons, g.id, plan.books, canTick, customActions) {
         LessonActions(
             bookNames = plan.books.map { it.name },
+            bookIds = plan.books.map { it.id },
+            supplementary = plan.books.map { it.supplementary },
+            addSupplementary = if (planSupplementary) { l -> planning = l.lessonId?.let { "L$it" } ?: "S${l.slot}" } else null,
+            supplementaryBooks = plan.supplementaryBooks.map { it.id to it.name },
             toggle = { vm.toggleLesson(g.id, it); undoToast(context.getString(R.string.group_updated)) },
             edit = { editingDate = it.date.toString() },
             upTo = { vm.markDoneUpTo(g.id, it); undoToast(context.getString(R.string.group_marked_done)) },
@@ -288,6 +310,11 @@ fun GroupScreen(
                 }
                 item(key = "custom") {
                     Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                        // Quiet, not a warning: what each supplementary book still has to place.
+                        plan.supplementaryBooks.forEach { b ->
+                            val left = remember(report, b) { report.unplacedPages(b) }
+                            if (left.isNotEmpty()) Hint(stringResource(R.string.supp_left, b.name, collapse(left)))
+                        }
                         if (custom == null) {
                             CreatePlanCard({
                                 toggleHaptic(true)
@@ -417,7 +444,26 @@ fun GroupScreen(
         }
     }
 
-    planning?.let { key ->
+    planning?.takeIf { plan.supplementaryBooks.isNotEmpty() && (it.startsWith("L") || it.startsWith("S")) }?.let { key ->
+        // With supplementary books, planning a lesson goes through saveLesson: whole or nothing, one undo step.
+        val stored = g.custom
+        val slot = if (key.startsWith("L")) stored?.lessons?.indexOfFirst { it.id == key.drop(1) } ?: -1 else key.drop(1).toIntOrNull() ?: -1
+        if (slot < 0) return@let
+        val lesson = lessons.firstOrNull { !it.done && it.slot == slot }
+        LessonPlanSheet(
+            title = lesson?.let { stringResource(R.string.custom_sheet_title, it.n, it.date.dayOfWeek.short(), it.date.fmtShort()) } ?: stringResource(R.string.custom_sheet_new),
+            report = shown,
+            key = key,
+            lesson = stored?.lessons?.getOrNull(slot),
+            proposed = lesson?.let { (compare ?: report).plannedPages(it.date) },
+            onSave = { save ->
+                if (vm.saveLesson(g.id, slot, save)) { showMine = true; undoToast(context.getString(R.string.custom_saved)) }
+                else undoToast(context.getString(R.string.supp_save_failed))
+            },
+            onDismiss = { planning = null },
+        )
+        return@let
+    } ?: planning?.let { key ->
         val c = shown.custom ?: return@let
         val id = key.removePrefix("L").takeIf { key.startsWith("L") }
         val at = key.removePrefix("N").toIntOrNull() ?: c.lessons.size
@@ -486,7 +532,9 @@ private fun LessonLine(l: Lesson, actions: LessonActions, grip: (@Composable (la
     val ca = actions.custom?.takeIf { !l.done && !l.blocked && (l.lessonId != null || l.free) }
     val placed = ca != null && l.lessonId != null
     val tick = actions.canTick
-    val hasMenu = tick || ca != null
+    val addSupp = actions.addSupplementary?.takeIf { !l.done && !l.blocked && l.slot >= 0 }
+    val hasMenu = tick || ca != null || addSupp != null
+    val suppLabels = actions.supplementaryBooks.map { (_, name) -> stringResource(R.string.supp_add_pages, name) }
     Box {
         Column {
             Row(
@@ -498,6 +546,7 @@ private fun LessonLine(l: Lesson, actions: LessonActions, grip: (@Composable (la
                     .pointerInput(l.date, hasMenu) { detectTapGestures(onLongPress = { if (hasMenu) menu = true }) }
                     .semantics {
                         customActions = buildList {
+                            if (addSupp != null) suppLabels.forEach { label -> add(CustomAccessibilityAction(label) { addSupp(l); true }) }
                             if (tick) {
                                 add(CustomAccessibilityAction(edit) { actions.edit(l); true })
                                 add(CustomAccessibilityAction(upTo) { if (actions.canUpTo(l.date)) { actions.upTo(l.date); true } else false })
@@ -543,7 +592,11 @@ private fun LessonLine(l: Lesson, actions: LessonActions, grip: (@Composable (la
                     if (l.free) Tag(stringResource(R.string.custom_free))
                     if (l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
                     if (!l.blocked) l.cells.forEachIndexed { i, cell ->
+                        val supp = actions.supplementary.getOrElse(i) { false }
+                        // A supplementary book shows only where the lesson has its pages.
+                        if (supp && cell == collapse(emptyList())) return@forEachIndexed
                         Text(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell), style = MaterialTheme.typography.bodyMedium)
+                        if (supp && !l.done) Tag(stringResource(if (actions.bookIds.getOrNull(i) in l.inLesson) R.string.supp_in_lesson else R.string.supp_on_top))
                     }
                     l.proposed?.let { Hint(stringResource(R.string.custom_proposed_line, it)) }
                 }
@@ -552,6 +605,12 @@ private fun LessonLine(l: Lesson, actions: LessonActions, grip: (@Composable (la
             HorizontalDivider(color = Pacer.colors.line)
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            if (addSupp != null) {
+                actions.supplementaryBooks.forEach { (_, name) ->
+                    DropdownMenuItem(text = { Text(stringResource(R.string.supp_add_pages, name)) }, onClick = { menu = false; addSupp(l) })
+                }
+                HorizontalDivider(color = Pacer.colors.line)
+            }
             if (ca != null) {
                 DropdownMenuItem(text = { Text(planIt) }, onClick = { menu = false; ca.plan(l) })
                 if (placed) {
@@ -584,7 +643,8 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
         val now = report.group.done.firstOrNull { it.date == l.date }?.pages ?: planned
         mutableStateListOf(*books.map { b -> now[b.id]?.let(::collapse).orEmpty() }.toTypedArray())
     }
-    val parsed = books.mapIndexed { i, b -> lessonPages(texts[i], b) }
+    // A supplementary book takes only the pages it includes.
+    val parsed = books.mapIndexed { i, b -> lessonPages(texts[i], b)?.takeIf { ps -> !b.supplementary || b.includedPages().containsAll(ps) } }
     SheetFrame(
         title = stringResource(R.string.group_pages_title, l.date.dayOfWeek.short(), l.date.fmtShort()),
         enabled = parsed.all { it != null },
@@ -605,7 +665,7 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
                 singleLine = true,
                 isError = bad,
                 supportingText = {
-                    Text(if (bad) stringResource(R.string.group_page_error, b.first, b.last) else stringResource(R.string.group_planned, collapse(planned[b.id].orEmpty())))
+                    Text(if (bad && b.supplementary) stringResource(R.string.supp_page_error) else if (bad) stringResource(R.string.group_page_error, b.first, b.last) else stringResource(R.string.group_planned, collapse(planned[b.id].orEmpty())))
                 },
                 textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono),
                 modifier = Modifier.fillMaxWidth().fieldFeedback(bad),
@@ -631,6 +691,7 @@ private fun NextLessonTile(report: GroupReport, vm: PacerViewModel, modifier: Mo
         if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
         if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyLarge, fontStyle = FontStyle.Italic)
         if (!next.blocked) plan.books.forEachIndexed { i, book ->
+            if (book.supplementary && next.cells.getOrNull(i) == collapse(emptyList())) return@forEachIndexed
             Text(stringResource(R.string.group_book_pages, book.name, next.cells.getOrElse(i) { "—" }), style = MaterialTheme.typography.bodyLarge)
         }
         Button(

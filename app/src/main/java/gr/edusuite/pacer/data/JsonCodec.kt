@@ -29,11 +29,13 @@ import org.json.JSONObject
  * (missing reads as none); version 4 flags done lessons whose pages the teacher recorded by hand
  * (missing reads as not); version 5 adds each group's custom plan (missing reads as none); version 6
  * adds each class's lead book and each book's unit start pages (missing reads as none); version 7 adds the
- * lessons a book may fall behind before a warning (missing reads as the default). Version 1
+ * lessons a book may fall behind before a warning (missing reads as the default); version 8 adds supplementary books
+ * (`supplementary`, `include`, `countInLesson`) and, on a custom plan's lessons, the books that count in the lesson
+ * (`inLesson`) and the core pages to restore (`replacementBase`); missing reads as none. Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 7
+    const val VERSION = 8
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -152,11 +154,18 @@ object JsonCodec {
         JSONObject().put("id", l.id).put("pages", pages(l.pages))
             .apply { if (l.note.isNotEmpty()) put("note", l.note) }
             .apply { if (l.touched) put("touched", true) }
+            .apply { if (l.inLesson.isNotEmpty()) put("inLesson", JSONArray(l.inLesson.sorted())) }
+            .apply { l.replacementBase?.let { put("replacementBase", pages(it)) } }
     }))
 
     private fun custom(o: JSONObject?): CustomPlan? = o?.let {
         CustomPlan(it.optBoolean("active", true), it.optJSONArray("lessons").rows { l ->
-            PlannedLesson(l.id(), pages(l.optJSONObject("pages")), l.optString("note", ""), l.optBoolean("touched", false))
+            PlannedLesson(
+                l.id(), pages(l.optJSONObject("pages")), l.optString("note", ""), l.optBoolean("touched", false),
+                inLesson = l.optJSONArray("inLesson").strings().toSet(),
+                // Present but empty means the lesson had no core pages; missing means nothing to restore.
+                replacementBase = l.optJSONObject("replacementBase")?.let { pages(it) },
+            )
         })
     }
 
@@ -190,11 +199,15 @@ object JsonCodec {
         JSONObject().put("id", b.id).put("name", b.name).put("first", b.first).put("last", b.last)
             .put("skip", b.skip).put("due", b.due?.toString() ?: "")
             .also { o -> if (b.units.isNotBlank()) o.put("units", b.units) }
+            .also { o -> if (b.supplementary) o.put("supplementary", true).put("include", b.include) }
+            .also { o -> if (b.countInLesson) o.put("countInLesson", true) }
     })
 
     private fun books(a: JSONArray?): List<Book> = a.rows { b ->
         Book(b.id(), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
-            b.optString("skip", ""), b.date("due"), b.optString("units", ""))
+            b.optString("skip", ""), b.date("due"), b.optString("units", ""),
+            supplementary = b.optBoolean("supplementary", false), include = b.optString("include", ""),
+            countInLesson = b.optBoolean("countInLesson", false))
     }
 
     private fun homework(list: List<Homework>) = JSONArray(list.map { h ->

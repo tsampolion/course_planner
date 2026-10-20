@@ -22,6 +22,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-10-20
+
+### Added
+
+- **Supplementary books.** Add a companion, a reader or a test booklet to a class with *Supplementary book* on, and list only the pages you'll use (*4-7, 12, 30-33*). It is never paced: the schedule, pages left, the pace, the verdict, the lead book and the warnings leave it out.
+- **Place its pages by hand.** Long-press a lesson for *Add <book> pages…*, or record them in *Edit pages taught…*. A group with no custom plan gets one made from the proposed plan, in the same step. Each book shows what it hasn't placed yet.
+- **On top or in the lesson.** *On top* adds the pages and changes nothing else. *In the lesson* opens *Pages to teach this lesson* with every book. You say what each core book teaches, as pages or ranges, blank for none, or 0 to leave it out. A book typed as 0, or left as it was, asks *Keep these pages* or *Don't use this lesson*. The pages the lesson gives up move to the next lessons, all in one undo step. Removing the last in-lesson book, or switching it to on top, brings the lesson's core pages back.
+- **Where it shows.** Its pages show by name in the lesson, on the next-lesson tiles, and in Copy, Share and Print, with a column only where it's used. Stats shows *x of y pages placed · z taught*. Each group places and tracks its own pages.
+
+### Changed
+
+- The saved file is version 8: books can be supplementary, and custom lessons remember which books count in them and the core pages to restore. Older files still load.
+
 ## [2.9.0] - 2026-10-20
 
 ### Added
@@ -441,7 +454,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.9.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.10.0...HEAD
+[2.10.0]: https://github.com/tsampolion/course_planner/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/tsampolion/course_planner/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/tsampolion/course_planner/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.1...v2.7.0

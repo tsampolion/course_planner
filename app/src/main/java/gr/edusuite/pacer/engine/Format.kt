@@ -25,7 +25,8 @@ fun Double.plain(): String = if (this == Math.floor(this) && !isInfinite()) toLo
 
 /** The schedule as tab-separated text, ready to paste into a spreadsheet or Word. A custom plan's notes get a last column. */
 fun GroupReport.asTsv(): String {
-    val books = plan.books
+    val cols = outputColumns()
+    val books = cols.map { plan.books[it] }
     val notes = rows.any { it.note.isNotEmpty() }
     val lines = ArrayList<String>()
     lines += (listOf("#", "Date", "Day") + books.map { it.name } + if (notes) listOf("Note") else emptyList()).joinToString("\t")
@@ -34,9 +35,16 @@ fun GroupReport.asTsv(): String {
         val cells = if (r.blocked) {
             listOf(names) + books.drop(1).map { "" }
         } else {
-            r.cells.mapIndexed { i, c -> if (i == 0 && names.isNotEmpty()) "$c  [$names]" else c }
+            cols.map { r.cells[it] }.mapIndexed { i, c -> if (i == 0 && names.isNotEmpty()) "$c  [$names]" else c }
         }
         lines += (listOf(r.n.toString(), r.date.fmt(), r.date.dayOfWeek.short()) + cells + if (notes) listOf(r.note.replace('\t', ' ').replace('\n', ' ')) else emptyList()).joinToString("\t")
     }
     return lines.joinToString("\n")
 }
+
+/**
+ * The book columns an output of these rows shows, as indices into plan.books: every core book, and a supplementary book
+ * only when some row places its pages.
+ */
+fun GroupReport.outputColumns(): List<Int> =
+    plan.books.indices.filter { i -> !plan.books[i].supplementary || rows.any { it.pages[i].isNotEmpty() } }

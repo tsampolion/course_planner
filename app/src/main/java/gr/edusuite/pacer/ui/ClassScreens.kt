@@ -41,6 +41,9 @@ import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.engine.coreBooks
+import gr.edusuite.pacer.engine.includedPages
+import gr.edusuite.pacer.engine.parseInclude
 import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.engine.unitStarts
 import gr.edusuite.pacer.model.Group
@@ -110,10 +113,10 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             Section(stringResource(R.string.class_books), trailing = { TertiaryButton(stringResource(R.string.class_add), { addingBook = true }) }) {
                 Hint(stringResource(R.string.class_each_book_is_paced_on_its_own_skipped_pages_apply_to_every_g))
                 if (plan.books.isEmpty()) Hint(stringResource(R.string.class_no_books_yet))
-                if (plan.books.size > 1) {
+                if (plan.coreBooks.size > 1) {
                     Picker(
                         stringResource(R.string.class_lead_book),
-                        listOf("" to stringResource(R.string.class_lead_none)) + plan.books.map { it.id to it.name.ifBlank { stringResource(R.string.class_book) } },
+                        listOf("" to stringResource(R.string.class_lead_none)) + plan.coreBooks.map { it.id to it.name.ifBlank { stringResource(R.string.class_book) } },
                         plan.lead.orEmpty(), { vm.setLead(it.ifEmpty { null }) }, Modifier.fillMaxWidth(),
                     )
                     if (plan.lead != null) Hint(stringResource(R.string.class_lead_hint))
@@ -287,12 +290,19 @@ private fun BookEditor(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (
     Tile(Pacer.colors.tileSky, modifier, onClick = { editing = true }) {
         AppIcon(AppIcons.Book)
         Text(name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+        if (b.supplementary) {
+            val n = remember(b.include) { b.includedPages().size }
+            Text(b.include, style = MaterialTheme.typography.titleMedium, fontFamily = Mono)
+            Text(pluralStringResource(R.plurals.supp_pages, n, n), color = Pacer.colors.onTileMuted)
+        } else {
         Text(stringResource(R.string.class_page_range, b.first, b.last), style = MaterialTheme.typography.titleMedium)
         Text(pluralStringResource(R.plurals.class_teachable, maxOf(0, b.last - b.first + 1 - skipped), maxOf(0, b.last - b.first + 1 - skipped)), color = Pacer.colors.onTileMuted)
-        if (b.skip.isNotBlank()) Tag(pluralStringResource(R.plurals.class_skipped, skipped, skipped), onTile = true)
+        }
+        if (b.skip.isNotBlank() && !b.supplementary) Tag(pluralStringResource(R.plurals.class_skipped, skipped, skipped), onTile = true)
         b.due?.let { Tag(stringResource(R.string.class_due_by, it.fmtShort()), onTile = true) }
         if (leads) Tag(stringResource(R.string.class_leads), onTile = true)
         if (b.units.isNotBlank()) Tag(pluralStringResource(R.plurals.class_units, b.unitStarts().size, b.unitStarts().size), onTile = true)
+        if (b.supplementary) Tag(stringResource(R.string.supp_tag), onTile = true)
     }
     if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
         BookFields(b, vm) { editing = false; vm.removeBook(b.id); undoToast(context.getString(R.string.class_removed, name)) }
@@ -304,6 +314,14 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommitField(b.name, { vm.renameBook(b.id, it) }, stringResource(R.string.class_title), Modifier.weight(1f))
 
+    }
+    if (b.supplementary) {
+        // Placed by hand, so none of the pacing settings apply.
+        IncludeField(b.include, { vm.setInclude(b.id, it) })
+        SwitchRow(stringResource(R.string.supp_count_default), b.countInLesson) { vm.setCountInLesson(b.id, it) }
+        Hint(stringResource(R.string.supp_count_default_hint))
+        TertiaryButton(stringResource(R.string.class_remove_book), onRemove, color = Pacer.colors.warn)
+        return
     }
     Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
         IntField(b.first, { vm.setFirstPage(b.id, it) }, stringResource(R.string.class_first_page), Modifier.fillMaxWidth(), max = MAX_PAGE)
@@ -334,8 +352,8 @@ fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoT
         }
         if (plan.homework.isEmpty()) item(key = "empty") {
             EmptyState(AppIcons.Homework, stringResource(R.string.class_no_homework_assigned), stringResource(R.string.class_assign_pages_to_ease_the_classroom_pace),
-                if (plan.groups.isNotEmpty() && plan.books.isNotEmpty()) stringResource(R.string.class_add_homework) else null,
-                if (plan.groups.isNotEmpty() && plan.books.isNotEmpty()) ({ adding = true }) else null)
+                if (plan.groups.isNotEmpty() && plan.coreBooks.isNotEmpty()) stringResource(R.string.class_add_homework) else null,
+                if (plan.groups.isNotEmpty() && plan.coreBooks.isNotEmpty()) ({ adding = true }) else null)
         }
         plan.homework.groupBy { it.groupId }.forEach { (groupId, assignments) ->
             item(key = "group:$groupId") {
@@ -394,17 +412,48 @@ private fun AddEventDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit
     }
 }
 
+/** A supplementary book's pages, strict: an unreadable or empty list shows an error and isn't saved. */
+@Composable
+private fun IncludeField(value: String, onCommit: (String) -> Unit) {
+    CommitField(
+        value, onCommit, stringResource(R.string.supp_include), Modifier.fillMaxWidth(),
+        placeholder = stringResource(R.string.supp_include_placeholder),
+        isValid = { !parseInclude(it).isNullOrEmpty() }, errorMessage = stringResource(R.string.supp_include_error),
+    )
+}
+
+/** A labelled switch with the shared toggle haptic and the ✓/✕ thumb (§5). */
+@Composable
+private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    val toggleHaptic = rememberToggleHaptic()
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+        Switch(checked = checked, onCheckedChange = { toggleHaptic(it); onChange(it) },
+            thumbContent = { AppIcon(if (checked) AppIcons.Check else AppIcons.Close, Modifier.size(Space.l)) })
+    }
+}
+
 @Composable
 private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var first by rememberSaveable { mutableStateOf("1") }
     var last by rememberSaveable { mutableStateOf("") }
+    var supplementary by rememberSaveable { mutableStateOf(false) }
+    var include by rememberSaveable { mutableStateOf("") }
     val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
-    SheetFrame(stringResource(R.string.class_add_a_book), stringResource(R.string.class_add), lastN != null, {
-        vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!)
+    val includeOk = !parseInclude(include).isNullOrEmpty()
+    SheetFrame(stringResource(R.string.class_add_a_book), stringResource(R.string.class_add), if (supplementary) includeOk else lastN != null, {
+        if (supplementary) vm.addSupplementaryBook(name.trim(), include)
+        else vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!)
     }, onDismiss) {
         CommitField(name, { name = it }, stringResource(R.string.class_title), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_companion))
-        Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
+        SwitchRow(stringResource(R.string.supp_switch), supplementary) { supplementary = it }
+        if (supplementary) {
+            Hint(stringResource(R.string.supp_switch_hint))
+            CommitField(include, { include = it }, stringResource(R.string.supp_include), Modifier.fillMaxWidth(),
+                placeholder = stringResource(R.string.supp_include_placeholder),
+                error = include.isNotBlank() && !includeOk, errorMessage = stringResource(R.string.supp_include_error))
+        } else Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
             CommitField(first, { first = it }, stringResource(R.string.class_first_page), Modifier.fillMaxWidth(), numeric = true)
             CommitField(last, { last = it }, stringResource(R.string.class_last_page), Modifier.fillMaxWidth(), numeric = true,
                 error = last.isNotBlank() && lastN == null, errorMessage = stringResource(R.string.component_integer_range, 1, MAX_PAGE))
@@ -415,7 +464,7 @@ private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
 @Composable
 private fun AddHomeworkDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit) {
     var group by rememberSaveable { mutableStateOf(plan.groups.firstOrNull()?.id) }
-    var book by rememberSaveable { mutableStateOf(plan.books.firstOrNull()?.id) }
+    var book by rememberSaveable { mutableStateOf(plan.coreBooks.firstOrNull()?.id) }
     fun currentPage(): String {
         val g = plan.groups.firstOrNull { it.id == group }
         val b = plan.books.firstOrNull { it.id == book }
@@ -431,7 +480,7 @@ private fun AddHomeworkDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> U
         vm.addHomework(group!!, book!!, fromN!!, toN!!, setOn)
     }, onDismiss) {
         Picker(stringResource(R.string.class_group), plan.groups.map { it.id to it.name }, group, { group = it; from = currentPage(); to = "" })
-        Picker(stringResource(R.string.class_book), plan.books.map { it.id to it.name }, book, { book = it; from = currentPage(); to = "" })
+        Picker(stringResource(R.string.class_book), plan.coreBooks.map { it.id to it.name }, book, { book = it; from = currentPage(); to = "" })
         Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
             CommitField(from, { from = it }, stringResource(R.string.class_from_p), Modifier.fillMaxWidth(), numeric = true,
                 error = from.isNotBlank() && fromN == null, errorMessage = stringResource(R.string.component_integer_range, 1, MAX_PAGE))

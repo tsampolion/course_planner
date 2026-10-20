@@ -65,6 +65,7 @@ import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.Coverage
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.collapse
+import gr.edusuite.pacer.engine.coreBooks
 import gr.edusuite.pacer.engine.lessonPages
 import gr.edusuite.pacer.engine.remainingPages
 import gr.edusuite.pacer.model.CustomPlan
@@ -141,7 +142,7 @@ fun CoverageCard(
     val plan = report.plan
     var copying by remember { mutableStateOf(false) }
     Section(stringResource(R.string.custom_your_plan), modifier.animateContentSize(if (motion) Motion.settle() else snap())) {
-        plan.books.forEach { b ->
+        plan.coreBooks.forEach { b ->
             val left = remember(report) { plan.remainingPages(report.group, b).size }
             val missing = coverage.missing[b.id].orEmpty().size
             val planned = left - missing
