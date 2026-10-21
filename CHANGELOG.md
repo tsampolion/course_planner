@@ -22,6 +22,28 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-21
+
+The redesign's Home (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR3).
+
+### Added
+
+- **Hello, *name***: Home greets you by the name set in Settings ("Hello" alone while it's empty), with today's date and the open school year under it.
+- **Next-lesson bar** with Done: the year's next lesson, labelled "today" with how many of today's lessons are left, its date, or overdue.
+- **Classes card**: a scrolling row of class chips, each with its group count, and "All N ›" to Classes.
+- **Pacing overview board**: one cell per group, class by class. On-pace cells are neutral and behind cells are rust with "−N" whole lessons. A cell opens its group, TalkBack reads it as one item ("FCE Wed–Fri, short by 2 lessons"), and "See all ›" opens Pacing overview.
+- **Year switcher on School year**: every school year at the top of the screen, with + New school year and each year's Rename and Delete.
+- **Settings**: "Your name", and "Show tips again", which brings back the show-once tips (kept for the whole app, outside undo).
+
+### Changed
+
+- The theme in Settings is a 48dp segmented switch (System, Light, Dark).
+- Print or save PDF moves to the School year screen until the group's ⋮ menu offers it (3.4.0).
+
+### Removed
+
+- Home's tile grid and its year chip. Tests and Homework open from the Class screen, Days off and the year from School year.
+
 ## [3.2.0] - 2026-10-21
 
 The redesign's navigation (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR2).
@@ -502,6 +524,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.2.0...HEAD
+[3.3.0]: https://github.com/tsampolion/course_planner/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/tsampolion/course_planner/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/tsampolion/course_planner/compare/v2.10.1...v3.1.0
 [2.10.1]: https://github.com/tsampolion/course_planner/compare/v2.10.0...v2.10.1

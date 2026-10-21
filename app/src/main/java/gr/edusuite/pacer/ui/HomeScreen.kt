@@ -1,25 +1,19 @@
 package gr.edusuite.pacer.ui
 
-import androidx.compose.ui.text.font.FontStyle
 import android.content.Context
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -28,9 +22,9 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,15 +32,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,25 +47,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.fmt
-import gr.edusuite.pacer.engine.fmtShort
-import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.suggestYear
@@ -94,124 +86,81 @@ fun SchoolYear.dates(context: Context): String {
     return if (s != null && e != null) context.getString(R.string.home_date_range, s.fmt(), e.fmt()) else context.getString(R.string.home_dates_missing)
 }
 
-/** "Mon 19 Oct": a lesson or test date on a tile. */
-private fun LocalDate.tileDate(): String = format(DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault()))
+/** "Mon 19 Oct": the next lesson's date when it isn't today. */
+private fun LocalDate.barDate(): String = format(DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault()))
 
-/** Today on the Home header, such as "Saturday 17 October". */
+/** Today on the Home header, such as "Wednesday 21 October". */
 private val HEADER_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.getDefault())
 
-/** Which class screen the class chooser opens for. */
-private const val CHOOSE_TESTS = "tests"
-private const val CHOOSE_HOMEWORK = "homework"
+/** From this font scale the board gives each group cell a whole line (docs/PACER_DESIGN.md, large text). */
+private const val LARGE_TEXT = 1.5f
 
 /**
- * The start screen (style guide §6 "Home header", "Hero tile", "Tile grid"): the header, the open school year's chip,
- * the next lesson to teach, and a tile for each section of the year. With no years it offers to create the first one.
- * With [welcome], the welcome guide opens over it. [onDeleted] and [undoToast] show a snackbar with Undo.
+ * The start screen (docs/PACER_DESIGN.md D3, D4): "Hello, name" over today's date and the open year, the next-lesson
+ * bar with Done, the Classes card and the Pacing overview board. With no years it offers to create the first one.
+ * With [welcome], the welcome guide opens over it. [undoToast] shows a snackbar with Undo.
  */
 @Composable
 fun HomeScreen(
     data: AppData,
+    name: String,
     vm: PacerViewModel,
     padding: PaddingValues,
     welcome: Boolean,
-    onDeleted: (String) -> Unit,
     undoToast: (String) -> Unit = {},
     onMenu: () -> Unit = {},
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
-    var picking by rememberSaveable { mutableStateOf(false) }
-    var printing by rememberSaveable { mutableStateOf(false) }
-    // The year being renamed, by id, and the class screen waiting for a class to be chosen.
-    var renaming by rememberSaveable { mutableStateOf<String?>(null) }
-    var choosing by rememberSaveable { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
     val today = remember { LocalDate.now() }
     // The VM opens the latest year when none is open; until it has, show that one.
     val fallback = remember(data.years) { defaultYearId(data.years)?.let { id -> data.years.first { it.id == id } } }
     val year = data.year ?: fallback
     val dir = LocalLayoutDirection.current
 
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        // §6: as many columns as the width fits; one at 200% font or under 360dp.
-        val gridWidth = maxWidth - padding.calculateStartPadding(dir) - padding.calculateEndPadding(dir) - Space.l * 2
-        val columns = homeColumns(gridWidth.value, LocalDensity.current.fontScale, HOME_TILES)
-        Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = padding.calculateStartPadding(dir) + Space.l,
-                    end = padding.calculateEndPadding(dir) + Space.l,
-                    top = padding.calculateTopPadding() + Space.xxl,
-                    bottom = padding.calculateBottomPadding() + Space.xxl,
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.xl)) {
-                Header(today, onMenu)
-                if (year == null) {
-                    EmptyState(
-                        AppIcons.Add,
-                        stringResource(R.string.home_create_year),
-                        stringResource(R.string.home_create_year_hint),
-                        stringResource(R.string.home_new_year),
-                    ) { adding = true }
-                } else {
-                    YearChip(year.name.ifBlank { context.getString(R.string.home_year) }) { picking = true }
-                    // The hero stays a readable width on a wide screen; the grid takes the whole width.
-                    Box(Modifier.widthIn(max = 560.dp)) { NextLessonCard(year, today, vm, undoToast) }
-                    TileGrid(
-                        year, today, vm, columns,
-                        onTests = { openForClass(year, vm, Screen.Tests) { choosing = CHOOSE_TESTS } },
-                        onHomework = { openForClass(year, vm, Screen.Homework) { choosing = CHOOSE_HOMEWORK } },
-                        onPrint = { printing = true },
-                    )
-                }
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(
+                start = padding.calculateStartPadding(dir) + Space.l,
+                end = padding.calculateEndPadding(dir) + Space.l,
+                top = padding.calculateTopPadding() + Space.xl,
+                bottom = padding.calculateBottomPadding() + Space.xxl,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // A readable width on a wide screen.
+        Column(Modifier.widthIn(max = 640.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.l)) {
+            Header(name, year, today, onMenu)
+            if (year == null) {
+                EmptyState(
+                    AppIcons.Add,
+                    stringResource(R.string.home_create_year),
+                    stringResource(R.string.home_create_year_hint),
+                    stringResource(R.string.home_new_year),
+                ) { adding = true }
+            } else if (year.classes.isEmpty()) {
+                GuideCard(
+                    stringResource(R.string.home_add_first_class),
+                    stringResource(R.string.home_first_class_hint),
+                    action = stringResource(R.string.home_add_class) to { vm.open(Screen.Classes) },
+                )
+            } else {
+                NextLessonBar(year, today, vm, undoToast)
+                ClassesCard(year, vm)
+                PacingBoard(year, vm)
             }
         }
     }
 
     if (welcome) WelcomeDialog(onStart = { adding = true }, onDismiss = vm::setWelcomeSeen)
     if (adding) NewYearDialog(data.years, vm) { adding = false }
-    if (picking) {
-        YearPicker(
-            data.years, year?.id, vm,
-            onRename = { renaming = it },
-            onDelete = { y ->
-                val name = y.name.ifBlank { context.getString(R.string.home_year) }
-                vm.deleteYear(y.id)
-                onDeleted(name)
-            },
-            onNew = { adding = true },
-            onDismiss = { picking = false },
-        )
-    }
-    data.years.firstOrNull { it.id == renaming }?.let { y -> RenameYearSheet(y, vm) { renaming = null } }
-    if (printing && year != null) PrintDialog(year) { printing = false }
-    if (choosing != null && year != null) {
-        val screen = if (choosing == CHOOSE_TESTS) Screen.Tests else Screen.Homework
-        ClassChooser(year, if (screen == Screen.Tests) stringResource(R.string.home_choose_tests) else stringResource(R.string.home_choose_homework), onDismiss = { choosing = null }) {
-            vm.openClassScreen(it, screen)
-        }
-    }
 }
 
-/** The tiles on Home's grid: Classes, Overview, Tests, Homework, Print, Days off. */
-private const val HOME_TILES = 6
-
-/** Opens a class's Tests or Homework: straight away with one class, through [choose] with several, or Classes with none. */
-private fun openForClass(year: SchoolYear, vm: PacerViewModel, screen: Screen, choose: () -> Unit) {
-    when (year.classes.size) {
-        0 -> vm.open(Screen.Classes)
-        1 -> vm.openClassScreen(year.classes.first().id, screen)
-        else -> choose()
-    }
-}
-
-/** §6 "Home header": ☰ for the menu (which holds Settings), the logo, and a greeting over today's date. */
+/** D3: ☰ for the menu (which holds Settings), the logo, "Hello, name" and, under it, today's date and the open year. */
 @Composable
-private fun Header(today: LocalDate, onMenu: () -> Unit) {
+private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: () -> Unit) {
+    val context = LocalContext.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
         Spacer(Modifier.width(Space.s))
@@ -219,185 +168,216 @@ private fun Header(today: LocalDate, onMenu: () -> Unit) {
         Spacer(Modifier.width(Space.m))
         Column(Modifier.weight(1f)) {
             Text(
-                stringResource(R.string.home_hello),
+                if (name.isBlank()) stringResource(R.string.home_hello) else stringResource(R.string.home_hello_name, name),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Pacer.colors.ink,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.semantics { heading() },
             )
-            Text(today.format(HEADER_DATE), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
-        }
-    }
-}
-
-/** The open year's name on a pill; tapping it opens the year picker. */
-@Composable
-private fun YearChip(name: String, onClick: () -> Unit) {
-    Surface(
-        shape = CircleShape,
-        color = Pacer.colors.surfaceContainer,
-        contentColor = Pacer.colors.ink,
-        modifier = Modifier
-            .heightIn(min = 48.dp)
-            .clip(CircleShape)
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.home_change_year), onClick = onClick),
-    ) {
-        Row(Modifier.padding(horizontal = Space.l, vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
-            Text(name, style = MaterialTheme.typography.labelLarge)
-            AppIcon(AppIcons.ExpandMore, Modifier.clearAndSetSemantics { })
+            val date = today.format(HEADER_DATE)
+            Text(
+                if (year == null) date else stringResource(R.string.home_pair, date, year.name.ifBlank { context.getString(R.string.home_year) }),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Pacer.colors.muted,
+            )
         }
     }
 }
 
 /**
- * The hero tile (§6): the year's next lesson in the accent fill, with Mark done. Tapping the tile opens the group.
- * A year with classes but no lesson left gets a neutral tile; a year with no classes gets a guide to add one.
+ * The next-lesson bar: the year's next lesson in the accent fill, with Done. Tapping the bar opens the group. Its
+ * label says "today" with how many of today's lessons are left, the date, or that the lesson is overdue. A year with
+ * no lesson left gets a neutral bar that opens Pacing overview.
  */
 @Composable
-private fun NextLessonCard(year: SchoolYear, today: LocalDate, vm: PacerViewModel, undoToast: (String) -> Unit) {
+private fun NextLessonBar(year: SchoolYear, today: LocalDate, vm: PacerViewModel, undoToast: (String) -> Unit) {
     val context = LocalContext.current
     val press = remember { MutableInteractionSource() }
     val next = remember(year, today) { nextLesson(year, today) }
+    val count = remember(year, today) { lessonsToday(year, today) }
     val c = Pacer.colors
-    when {
-        year.classes.isEmpty() -> GuideCard(
-            stringResource(R.string.home_add_first_class),
-            stringResource(R.string.home_first_class_hint),
-            action = stringResource(R.string.home_add_class) to { vm.open(Screen.Classes) },
-        )
-        next == null -> Tile(c.surfaceContainer, contentColor = c.ink, onClick = { vm.open(Screen.Overview) }) {
-            Text(stringResource(R.string.home_no_lessons), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+    if (next == null) {
+        Tile(c.surfaceContainer, contentColor = c.ink, onClick = { vm.goTo(Screen.Overview) }) {
+            Text(stringResource(R.string.home_no_lessons), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
             Text(stringResource(R.string.home_overview_hint), style = MaterialTheme.typography.bodySmall, color = c.muted)
         }
-        else -> Tile(c.accent, contentColor = c.onAccent, onClick = { vm.openGroup(next.classId, next.groupId) }) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.home_next_lesson), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f).semantics { heading() })
-                if (next.overdue) Tag(stringResource(R.string.home_overdue), warn = true)
+        return
+    }
+    val large = LocalDensity.current.fontScale >= LARGE_TEXT
+    val label = when {
+        next.overdue -> stringResource(R.string.home_next_overdue, next.date.barDate())
+        next.date == today -> stringResource(R.string.home_next_today, count.left, count.total)
+        else -> stringResource(R.string.home_next_on, next.date.barDate())
+    }
+    val done: @Composable (Modifier) -> Unit = { m ->
+        Button(
+            onClick = {
+                vm.markNextLessonDoneIn(next.classId, next.groupId)
+                undoToast(context.getString(R.string.home_lesson_done))
+            },
+            shape = CircleShape,
+            colors = ButtonDefaults.buttonColors(containerColor = c.onAccent, contentColor = c.accent),
+            interactionSource = press,
+            modifier = m.pressFeedback(press).heightIn(min = 48.dp),
+        ) {
+            AppIcon(AppIcons.Check, Modifier.padding(end = Space.s))
+            Text(stringResource(R.string.home_done), style = MaterialTheme.typography.labelLarge)
+        }
+    }
+    Tile(c.accent, contentColor = c.onAccent, onClick = { vm.openGroup(next.classId, next.groupId) }) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(label, style = MaterialTheme.typography.labelMedium.merge(Figures), modifier = Modifier.semantics { heading() })
+                Text(
+                    stringResource(R.string.home_pair, next.className.ifBlank { context.getString(R.string.home_class) }, next.groupName.ifBlank { context.getString(R.string.home_group) }),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                // Book names and pages read as a sentence, so they stay in sans.
+                Text(next.what.ifBlank { context.getString(R.string.home_no_pages) }, style = MaterialTheme.typography.bodySmall)
+                if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
             }
-            Text(next.date.tileDate(), style = MaterialTheme.typography.headlineSmall.merge(Figures), fontWeight = FontWeight.SemiBold)
-            Text(stringResource(R.string.home_pair, next.className.ifBlank { context.getString(R.string.home_class) }, next.groupName.ifBlank { context.getString(R.string.home_group) }), style = MaterialTheme.typography.titleMedium)
-            // Book names and pages read as a sentence, so they stay in sans (§3: Figures is for figures only).
-            Text(next.what.ifBlank { context.getString(R.string.home_no_pages) }, style = MaterialTheme.typography.bodyMedium)
-            if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
-            Button(
-                onClick = {
-                    vm.markNextLessonDoneIn(next.classId, next.groupId)
-                    undoToast(context.getString(R.string.home_lesson_done))
-                },
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink),
-                interactionSource = press,
-                modifier = Modifier.pressFeedback(press).padding(top = Space.s).heightIn(min = 48.dp),
-            ) { Text(stringResource(R.string.home_mark_done), style = MaterialTheme.typography.labelLarge) }
+            if (!large) done(Modifier.padding(start = Space.s))
+        }
+        if (large) done(Modifier.fillMaxWidth().padding(top = Space.s))
+    }
+}
+
+/** A card on Home: surface, the large corners, a title row with an optional link at its end. */
+@Composable
+private fun HomeCard(title: String, link: String?, onLink: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = Pacer.colors.surface, contentColor = Pacer.colors.ink) {
+        Column(Modifier.padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            Row(Modifier.padding(start = Space.l, end = Space.xs), verticalAlignment = Alignment.CenterVertically) {
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).semantics { heading() })
+                if (link != null) TertiaryButton(link, onLink, color = Pacer.colors.accent)
+            }
+            content()
+        }
+    }
+}
+
+/** The Classes card: a scrolling row of class chips (name over its group count) and "All N ›" to Classes. */
+@Composable
+private fun ClassesCard(year: SchoolYear, vm: PacerViewModel) {
+    val context = LocalContext.current
+    val n = year.classes.size
+    HomeCard(stringResource(R.string.home_classes), stringResource(R.string.home_all_classes, n), { vm.goTo(Screen.Classes) }) {
+        LazyRow(contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+            items(year.classes, key = { it.id }) { k ->
+                Surface(
+                    onClick = { vm.openClass(k.id) },
+                    shape = MaterialTheme.shapes.medium,
+                    color = Pacer.colors.surfaceContainer,
+                    contentColor = Pacer.colors.ink,
+                    modifier = Modifier.heightIn(min = 48.dp).widthIn(max = 200.dp),
+                ) {
+                    Column(Modifier.padding(horizontal = Space.m, vertical = Space.s)) {
+                        Text(k.name.ifBlank { context.getString(R.string.home_class) }, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(pluralStringResource(R.plurals.home_groups_count, k.groups.size, k.groups.size), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted)
+                    }
+                }
+            }
         }
     }
 }
 
 /**
- * The bento grid (§6 "Tile grid"): [columns] columns of mixed heights, tall tiles only beside other columns. Three tile hues (sky, mint,
- * lilac) plus neutral tiles, so the screen stays within §2.2's limit beside the accent hero.
+ * The Pacing overview board (decisions 5, 12): one line per class, one cell per group. On-pace cells are neutral
+ * (surfaceContainer with ink) and behind cells are rust with "−N" whole lessons. A cell opens its group, and TalkBack
+ * reads it as one item ("FCE Wed–Fri, short by 2 lessons"). Under it, the legend and "See all ›" to Pacing overview.
  */
 @Composable
-private fun TileGrid(
-    year: SchoolYear,
-    today: LocalDate,
-    vm: PacerViewModel,
-    columns: Int,
-    onTests: () -> Unit,
-    onHomework: () -> Unit,
-    onPrint: () -> Unit,
-) {
-    val s = remember(year, today) { homeSummary(year, today) }
+private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
+    val context = LocalContext.current
+    val board = remember(year) { pacingBoard(year) }
+    val summary = remember(board) { board.summary() }
+    val perLine = if (LocalDensity.current.fontScale >= LARGE_TEXT) 1 else 2
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = Pacer.colors.surface, contentColor = Pacer.colors.ink) {
+        Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m, bottom = Space.xs), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.home_overview), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).semantics { heading() })
+                Text(
+                    stringResource(
+                        R.string.home_pair,
+                        pluralStringResource(R.plurals.home_groups_count, summary.groups, summary.groups),
+                        pluralStringResource(R.plurals.home_behind_count, summary.behind, summary.behind),
+                    ),
+                    style = MaterialTheme.typography.labelSmall.merge(Figures),
+                    color = Pacer.colors.muted,
+                )
+            }
+            if (board.isEmpty()) Hint(stringResource(R.string.home_board_empty))
+            board.forEach { row ->
+                val className = row.className.ifBlank { context.getString(R.string.home_class) }
+                Row(verticalAlignment = Alignment.Top) {
+                    // Level with the first line of cells.
+                    Box(Modifier.weight(1f).heightIn(min = 48.dp).padding(end = Space.s), contentAlignment = Alignment.CenterStart) {
+                        Text(className, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
+                    Column(Modifier.weight(if (perLine == 1) 1.5f else 2f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                        row.cells.chunked(perLine).forEach { line ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                                line.forEach { cell -> BoardCellView(className, cell, Modifier.weight(1f)) { vm.openGroup(cell.classId, cell.groupId) } }
+                                repeat(perLine - line.size) { Spacer(Modifier.weight(1f)) }
+                            }
+                        }
+                    }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Legend(Modifier.weight(1f))
+                TertiaryButton(stringResource(R.string.home_see_all), { vm.goTo(Screen.Overview) }, color = Pacer.colors.accent)
+            }
+        }
+    }
+}
+
+/** One group's cell: its name, and "−N" when it is behind. One touch target and one TalkBack item. */
+@Composable
+private fun BoardCellView(className: String, cell: BoardCell, modifier: Modifier, onClick: () -> Unit) {
+    val context = LocalContext.current
     val c = Pacer.colors
-    val tall = columns > 1
-
-    val classes: @Composable (Modifier) -> Unit = { m ->
-        HomeTile(
-            stringResource(R.string.home_classes),
-            if (s.classes == 0) stringResource(R.string.home_none) else stringResource(R.string.home_pair, pluralStringResource(R.plurals.home_classes_count, s.classes, s.classes), pluralStringResource(R.plurals.home_groups_count, s.groups, s.groups)),
-            c.tileSky, { vm.open(Screen.Classes) }, m, dim = s.classes == 0, tall = tall, icon = AppIcons.School,
-        )
+    val group = cell.groupName.ifBlank { context.getString(R.string.home_group) }
+    val short = cell.short ?: 0
+    val spoken = when {
+        cell.short == null -> stringResource(R.string.home_cell, className, group)
+        short > 0 -> pluralStringResource(R.plurals.home_cell_short, short, className, group, short)
+        else -> stringResource(R.string.home_cell_on_pace, className, group)
     }
-    val tests: @Composable (Modifier) -> Unit = { m ->
-        val next = s.nextTest
-        HomeTile(
-            stringResource(R.string.home_tests),
-            if (next != null) stringResource(R.string.home_next_test, next.first.tileDate(), next.second) else pluralStringResource(R.plurals.home_tests_count, s.tests, s.tests),
-            c.tileLilac, onTests, m, dim = s.tests == 0, icon = AppIcons.Tests,
-        )
-    }
-    val print: @Composable (Modifier) -> Unit = { m ->
-        HomeTile(stringResource(R.string.home_print), stringResource(R.string.home_print_hint), c.surfaceContainer, onPrint, m, contentColor = c.ink, mutedColor = c.muted, icon = AppIcons.Print)
-    }
-    val overview: @Composable (Modifier) -> Unit = { m ->
-        val problems = s.problems > 0
-        HomeTile(
-            stringResource(R.string.home_overview),
-            if (problems) pluralStringResource(R.plurals.home_problems_count, s.problems, s.problems) else stringResource(R.string.home_no_problems, pluralStringResource(R.plurals.home_groups_count, s.groups, s.groups)),
-            if (problems) c.warnSoft else c.tileMint, { vm.open(Screen.Overview) }, m,
-            contentColor = if (problems) c.onWarnSoft else c.onTile,
-            mutedColor = if (problems) c.onWarnSoft else c.onTileMuted,
-            tall = tall,
-            icon = AppIcons.Overview,
-            tag = if (problems) stringResource(R.string.home_needs_look) else null,
-        )
-    }
-    val homework: @Composable (Modifier) -> Unit = { m ->
-        HomeTile(stringResource(R.string.home_homework), pluralStringResource(R.plurals.home_assignments_count, s.homework, s.homework), c.tileSky, onHomework, m, dim = s.homework == 0, icon = AppIcons.Homework)
-    }
-    val daysOff: @Composable (Modifier) -> Unit = { m ->
-        val start = year.start
-        val end = year.end
-        val off = pluralStringResource(R.plurals.home_days_off_count, s.daysOff, s.daysOff)
-        HomeTile(
-            stringResource(R.string.home_days_dates),
-            if (start != null && end != null) stringResource(R.string.home_dates_and_off, start.fmtShort(), end.fmtShort(), off) else off.replaceFirstChar { it.uppercase() },
-            c.surfaceContainer, { vm.open(Screen.YearSettings) }, m,
-            contentColor = c.ink, mutedColor = c.muted,
-            // Words, not colour alone (§7), say the term still needs its dates.
-            tag = if (!s.datesSet) stringResource(R.string.home_dates_missing) else null,
-            tagWarn = true, icon = AppIcons.Calendar,
-        )
-    }
-
-    HomeGrid(columns) {
-        // Most-used first, so the tall tiles head the first two columns.
-        listOf(classes, overview, tests, homework, print, daysOff).forEach { it(Modifier.animatePlacement()) }
+    val open = stringResource(R.string.home_open_group)
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.small,
+        color = if (cell.behind) c.warn else c.surfaceContainer,
+        contentColor = if (cell.behind) c.onWarn else c.ink,
+        modifier = modifier.heightIn(min = 48.dp).clearAndSetSemantics {
+            contentDescription = spoken
+            role = Role.Button
+            onClick(open) { onClick(); true }
+        },
+    ) {
+        Box(Modifier.padding(horizontal = Space.s, vertical = Space.s), contentAlignment = Alignment.Center) {
+            Text(
+                if (cell.behind) stringResource(R.string.home_cell_behind, group, short) else group,
+                style = MaterialTheme.typography.labelMedium.merge(Figures),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
-/**
- * One section on Home's grid (§6 Tile): an optional status [tag] (warnSoft with [tagWarn]), the title (a heading) and a live subtitle, read together as
- * one touch target. With [dim] the section is empty: the fill at 30% and the text at 60%, still tappable to add the
- * first item. A [tall] tile is one of the most-used sections.
- */
+/** The board's key: an outlined square for on pace and a rust one for behind. The cells say it in words for TalkBack. */
 @Composable
-private fun HomeTile(
-    title: String,
-    subtitle: String,
-    color: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    contentColor: Color = Pacer.colors.onTile,
-    mutedColor: Color = Pacer.colors.onTileMuted,
-    dim: Boolean = false,
-    tall: Boolean = false,
-    tag: String? = null,
-    tagWarn: Boolean = false,
-    icon: ImageVector = AppIcons.Book,
-) {
-    Tile(
-        color = if (dim) color.copy(alpha = 0.3f) else color,
-        modifier = modifier.then(if (tall) Modifier.heightIn(min = 160.dp) else Modifier),
-        onClick = onClick,
-        contentColor = contentColor,
-    ) {
-        Column(Modifier.alpha(if (dim) 0.6f else 1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
-            // A warn tag is warnSoft on the tile; any other is a surface pill (§6 Status chip).
-            AppIcon(icon)
-            tag?.let { Tag(it, warn = tagWarn, onTile = !tagWarn) }
-            Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = mutedColor)
-        }
+private fun Legend(modifier: Modifier) {
+    val c = Pacer.colors
+    Row(modifier.clearAndSetSemantics { }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+        Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(c.surfaceContainer).border(1.dp, c.outline, MaterialTheme.shapes.extraSmall))
+        Text(stringResource(R.string.status_on_pace), style = MaterialTheme.typography.labelSmall, color = c.muted)
+        Spacer(Modifier.width(Space.s))
+        Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(c.warn))
+        Text(stringResource(R.string.home_legend_behind), style = MaterialTheme.typography.labelSmall, color = c.muted, maxLines = 2)
     }
 }
 
@@ -425,97 +405,9 @@ fun HomeSheet(title: String, onDismiss: () -> Unit, content: @Composable ColumnS
     }
 }
 
-/**
- * Every school year, newest first: tap one to show it on Home. Each row's ⋮ offers Rename and Delete; Delete happens at
- * once and the snackbar offers Undo (§14 undo over confirm).
- */
-@Composable
-private fun YearPicker(
-    years: List<SchoolYear>,
-    openId: String?,
-    vm: PacerViewModel,
-    onRename: (String) -> Unit,
-    onDelete: (SchoolYear) -> Unit,
-    onNew: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val sorted = remember(years) { years.sortedByDescending { it.start } }
-    HomeSheet(stringResource(R.string.home_year), onDismiss) { close ->
-        Column(Modifier.selectableGroup()) {
-            sorted.forEach { y ->
-                YearRow(
-                    y, selected = y.id == openId,
-                    onOpen = { vm.selectYear(y.id); close() },
-                    onRename = { onRename(y.id); close() },
-                    onDelete = { onDelete(y); close() },
-                )
-            }
-        }
-        AddButton(stringResource(R.string.home_new_year)) { onNew(); close() }
-    }
-}
-
-/** A year in the picker: a radio, its name over its dates and class count, and a ⋮ menu. */
-@Composable
-private fun YearRow(y: SchoolYear, selected: Boolean, onOpen: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
-    var menu by rememberSaveable { mutableStateOf(false) }
-    val context = LocalContext.current
-    val tick = rememberSegmentHaptic()
-    val name = y.name.ifBlank { context.getString(R.string.home_year) }
-    val options = stringResource(R.string.home_options, name)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = { tick(); onOpen() }),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null, modifier = Modifier.padding(horizontal = Space.m))
-        Column(Modifier.weight(1f).padding(vertical = Space.s)) {
-            Text(name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.home_pair, y.dates(context), pluralStringResource(R.plurals.home_classes_count, y.classes.size, y.classes.size)),
-                style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted,
-            )
-        }
-        Box {
-            TextButton(
-                onClick = { menu = true },
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(48.dp).semantics { contentDescription = options },
-            ) { AppIcon(AppIcons.MoreVert) }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.home_rename)) }, onClick = { menu = false; onRename() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.home_delete), color = Pacer.colors.warn) }, onClick = { menu = false; onDelete() })
-            }
-        }
-    }
-}
-
-/** Picks the class whose Tests or Homework to open, when the year has several. */
-@Composable
-private fun ClassChooser(year: SchoolYear, title: String, onDismiss: () -> Unit, onPick: (String) -> Unit) {
-    val context = LocalContext.current
-    HomeSheet(title, onDismiss) { close ->
-        year.classes.forEach { k ->
-            LinkRow(k.name.ifBlank { context.getString(R.string.home_class) }, pluralStringResource(R.plurals.home_groups_count, k.groups.size, k.groups.size)) { onPick(k.id); close() }
-        }
-    }
-}
-
-/** Renames a year in a sheet; the name is saved once, on Save. */
-@Composable
-private fun RenameYearSheet(y: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
-    var name by rememberSaveable { mutableStateOf(y.name) }
-    SheetFrame(stringResource(R.string.home_rename_year), stringResource(R.string.home_save), name.isNotBlank(), { vm.renameYear(y.id, name.trim()) }, onDismiss) {
-        CommitField(name, { name = it }, stringResource(R.string.home_name), Modifier.fillMaxWidth())
-    }
-}
-
 /** Four fields, so a dialog rather than a sheet (§6 Bottom sheet is for three or fewer). */
 @Composable
-private fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss: () -> Unit) {
+internal fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss: () -> Unit) {
     val draft = remember { suggestYear(years, LocalDate.now()) }
     var name by rememberSaveable { mutableStateOf(draft.name) }
     var startText by rememberSaveable { mutableStateOf(draft.start?.toString()) }

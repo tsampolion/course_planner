@@ -15,17 +15,17 @@ class NoHardcodedTextTest {
     private val uiAssignment = Regex("""\b(?:text|title|label|contentDescription|stateDescription|onClickLabel|onLongClickLabel|actionLabel|placeholder|confirm)\s*=\s*$""")
     private val dataStrings = mapOf(
         "ClassScreens.kt" to setOf("add", "books", "class", "delete", "empty", "groups", "guide", "hint", "lessons", "more", "name", "past", "upcoming", "group:"),
-        "YearScreens.kt" to setOf("add", "delete", "empty", "end", "foot", "greek", "hint", "name", "offhead", "start", "year", "term", "more", "classes", "days-off"),
+        "YearScreens.kt" to setOf("add", "delete", "empty", "end", "foot", "greek", "hint", "name", "offhead", "start", "year", "term", "more", "classes", "days-off", "years", "print"),
         "OverviewScreen.kt" to setOf("empty", "class:", "head:", "none:"),
         "GroupScreen.kt" to setOf("custom", "warnings", "daystrip", "empty", "hero", "ledgerhead", "mode", "pager", "status", "tabs", "tickhint", "r", "m", "p", "L", "N", "S"),
         "SupplementaryUi.kt" to setOf("replace", "answers", "asking", "k", "s"),
         "GroupStats.kt" to setOf("%.1f"),
-        "HomeScreen.kt" to setOf("EEE d MMM", "EEEE d MMMM", "homework", "tests"),
+        "HomeScreen.kt" to setOf("EEE d MMM", "EEEE d MMMM"),
         "PacerApp.kt" to setOf("screen", "text/plain"),
         "Motion.kt" to setOf("figure", "press"),
         "Components.kt" to setOf("swipe action", "save completion"),
         "DashboardComponents.kt" to setOf("expand", "segment", "segment ink", "selected day"),
-        "SettingsScreen.kt" to setOf("about", "application/json", "backup", "defaults", "help", "theme", "wt", "w", "\\uFEFF"),
+        "SettingsScreen.kt" to setOf("about", "application/json", "backup", "defaults", "help", "name", "theme", "wt", "w", "\\uFEFF"),
         "NavModel.kt" to setOf("\\\\p{Mn}+", "\\\\s+"),
         "SetAside.kt" to setOf("application/json", "course-pacer-unreadable-.json"),
     )

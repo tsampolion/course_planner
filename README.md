@@ -13,8 +13,8 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 ## Features
 
 - **Menu**: ☰ on every screen opens the menu: find a class or group by name, Home, Pacing overview with how many groups are behind, the year's classes, School year and Settings. System Back still steps back.
-- **Home**: the open school year at a glance. It shows the next lesson across every class and group, with a **Mark done** button, and tiles for Classes, Pacing overview, Tests, Homework, Days off & dates, and Print or save PDF. A chip switches, adds, renames or deletes school years.
-- **School year**: term dates and days off. One tap adds the Greek public holidays, worked out from Orthodox Easter.
+- **Home**: "Hello" with your name, today's date and the open school year. Under it, the next lesson across every class and group with a **Done** button, a card of your classes, and the **Pacing overview** board: one cell per group, where only groups that are behind are coloured, with how many lessons short. Tap a cell to open its group.
+- **School year**: switch, add, rename or delete school years, then the open year's term dates and days off. One tap adds the Greek public holidays, worked out from Orthodox Easter. Print or save PDF is here too.
 - **Classes, books and groups**: a class has a lesson length, a pace, books and groups. A book has its first and last page, skipped pages such as `8, 24-27`, and an optional finish-by date. A group has teaching weekdays and a next-lesson date.
 - **Lead book**: pick a class's lead book and the other books keep step with it, a third of the way through it meaning a third of the way through them. Unit start pages keep books in step unit by unit. A book with its own finish-by date keeps its own pace.
 - **Group**: a Plan | Stats toggle. Plan shows the next lesson and the lesson-by-lesson schedule. Tap the group's name to switch to another group: search, recent groups and the class's groups, each with its status. Stats shows lessons, pages and pace left, the verdict, details and the book positions.
@@ -27,7 +27,7 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 - **Pacing overview**: every group at a glance. The year's problems sit at the top and each links to the screen that fixes it.
 - **Output**: copy a schedule as tab-separated text, share it, or print or save it as a PDF.
 - **Undo**: up to 60 steps within the open school year.
-- **Settings**: theme, defaults for new classes, and back up and restore. Export saves every school year to a file you choose. Import reads that file, or the web page's export, and adds its years beside yours or replaces them.
+- **Settings**: your name for Home's greeting, theme, defaults for new classes, "Show tips again", and back up and restore. Export saves every school year to a file you choose. Import reads that file, or the web page's export, and adds its years beside yours or replaces them.
 
 School years and settings are saved on the device and included in Android backup and device-to-device transfer. Uninstalling deletes them, so export first.
 
