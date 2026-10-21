@@ -72,7 +72,6 @@ import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.Space
-import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

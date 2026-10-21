@@ -2,8 +2,10 @@ package gr.edusuite.pacer.ui.theme
 
 /**
  * Every colour in the EduSuite style guide (docs/EDUSUITE_STYLE_GUIDE.md §2), as ARGB values, with Course Pacer's
- * accent (§2.4, docs/PACER_ACCENT_CONTRAST.md). Plain Kotlin, so ContrastTest can check the guide's ratios on the JVM.
- * A hex value appears nowhere else in the app; the theme maps these onto Material 3 roles in Color.kt.
+ * accent (§2.4) and its own dark set and lesson-kind edges (docs/PACER_DESIGN.md D1, D8). Light values are the guide's;
+ * dark neutrals, semantic colours and accent, and the edges, are Course Pacer's (docs/PACER_ACCENT_CONTRAST.md). Plain
+ * Kotlin, so ContrastTest can check the ratios on the JVM. A hex value appears nowhere else in the app; the theme maps
+ * these onto Material 3 roles in Color.kt.
  */
 data class Tokens(
     // §2.1 Neutrals.
@@ -36,6 +38,13 @@ data class Tokens(
     val onAccent: Long,
     val accentSoft: Long,
     val onAccentSoft: Long,
+    // Course Pacer's lesson-kind edges (PACER_DESIGN.md D8): at least 3:1 on surface.
+    val edgeTest: Long,
+    val edgeDayOff: Long,
+    val edgeEdited: Long,
+    val edgeHand: Long,
+    val edgeFree: Long,
+    val edgeSupp: Long,
 ) {
     companion object {
         val Light = Tokens(
@@ -46,16 +55,20 @@ data class Tokens(
             warn = 0xFF9E4A24, onWarn = 0xFFFFFFFF, warnSoft = 0xFFF7E4DA, onWarnSoft = 0xFF3E1A0A,
             ok = 0xFF3E6E47, onOk = 0xFFFFFFFF, okSoft = 0xFFDCEBDF, onOkSoft = 0xFF15321C,
             accent = 0xFF245E60, onAccent = 0xFFFFFFFF, accentSoft = 0xFFD5EAE8, onAccentSoft = 0xFF0F2E2F,
+            edgeTest = 0xFF6E4BC4, edgeDayOff = 0xFF7A7686, edgeEdited = 0xFF245E60, edgeHand = 0xFF1F6F8B,
+            edgeFree = 0xFFA35A00, edgeSupp = 0xFFB03A84,
         )
 
         val Dark = Tokens(
-            paper = 0xFF121118, surface = 0xFF1C1B22, surfaceContainer = 0xFF2A2832,
-            line = 0xFF2E2C37, outline = 0xFF8C889A, muted = 0xFFA9A5B5, ink = 0xFFECEAF2,
+            paper = 0xFF0E0E12, surface = 0xFF1A1A21, surfaceContainer = 0xFF26252E,
+            line = 0xFF2C2B35, outline = 0xFF8F8C9C, muted = 0xFFB9B6C4, ink = 0xFFF4F3F8,
             tileLilac = 0xFF3A2E5C, tileMint = 0xFF1F4A33, tileSky = 0xFF1B4350, tileApricot = 0xFF5A3B12,
             tilePink = 0xFF55264A, onTile = 0xFFF3F1F8, onTileMuted = 0xFFD6D2E0,
-            warn = 0xFFEE9C78, onWarn = 0xFF3E1A0A, warnSoft = 0xFF3D2419, onWarnSoft = 0xFFF7E4DA,
-            ok = 0xFF8FC79A, onOk = 0xFF0F2A17, okSoft = 0xFF1D3424, onOkSoft = 0xFFDCEBDF,
-            accent = 0xFF6FB3AE, onAccent = 0xFF0F2E2F, accentSoft = 0xFF163C3C, onAccentSoft = 0xFFD5EAE8,
+            warn = 0xFFFF8F6B, onWarn = 0xFF3A1206, warnSoft = 0xFF3A2018, onWarnSoft = 0xFFFFD2C2,
+            ok = 0xFF8BE3AE, onOk = 0xFF06301A, okSoft = 0xFF1D3424, onOkSoft = 0xFFDCEBDF,
+            accent = 0xFF4FD1C5, onAccent = 0xFF062A27, accentSoft = 0xFF163C3C, onAccentSoft = 0xFFD5F5F1,
+            edgeTest = 0xFFC9B8FF, edgeDayOff = 0xFF8F8C9C, edgeEdited = 0xFF4FD1C5, edgeHand = 0xFF7FD4F0,
+            edgeFree = 0xFFFFC266, edgeSupp = 0xFFFF9AD5,
         )
     }
 }

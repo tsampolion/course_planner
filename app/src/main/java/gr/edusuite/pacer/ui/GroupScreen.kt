@@ -32,6 +32,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
@@ -40,6 +41,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +54,6 @@ import androidx.compose.ui.res.stringResource
 import gr.edusuite.pacer.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
@@ -71,7 +72,7 @@ import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.engine.plannedPages
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.TestEvent
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
@@ -541,7 +542,6 @@ private fun LessonLine(l: Lesson, actions: LessonActions, grip: (@Composable (la
                 Modifier
                     .fillMaxWidth()
                     .height(IntrinsicSize.Min)
-                    .alpha(if (l.done) 0.6f else 1f)
                     .background(if (l.blocked) Pacer.colors.accentSoft else Pacer.colors.surface)
                     .pointerInput(l.date, hasMenu) { detectTapGestures(onLongPress = { if (hasMenu) menu = true }) }
                     .semantics {
@@ -579,26 +579,29 @@ private fun LessonLine(l: Lesson, actions: LessonActions, grip: (@Composable (la
                         modifier = Modifier.semantics { contentDescription = doneDescription },
                     )
                 }
-                Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.CenterVertically) {
-                        Text("#${l.n}", style = MaterialTheme.typography.labelMedium, fontFamily = Mono, color = Pacer.colors.muted)
-                        Text("${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", style = MaterialTheme.typography.titleMedium)
+                // A done lesson reads in muted text at full contrast, not faded.
+                CompositionLocalProvider(LocalContentColor provides if (l.done) Pacer.colors.muted else Pacer.colors.ink) {
+                    Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.CenterVertically) {
+                            Text("#${l.n}", style = MaterialTheme.typography.labelMedium.merge(Figures), color = Pacer.colors.muted)
+                            Text("${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", style = MaterialTheme.typography.titleMedium)
+                        }
+                        if (names.isNotEmpty()) Surface(shape = CircleShape, color = Pacer.colors.tileLilac, contentColor = Pacer.colors.onTile) {
+                            Text(names, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = Space.s, vertical = Space.xs))
+                        }
+                        if (l.edited) Tag(stringResource(R.string.group_edited))
+                        if (l.done) Tag(stringResource(R.string.group_done))
+                        if (l.free) Tag(stringResource(R.string.custom_free))
+                        if (l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
+                        if (!l.blocked) l.cells.forEachIndexed { i, cell ->
+                            val supp = actions.supplementary.getOrElse(i) { false }
+                            // A supplementary book shows only where the lesson has its pages.
+                            if (supp && cell == collapse(emptyList())) return@forEachIndexed
+                            Text(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell), style = MaterialTheme.typography.bodyMedium)
+                            if (supp && !l.done) Tag(stringResource(if (actions.bookIds.getOrNull(i) in l.inLesson) R.string.supp_in_lesson else R.string.supp_on_top))
+                        }
+                        l.proposed?.let { Hint(stringResource(R.string.custom_proposed_line, it)) }
                     }
-                    if (names.isNotEmpty()) Surface(shape = CircleShape, color = Pacer.colors.tileLilac, contentColor = Pacer.colors.onTile) {
-                        Text(names, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = Space.s, vertical = Space.xs))
-                    }
-                    if (l.edited) Tag(stringResource(R.string.group_edited))
-                    if (l.done) Tag(stringResource(R.string.group_done))
-                    if (l.free) Tag(stringResource(R.string.custom_free))
-                    if (l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
-                    if (!l.blocked) l.cells.forEachIndexed { i, cell ->
-                        val supp = actions.supplementary.getOrElse(i) { false }
-                        // A supplementary book shows only where the lesson has its pages.
-                        if (supp && cell == collapse(emptyList())) return@forEachIndexed
-                        Text(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell), style = MaterialTheme.typography.bodyMedium)
-                        if (supp && !l.done) Tag(stringResource(if (actions.bookIds.getOrNull(i) in l.inLesson) R.string.supp_in_lesson else R.string.supp_on_top))
-                    }
-                    l.proposed?.let { Hint(stringResource(R.string.custom_proposed_line, it)) }
                 }
                 if (grip != null) grip(stringResource(R.string.custom_drag, l.n))
             }
@@ -667,7 +670,7 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
                 supportingText = {
                     Text(if (bad && b.supplementary) stringResource(R.string.supp_page_error) else if (bad) stringResource(R.string.group_page_error, b.first, b.last) else stringResource(R.string.group_planned, collapse(planned[b.id].orEmpty())))
                 },
-                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono),
+                textStyle = MaterialTheme.typography.bodyLarge.merge(Figures),
                 modifier = Modifier.fillMaxWidth().fieldFeedback(bad),
             )
         }
@@ -687,7 +690,7 @@ private fun NextLessonTile(report: GroupReport, vm: PacerViewModel, modifier: Mo
         }
     } else Tile(Pacer.colors.accent, modifier, contentColor = Pacer.colors.onAccent) {
         Text(stringResource(R.string.group_next_number, next.n), style = MaterialTheme.typography.labelLarge)
-        Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall, fontFamily = Mono)
+        Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall.merge(Figures))
         if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
         if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyLarge, fontStyle = FontStyle.Italic)
         if (!next.blocked) plan.books.forEachIndexed { i, book ->

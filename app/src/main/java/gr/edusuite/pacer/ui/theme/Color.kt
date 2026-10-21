@@ -56,7 +56,7 @@ private class SchemeArgs(t: Tokens, other: Tokens) {
     val ink = c(t.ink)
 }
 
-/** The guide's tokens that Material 3 has no role for, or that read better by their own name. */
+/** The guide's tokens and Course Pacer's edges that Material 3 has no role for, or that read better by name. */
 @Immutable
 data class PacerColors(
     val paper: Color,
@@ -85,6 +85,12 @@ data class PacerColors(
     val onAccent: Color,
     val accentSoft: Color,
     val onAccentSoft: Color,
+    val edgeTest: Color,
+    val edgeDayOff: Color,
+    val edgeEdited: Color,
+    val edgeHand: Color,
+    val edgeFree: Color,
+    val edgeSupp: Color,
 )
 
 internal fun colorsFor(t: Tokens) = PacerColors(
@@ -95,4 +101,6 @@ internal fun colorsFor(t: Tokens) = PacerColors(
     warn = c(t.warn), onWarn = c(t.onWarn), warnSoft = c(t.warnSoft), onWarnSoft = c(t.onWarnSoft),
     ok = c(t.ok), onOk = c(t.onOk), okSoft = c(t.okSoft), onOkSoft = c(t.onOkSoft),
     accent = c(t.accent), onAccent = c(t.onAccent), accentSoft = c(t.accentSoft), onAccentSoft = c(t.onAccentSoft),
+    edgeTest = c(t.edgeTest), edgeDayOff = c(t.edgeDayOff), edgeEdited = c(t.edgeEdited), edgeHand = c(t.edgeHand),
+    edgeFree = c(t.edgeFree), edgeSupp = c(t.edgeSupp),
 )

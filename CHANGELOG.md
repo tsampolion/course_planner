@@ -22,6 +22,24 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-21
+
+The first part of the approved redesign (`docs/PACER_DESIGN.md`): new colours, figures and touch targets. Screens keep
+their layouts; navigation, Home and the group screen change in later releases.
+
+### Changed
+
+- **A brighter dark mode.** Course Pacer has its own dark palette: deeper paper, lighter text, a brighter teal accent and clearer warning and success colours. Light mode is unchanged.
+- **Figures in Outfit.** Dates, page numbers and counts use the app's own font with figures of one width, in place of the system monospace font, so columns and rolling numbers still line up.
+- **Bigger switches and links.** The segmented switches (Plan/Stats, catch-up choices and others) are 48dp tall with a solid ink selected side, and text buttons such as *Open schedule* and *Add Greek holidays* have 48dp targets.
+- **Status pill.** On pace reads in a neutral pill; only a group that is behind takes colour, as a pale rust pill.
+- **Done lessons stay readable.** Ticked lessons are no longer faded; their text is muted at full contrast.
+
+### Internal
+
+- Six lesson-kind edge tokens (`edgeTest`, `edgeDayOff`, `edgeEdited`, `edgeHand`, `edgeFree`, `edgeSupp`), light and dark, ready for the lesson list redesign.
+- `ContrastTest` checks the shared light values against the style guide and the accent, the dark set and the edges against the Course Pacer contrast table (`docs/PACER_ACCENT_CONTRAST.md`).
+
 ## [2.10.1] - 2026-10-21
 
 ### Documentation
@@ -461,6 +479,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.10.1...HEAD
+[3.1.0]: https://github.com/tsampolion/course_planner/compare/v2.10.1...v3.1.0
 [2.10.1]: https://github.com/tsampolion/course_planner/compare/v2.10.0...v2.10.1
 [2.10.0]: https://github.com/tsampolion/course_planner/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/tsampolion/course_planner/compare/v2.8.0...v2.9.0

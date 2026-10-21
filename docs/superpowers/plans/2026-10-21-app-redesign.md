@@ -1,4 +1,4 @@
-# App redesign (2.11.0 to 2.17.0): implementation plan
+# App redesign (3.1.0 to 3.7.0): implementation plan
 
 **Spec:** `docs/superpowers/specs/2026-10-21-app-redesign-design.md`. **Product record:** `PRODUCT.md`. There is no
 engine change and no JSON schema change in any PR (`PacerTest` and the extension tests stay unchanged and green).
@@ -18,28 +18,28 @@ and `ContrastTest` green.
   and the CHANGELOG.
 - [ ] Keep `.impeccable/` out of git.
 
-## PR1: foundation tokens and type (2.11.0)
+## PR1: foundation tokens and type (3.1.0)
 
-- [ ] **`Tokens.kt`:**
+- [x] **`Tokens.kt`:**
   - the new dark set;
   - `warnSoft`/`onWarnSoft` dark;
   - the six edge tokens, light and dark.
-- [ ] **`ContrastTest`:**
+- [x] **`ContrastTest`:**
   - the shared light rows stay checked against the guide;
   - a Pacer table checks the new dark values and the edge tokens against `docs/PACER_ACCENT_CONTRAST.md` (renamed in
     the docs to Course Pacer contrast);
   - `everyPairMeetsItsTarget` also covers edges at 3:1.
-- [ ] **`Type.kt`:** `Figures` (Outfit, `tnum`) replaces `Mono`, and all about 36 uses move to it. Check that digits
+- [x] **`Type.kt`:** `Figures` (Outfit, `tnum`) replaces `Mono`, and all about 36 uses move to it. Check that digits
   line up in `AnimatedFigure`.
-- [ ] **Components** (`Components.kt`, `DashboardComponents.kt`):
+- [x] **Components** (`Components.kt`, `DashboardComponents.kt`):
   - 48dp segmented switch with an ink selected side;
   - 48dp buttons and text-link targets;
   - pale status pill.
   - Lesson rows lose `alpha(0.6f)`.
-- [ ] **Check:** screens keep their layouts in this PR; only colours, figures and target sizes change. Before/after
-  screenshots in the PR.
+- [x] **Check:** screens keep their layouts in this PR; only colours, figures and target sizes change. Before/after
+  screenshots in the PR (or a note there when no emulator was available).
 
-## PR2: navigation (2.12.0)
+## PR2: navigation (3.2.0)
 
 - [ ] `AppDrawer`: a `ModalNavigationDrawer` with search over classes and groups, Home, Pacing overview (count of
   groups behind), Classes (an expandable list), School year and Settings. New symbols (home, search, menu) go into
@@ -55,7 +55,7 @@ and `ContrastTest` green.
 - [ ] **Overview renamed Pacing overview** everywhere it's visible, through strings only (`Screen.Overview` stays).
 - [ ] **Tests:** `NavTest` covers drawer destinations and Back. A unit-tested `searchGroups(year, query)` helper.
 
-## PR3: Home (2.13.0)
+## PR3: Home (3.3.0)
 
 - [ ] **Header:** "Hello, *name*" (or "Hello" when no name is set), with the date and the year. ☰ is on the left.
 - [ ] **Settings:** `Settings.name` field, the theme as a segmented switch, "Show tips again" and `seenTips`, kept in
@@ -72,7 +72,7 @@ and `ContrastTest` green.
 - [ ] **`wholeLessons()` helper** (round up, at least 1), unit-tested. Used by the board, the switcher, Class,
   Pacing overview, Warnings and, in PR4, Stats. It comes from the existing `verdict()`.
 
-## PR4: group Plan and Stats (2.14.0)
+## PR4: group Plan and Stats (3.4.0)
 
 - [ ] **`TodayBox`:** the date, pages, Done and **Pages taught** (opens the existing `PagesTaughtDialog`/
   `LessonPlanSheet`).
@@ -100,7 +100,7 @@ and `ContrastTest` green.
   - Positions still open the existing sheet.
 - [ ] **Show-once hints** use `seenTips`.
 
-## PR5: other screens (2.15.0)
+## PR5: other screens (3.5.0)
 
 - [ ] **Classes:** a row per class (groups, books, status) and a New class button.
 - [ ] **Class:**
@@ -124,7 +124,7 @@ and `ContrastTest` green.
 - [ ] **Welcome:** a full first-run page in place of `WelcomeDialog`. Settings → Getting started opens it.
 - [ ] **Print sheet:** radio buttons (this group, the class, the year) and margins.
 
-## PR6: large text and the background pattern (2.16.0)
+## PR6: large text and the background pattern (3.6.0)
 
 - [ ] **`largeText(fontScale)`** (≥ 1.5), unit-tested. It drives:
   - **Reflow:** full-width buttons under text, and stacked rows.
@@ -145,7 +145,7 @@ and `ContrastTest` green.
   - a contrast note in `PACER_DESIGN.md`;
   - screenshots at 100% and 200% on the emulator.
 
-## PR7: tablet (2.17.0)
+## PR7: tablet (3.7.0)
 
 - [ ] **Layout:** at `screenWidthDp` ≥ 840, a `PermanentNavigationDrawer`, a list pane (Pacing overview or Classes)
   and a detail pane (Group). Between 600 and 839, a two-pane layout with the modal drawer.

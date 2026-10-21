@@ -79,7 +79,7 @@ import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.suggestYear
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import kotlinx.coroutines.launch
@@ -274,9 +274,9 @@ private fun NextLessonCard(year: SchoolYear, today: LocalDate, vm: PacerViewMode
                 Text(stringResource(R.string.home_next_lesson), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f).semantics { heading() })
                 if (next.overdue) Tag(stringResource(R.string.home_overdue), warn = true)
             }
-            Text(next.date.tileDate(), style = MaterialTheme.typography.headlineSmall, fontFamily = Mono, fontWeight = FontWeight.SemiBold)
+            Text(next.date.tileDate(), style = MaterialTheme.typography.headlineSmall.merge(Figures), fontWeight = FontWeight.SemiBold)
             Text(stringResource(R.string.home_pair, next.className.ifBlank { context.getString(R.string.home_class) }, next.groupName.ifBlank { context.getString(R.string.home_group) }), style = MaterialTheme.typography.titleMedium)
-            // Book names and pages read as a sentence, so they stay in sans (§3: mono is for figures only).
+            // Book names and pages read as a sentence, so they stay in sans (§3: Figures is for figures only).
             Text(next.what.ifBlank { context.getString(R.string.home_no_pages) }, style = MaterialTheme.typography.bodyMedium)
             if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
             Button(
