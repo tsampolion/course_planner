@@ -60,6 +60,12 @@ data class Settings(
  * once shipped, since stored ids outlive the code that shows them. Add new ids here.
  */
 object Hints {
+    /** The group's Plan tab: long-press a lesson for its menu. */
+    const val LESSON_MENU = "group.lessonMenu"
+
+    /** The group's Stats tab: what the pace track's tick means, and tapping a book. */
+    const val PACE_TRACK = "group.paceTrack"
+
     /** True once the hint [id] was shown and dismissed, until "Show tips again". */
     fun seen(settings: Settings, id: String): Boolean = id in settings.seenTips
 

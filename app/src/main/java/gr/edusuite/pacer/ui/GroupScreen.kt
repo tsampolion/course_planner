@@ -50,7 +50,7 @@ import gr.edusuite.pacer.engine.plannedPages
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.engine.supplementaryBooks
 import gr.edusuite.pacer.engine.unplacedPages
-import gr.edusuite.pacer.model.Group
+import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
@@ -79,6 +79,8 @@ fun GroupScreen(
     onWarningsClose: () -> Unit = {},
     sheet: GroupSheet? = null,
     onSheetClose: () -> Unit = {},
+    /** The show-once hints already seen (Settings.seenTips). */
+    seenTips: Set<String> = emptySet(),
 ) {
     val context = LocalContext.current
     val toggleHaptic = rememberToggleHaptic()
@@ -168,7 +170,7 @@ fun GroupScreen(
             Modifier.padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.s),
         )
         AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { sideways(targetState > initialState, motion) }) { view ->
-            if (view == TAB_STATS) GroupStats(report, vm, padding) else LazyColumn(
+            if (view == TAB_STATS) GroupStats(report, vm, padding, seenTips) else LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = planList,
                 contentPadding = PaddingValues(top = Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
@@ -206,6 +208,7 @@ fun GroupScreen(
                             val left = remember(report, b) { report.unplacedPages(b) }
                             if (left.isNotEmpty()) Hint(stringResource(R.string.supp_left, b.name, collapse(left)))
                         }
+                        if (lessons.isNotEmpty()) ShowOnceHint(Hints.LESSON_MENU, seenTips, stringResource(R.string.hint_lesson_menu), vm::markHintSeen)
                         if (plan.books.isEmpty()) {
                             GuideCard(stringResource(R.string.group_add_books), stringResource(R.string.group_add_books_hint))
                         }

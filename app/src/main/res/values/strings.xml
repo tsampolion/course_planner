@@ -659,6 +659,9 @@
     <string name="group_print">Print</string>
     <string name="print_only_group">Only %1$s · %2$s</string>
     <!-- Group, Stats tab (3.4.0) -->
+    <string name="hint_got_it">Got it</string>
+    <string name="hint_lesson_menu">Long-press a lesson, or use TalkBack\'s actions, to change its pages, mark everything up to it done, or plan it.</string>
+    <string name="hint_pace_track">The tick marks where a book would be in step with the lead book. Tap a book to change where the group is in it.</string>
     <string name="stats_fix_short">Teach %1$s to finish, or skip %2$s.</string>
     <plurals name="stats_more_pages">
         <item quantity="one">about %d page more a lesson</item>

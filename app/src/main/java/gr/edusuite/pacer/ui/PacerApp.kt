@@ -298,6 +298,7 @@ private fun ScreenContent(
                 onWarningsClose = onWarningsClose,
                 sheet = groupSheet,
                 onSheetClose = onGroupSheetClose,
+                seenTips = settings.seenTips,
             )
         }
     }

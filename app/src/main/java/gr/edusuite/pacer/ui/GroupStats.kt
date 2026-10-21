@@ -49,12 +49,14 @@ import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.fixed2
 import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.includedPages
+import gr.edusuite.pacer.engine.leadBook
 import gr.edusuite.pacer.engine.monthShort
 import gr.edusuite.pacer.engine.placedPages
 import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.taughtPages
 import gr.edusuite.pacer.engine.verdict
+import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
@@ -73,7 +75,7 @@ import java.util.Locale
 private val SPOKEN_MONTH: DateTimeFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
 
 @Composable
-fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues) {
+fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, seenTips: Set<String> = emptySet()) {
     val plan = report.plan
     var bookId by rememberSaveable(report.group.id) { mutableStateOf<String?>(null) }
     Column(
@@ -83,7 +85,10 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues) 
     ) {
         VerdictHeading(report)
         FigureStrip(report)
-        if (plan.books.isNotEmpty()) PaceTrack(report) { bookId = it }
+        if (plan.books.isNotEmpty()) {
+            PaceTrack(report) { bookId = it }
+            if (plan.leadBook() != null) ShowOnceHint(Hints.PACE_TRACK, seenTips, stringResource(R.string.hint_pace_track), vm::markHintSeen)
+        }
         if (report.lessonsByMonth.isNotEmpty()) MonthColumns(report)
         Details(report)
     }

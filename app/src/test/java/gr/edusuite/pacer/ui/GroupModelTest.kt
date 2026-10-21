@@ -4,6 +4,8 @@ import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Group
+import gr.edusuite.pacer.model.Hints
+import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.Plan
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.WEDNESDAY
@@ -80,5 +82,13 @@ class GroupModelTest {
     @Test fun pagesMoreRoundsUp() {
         assertEquals(1, Verdict.Short(2.0, 3.0, 3.19, 10).pagesMore())
         assertEquals(2, Verdict.Short(2.0, 3.0, 4.5, 10).pagesMore())
+    }
+
+    @Test fun groupHintsShowOnce() {
+        val ids = listOf(Hints.LESSON_MENU, Hints.PACE_TRACK)
+        assertEquals(ids.size, ids.toSet().size)
+        val seen = Hints.markSeen(Settings(), Hints.LESSON_MENU)
+        assertEquals(true, Hints.seen(seen, Hints.LESSON_MENU))
+        assertEquals(false, Hints.seen(seen, Hints.PACE_TRACK))
     }
 }
