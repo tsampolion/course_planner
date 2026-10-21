@@ -22,6 +22,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [2.10.1] - 2026-10-21
+
+### Documentation
+
+- The approved app redesign: its design (`docs/superpowers/specs/2026-10-21-app-redesign-design.md`), its plan in seven releases (`docs/superpowers/plans/2026-10-21-app-redesign.md`), Course Pacer's own design language (`docs/PACER_DESIGN.md`), before/after pictures (`docs/images/redesign/`) and the product record (`PRODUCT.md`). The app itself is unchanged.
+
 ## [2.10.0] - 2026-10-20
 
 ### Added
@@ -454,7 +460,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.10.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.10.1...HEAD
+[2.10.1]: https://github.com/tsampolion/course_planner/compare/v2.10.0...v2.10.1
 [2.10.0]: https://github.com/tsampolion/course_planner/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/tsampolion/course_planner/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/tsampolion/course_planner/compare/v2.7.0...v2.8.0
