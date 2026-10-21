@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.RadioButton
 import androidx.compose.ui.Alignment
@@ -71,7 +73,7 @@ internal fun dayOffDates(from: LocalDate, to: LocalDate): String =
 
 /**
  * School year (3.5.0): the years as chips at the top with + New year (decision 6), the term on one line, the days off
- * as dated rows with the day-off edge, Add Greek public holidays, then Rename and Delete this school year. Printing is
+ * as dated rows with the day-off edge (swipe or long-press to remove), Add Greek public holidays, then Rename and Delete this school year. Printing is
  * in a group's ⋮ menu.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -129,9 +131,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                     val remove = { vm.removeClosure(c.id); undoToast(context.getString(R.string.year_removed, title)) }
                     val who = whoTag(context, year, c.who)?.let { stringResource(R.string.year_group_only, it) } ?: stringResource(R.string.year_all_groups)
                     SwipeRow(title, remove) {
-                        LedgerRow(title, detail = who, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface)) {
-                            RemoveMenu(title, remove)
-                        }
+                        LedgerRow(title, detail = who, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface))
                     }
                 }
             }
@@ -206,7 +206,7 @@ private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () 
 
 /**
  * The year's classes (3.5.0): one row per class with its groups and books, and one status mark (how many groups are
- * behind, its problems, or a muted "On pace"). Tap one to open it; New class sits at the foot.
+ * behind, its problems, or a muted "On pace"). Tap one to open it; New class floats at the bottom end.
  */
 @Composable
 fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
@@ -215,6 +215,7 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
     val rows = remember(year) { classSummaries(year) }
     val groups = rows.sumOf { it.groupNames.size }
 
+    Box(Modifier.fillMaxSize()) {
     ScreenList(padding) {
         if (year.classes.isEmpty()) {
             item(key = "hint") { Hint(stringResource(R.string.year_classes_hint)) }
@@ -250,8 +251,20 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
                 }
             }
             item(key = "foot") { Hint(stringResource(R.string.year_defaults_hint)) }
+            // Room under the last row for the New class button.
+            item(key = "space") { Spacer(Modifier.height(72.dp)) }
         }
-        item(key = "add") { PrimaryButton(stringResource(R.string.year_new_class), { adding = true }, Modifier.fillMaxWidth()) }
+    }
+        if (year.classes.isNotEmpty()) ExtendedFloatingActionButton(
+            onClick = { adding = true },
+            icon = { AppIcon(AppIcons.Add) },
+            text = { Text(stringResource(R.string.year_new_class)) },
+            containerColor = Pacer.colors.accent, contentColor = Pacer.colors.onAccent,
+            // Flat at rest (decision 1).
+            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+            modifier = Modifier.align(Alignment.BottomEnd)
+                .padding(end = Space.l, bottom = padding.calculateBottomPadding() + Space.l),
+        )
     }
 
     if (adding) {

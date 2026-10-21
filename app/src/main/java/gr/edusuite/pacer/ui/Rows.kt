@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -76,7 +77,7 @@ fun RowDivider() {
 }
 
 /**
- * One ledger row: an optional [edge] for its kind, an optional [date] column in figures, the [title] over a muted
+ * One ledger row: an optional [edge] for its kind (or a leading [icon] on a row that opens another screen), an optional [date] column in figures, the [title] over a muted
  * [detail], and [trailing] (a status, a chevron, a ⋮). With [onClick] the row is one target; TalkBack reads it as one
  * item. [warn] turns the detail rust.
  */
@@ -87,6 +88,7 @@ fun LedgerRow(
     detail: String? = null,
     date: String? = null,
     edge: Color? = null,
+    icon: ImageVector? = null,
     warn: Boolean = false,
     onClick: (() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
@@ -99,7 +101,8 @@ fun LedgerRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (edge != null) Box(Modifier.width(4.dp).fillMaxHeight().padding(vertical = Space.s).background(edge))
-        val start = if (edge != null) Space.m else Space.l
+        if (icon != null) AppIcon(icon, Modifier.padding(start = Space.l))
+        val start = if (edge != null || icon != null) Space.m else Space.l
         if (date != null) Text(
             date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = c.ink,
             modifier = Modifier.width(DATE_W).padding(start = start),

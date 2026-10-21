@@ -63,18 +63,41 @@ import java.time.LocalDate
 import java.time.DayOfWeek
 
 /**
- * The scrolling body every class-editing screen shares, with the problems this screen fixes on top.
- * The class screen also lists term problems, linked to School year settings. [hide] is a problem
- * a "Next step" card already explains.
+ * The problems [screen] fixes. The class screen also lists term problems, linked to School year settings, and leaves
+ * out the one a "Next step" card already explains ([guideProblem]).
+ */
+internal fun screenProblems(plan: Plan, screen: Screen): List<Problem> {
+    val hide = if (screen == Screen.Class) guideProblem(plan) else null
+    return Nav.problems(plan).filter { (it.fix == screen || (screen == Screen.Class && it.fix == Screen.YearSettings)) && it.text != hide }
+}
+
+/** The problem the class screen's "Next step" card explains instead: no books, else no groups. */
+private fun guideProblem(plan: Plan): String? = when {
+    plan.books.isEmpty() -> NO_BOOKS
+    plan.groups.isEmpty() -> NO_GROUPS
+    else -> null
+}
+
+/**
+ * The scrolling body every class-editing screen shares, with the problems this screen fixes on top. The class screen
+ * has none on the page: they are behind its top bar's warning button ([ClassProblemsSheet], D7).
  */
 @Composable
-private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: PaddingValues, hide: String? = null, content: LazyListScope.() -> Unit) {
-    val problems = remember(plan, hide) {
-        Nav.problems(plan).filter { (it.fix == screen || (screen == Screen.Class && it.fix == Screen.YearSettings)) && it.text != hide }
-    }
+private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: PaddingValues, content: LazyListScope.() -> Unit) {
+    val problems = remember(plan, screen) { if (screen == Screen.Class) emptyList() else screenProblems(plan, screen) }
     ScreenList(padding) {
         items(problems) { p -> ErrorBox(p.text, onFix = p.fix?.takeIf { it != screen }?.let { f -> { vm.open(f) } }) }
         content()
+    }
+}
+
+/** The class's problems, behind the warning button in its top bar, each with Fix where another screen fixes it. */
+@Composable
+fun ClassProblemsSheet(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit) {
+    val problems = remember(plan) { screenProblems(plan, Screen.Class) }
+    HomeSheet(stringResource(R.string.class_problems_title), onDismiss) { close ->
+        if (problems.isEmpty()) Hint(stringResource(R.string.warnings_none))
+        problems.forEach { p -> ErrorBox(p.text, onFix = p.fix?.takeIf { it != Screen.Class }?.let { f -> { close(); vm.open(f) } }) }
     }
 }
 
@@ -90,12 +113,8 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
     var settings by rememberSaveable { mutableStateOf(false) }
     val today = remember { LocalDate.now() }
     // A new class has a group but no books; the card replaces the red "Add at least one book." problem.
-    val hide = when {
-        plan.books.isEmpty() -> NO_BOOKS
-        plan.groups.isEmpty() -> NO_GROUPS
-        else -> null
-    }
-    EditList(plan, Screen.Class, vm, padding, hide) {
+    val hide = guideProblem(plan)
+    EditList(plan, Screen.Class, vm, padding) {
         item(key = "class") {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -160,9 +179,9 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
                 val tests = if (upcoming.isEmpty()) pluralStringResource(R.plurals.class_entries, plan.events.size, plan.events.size)
                 else stringResource(R.string.class_upcoming_next, pluralStringResource(R.plurals.class_upcoming_count, upcoming.size, upcoming.size), shortDate(upcoming.minOf { it.date }))
                 RowGroup {
-                    LedgerRow(stringResource(R.string.class_tests_worksheets), detail = tests, onClick = { vm.open(Screen.Tests) }) { Chevron() }
+                    LedgerRow(stringResource(R.string.class_tests_worksheets), detail = tests, icon = AppIcons.Tests, onClick = { vm.open(Screen.Tests) }) { Chevron() }
                     RowDivider()
-                    LedgerRow(stringResource(R.string.class_homework_already_assigned), detail = pluralStringResource(R.plurals.class_assignments, plan.homework.size, plan.homework.size), onClick = { vm.open(Screen.Homework) }) { Chevron() }
+                    LedgerRow(stringResource(R.string.class_homework_already_assigned), icon = AppIcons.Homework, detail = pluralStringResource(R.plurals.class_assignments, plan.homework.size, plan.homework.size), onClick = { vm.open(Screen.Homework) }) { Chevron() }
                 }
             }
         }
@@ -393,7 +412,7 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
     )
 }
 
-/** Homework already assigned (decision 21, restyle only): a section per group with + Add, one row per assignment with ⋮ Remove. */
+/** Homework already assigned (decision 21, restyle only): a section per group with + Add, one row per assignment ("Workbook 12–13", set on) with ⋮ Remove. */
 @Composable
 fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
     val context = LocalContext.current
@@ -412,17 +431,19 @@ fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoT
                 if (!canAdd) Hint(stringResource(R.string.class_add_a_group_and_a_book_first))
             }
         }
-        else plan.groups.filter { g -> plan.homework.any { it.groupId == g.id } }.forEach { g ->
+        else plan.groups.forEach { g ->
             item(key = "group:${g.id}") {
                 Column(Modifier.animateItem()) {
                     SectionHead(g.name.ifBlank { stringResource(R.string.class_group) }, action = stringResource(R.string.class_add), onAction = if (canAdd) ({ adding = g.id }) else null)
-                    RowGroup {
-                        plan.homework.filter { it.groupId == g.id }.sortedBy { it.setOn ?: LocalDate.MIN }.forEachIndexed { i, h ->
+                    val set = plan.homework.filter { it.groupId == g.id }.sortedBy { it.setOn ?: LocalDate.MIN }
+                    if (set.isEmpty()) Hint(stringResource(R.string.class_no_homework_group))
+                    else RowGroup {
+                        set.forEachIndexed { i, h ->
                             if (i > 0) RowDivider()
                             val book = plan.books.firstOrNull { it.id == h.bookId }?.name ?: stringResource(R.string.class_book)
                             val n = h.to - h.from + 1
                             val title = stringResource(R.string.class_homework_pages, book, h.from, h.to)
-                            val detail = pluralStringResource(R.plurals.class_pages, n, n) + (h.setOn?.let { stringResource(R.string.class_set_suffix, shortDate(it)) } ?: "")
+                            val detail = h.setOn?.let { stringResource(R.string.class_set_on, shortDate(it)) } ?: pluralStringResource(R.plurals.class_pages, n, n)
                             val remove = { vm.removeHomework(h.id); undoToast(context.getString(R.string.class_removed, title)) }
                             SwipeRow(title, remove) {
                                 LedgerRow(title, Modifier.background(Pacer.colors.surface), detail = detail) { RemoveMenu(title, remove) }
@@ -431,9 +452,6 @@ fun HomeworkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoT
                     }
                 }
             }
-        }
-        if (canAdd && plan.homework.isNotEmpty()) item(key = "add") {
-            AddButton(stringResource(R.string.class_add_homework)) { adding = plan.groups.first().id }
         }
     }
     adding?.let { start -> AddHomeworkDialog(plan, vm, start) { adding = null } }

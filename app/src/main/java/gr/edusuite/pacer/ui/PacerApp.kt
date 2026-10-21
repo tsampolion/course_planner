@@ -88,16 +88,22 @@ private fun Screen.title(d: AppData, context: Context): String = when (this) {
     Screen.Overview -> context.getString(R.string.app_overview)
     Screen.Classes -> context.getString(R.string.app_classes)
     Screen.Class -> d.schoolClass?.name?.ifBlank { null } ?: context.getString(R.string.app_class)
-    Screen.Tests -> context.getString(R.string.app_tests)
-    Screen.Homework -> context.getString(R.string.app_homework)
+    // "FCE · Tests & worksheets", as the locked mock-ups have it.
+    Screen.Tests -> classTitle(d, context, context.getString(R.string.app_tests))
+    Screen.Homework -> classTitle(d, context, context.getString(R.string.app_homework_short))
     is Screen.Group -> d.schoolClass?.groups?.firstOrNull { it.id == id }?.name?.ifBlank { null } ?: context.getString(R.string.app_group)
 }
+
+/** [what] after the open class's name. */
+private fun classTitle(d: AppData, context: Context, what: String): String =
+    d.schoolClass?.name?.ifBlank { null }?.let { context.getString(R.string.nav_class_group, it, what) } ?: what
 
 /** The small line above the title: where this screen sits. */
 private fun Screen.context(d: AppData, context: Context): String = when (this) {
     Screen.Home, Screen.Settings -> context.getString(R.string.app_name)
     Screen.YearSettings, Screen.Overview, Screen.Classes, Screen.Class -> d.year?.name.orEmpty()
-    Screen.Tests, Screen.Homework, is Screen.Group -> listOfNotNull(d.year?.name, d.schoolClass?.name).joinToString(" · ")
+    Screen.Tests, Screen.Homework -> d.year?.name.orEmpty()
+    is Screen.Group -> listOfNotNull(d.year?.name, d.schoolClass?.name).joinToString(" · ")
 }
 
 /** Keys each screen's saved state (scroll position, open dialogs) while it stays on the back stack. */
@@ -164,6 +170,8 @@ fun PacerApp(vm: PacerViewModel) {
     val warnings = remember(groupReport) { groupReport?.let(::groupWarnings).orEmpty() }
     // Pacing overview's warning button counts the year's problems instead (decision 7).
     val yearProblems = remember(screen, ui.data.year) { if (screen == Screen.Overview) ui.data.year?.let { Nav.problems(it).size } ?: 0 else 0 }
+    // The class screen's warning button counts the class's problems (the locked Class mock-up, D7).
+    val classProblems = remember(screen, ui.data.plan) { if (screen == Screen.Class) ui.data.plan?.let { screenProblems(it, Screen.Class).size } ?: 0 else 0 }
     var problemsOpen by rememberSaveable(screen.key()) { mutableStateOf(false) }
     val groupMenu = groupReport?.let { report ->
         GroupMenu(
@@ -211,10 +219,14 @@ fun PacerApp(vm: PacerViewModel) {
                 if (screen != Screen.Home) ScreenBar(
                     screen, ui.data, vm,
                     undoDepth = if (screen.showsUndo) ui.undoDepth else null,
-                    warnings = if (screen == Screen.Overview) yearProblems else warnings.size,
+                    warnings = when (screen) {
+                        Screen.Overview -> yearProblems
+                        Screen.Class -> classProblems
+                        else -> warnings.size
+                    },
                     onMenu = openMenu,
                     onSwitch = { switching = true },
-                    onWarnings = { if (screen == Screen.Overview) problemsOpen = true else warningsOpen = true },
+                    onWarnings = { if (screen == Screen.Overview || screen == Screen.Class) problemsOpen = true else warningsOpen = true },
                     groupMenu = groupMenu,
                 )
             },
@@ -250,6 +262,10 @@ fun PacerApp(vm: PacerViewModel) {
     }
     if (problemsOpen && screen == Screen.Overview && year != null) {
         YearProblemsSheet(year, vm) { problemsOpen = false }
+    }
+    val plan = ui.data.plan
+    if (problemsOpen && screen == Screen.Class && plan != null) {
+        ClassProblemsSheet(plan, vm) { problemsOpen = false }
     }
     if (printing && year != null && groupReport != null) {
         PrintDialog(year, only = ui.data.activeClass to groupReport.group.id) { printing = false }

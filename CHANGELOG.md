@@ -33,10 +33,10 @@ The redesign's other screens (`docs/superpowers/plans/2026-10-21-app-redesign.md
 
 ### Changed
 
-- **Classes** is a list: a row per class with its groups, how many books, and one status mark (groups behind, problems, or "On pace"), with New class at the foot.
-- **Class** puts the lesson length and pace on one line with Edit, then the groups with their next lesson and status (tap to open, the pencil to edit days and next lesson), the books with the lead book and supplementary books marked (tap to edit), Tests & worksheets (with the next upcoming one) and Homework, and Reset all positions and Delete this class at the end.
-- **School year** switches years with chips at the top and + New year. The term is one line with its weeks and days off, the days off are dated rows with the day-off edge and ⋮ Remove, and Rename and Delete this school year sit at the end.
-- **Tests & worksheets** and **Homework** are restyled: dated rows (tests with the test edge), ⋮ with Remove on each row beside the swipe and long-press, a "+ Add" on each section, and a "2 past tests · Show" line.
+- **Classes** is a list: a row per class with its groups, how many books, and one status mark (groups behind, problems, or "On pace"), with a New class button at the bottom end.
+- **Class** puts the lesson length and pace on one line with Edit, then the groups with their next lesson and status (tap to open, the pencil to edit days and next lesson), the books with the lead book and supplementary books marked (tap to edit), Tests & worksheets (with the next upcoming one) and Homework, and Reset all positions and Delete this class at the end. The class's problems moved off the page into a sheet behind a warning button with a count in the top bar.
+- **School year** switches years with chips at the top and + New year. The term is one line with its weeks and days off, the days off are dated rows with the day-off edge (swipe or long-press to remove), and Rename and Delete this school year sit at the end.
+- **Tests & worksheets** and **Homework** are restyled and titled with the class ("FCE · Tests & worksheets", "FCE · Homework"): dated rows (tests with the test edge), ⋮ with Remove on each row beside the swipe and long-press, a "2 past tests · Show" line, and on Homework a section for every group with its own "+ Add" and rows such as "Workbook 12–13 · Set Fri 9 Oct".
 - **Welcome** is a full first-run page in place of the dialog: the logo, the same words, the four steps as a numbered list, "Create your school year" and "Not now". Settings → Getting started opens it too.
 
 ### Removed
