@@ -77,14 +77,34 @@ class HomeModelTest {
         assertEquals(seed, seed.markNextLessonDone(sample.id, "nope"))
     }
 
-    @Test fun summaryCountsTheYear() {
-        val s = homeSummary(seed, LocalDate.parse("2026-09-01"))
-        assertEquals(1, s.classes)
-        assertEquals(2, s.groups)
-        assertEquals(0, s.tests)
-        assertNull(s.nextTest)
-        assertEquals(seed.closures.size, s.daysOff)
-        assertTrue(s.datesSet)
+    @Test fun todayCountsEveryGroupsLessonsTodayDoneOrNot() {
+        val wed = LocalDate.parse("2026-09-09") // Group A (Mon, Wed, Fri) only
+        assertEquals(TodayCount(1, 1), lessonsToday(seed, wed))
+        val ticked = seed.markNextLessonDone(sample.id, "ga")
+        assertEquals(TodayCount(0, 1), lessonsToday(ticked, wed))
+        assertEquals(TodayCount(1, 1), lessonsToday(ticked, wed.plusDays(1))) // Group B's first
+        assertEquals(TodayCount(0, 0), lessonsToday(seed, LocalDate.parse("2026-09-13"))) // a Sunday
+        assertEquals(TodayCount(2, 2), lessonsToday(twoClasses(), wed))
+    }
+
+    @Test fun theBoardHasOneCellPerGroupByClassFromTheSameVerdict() {
+        val year = twoClasses().let { y -> y.copy(classes = y.classes + sample.copy(id = "c3", name = "Empty", groups = emptyList())) }
+        val board = pacingBoard(year)
+        assertEquals(listOf(sample.id, "c2"), board.map { it.classId })
+        assertEquals(listOf("ga", "gb"), board[0].cells.map { it.groupId })
+        val status = yearStatus(year)
+        board.flatMap { it.cells }.forEach { assertEquals(status[it.groupId], it.short) }
+    }
+
+    @Test fun behindCellsAreTheOnesShortOfTheTerm() {
+        val slow = seed.copy(classes = listOf(sample.copy(pace = 0.5)))
+        val cells = pacingBoard(slow).single().cells
+        assertTrue(cells.all { it.behind && it.short!! >= 1 })
+        assertEquals(BoardSummary(2, 2), pacingBoard(slow).summary())
+        assertEquals(groupsBehind(seed), pacingBoard(seed).summary().behind)
+        assertEquals(BoardSummary(0, 0), pacingBoard(seed.copy(classes = emptyList())).summary())
+        // Nothing to measure is neither on pace nor behind.
+        assertFalse(BoardCell("c", "g", "G", null).behind)
     }
 
     @Test fun theDefaultYearIsTheOneThatStartsLast() {
@@ -94,29 +114,5 @@ class HomeModelTest {
         assertEquals("b", defaultYearId(listOf(a, undated, b)))
         assertEquals("u", defaultYearId(listOf(undated)))
         assertNull(defaultYearId(emptyList()))
-    }
-
-    @Test
-    fun gridColumnsFollowTheWidth() {
-        assertEquals(2, homeColumns(328f, 1f, 6)) // a 360dp phone less its 16dp edges
-        assertEquals(2, homeColumns(380f, 1f, 6))
-        assertEquals(4, homeColumns(768f, 1f, 6)) // a phone in landscape
-        assertEquals(6, homeColumns(1248f, 1f, 6)) // never more columns than tiles
-    }
-
-    @Test
-    fun gridIsOneColumnAtLargeFontOrNarrowWidth() {
-        assertEquals(1, homeColumns(768f, 2f, 6))
-        assertEquals(1, homeColumns(300f, 1f, 6))
-    }
-
-    @Test
-    fun masonryPutsEachTileInTheShortestColumn() {
-        assertEquals(
-            listOf(0 to 0, 1 to 0, 1 to 108, 0 to 168),
-            masonryPlacement(listOf(160, 100, 100, 100), columns = 2, gap = 8),
-        )
-        // Ties go to the leftmost column.
-        assertEquals(listOf(0 to 0, 1 to 0, 2 to 0, 0 to 58), masonryPlacement(listOf(50, 50, 50, 50), columns = 3, gap = 8))
     }
 }

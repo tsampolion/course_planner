@@ -5,8 +5,6 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,10 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.FilterChip
 import gr.edusuite.pacer.engine.plain
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,9 +30,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.data.ImportResult
@@ -65,7 +58,6 @@ private val THEMES = listOf(
  * App-level preferences. None of these are edits to a school year, so undo does not cover them;
  * an import is, and its snackbar offers undo because this screen has no undo button.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     settings: Settings,
@@ -76,7 +68,6 @@ fun SettingsScreen(
     undoToast: (String) -> Unit,
 ) {
     val context = LocalContext.current
-    val segmentHaptic = rememberSegmentHaptic()
     var guide by rememberSaveable { mutableStateOf(false) }
     var defaults by rememberSaveable { mutableStateOf(false) }
     val version = remember {
@@ -88,23 +79,24 @@ fun SettingsScreen(
         contentPadding = PaddingValues(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Space.l),
     ) {
+        item(key = "name") {
+            Section(stringResource(R.string.settings_you), modifier = Modifier.animateItem()) {
+                CommitField(
+                    settings.name, vm::setName, stringResource(R.string.settings_your_name), Modifier.fillMaxWidth(),
+                    // The stored name is trimmed, so a space typed at the end stays in the field.
+                    sameValue = { typed, value -> Settings.cleanName(typed) == value },
+                )
+                Hint(stringResource(R.string.settings_name_hint))
+            }
+        }
         item(key = "theme") {
             Section(stringResource(R.string.settings_theme), modifier = Modifier.animateItem()) {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth().selectableGroup(),
-                    horizontalArrangement = Arrangement.spacedBy(Space.s),
-                    verticalArrangement = Arrangement.spacedBy(Space.xs),
-                ) {
-                    THEMES.forEach { (mode, label) ->
-                        FilterChip(
-                            modifier = Modifier.semantics { role = Role.RadioButton },
-                            selected = settings.theme == mode,
-                            onClick = { if (settings.theme != mode) { segmentHaptic(); vm.setTheme(mode) } },
-                            label = { Text(stringResource(label)) },
-                            shape = MaterialTheme.shapes.extraSmall,
-                        )
-                    }
-                }
+                // D10: the segmented switch ticks on its own.
+                SegmentedToggle(
+                    THEMES.map { stringResource(it.second) },
+                    THEMES.indexOfFirst { it.first == settings.theme }.coerceAtLeast(0),
+                    { vm.setTheme(THEMES[it].first) },
+                )
             }
         }
         item(key = "defaults") {
@@ -116,7 +108,13 @@ fun SettingsScreen(
         item(key = "backup") { BackupSection(yearCount, vm, toast, undoToast) }
         item(key = "help") {
             Section(stringResource(R.string.settings_help), modifier = Modifier.animateItem()) {
-                Column { LinkRow(stringResource(R.string.settings_getting_started), stringResource(R.string.settings_getting_started_detail)) { guide = true } }
+                Column {
+                    LinkRow(stringResource(R.string.settings_getting_started), stringResource(R.string.settings_getting_started_detail)) { guide = true }
+                    LinkRow(stringResource(R.string.settings_show_tips), stringResource(R.string.settings_show_tips_detail)) {
+                        vm.showTipsAgain()
+                        toast(context.getString(R.string.settings_tips_reset))
+                    }
+                }
             }
         }
         item(key = "about") {

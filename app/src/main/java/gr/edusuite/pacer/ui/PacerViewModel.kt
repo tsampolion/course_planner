@@ -239,6 +239,14 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         publish(data.copy(activeYear = id, activeClass = ""), Nav.root)
     }
 
+    /** Opens another year from the School year screen's switcher, and stays on School year for it. */
+    fun switchYear(id: String) {
+        if (id == data.activeYear || data.years.none { it.id == id }) return
+        clearHistory()
+        publish(data.copy(activeYear = id, activeClass = ""))
+        publish(data, Nav.push(_state.value.stack, Screen.YearSettings))
+    }
+
     fun openClass(id: String) {
         if (id != data.activeClass) publish(data.copy(activeClass = id))
         open(Screen.Class)
@@ -266,12 +274,6 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun goToGroup(classId: String, groupId: String) {
         if (classId != data.activeClass) publish(data.copy(activeClass = classId))
         goTo(Screen.Group(groupId))
-    }
-
-    /** Opens a class's [Screen.Tests] or [Screen.Homework] from Home, over that class. */
-    fun openClassScreen(classId: String, screen: Screen) {
-        openClass(classId)
-        open(screen)
     }
 
     // ---- settings (not undoable, saved at once) ----------------------------
