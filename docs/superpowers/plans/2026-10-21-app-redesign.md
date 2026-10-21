@@ -41,19 +41,19 @@ and `ContrastTest` green.
 
 ## PR2: navigation (3.2.0)
 
-- [ ] `AppDrawer`: a `ModalNavigationDrawer` with search over classes and groups, Home, Pacing overview (count of
+- [x] `AppDrawer`: a `ModalNavigationDrawer` with search over classes and groups, Home, Pacing overview (count of
   groups behind), Classes (an expandable list), School year and Settings. New symbols (home, search, menu) go into
   `AppIcons.kt` as path data, with attribution unchanged.
-- [ ] **`ScreenBar`:** ☰ replaces the back arrow, and System Back keeps popping (`BackHandler` unchanged).
+- [x] **`ScreenBar`:** ☰ replaces the back arrow, and System Back keeps popping (`BackHandler` unchanged).
   `showUndo` is set only on Group, Class, Classes, School year, Tests and Homework.
-- [ ] **`GroupSwitcherSheet`:**
+- [x] **`GroupSwitcherSheet`:**
   - It replaces the title dropdown, with search, recent groups (kept in memory per session) and the class's groups,
     each with its status.
-- [ ] **`WarningsSheet`:**
+- [x] **`WarningsSheet`:**
   - A warning button with a count, with the TalkBack label "N warnings", lists each warning with its fix.
   - On-page `WarningBanner`s and `StatusChip` are removed from the Plan tab.
-- [ ] **Overview renamed Pacing overview** everywhere it's visible, through strings only (`Screen.Overview` stays).
-- [ ] **Tests:** `NavTest` covers drawer destinations and Back. A unit-tested `searchGroups(year, query)` helper.
+- [x] **Overview renamed Pacing overview** everywhere it's visible, through strings only (`Screen.Overview` stays).
+- [x] **Tests:** `NavTest` covers drawer destinations and Back. A unit-tested `searchGroups(year, query)` helper.
 
 ## PR3: Home (3.3.0)
 

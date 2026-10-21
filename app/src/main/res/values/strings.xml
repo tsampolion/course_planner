@@ -7,24 +7,19 @@
     <string name="app_name">Course Pacer</string>
     <string name="app_settings">Settings</string>
     <string name="app_year_settings">School year settings</string>
-    <string name="app_overview">Overview</string>
+    <string name="app_overview">Pacing overview</string>
     <string name="app_classes">Classes</string>
     <string name="app_class">Class</string>
     <string name="app_tests">Tests &amp; worksheets</string>
     <string name="app_homework">Homework already assigned</string>
     <string name="app_group">Group</string>
     <string name="app_undo">Undo</string>
-    <string name="app_back">Back</string>
     <string name="app_deleted">Deleted “%1$s”</string>
     <string name="app_copied">Copied. Paste into a spreadsheet or Word.</string>
     <string name="app_schedule">Schedule</string>
     <plurals name="app_undo_steps">
         <item quantity="one">Undo (%1$d)</item>
         <item quantity="other">Undo (%1$d)</item>
-    </plurals>
-    <plurals name="app_lessons_left">
-        <item quantity="one">%1$d lesson left</item>
-        <item quantity="other">%1$d lessons left</item>
     </plurals>
     <string name="class_lesson_settings">%1$d min · %2$s pages per lesson</string>
     <string name="class_positions_reset">Positions reset</string>
@@ -209,7 +204,6 @@
     <string name="group_no_term_lessons">No lessons left in this term</string>
     <string name="group_pace_needed">Pace needed</string>
     <string name="group_pace_unit">pp/lesson</string>
-    <string name="group_on_track">On track</string>
     <string name="group_blocked_lessons">Blocked lessons</string>
     <string name="group_no_before_due">No lesson before due</string>
     <string name="group_no_measure">No teaching lessons to measure yet.</string>
@@ -219,8 +213,6 @@
     <string name="group_next_number">Next lesson #%1$d</string>
     <string name="group_tab_plan">Plan</string>
     <string name="group_tab_stats">Stats</string>
-    <string name="group_status_short">Short by %1$s lessons</string>
-    <string name="group_open_stats">Open stats</string>
     <string name="group_tips">Tips</string>
     <string name="group_details_title">Details</string>
     <string name="group_by_month_title">Lessons by month</string>
@@ -244,13 +236,12 @@
     <string name="home_choose_tests">Tests for which class?</string>
     <string name="home_choose_homework">Homework for which class?</string>
     <string name="home_hello">Hello</string>
-    <string name="home_settings">Settings</string>
     <string name="home_change_year">Change school year</string>
     <string name="home_add_first_class">Add your first class</string>
     <string name="home_first_class_hint">A class holds its books, lesson days and groups. Add one and its next lesson shows here.</string>
     <string name="home_add_class">Add a class</string>
     <string name="home_no_lessons">No lessons left this term</string>
-    <string name="home_overview_hint">Open Overview to see where each group stands.</string>
+    <string name="home_overview_hint">Open Pacing overview to see where each group stands.</string>
     <string name="home_next_lesson">Next lesson</string>
     <string name="home_overdue">Overdue</string>
     <string name="home_lesson_done">Lesson marked done</string>
@@ -260,7 +251,7 @@
     <string name="home_tests">Tests</string>
     <string name="home_print">Print or save PDF</string>
     <string name="home_print_hint">Choose classes and margins</string>
-    <string name="home_overview">Overview</string>
+    <string name="home_overview">Pacing overview</string>
     <string name="home_needs_look">Needs a look</string>
     <string name="home_homework">Homework</string>
     <string name="home_days_dates">Days off &amp; dates</string>
@@ -587,10 +578,6 @@
         <item quantity="one">%1$d page more than %2$s pages a lesson fits in the term.</item>
         <item quantity="other">%1$d pages more than %2$s pages a lesson fit in the term.</item>
     </plurals>
-    <plurals name="warn_behind_short">
-        <item quantity="one">Behind the pace by %d page</item>
-        <item quantity="other">Behind the pace by %d pages</item>
-    </plurals>
     <plurals name="warn_lessons_word">
         <item quantity="one">lesson to catch up</item>
         <item quantity="other">lessons to catch up</item>
@@ -632,4 +619,47 @@
         <item quantity="one">%d page</item>
         <item quantity="other">%d pages</item>
     </plurals>
+    <string name="nav_menu">Menu</string>
+    <string name="nav_search">Find a class or group</string>
+    <string name="nav_clear_search">Clear search</string>
+    <string name="nav_no_match">No class or group matches “%1$s”.</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_year">School year</string>
+    <string name="nav_year_named">School year · %1$s</string>
+    <string name="nav_show_classes">Show classes</string>
+    <string name="nav_hide_classes">Hide classes</string>
+    <string name="nav_class_group">%1$s · %2$s</string>
+    <plurals name="nav_behind">
+        <item quantity="one">%d behind</item>
+        <item quantity="other">%d behind</item>
+    </plurals>
+    <plurals name="nav_groups_behind">
+        <item quantity="one">%d group behind</item>
+        <item quantity="other">%d groups behind</item>
+    </plurals>
+    <plurals name="nav_all_classes">
+        <item quantity="one">The class</item>
+        <item quantity="other">All %d classes</item>
+    </plurals>
+    <string name="switcher_title">Go to a group</string>
+    <string name="switcher_open">Switch group</string>
+    <string name="switcher_recent">Recent</string>
+    <string name="switcher_here">%1$s · you are here</string>
+    <string name="status_on_pace">On pace</string>
+    <plurals name="status_short">
+        <item quantity="one">Short by %d lesson</item>
+        <item quantity="other">Short by %d lessons</item>
+    </plurals>
+    <plurals name="warnings_count">
+        <item quantity="one">%d warning</item>
+        <item quantity="other">%d warnings</item>
+    </plurals>
+    <string name="warnings_title">Warnings · %1$s</string>
+    <string name="warnings_none">Nothing needs your attention.</string>
+    <plurals name="warnings_book_behind">
+        <item quantity="one">%1$s is %2$d lesson behind</item>
+        <item quantity="other">%1$s is %2$d lessons behind</item>
+    </plurals>
+    <string name="warnings_book_hint">The other books are further on.</string>
+    <string name="warnings_plan_hint">In your custom plan.</string>
 </resources>

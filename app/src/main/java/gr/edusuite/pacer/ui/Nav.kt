@@ -13,7 +13,7 @@ sealed interface Screen {
     data object Settings : Screen
     /** Term dates, days off, and renaming or deleting the year. */
     data object YearSettings : Screen
-    /** Every group in every class of the year, and the year's problems. */
+    /** Pacing overview: every group in every class of the year, and the year's problems. */
     data object Overview : Screen
     data object Classes : Screen
     /** The open class: lesson length and pace, books and groups. */
@@ -30,6 +30,17 @@ val Screen.needsYear: Boolean get() = this != Screen.Home && this != Screen.Sett
 /** Shown only while a class is open. */
 val Screen.needsClass: Boolean
     get() = this == Screen.Class || this == Screen.Tests || this == Screen.Homework || this is Screen.Group
+
+/**
+ * Screens that change school-year data show Undo in their top bar (design decision 18). Settings, Pacing overview and
+ * Home have none; their snackbars still offer Undo for a delete.
+ */
+val Screen.showsUndo: Boolean
+    get() = this == Screen.Class || this == Screen.Classes || this == Screen.YearSettings ||
+        this == Screen.Tests || this == Screen.Homework || this is Screen.Group
+
+/** A group of the open year, by its class: what the group switcher's Recent list remembers. */
+data class GroupRef(val classId: String, val groupId: String)
 
 /** A problem and the screen that fixes it, if any. [classId] is the class to open first. */
 data class Problem(val text: String, val fix: Screen?, val classId: String? = null)
@@ -61,6 +72,25 @@ object Nav {
     }
 
     fun pop(stack: List<Screen>): List<Screen> = if (stack.size > 1) stack.dropLast(1) else stack
+
+    /** The menu's destinations, top to bottom. The year's screens show only while a year is open. */
+    fun drawer(hasYear: Boolean): List<Screen> =
+        listOf(Screen.Home, Screen.Overview, Screen.Classes, Screen.YearSettings, Screen.Settings).filter { hasYear || !it.needsYear }
+
+    /**
+     * Opens [screen] from the menu, a search or the group switcher. A screen already on the stack is gone back to
+     * rather than stacked again; anything else is pushed, so Back returns to where the teacher was.
+     */
+    fun goTo(stack: List<Screen>, screen: Screen): List<Screen> {
+        val at = stack.indexOf(screen)
+        return if (at >= 0) stack.take(at + 1) else push(stack, screen)
+    }
+
+    /** How many groups the switcher's Recent list keeps. */
+    const val RECENT = 4
+
+    /** [recent] with [group] moved to the front, at most [RECENT] long. Kept in memory for the session only. */
+    fun recent(recent: List<GroupRef>, group: GroupRef): List<GroupRef> = (listOf(group) + recent.filter { it != group }).take(RECENT)
 
     /** The stack after another year opens: everything that showed the old year closes. */
     fun afterYearSwitch(stack: List<Screen>): List<Screen> = prune(stack, hasYear = false, hasClass = false, emptySet())

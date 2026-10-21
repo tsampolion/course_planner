@@ -12,18 +12,19 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 
-- **Home**: the open school year at a glance. It shows the next lesson across every class and group, with a **Mark done** button, and tiles for Classes, Overview, Tests, Homework, Days off & dates, and Print or save PDF. A chip switches, adds, renames or deletes school years.
+- **Menu**: ☰ on every screen opens the menu: find a class or group by name, Home, Pacing overview with how many groups are behind, the year's classes, School year and Settings. System Back still steps back.
+- **Home**: the open school year at a glance. It shows the next lesson across every class and group, with a **Mark done** button, and tiles for Classes, Pacing overview, Tests, Homework, Days off & dates, and Print or save PDF. A chip switches, adds, renames or deletes school years.
 - **School year**: term dates and days off. One tap adds the Greek public holidays, worked out from Orthodox Easter.
 - **Classes, books and groups**: a class has a lesson length, a pace, books and groups. A book has its first and last page, skipped pages such as `8, 24-27`, and an optional finish-by date. A group has teaching weekdays and a next-lesson date.
 - **Lead book**: pick a class's lead book and the other books keep step with it, a third of the way through it meaning a third of the way through them. Unit start pages keep books in step unit by unit. A book with its own finish-by date keeps its own pace.
-- **Group**: a Plan | Stats toggle. Plan shows the next lesson, a status chip (on track or short) and the lesson-by-lesson schedule. Stats shows lessons, pages and pace left, the verdict, details and the book positions.
-- **Custom plans**: *Create your custom plan* turns the proposed schedule into the group's own plan, kept beside it. Plan a lesson's pages and a note, add, remove or drag lessons, and re-pace from any lesson; lessons you change by hand are never rewritten. A coverage card flags pages left out, taught twice or past the term end, each with a one-tap fix, and *My plan | Proposed* switches back at any time.
+- **Group**: a Plan | Stats toggle. Plan shows the next lesson and the lesson-by-lesson schedule. Tap the group's name to switch to another group: search, recent groups and the class's groups, each with its status. Stats shows lessons, pages and pace left, the verdict, details and the book positions.
+- **Custom plans**: *Create your custom plan* turns the proposed schedule into the group's own plan, kept beside it. Plan a lesson's pages and a note, add, remove or drag lessons, and re-pace from any lesson; lessons you change by hand are never rewritten. A coverage card shows how much of each book it covers; pages left out, taught twice or past the term end show up as warnings, each with a one-tap fix, and *My plan | Proposed* switches back at any time.
 - **Supplementary books**: add a companion or reader with just the pages you'll use. It is never paced: place its pages by hand in the lessons you choose, on top of the lesson or counting in it, where you say what each core book teaches that day and the rest moves on.
-- **Warnings with a way out**: a group behind its sustainable pace gets *Catch up*: pick +1, +2 or +3 pages a lesson, see how many lessons it takes and when you are back on pace, and apply it to your custom plan. A book that falls more than 2 lessons behind the others (a class setting) gets *Bring in step*.
+- **Warnings with a way out**: a warning button with a count in the group's top bar opens every warning with its fix. A group behind its sustainable pace gets *Catch up*: pick +1, +2 or +3 pages a lesson, see how many lessons it takes and when you are back on pace, and apply it to your custom plan. A book that falls more than 2 lessons behind the others (a class setting) gets *Bring in step*.
 - **Done lessons**: tick a lesson once it is taught. Long-press for "Done up to here" or "Not done from here". Ticking out of order re-spreads the pages still to teach.
 - **Pages taught**: long-press a lesson and choose "Edit pages taught…" to record the pages it really covered. Missed pages go back into the schedule and the rest re-spread.
 - **Tests and homework**: a test can take the whole lesson or run alongside it. Homework already set drops its pages from the lessons.
-- **Overview**: every group at a glance. The year's problems sit at the top and each links to the screen that fixes it.
+- **Pacing overview**: every group at a glance. The year's problems sit at the top and each links to the screen that fixes it.
 - **Output**: copy a schedule as tab-separated text, share it, or print or save it as a PDF.
 - **Undo**: up to 60 steps within the open school year.
 - **Settings**: theme, defaults for new classes, and back up and restore. Export saves every school year to a file you choose. Import reads that file, or the web page's export, and adds its years beside yours or replaces them.

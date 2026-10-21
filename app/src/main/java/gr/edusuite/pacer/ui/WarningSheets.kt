@@ -136,17 +136,3 @@ private fun PreviewLines(lines: List<String>) {
 }
 
 private const val PREVIEW_ROWS = 4
-
-/** The warnings the plan shows: behind the pace, and each book left behind. */
-@Composable
-fun Warnings(report: GroupReport, lags: List<BookLag>, onCatchUp: () -> Unit, onFold: (BookLag) -> Unit, modifier: Modifier = Modifier) {
-    val behind = remember(report) { report.catchUp(1)?.behind }
-    if (behind == null && lags.isEmpty()) return
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        if (behind != null) WarningBanner(pluralStringResource(R.plurals.warn_behind_short, behind, behind), stringResource(R.string.warn_catch_up), onCatchUp)
-        lags.forEach { lag ->
-            val name = report.plan.books.firstOrNull { it.id == lag.bookId }?.name ?: return@forEach
-            WarningBanner(stringResource(R.string.warn_book_behind, name, lag.lessonsBehind.fixed2()), stringResource(R.string.warn_fold), { onFold(lag) })
-        }
-    }
-}

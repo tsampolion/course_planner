@@ -3,7 +3,9 @@
 > **Status: approved, being built.** Agreed with the owner on 2026-10-21. It ships in 3.1.0 to 3.7.0 following
 > `docs/superpowers/plans/2026-10-21-app-redesign.md`. **Tokens and type landed in 3.1.0** (PR1): the dark set, the edge
 > tokens, `Figures`, the 48dp segmented switch and targets, and the pale status pill (D1, D2, D8, D10, D11's pills).
-> Until each later PR lands, the rest of the app still follows `docs/EDUSUITE_STYLE_GUIDE.md`. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
+> **Navigation landed in 3.2.0** (PR2): the ☰ menu, the group switcher, the Warnings sheet and the Pacing overview
+> name (D5 on phones, D7). Until each later PR lands, the rest of the app still follows
+> `docs/EDUSUITE_STYLE_GUIDE.md`. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.
 This file records where Course Pacer departs from it. Every departure is Pacer-only for now. Together they are

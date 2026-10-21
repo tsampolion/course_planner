@@ -122,7 +122,7 @@ fun PlanSourceBar(custom: CustomPlan, showingMine: Boolean, onShow: (Boolean) ->
 }
 
 /**
- * How the custom plan covers the pages left: a bar per book, and a chip for each problem that fixes it in one tap.
+ * How the custom plan covers the pages left: a bar per book. Its problems and their fixes are in the Warnings sheet.
  * Under it, re-pace, copy to another group and delete.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -132,8 +132,6 @@ fun CoverageCard(
     coverage: Coverage,
     others: List<Group>,
     onRepace: () -> Unit,
-    onTidy: () -> Unit,
-    onFit: () -> Unit,
     onCopy: (Group) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -157,16 +155,7 @@ fun CoverageCard(
                 }
             }
         }
-        if (coverage.ok) {
-            Tag(stringResource(R.string.custom_all_covered))
-        } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.s), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                if (coverage.missingCount > 0) FixChip(pluralStringResource(R.plurals.custom_missing, coverage.missingCount, coverage.missingCount), stringResource(R.string.custom_fix_repace), onRepace)
-                if (coverage.overflow > 0) FixChip(pluralStringResource(R.plurals.custom_overflow, coverage.overflow, coverage.overflow), stringResource(R.string.custom_fix_fit), onFit)
-                if (coverage.doubledCount > 0) FixChip(pluralStringResource(R.plurals.custom_doubled, coverage.doubledCount, coverage.doubledCount), stringResource(R.string.custom_fix_tidy), onTidy)
-                if (coverage.staleCount > 0) FixChip(pluralStringResource(R.plurals.custom_stale, coverage.staleCount, coverage.staleCount), stringResource(R.string.custom_fix_tidy), onTidy)
-            }
-        }
+        if (coverage.ok) Tag(stringResource(R.string.custom_all_covered))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
             TertiaryButton(stringResource(R.string.custom_repace_all), onRepace)
             if (others.isNotEmpty()) Box {
@@ -178,24 +167,6 @@ fun CoverageCard(
             TertiaryButton(stringResource(R.string.custom_delete), onDelete, color = Pacer.colors.warn)
         }
         Hint(stringResource(R.string.custom_hint))
-    }
-}
-
-/** A problem and its fix in one pill: tapping it applies the fix. */
-@Composable
-private fun FixChip(problem: String, fix: String, onClick: () -> Unit) {
-    val interaction = remember { MutableInteractionSource() }
-    val haptic = rememberSegmentHaptic()
-    val c = Pacer.colors
-    Surface(
-        onClick = { haptic(); onClick() }, interactionSource = interaction, shape = CircleShape,
-        color = c.warnSoft, contentColor = c.onWarnSoft, modifier = Modifier.heightIn(min = 40.dp).pressFeedback(interaction),
-    ) {
-        Row(Modifier.padding(horizontal = Space.m, vertical = Space.s), horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(Space.s).background(c.warn, CircleShape))
-            Text(problem, style = MaterialTheme.typography.bodySmall)
-            Text(fix, style = MaterialTheme.typography.labelLarge)
-        }
     }
 }
 
