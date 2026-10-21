@@ -2,7 +2,9 @@ package gr.edusuite.pacer.ui
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -28,9 +30,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.fmt
+import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
@@ -61,97 +65,121 @@ private fun whoTag(context: Context, year: SchoolYear, who: String): String? {
     return context.getString(R.string.year_removed_group)
 }
 
+/** "Wed 28 Oct" for one day, "23 Dec – 6 Jan" for a run of days. */
+internal fun dayOffDates(from: LocalDate, to: LocalDate): String =
+    if (to == from) "${from.dayOfWeek.short()} ${from.fmtShort()}" else "${from.fmtShort()} – ${to.fmtShort()}"
+
 /**
- * The year switcher at the top (decision 6: every school year, with + New year, Rename and Delete), then the open
- * year's name, term dates and days off. Printing is in a group's ⋮ menu.
+ * School year (3.5.0): the years as chips at the top with + New year (decision 6), the term on one line, the days off
+ * as dated rows with the day-off edge, Add Greek public holidays, then Rename and Delete this school year. Printing is
+ * in a group's ⋮ menu.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
     val context = LocalContext.current
+    val tick = rememberSegmentHaptic()
     var adding by rememberSaveable { mutableStateOf(false) }
     var newYear by rememberSaveable { mutableStateOf(false) }
-    // The year being renamed, by id.
-    var renaming by rememberSaveable { mutableStateOf<String?>(null) }
-    var editing by rememberSaveable(year.id) { mutableStateOf<String?>(null) }
+    var renaming by rememberSaveable { mutableStateOf(false) }
+    var editingTerm by rememberSaveable(year.id) { mutableStateOf(false) }
     val problems = remember(year) { Nav.problems(year).filter { it.fix == Screen.YearSettings } }
     val sorted = remember(years) { years.sortedByDescending { it.start } }
-    val deleteYear = { y: SchoolYear ->
-        val name = y.name.ifBlank { context.getString(R.string.year_school_year) }
-        vm.deleteYear(y.id)
-        onDeleted(name)
-    }
+    val term = remember(year) { termSummary(year) }
 
     ScreenList(padding) {
         item(key = "years") {
-            Section(stringResource(R.string.year_switch)) {
-                Column(Modifier.selectableGroup()) {
-                    sorted.forEach { y ->
-                        YearRow(
-                            y, selected = y.id == year.id,
-                            onOpen = { vm.switchYear(y.id) },
-                            onRename = { renaming = y.id },
-                            onDelete = { deleteYear(y) },
-                        )
-                    }
+            FlowRow(
+                Modifier.fillMaxWidth().selectableGroup(),
+                horizontalArrangement = Arrangement.spacedBy(Space.s),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                sorted.forEach { y ->
+                    YearChip(y.name.ifBlank { stringResource(R.string.home_year) }, y.id == year.id) { tick(); vm.switchYear(y.id) }
                 }
-                AddButton(stringResource(R.string.home_new_year)) { newYear = true }
+                TextButton(onClick = { newYear = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    AppIcon(AppIcons.Add, Modifier.size(18.dp).padding(end = Space.xs))
+                    Text(stringResource(R.string.home_new_year), style = MaterialTheme.typography.labelLarge, color = Pacer.colors.accent)
+                }
             }
         }
         items(problems) { Box(Modifier.animateItem()) { ErrorBox(it.text) } }
-        item(key = "year") {
-            Section(stringResource(R.string.year_school_year)) {
-                LinkRow(stringResource(R.string.year_name), year.name.ifBlank { stringResource(R.string.year_school_year) }) { editing = "name" }
+        item(key = "term") {
+            Column {
+                SectionHead(stringResource(R.string.year_term), action = stringResource(R.string.year_edit), onAction = { editingTerm = true }, plus = false)
                 val datesSet = year.start != null && year.end != null
                 val validDates = datesSet && !year.end!!.isBefore(year.start)
-                LinkRow(stringResource(R.string.year_term), if (datesSet) "${year.start!!.fmt()} – ${year.end!!.fmt()}" else stringResource(R.string.year_dates_not_set)) { editing = "term" }
-                if (!validDates) Hint(stringResource(R.string.year_date_warning), color = Pacer.colors.warn)
+                RowGroup {
+                    LedgerRow(
+                        if (datesSet) "${year.start!!.dayOfWeek.short()} ${year.start!!.fmt()} – ${year.end!!.dayOfWeek.short()} ${year.end!!.fmt()}" else stringResource(R.string.year_dates_not_set),
+                        detail = term?.let { stringResource(R.string.home_pair, pluralStringResource(R.plurals.year_weeks, it.weeks, it.weeks), pluralStringResource(R.plurals.year_days_off_count, it.daysOff, it.daysOff)) },
+                        onClick = { editingTerm = true },
+                    ) { Chevron() }
+                }
+                if (!validDates) Hint(stringResource(R.string.year_date_warning), Modifier.padding(top = Space.s), color = Pacer.colors.warn)
             }
         }
-        item(key = "offhead") {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Heading(stringResource(R.string.year_days_off), Modifier.weight(1f))
-                TertiaryButton(stringResource(R.string.year_add), { adding = true })
-            }
-        }
+        item(key = "offhead") { SectionHead(stringResource(R.string.year_days_off), action = stringResource(R.string.year_add), onAction = { adding = true }) }
         if (year.closures.isEmpty()) item(key = "empty") { Hint(stringResource(R.string.year_no_days_off)) }
-        items(year.closures.sortedBy { it.from }, key = { it.id }) { c ->
-            val detail = if (c.to == c.from) "${c.from.fmt()} · ${c.from.dayOfWeek.short()}" else "${c.from.fmt()} – ${c.to.fmt()}"
-            val title = c.label.ifBlank { stringResource(R.string.year_day_off) }
-            val remove = { vm.removeClosure(c.id); undoToast(context.getString(R.string.year_removed, title)) }
-            Box(Modifier.animateItem()) { SwipeRow(title, remove) { ListItemRow(title, detail, whoTag(context, year, c.who), onRemove = remove) } }
+        else item(key = "days-off") {
+            RowGroup(Modifier.animateItem()) {
+                year.closures.sortedBy { it.from }.forEachIndexed { i, c ->
+                    if (i > 0) RowDivider()
+                    val title = c.label.ifBlank { stringResource(R.string.year_day_off) }
+                    val remove = { vm.removeClosure(c.id); undoToast(context.getString(R.string.year_removed, title)) }
+                    val who = whoTag(context, year, c.who)?.let { stringResource(R.string.year_group_only, it) } ?: stringResource(R.string.year_all_groups)
+                    SwipeRow(title, remove) {
+                        LedgerRow(title, detail = who, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface)) {
+                            RemoveMenu(title, remove)
+                        }
+                    }
+                }
+            }
         }
-
         item(key = "greek") {
             Column {
                 TextButton(onClick = {
                     val n = vm.addGreekHolidays()
                     toast(if (n > 0) context.resources.getQuantityString(R.plurals.year_holidays_added, n, n) else context.getString(R.string.year_already_there))
-                }, enabled = year.start != null && year.end != null, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.year_add_holidays)) }
-                Hint(
-                    stringResource(R.string.year_holidays_hint),
-                )
+                }, enabled = year.start != null && year.end != null, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.year_add_greek)) }
+                Hint(stringResource(R.string.year_holidays_hint))
             }
         }
         item(key = "delete") {
-            MoreOptions {
-                TertiaryButton(stringResource(R.string.year_delete), { deleteYear(year) }, color = Pacer.colors.warn)
-            }
+            FootActions(
+                start = stringResource(R.string.home_rename) to { renaming = true },
+                end = stringResource(R.string.year_delete) to {
+                    val name = year.name.ifBlank { context.getString(R.string.year_school_year) }
+                    vm.deleteYear(year.id)
+                    onDeleted(name)
+                },
+            )
         }
     }
 
     if (adding) AddClosureSheet(year, vm) { adding = false }
     if (newYear) NewYearDialog(years, vm) { newYear = false }
-    years.firstOrNull { it.id == renaming }?.let { y -> RenameYearSheet(y, vm) { renaming = null } }
-    editing?.let { field ->
-        SheetFrame(if (field == "name") stringResource(R.string.year_school_year_name) else stringResource(R.string.year_term), stringResource(R.string.year_done), true, {}, { editing = null }) {
-            if (field == "name") CommitField(year.name, { vm.renameYear(year.id, it) }, stringResource(R.string.year_name), Modifier.fillMaxWidth())
-            else {
-                DateField(year.start, vm::setStart, stringResource(R.string.year_starts), Modifier.fillMaxWidth(), clearable = true)
-                DateField(year.end, vm::setEnd, stringResource(R.string.year_ends), Modifier.fillMaxWidth(), clearable = true)
-                Hint(stringResource(R.string.year_term_hint))
-                if (year.start != null && year.end != null && year.end!!.isBefore(year.start)) ErrorBox(stringResource(R.string.year_date_warning))
-            }
-        }
+    if (renaming) RenameYearSheet(year, vm) { renaming = false }
+    if (editingTerm) SheetFrame(stringResource(R.string.year_term), stringResource(R.string.year_done), true, {}, { editingTerm = false }) {
+        DateField(year.start, vm::setStart, stringResource(R.string.year_starts), Modifier.fillMaxWidth(), clearable = true)
+        DateField(year.end, vm::setEnd, stringResource(R.string.year_ends), Modifier.fillMaxWidth(), clearable = true)
+        Hint(stringResource(R.string.year_term_hint))
+        if (year.start != null && year.end != null && year.end!!.isBefore(year.start)) ErrorBox(stringResource(R.string.year_date_warning))
+    }
+}
+
+/** A year in the switcher: a 48dp pill, ink when it is the open year (D10), read as a radio button. */
+@Composable
+private fun YearChip(name: String, selected: Boolean, onClick: () -> Unit) {
+    val c = Pacer.colors
+    Box(
+        Modifier.heightIn(min = 48.dp).selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            name, style = MaterialTheme.typography.labelLarge.merge(Figures), color = if (selected) c.paper else c.ink,
+            modifier = Modifier.clip(CircleShape).background(if (selected) c.ink else c.surfaceContainer).padding(horizontal = Space.l, vertical = Space.s),
+        )
     }
 }
 
@@ -176,79 +204,60 @@ private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () 
     }
 }
 
-/** The year's classes. Tap one to open it. */
+/**
+ * The year's classes (3.5.0): one row per class with its groups and books, and one status mark (how many groups are
+ * behind, its problems, or a muted "On pace"). Tap one to open it; New class sits at the foot.
+ */
 @Composable
 fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
     var adding by rememberSaveable { mutableStateOf(false) }
     val problems = remember(year) { Nav.problems(year).groupingBy { it.classId }.eachCount() }
+    val rows = remember(year) { classSummaries(year) }
+    val groups = rows.sumOf { it.groupNames.size }
 
     ScreenList(padding) {
-        item(key = "hint") { Hint(stringResource(R.string.year_classes_hint)) }
         if (year.classes.isEmpty()) {
+            item(key = "hint") { Hint(stringResource(R.string.year_classes_hint)) }
             item(key = "empty") {
                 EmptyState(AppIcons.Add, stringResource(R.string.year_first_class), stringResource(R.string.year_first_class_hint), stringResource(R.string.year_new_class), { adding = true })
             }
-        }
-        item(key = "classes") {
-            TileGrid(year.classes) { c, tileModifier ->
-                val n = problems[c.id] ?: 0
-                val lessons = remember(year, c) { val plan = year.planFor(c); c.groups.sumOf { GroupReport(plan, it).lessons.size } }
-                Tile(Pacer.colors.tileSky, modifier = tileModifier.semantics(mergeDescendants = true) {}, onClick = { vm.openClass(c.id) }) {
-                    AppIcon(AppIcons.School)
-                    if (n > 0) Tag(pluralStringResource(R.plurals.year_problems, n, n), warn = true, onTile = true)
-                    Text(c.name.ifBlank { stringResource(R.string.year_class) }, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-                    Text(c.groups.joinToString(", ") { it.name }.ifEmpty { stringResource(R.string.year_no_groups) } + " · " + pluralStringResource(R.plurals.year_books, c.books.size, c.books.size), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
-                    AnimatedFigure(lessons.toString(), style = MaterialTheme.typography.titleLarge)
-                    Text(stringResource(R.string.overview_lessons_left), style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
+        } else {
+            item(key = "head") {
+                Text(
+                    stringResource(R.string.home_pair, pluralStringResource(R.plurals.home_classes_count, rows.size, rows.size), pluralStringResource(R.plurals.year_groups, groups, groups)),
+                    style = MaterialTheme.typography.bodySmall.merge(Figures), color = Pacer.colors.muted,
+                )
+            }
+            item(key = "classes") {
+                RowGroup {
+                    rows.forEachIndexed { i, r ->
+                        if (i > 0) RowDivider()
+                        val days = r.groupNames.map { it.ifBlank { stringResource(R.string.app_group) } }.joinToString(" · ").ifEmpty { stringResource(R.string.year_no_groups) }
+                        LedgerRow(
+                            r.name.ifBlank { stringResource(R.string.year_class) },
+                            detail = stringResource(R.string.home_pair, days, pluralStringResource(R.plurals.year_books, r.books, r.books)),
+                            onClick = { vm.openClass(r.classId) },
+                        ) {
+                            val n = problems[r.classId] ?: 0
+                            when {
+                                r.behind > 0 -> Tag(pluralStringResource(R.plurals.classes_behind, r.behind, r.behind), warn = true)
+                                n > 0 -> Tag(pluralStringResource(R.plurals.year_problems, n, n), warn = true)
+                                r.measured -> StatusLabel(0)
+                            }
+                            Chevron()
+                        }
+                    }
                 }
             }
+            item(key = "foot") { Hint(stringResource(R.string.year_defaults_hint)) }
         }
         item(key = "add") { PrimaryButton(stringResource(R.string.year_new_class), { adding = true }, Modifier.fillMaxWidth()) }
-        item(key = "foot") { Hint(stringResource(R.string.year_defaults_hint)) }
     }
 
     if (adding) {
         var name by rememberSaveable { mutableStateOf("") }
         SheetFrame(stringResource(R.string.year_new_class), stringResource(R.string.year_add), true, { vm.newClass(name.trim()) }, { adding = false }) {
             CommitField(name, { name = it }, stringResource(R.string.year_name), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_class_example))
-        }
-    }
-}
-
-/** A year in the picker: a radio, its name over its dates and class count, and a ⋮ menu. */
-@Composable
-internal fun YearRow(y: SchoolYear, selected: Boolean, onOpen: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
-    var menu by rememberSaveable { mutableStateOf(false) }
-    val context = LocalContext.current
-    val tick = rememberSegmentHaptic()
-    val name = y.name.ifBlank { context.getString(R.string.home_year) }
-    val options = stringResource(R.string.home_options, name)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = { tick(); onOpen() }),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null, modifier = Modifier.padding(horizontal = Space.m))
-        Column(Modifier.weight(1f).padding(vertical = Space.s)) {
-            Text(name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.home_pair, y.dates(context), pluralStringResource(R.plurals.home_classes_count, y.classes.size, y.classes.size)),
-                style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted,
-            )
-        }
-        Box {
-            TextButton(
-                onClick = { menu = true },
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(48.dp).semantics { contentDescription = options },
-            ) { AppIcon(AppIcons.MoreVert) }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.home_rename)) }, onClick = { menu = false; onRename() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.home_delete), color = Pacer.colors.warn) }, onClick = { menu = false; onDelete() })
-            }
         }
     }
 }

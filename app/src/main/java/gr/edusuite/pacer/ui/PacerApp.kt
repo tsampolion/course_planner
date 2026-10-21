@@ -162,6 +162,9 @@ fun PacerApp(vm: PacerViewModel) {
         if (plan == null || group == null) null else GroupReport(plan, group)
     }
     val warnings = remember(groupReport) { groupReport?.let(::groupWarnings).orEmpty() }
+    // Pacing overview's warning button counts the year's problems instead (decision 7).
+    val yearProblems = remember(screen, ui.data.year) { if (screen == Screen.Overview) ui.data.year?.let { Nav.problems(it).size } ?: 0 else 0 }
+    var problemsOpen by rememberSaveable(screen.key()) { mutableStateOf(false) }
     val groupMenu = groupReport?.let { report ->
         GroupMenu(
             hasRows = report.rows.isNotEmpty(),
@@ -208,10 +211,10 @@ fun PacerApp(vm: PacerViewModel) {
                 if (screen != Screen.Home) ScreenBar(
                     screen, ui.data, vm,
                     undoDepth = if (screen.showsUndo) ui.undoDepth else null,
-                    warnings = warnings.size,
+                    warnings = if (screen == Screen.Overview) yearProblems else warnings.size,
                     onMenu = openMenu,
                     onSwitch = { switching = true },
-                    onWarnings = { warningsOpen = true },
+                    onWarnings = { if (screen == Screen.Overview) problemsOpen = true else warningsOpen = true },
                     groupMenu = groupMenu,
                 )
             },
@@ -244,6 +247,9 @@ fun PacerApp(vm: PacerViewModel) {
     val year = ui.data.year
     if (switching && screen is Screen.Group && year != null) {
         GroupSwitcherSheet(year, ui.data.activeClass, screen.id, recent, vm) { switching = false }
+    }
+    if (problemsOpen && screen == Screen.Overview && year != null) {
+        YearProblemsSheet(year, vm) { problemsOpen = false }
     }
     if (printing && year != null && groupReport != null) {
         PrintDialog(year, only = ui.data.activeClass to groupReport.group.id) { printing = false }

@@ -102,27 +102,27 @@ and `ContrastTest` green.
 
 ## PR5: other screens (3.5.0)
 
-- [ ] **Classes:** a row per class (groups, books, status) and a New class button.
-- [ ] **Class:**
+- [x] **Classes:** a row per class (groups, books, status) and a New class button.
+- [x] **Class:**
   - groups first, with their status;
   - books (lead book and supplementary marked);
   - Tests & worksheets and Homework rows;
   - Reset all positions and Delete this class at the end.
-- [ ] **School year:**
+- [x] **School year:**
   - the term in one line;
   - days off as dated rows with the day-off edge;
   - Add Greek public holidays.
-- [ ] **Pacing overview:**
+- [x] **Pacing overview:**
   - class by class, with `sortGroups(order)` (unit-tested: most behind first, by name, by next lesson) inside each
     class only;
   - one pale status pill per row;
   - the year's problems in the warning sheet.
-- [ ] **Tests and Homework, restyle only:**
+- [x] **Tests and Homework, restyle only:**
   - dated rows with the test edge;
   - ⋮ with Remove on each row, beside the existing swipe and long-press;
   - the past tests line.
-- [ ] **Welcome:** a full first-run page in place of `WelcomeDialog`. Settings → Getting started opens it.
-- [ ] **Print sheet:** radio buttons (this group, the class, the year) and margins.
+- [x] **Welcome:** a full first-run page in place of `WelcomeDialog`. Settings → Getting started opens it.
+- [x] **Print sheet:** radio buttons (this group, the class, the year) and margins.
 
 ## PR6: large text and the background pattern (3.6.0)
 

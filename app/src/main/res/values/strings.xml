@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <plurals name="class_lessons_unit">
-        <item quantity="one">lesson left</item>
-        <item quantity="other">lessons left</item>
-    </plurals>
     <string name="app_name">Course Pacer</string>
     <string name="app_settings">Settings</string>
     <string name="app_year_settings">School year settings</string>
@@ -21,7 +17,6 @@
         <item quantity="one">Undo (%1$d)</item>
         <item quantity="other">Undo (%1$d)</item>
     </plurals>
-    <string name="class_lesson_settings">%1$d min · %2$s pages per lesson</string>
     <string name="class_positions_reset">Positions reset</string>
     <string name="class_deleted">Deleted “%1$s”</string>
     <string name="class_removed">Removed “%1$s”</string>
@@ -29,10 +24,8 @@
     <string name="class_group">Group</string>
     <string name="class_book">Book</string>
     <string name="class_test">Test</string>
-    <string name="class_next_suffix"> · next %1$s %2$s</string>
     <string name="class_takes_lesson">takes the lesson</string>
     <string name="class_alongside_lesson">alongside the lesson</string>
-    <string name="class_test_detail">%1$s %2$s · %3$s</string>
     <string name="class_page_range">pp. %1$d–%2$d</string>
     <string name="class_due_by">by %1$s</string>
     <string name="class_book_summary">%1$s · %2$s</string>
@@ -45,7 +38,6 @@
     <string name="class_a_group_is_a_set_of_students_taught_from_these_books_with_it">A group is a set of students taught from these books, with its own lesson days and place in the books.</string>
     <string name="class_add_group">Add group</string>
     <string name="class_name">Name</string>
-    <string name="class_lessons">Lessons</string>
     <string name="class_books">Books</string>
     <string name="class_add">Add</string>
     <string name="class_each_book_is_paced_on_its_own_skipped_pages_apply_to_every_g">Each book is paced on its own. Skipped pages apply to every group; homework applies to one group.</string>
@@ -72,7 +64,6 @@
     <string name="class_no_upcoming_tests">No upcoming tests.</string>
     <string name="class_all_groups">All groups</string>
     <string name="class_not_a_lesson_day">Not a lesson day</string>
-    <string name="class_remove_test">Remove test</string>
     <string name="class_title">Title</string>
     <string name="class_first_page">First page</string>
     <string name="class_last_page">Last page</string>
@@ -114,15 +105,10 @@
         <item quantity="one">%d teachable page</item>
         <item quantity="other">%d teachable pages</item>
     </plurals>
-    <plurals name="class_skipped">
-        <item quantity="one">%d skipped page</item>
-        <item quantity="other">%d skipped pages</item>
-    </plurals>
     <plurals name="class_pages">
         <item quantity="one">%d page</item>
         <item quantity="other">%d pages</item>
     </plurals>
-    <string name="class_day_separator"> · </string>
     <string name="class_monday">Mon</string>
     <string name="class_tuesday">Tue</string>
     <string name="class_wednesday">Wed</string>
@@ -243,7 +229,6 @@
     <string name="home_overview">Pacing overview</string>
     <string name="home_dates_missing">Dates not set</string>
     <string name="home_rename">Rename</string>
-    <string name="home_delete">Delete</string>
     <string name="home_class">Class</string>
     <string name="home_group">Group</string>
     <string name="home_no_pages">No pages</string>
@@ -256,10 +241,8 @@
     <string name="home_holidays">Add the Greek public holidays as days off</string>
     <string name="home_date_range">%1$s – %2$s</string>
     <string name="home_pair">%1$s · %2$s</string>
-    <string name="home_options">Options for %1$s</string>
     <string name="print_title">Print or save PDF</string>
     <string name="print_print">Print</string>
-    <string name="print_classes">Classes</string>
     <string name="print_none">No classes yet.</string>
     <string name="print_class">Class</string>
     <string name="print_margins">Margins</string>
@@ -387,7 +370,6 @@
     <string name="year_already_there">Already there</string>
     <string name="year_holidays_hint">Greek holidays are computed from Orthodox Easter for every calendar year the school year touches. Check them against your school’s calendar before relying on them.</string>
     <string name="year_school_year">School year</string>
-    <string name="year_switch">School years</string>
     <string name="year_name">Name</string>
     <string name="year_starts">Starts</string>
     <string name="year_ends">Ends</string>
@@ -398,8 +380,6 @@
     <string name="year_no_days_off">No days off yet.</string>
     <string name="year_day_off">Day off</string>
     <string name="year_add_day_off">Add a day off</string>
-    <string name="year_add_holidays">Add Greek public holidays for this year</string>
-    <string name="year_school_year_name">School year name</string>
     <string name="year_term_starts">Term starts</string>
     <string name="year_term_ends">Term ends</string>
     <string name="year_save">Save</string>
@@ -425,22 +405,7 @@
     <string name="overview_class">Class</string>
     <string name="overview_no_groups">No groups in this class yet.</string>
     <string name="overview_group">Group</string>
-    <string name="overview_no_days">No days set</string>
-    <string name="overview_lessons_left">Lessons left</string>
-    <string name="overview_pages_left">Pages left</string>
-    <string name="overview_pace_needed">Pace needed</string>
-    <string name="overview_set_pace">Set the pace you can sustain on the class screen to get a verdict.</string>
-    <string name="overview_no_pages">No pages</string>
     <string name="overview_no_lessons">No lessons left in this term.</string>
-    <plurals name="overview_short">
-        <item quantity="one">Short by %1$s lesson at %2$s pages each</item>
-        <item quantity="other">Short by %1$s lessons at %2$s pages each</item>
-    </plurals>
-    <plurals name="overview_fits">
-        <item quantity="one">On track · %1$s lesson to spare</item>
-        <item quantity="other">On track · %1$s lessons to spare</item>
-    </plurals>
-    <string name="overview_next">Next: %1$s %2$s · %3$s</string>
     <plurals name="year_holidays_added">
         <item quantity="one">%d holiday added</item>
         <item quantity="other">%d holidays added</item>
@@ -461,12 +426,6 @@
     <string name="year_done">Done</string>
     <string name="year_dates_not_set">Dates not set</string>
     <string name="year_date_warning">Set a start and end date, with the end on or after the start.</string>
-    <string name="overview_on_track">On track</string>
-    <string name="overview_no_pace">No pace set</string>
-    <plurals name="overview_short_chip">
-        <item quantity="one">Short by %s lesson</item>
-        <item quantity="other">Short by %s lessons</item>
-    </plurals>
     <string name="custom_created">Custom plan created</string>
     <string name="custom_mine">My plan</string>
     <string name="custom_proposed">Proposed</string>
@@ -524,7 +483,6 @@
     <string name="class_lead_book">Lead book</string>
     <string name="class_lead_none">None: each book keeps its own pace</string>
     <string name="class_lead_hint">The other books keep step with the lead book: when it is a third of the way through, so are they. A book with its own finish-by date keeps its own pace. Give the books unit start pages to keep them in step unit by unit.</string>
-    <string name="class_leads">Leads</string>
     <string name="class_units">Unit start pages</string>
     <string name="class_units_placeholder">1, 13, 25, 37</string>
     <string name="class_units_hint">The page each unit starts on. When this book and the lead book have the same number of units, this book keeps step unit by unit.</string>
@@ -590,10 +548,6 @@
     <string name="supp_choose_pages">Choose pages to teach…</string>
     <string name="supp_restored">The lesson\'s core pages are back as they were before. Change them if you like.</string>
     <string name="supp_save_failed">Some pages can\'t go in this lesson. Check the fields and try again.</string>
-    <plurals name="supp_pages">
-        <item quantity="one">%d page</item>
-        <item quantity="other">%d pages</item>
-    </plurals>
     <string name="nav_menu">Menu</string>
     <string name="nav_search">Find a class or group</string>
     <string name="nav_clear_search">Clear search</string>
@@ -655,7 +609,9 @@
     <string name="ledger_mark_not_done">Mark not done</string>
     <string name="group_more">More options</string>
     <string name="group_print">Print</string>
-    <string name="print_only_group">Only %1$s · %2$s</string>
+    <string name="print_only_group">This group: %1$s · %2$s</string>
+    <string name="print_whole_class">Every group in %1$s</string>
+    <string name="print_whole_year">Every group this year</string>
     <!-- Group, Stats tab (3.4.0) -->
     <string name="hint_got_it">Got it</string>
     <string name="hint_lesson_menu">Long-press a lesson, or use TalkBack\'s actions, to change its pages, mark everything up to it done, or plan it.</string>
@@ -702,4 +658,50 @@
         <item quantity="one">%1$s: %2$d lesson</item>
         <item quantity="other">%1$s: %2$d lessons</item>
     </plurals>
+    <!-- 3.5.0: Classes, Class, School year, Pacing overview, Tests and Homework -->
+    <string name="rows_options">Options for %1$s</string>
+    <plurals name="classes_behind">
+        <item quantity="one">%d group behind</item>
+        <item quantity="other">%d groups behind</item>
+    </plurals>
+    <string name="year_edit">Edit</string>
+    <plurals name="year_weeks">
+        <item quantity="one">%d week</item>
+        <item quantity="other">%d weeks</item>
+    </plurals>
+    <plurals name="year_days_off_count">
+        <item quantity="one">%d day off</item>
+        <item quantity="other">%d days off</item>
+    </plurals>
+    <string name="year_add_greek">Add Greek public holidays</string>
+    <string name="class_summary">%1$d min lessons · %2$s pages a lesson</string>
+    <string name="class_upcoming_next">%1$s · next %2$s</string>
+    <plurals name="class_upcoming_count">
+        <item quantity="one">%d upcoming</item>
+        <item quantity="other">%d upcoming</item>
+    </plurals>
+    <string name="class_next_on">Next %1$s</string>
+    <string name="class_edit_group">Edit %1$s</string>
+    <plurals name="class_pages_chosen">
+        <item quantity="one">%d page chosen</item>
+        <item quantity="other">%d pages chosen</item>
+    </plurals>
+    <string name="class_skips">skips %1$s</string>
+    <string name="class_show">Show</string>
+    <string name="class_hide">Hide</string>
+    <plurals name="overview_behind_suffix">
+        <item quantity="one"> · %d behind</item>
+        <item quantity="other"> · %d behind</item>
+    </plurals>
+    <plurals name="overview_class_behind">
+        <item quantity="one">%d behind</item>
+        <item quantity="other">%d behind</item>
+    </plurals>
+    <string name="overview_all_on_pace">All on pace</string>
+    <string name="overview_next_on">Next %1$s %2$s</string>
+    <string name="overview_sort">Groups: %1$s</string>
+    <string name="overview_sort_behind">most behind first</string>
+    <string name="overview_sort_name">by name</string>
+    <string name="overview_sort_next">by next lesson</string>
+    <string name="overview_problems">Problems in this year</string>
 </resources>
