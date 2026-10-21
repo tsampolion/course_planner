@@ -42,6 +42,7 @@ import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.model.ThemeMode
@@ -287,6 +288,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }
     fun setScheduleByMonth(v: Boolean) = editSettings { it.copy(scheduleByMonth = v) }
     fun setWelcomeSeen() = editSettings { it.copy(welcomeSeen = true) }
+    fun setName(v: String) = editSettings { it.copy(name = v) }
+    fun markHintSeen(id: String) = editSettings { Hints.markSeen(it, id) }
+    fun showTipsAgain() = editSettings { Hints.reset(it) }
 
     // ---- school years ------------------------------------------------------
 

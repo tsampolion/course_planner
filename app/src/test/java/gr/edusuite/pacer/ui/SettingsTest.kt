@@ -1,11 +1,13 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.model.seedPlan
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -38,5 +40,27 @@ class SettingsTest {
     @Test fun welcomeShowsUntilSeen() {
         assertFalse(Settings().welcomeSeen)
         assertTrue(Settings(welcomeSeen = true).sanitised().welcomeSeen)
+    }
+
+    @Test fun nameIsOneTrimmedLineOfBoundedLength() {
+        assertEquals("", Settings(name = "   ").sanitised().name)
+        assertEquals("Anna Maria", Settings(name = "  Anna \n  Maria ").sanitised().name)
+        assertEquals(Settings.MAX_NAME, Settings(name = "x".repeat(100)).sanitised().name.length)
+    }
+
+    @Test fun hintsAreSeenOnceUntilShownAgain() {
+        val start = Settings()
+        assertFalse(Hints.seen(start, "a"))
+        val seen = Hints.markSeen(start, "a")
+        assertTrue(Hints.seen(seen, "a"))
+        assertFalse(Hints.seen(seen, "b"))
+        assertSame(seen, Hints.markSeen(seen, "a"))
+        assertTrue(Hints.seen(Hints.markSeen(seen, "b"), "a"))
+        assertFalse(Hints.seen(Hints.reset(seen), "a"))
+        assertEquals(start, Hints.markSeen(start, " "))
+    }
+
+    @Test fun sanitisingKeepsSeenTipsButDropsBlankIds() {
+        assertEquals(setOf("a"), Settings(seenTips = setOf("a", "", " ")).sanitised().seenTips)
     }
 }
