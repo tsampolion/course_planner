@@ -74,31 +74,31 @@ and `ContrastTest` green.
 
 ## PR4: group Plan and Stats (3.4.0)
 
-- [ ] **`TodayBox`:** the date, pages, Done and **Pages taught** (opens the existing `PagesTaughtDialog`/
+- [x] **`TodayBox`:** the date, pages, Done and **Pages taught** (opens the existing `PagesTaughtDialog`/
   `LessonPlanSheet`).
-- [ ] **Custom-plan line** (two sentences and Create). Once a plan exists, the My plan | Proposed switch takes its
+- [x] **Custom-plan line** (two sentences and Create). Once a plan exists, the My plan | Proposed switch takes its
   place. `CoverageCard` fixes move into `WarningsSheet`.
-- [ ] **`LessonLedger`:**
+- [x] **`LessonLedger`:**
   - `weekSections(rows, today)` (unit-tested), with week headers.
   - `LessonRow` shows the date, book initials with pages and the tick, with one edge colour by kind.
   - `SlimRow` for days off and whole-lesson tests.
   - Done lessons sit above today, and the list opens at today.
-- [ ] **Row behaviour:**
+- [x] **Row behaviour:**
   - The row is one merged TalkBack node with its custom actions (Edit pages, Done up to here, Not done from here,
     custom-plan actions).
   - Long-press opens the same menu.
   - The drag grip and Move earlier/later are kept.
-- [ ] **`bookInitials(name)`**, unit-tested; full names in TalkBack.
-- [ ] **⋮ menu:** Copy, Share, Print (opens print with this group chosen), Term weeks (the day strip in a sheet) and
+- [x] **`bookInitials(name)`**, unit-tested; full names in TalkBack.
+- [x] **⋮ menu:** Copy, Share, Print (opens print with this group chosen), Term weeks (the day strip in a sheet) and
   Tips.
-- [ ] **Stats:**
+- [x] **Stats:**
   - the verdict heading via `wholeLessons`, and a one-sentence fix;
   - `FigureStrip`;
   - `PaceTrack` (a bar per core book, a tick at the `followLead` target, supplementary books as placed of total);
   - lessons-by-month columns;
   - the details list.
   - Positions still open the existing sheet.
-- [ ] **Show-once hints** use `seenTips`.
+- [x] **Show-once hints** use `seenTips`.
 
 ## PR5: other screens (3.5.0)
 

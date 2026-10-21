@@ -22,6 +22,30 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-10-21
+
+The redesign's group screen, Plan and Stats (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR4).
+
+### Added
+
+- **Today's box** first on Plan: the next lesson's date and pages, with **Done** and **Pages taught** (which opens the same pages-taught sheet as before). A long-press opens the lesson's menu.
+- **Lessons in week sections**: "This week", "Next week", then the week's dates. Done lessons sit above today's box and the list opens on it, so what was taught is a scroll up.
+- **One-line lesson rows**: the date, the books' initials with their pages ("SB 38–40 · WB 20–21") and a round tick, with one edge colour by kind (a test, a day off, pages taught as edited, planned by hand, a free lesson, supplementary pages) and a line naming the kind. Days off and tests that take the whole lesson are slim rows. TalkBack reads each row as one item with the books' full names, and offers every action in its menu (Edit pages taught, Done up to here, Not done from here, and the custom plan's) as custom actions; the drag handle and Move earlier/later stay.
+- **⋮ menu** on a group: Copy, Share, Print (which starts with just this group chosen), Term weeks (the day strip, in a sheet) and Tips.
+- **Stats**: the verdict as a heading in whole lessons ("Short by 2 lessons"), the same figure as everywhere else, with a one-sentence fix; one figure strip (Lessons left, Pages left, Pace needed to two decimals); a **pace track** with a bar per book and a tick where it would be in step with the lead book (the existing lead-book rule; no new figure), supplementary books as placed of their pages; lessons by month as columns; and a plain details list. Tapping a book still opens its position.
+- Show-once tips on Plan (the lesson menu) and Stats (the pace track), remembered with "Show tips again" in Settings.
+
+### Changed
+
+- The custom-plan card is now one line ("Start from this schedule and make it yours." with Create). Once a plan exists, the My plan | Proposed switch takes its place, with Re-pace, Copy to… and Delete under it; its coverage problems and their fixes are in the Warnings sheet.
+- Undo in the top bar is a symbol, so the bar has room for the title, the warnings and ⋮. TalkBack still reads how many steps it takes back.
+
+### Removed
+
+- The All months | By month switch: the schedule is one list in week sections. Its stored setting goes too, and older installs drop it on the next settings save.
+- Print on the School year screen: it is in a group's ⋮ menu, which starts with that group and can print whole classes instead.
+- The Schedule heading with Copy and Share (now in ⋮), the Term weeks and Tips sections on the page, and the custom plan's coverage bars.
+
 ## [3.3.0] - 2026-10-21
 
 The redesign's Home (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR3).
@@ -523,7 +547,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/tsampolion/course_planner/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/tsampolion/course_planner/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/tsampolion/course_planner/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/tsampolion/course_planner/compare/v2.10.1...v3.1.0

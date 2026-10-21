@@ -5,8 +5,10 @@
 > tokens, `Figures`, the 48dp segmented switch and targets, and the pale status pill (D1, D2, D8, D10, D11's pills).
 > **Navigation landed in 3.2.0** (PR2): the ☰ menu, the group switcher, the Warnings sheet and the Pacing overview
 > name (D5 on phones, D7). **Home landed in 3.3.0** (PR3): "Hello, name", the next-lesson bar, the Classes card and
-> the Pacing overview board (D3, D4, D11's board cells), with the year switcher moved to School year. Until each later PR lands, the rest of the app still follows
-> `docs/EDUSUITE_STYLE_GUIDE.md`. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
+> the Pacing overview board (D3, D4, D11's board cells), with the year switcher moved to School year. **The group
+> screen landed in 3.4.0** (PR4): today's box, the custom-plan line, the lesson ledger in week sections with edge
+> colours, the ⋮ menu, and Stats with the pace track (D6, D8 on lesson rows). Until each later PR lands, the rest of
+> the app still follows `docs/EDUSUITE_STYLE_GUIDE.md`. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.
 This file records where Course Pacer departs from it. Every departure is Pacer-only for now. Together they are

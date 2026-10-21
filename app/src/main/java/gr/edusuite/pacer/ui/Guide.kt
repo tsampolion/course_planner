@@ -3,6 +3,7 @@ package gr.edusuite.pacer.ui
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -85,6 +86,20 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
  * once that is done, so nothing about it is stored. [action] points to another screen or dialog;
  * leave it out when the screen's own add button sits right below.
  */
+/**
+ * A show-once hint (design decision 19): a muted line with "Got it", which remembers [id] in Settings.seenTips for the
+ * whole app. Nothing shows once it was seen, until Settings → Show tips again.
+ */
+@Composable
+fun ShowOnceHint(id: String, seen: Set<String>, text: String, onSeen: (String) -> Unit, modifier: Modifier = Modifier) {
+    if (id in seen) return
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+        AppIcon(AppIcons.Info, Modifier.size(20.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted, modifier = Modifier.weight(1f))
+        TertiaryButton(stringResource(R.string.hint_got_it), { onSeen(id) })
+    }
+}
+
 @Composable
 fun GuideCard(title: String, text: String, modifier: Modifier = Modifier, action: Pair<String, () -> Unit>? = null, onDismiss: (() -> Unit)? = null) {
     val c = Pacer.colors

@@ -13,7 +13,6 @@ class SettingsStore(context: Context) {
         lessonMins = prefs.getInt(MINS, Settings.DEFAULT_MINS),
         // A string, not a float, so 4.1 reads back as 4.1.
         pace = prefs.getString(PACE, null)?.toDoubleOrNull() ?: Settings.DEFAULT_PACE,
-        scheduleByMonth = prefs.getBoolean(BY_MONTH, false),
         welcomeSeen = prefs.getBoolean(WELCOME, false),
         name = prefs.getString(NAME, null).orEmpty(),
         // A copy: the set SharedPreferences returns must not be changed or kept.
@@ -25,7 +24,8 @@ class SettingsStore(context: Context) {
             .putString(THEME, s.theme.name)
             .putInt(MINS, s.lessonMins)
             .putString(PACE, s.pace.toString())
-            .putBoolean(BY_MONTH, s.scheduleByMonth)
+            // The schedule's By month view went in 3.4.0; its old setting goes too.
+            .remove(BY_MONTH)
             .putBoolean(WELCOME, s.welcomeSeen)
             .putString(NAME, s.name)
             .putStringSet(TIPS, s.seenTips.toSet())
@@ -38,6 +38,7 @@ class SettingsStore(context: Context) {
         const val THEME = "theme"
         const val MINS = "lessonMins"
         const val PACE = "pace"
+        /** No longer stored (3.4.0); removed from older installs on the next save. */
         const val BY_MONTH = "scheduleByMonth"
         const val WELCOME = "welcomeSeen"
         const val NAME = "name"

@@ -77,18 +77,23 @@ import gr.edusuite.pacer.ui.theme.Space
 import kotlinx.coroutines.delay
 
 /*
- * The custom plan on the group screen (docs/CUSTOM_PLANS_BRIEF.md): the card that creates one, the switch between it
- * and the proposed plan, how well it covers the pages left with a one-tap fix for each problem, the lesson editor and
- * the drag handle. The rules live in engine/Custom.kt; this file only lays them out.
+ * The custom plan on the group screen (docs/CUSTOM_PLANS_BRIEF.md): the line that creates one, the switch between it
+ * and the proposed plan with what the plan offers as a whole, the lesson editor and the drag handle. The rules live in
+ * engine/Custom.kt; this file only lays them out.
  */
 
-/** Offers to make the group's own plan from the proposed one. */
+/**
+ * The custom-plan line under today's box (decision 8): two sentences and Create, with no card. Once a plan exists the
+ * My plan | Proposed switch takes its place.
+ */
 @Composable
-fun CreatePlanCard(onCreate: () -> Unit, modifier: Modifier = Modifier) {
-    Tile(Pacer.colors.tileMint, modifier) {
-        Text(stringResource(R.string.custom_create_title), style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.custom_create_body), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
-        PrimaryButton(stringResource(R.string.custom_create), onCreate, Modifier.padding(top = Space.s))
+fun CustomPlanLine(onCreate: () -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(R.string.custom_line_title), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.custom_line_body), style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
+        }
+        SecondaryButton(stringResource(R.string.custom_line_create), onCreate)
     }
 }
 
@@ -122,51 +127,22 @@ fun PlanSourceBar(custom: CustomPlan, showingMine: Boolean, onShow: (Boolean) ->
 }
 
 /**
- * How the custom plan covers the pages left: a bar per book. Its problems and their fixes are in the Warnings sheet.
- * Under it, re-pace, copy to another group and delete.
+ * What the custom plan offers as a whole, under the switch: re-pace its untouched lessons, copy it to another group of
+ * the class, or delete it. Its coverage problems and their fixes are in the Warnings sheet.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun CoverageCard(
-    report: GroupReport,
-    coverage: Coverage,
-    others: List<Group>,
-    onRepace: () -> Unit,
-    onCopy: (Group) -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val motion = animationsEnabled()
-    val plan = report.plan
+fun PlanOptions(others: List<Group>, onRepace: () -> Unit, onCopy: (Group) -> Unit, onDelete: () -> Unit, modifier: Modifier = Modifier) {
     var copying by remember { mutableStateOf(false) }
-    Section(stringResource(R.string.custom_your_plan), modifier.animateContentSize(if (motion) Motion.settle() else snap())) {
-        plan.coreBooks.forEach { b ->
-            val left = remember(report) { plan.remainingPages(report.group, b).size }
-            val missing = coverage.missing[b.id].orEmpty().size
-            val planned = left - missing
-            val fraction by animateFloatAsState(if (left > 0) planned.toFloat() / left else 1f, if (motion) Motion.settle() else snap())
-            Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(b.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                    AnimatedFigure(stringResource(R.string.custom_book_cover, planned, left), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted)
-                }
-                Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(if (missing > 0) Pacer.colors.warnSoft else Pacer.colors.accentSoft)) {
-                    Box(Modifier.fillMaxHeight().fillMaxWidth(fraction).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
-                }
+    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+        TertiaryButton(stringResource(R.string.custom_repace_all), onRepace)
+        if (others.isNotEmpty()) Box {
+            TertiaryButton(stringResource(R.string.custom_copy_to), { copying = true })
+            DropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
+                others.forEach { o -> DropdownMenuItem(text = { Text(o.name) }, onClick = { copying = false; onCopy(o) }) }
             }
         }
-        if (coverage.ok) Tag(stringResource(R.string.custom_all_covered))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-            TertiaryButton(stringResource(R.string.custom_repace_all), onRepace)
-            if (others.isNotEmpty()) Box {
-                TertiaryButton(stringResource(R.string.custom_copy_to), { copying = true })
-                DropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
-                    others.forEach { o -> DropdownMenuItem(text = { Text(o.name) }, onClick = { copying = false; onCopy(o) }) }
-                }
-            }
-            TertiaryButton(stringResource(R.string.custom_delete), onDelete, color = Pacer.colors.warn)
-        }
-        Hint(stringResource(R.string.custom_hint))
+        TertiaryButton(stringResource(R.string.custom_delete), onDelete, color = Pacer.colors.warn)
     }
 }
 

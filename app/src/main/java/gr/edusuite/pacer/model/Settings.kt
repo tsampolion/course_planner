@@ -19,8 +19,6 @@ data class Settings(
     val lessonMins: Int = DEFAULT_MINS,
     /** Sustainable pace, in pages per lesson, for new classes. */
     val pace: Double = DEFAULT_PACE,
-    /** Schedules show one month at a time, in tabs, instead of every month in one list. */
-    val scheduleByMonth: Boolean = false,
     /** The welcome guide was shown and closed, so a launch with no school years doesn't show it again. */
     val welcomeSeen: Boolean = false,
     /** The teacher's name for Home's greeting. Empty means Home says "Hello" alone. */
@@ -60,6 +58,12 @@ data class Settings(
  * once shipped, since stored ids outlive the code that shows them. Add new ids here.
  */
 object Hints {
+    /** The group's Plan tab: long-press a lesson for its menu. */
+    const val LESSON_MENU = "group.lessonMenu"
+
+    /** The group's Stats tab: what the pace track's tick means, and tapping a book. */
+    const val PACE_TRACK = "group.paceTrack"
+
     /** True once the hint [id] was shown and dismissed, until "Show tips again". */
     fun seen(settings: Settings, id: String): Boolean = id in settings.seenTips
 

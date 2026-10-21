@@ -16,7 +16,7 @@ A teacher can save every school year to a file of their choice and read that fil
 
 ## Decisions (from the questions)
 
-1. **Contents:** every school year, in exactly the format of `plans.json` (`JsonCodec.encode`, the current version). Settings (theme, new-class defaults, schedule by month) stay out; they belong to the phone.
+1. **Contents:** every school year, in exactly the format of `plans.json` (`JsonCodec.encode`, the current version). Settings (theme, new-class defaults, your name, the tips already seen) stay out; they belong to the phone.
 2. **Import asks each time.** After the file is read, a dialog says how many years it holds and names them, then offers:
    - **Add**: the file's years go beside the ones on the phone. A year whose id is already on the phone gets a new id. A year whose name is already taken gets " (imported)", or " (imported 2)" and so on, after its name. Nothing on the phone changes.
    - **Replace all**: the file's years become the only ones on the phone, and no year stays open.
