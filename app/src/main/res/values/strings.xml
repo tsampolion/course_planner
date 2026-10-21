@@ -161,11 +161,8 @@
     <string name="group_saved">Pages taught saved</string>
     <string name="group_lesson_done">Lesson marked done</string>
     <string name="group_term_weeks">Term weeks</string>
-    <string name="group_edit_pages">Edit pages taught</string>
     <string name="group_copy">Copy</string>
     <string name="group_share">Share</string>
-    <string name="group_all_months">All months</string>
-    <string name="group_by_month">By month</string>
     <string name="group_add_books">Add this class\'s books</string>
     <string name="group_add_books_hint">Each lesson shows its pages once the class has books. Add them on the class screen.</string>
     <string name="group_no_range">No lessons left in this range.</string>
@@ -183,34 +180,27 @@
     <string name="group_peak">Heaviest lesson</string>
     <string name="group_hours">Contact hours</string>
     <string name="group_banked">Pages banked as homework</string>
-    <string name="group_books">Books</string>
     <string name="group_due_passed">Due passed</string>
     <string name="group_position_hint">The next page to teach. Updating it redistributes the remaining pages over future lessons.</string>
     <string name="group_resume">Resume at page</string>
     <string name="group_schedule">%1$s · schedule</string>
     <string name="group_tick_hint">Tick a lesson once it\'s taught. Long-press a lesson to change the pages it covered, to mark everything up to it, or to undo from it.</string>
-    <string name="group_lesson_done_label">Lesson %1$d done</string>
     <string name="group_book_pages">%1$s: %2$s</string>
     <string name="group_book_number">Book %1$d</string>
     <string name="group_pages_hint">Pages taught from each book, like 5-8, 10. Leave a book empty if you taught none. Pages left out go back into the schedule, and extra pages come off later lessons.%1$s</string>
     <string name="group_saving_marks_done">" Saving marks the lesson done."</string>
     <string name="group_page_error">Use pages %1$d–%2$d, like 5-8, 10</string>
     <string name="group_planned">Planned: %1$s</string>
-    <string name="group_verdict_short">Short by %1$s lessons at %2$s pages each. Finishing needs %3$s per lesson, or %4$d fewer pages.</string>
-    <string name="group_verdict_fits">Fits, with %1$s lessons to spare at %2$s pages each.</string>
     <string name="group_due">By %1$s</string>
     <string name="group_position">%1$s · position</string>
-    <string name="group_schedule_title">Schedule</string>
     <string name="group_no_term_lessons">No lessons left in this term</string>
     <string name="group_pace_needed">Pace needed</string>
-    <string name="group_pace_unit">pp/lesson</string>
     <string name="group_blocked_lessons">Blocked lessons</string>
     <string name="group_no_before_due">No lesson before due</string>
     <string name="group_no_measure">No teaching lessons to measure yet.</string>
     <string name="group_set_pace">Set a sustainable pace on the class screen to see the verdict.</string>
     <string name="group_day_off">Day off: %1$s</string>
     <string name="group_no_on_day">No lesson on %1$s</string>
-    <string name="group_next_number">Next lesson #%1$d</string>
     <string name="group_tab_plan">Plan</string>
     <string name="group_tab_stats">Stats</string>
     <string name="group_tips">Tips</string>
@@ -220,10 +210,6 @@
     <plurals name="group_blocked">
         <item quantity="one">%1$d lesson goes to tests or worksheets; pages spread over %2$s.</item>
         <item quantity="other">%1$d lessons go to tests or worksheets; pages spread over %2$s.</item>
-    </plurals>
-    <plurals name="group_book_summary">
-        <item quantity="one">Resume p. %1$d · %2$d page left · %3$s per lesson</item>
-        <item quantity="other">Resume p. %1$d · %2$d pages left · %3$s per lesson</item>
     </plurals>
     <plurals name="group_teaching_count">
         <item quantity="one">%1$d lesson</item>
@@ -485,9 +471,6 @@
         <item quantity="one">Short by %s lesson</item>
         <item quantity="other">Short by %s lessons</item>
     </plurals>
-    <string name="custom_create_title">Create your custom plan</string>
-    <string name="custom_create_body">Start from this schedule and make it yours: change a lesson\'s pages, add revision lessons, move lessons around, add notes. The proposed plan stays as your fallback.</string>
-    <string name="custom_create">Create my plan</string>
     <string name="custom_created">Custom plan created</string>
     <string name="custom_mine">My plan</string>
     <string name="custom_proposed">Proposed</string>
@@ -496,9 +479,6 @@
     <string name="custom_use_this">Use this plan</string>
     <string name="custom_now_mine">Teaching from your plan</string>
     <string name="custom_now_proposed">Teaching from the proposed plan</string>
-    <string name="custom_your_plan">Your plan</string>
-    <string name="custom_book_cover">%1$d of %2$d pages planned</string>
-    <string name="custom_all_covered">Every page has a lesson</string>
     <string name="custom_fix_repace">Re-pace</string>
     <string name="custom_fix_tidy">Tidy</string>
     <string name="custom_fix_fit">Fit to term</string>
@@ -603,7 +583,6 @@
     <string name="supp_add_pages">Add %1$s pages…</string>
     <string name="supp_line">%1$s: %2$s</string>
     <string name="supp_left">%1$s: %2$s not placed yet</string>
-    <string name="supp_stats">%1$d of %2$d pages placed · %3$d taught</string>
     <string name="supp_replace_title">Pages to teach this lesson</string>
     <string name="supp_replace_hint">%1$s counts in this lesson. Enter what each core book will teach: pages or ranges, blank for none, or 0 to leave a book out. Pages you give up move to the next lessons.</string>
     <string name="supp_replace_apply">Apply</string>
@@ -662,4 +641,66 @@
     </plurals>
     <string name="warnings_book_hint">The other books are further on.</string>
     <string name="warnings_plan_hint">In your custom plan.</string>
+    <!-- Group, Plan tab (3.4.0) -->
+    <string name="today_label">Today · lesson %1$d</string>
+    <string name="today_next_label">Next · lesson %1$d</string>
+    <string name="today_done">Done</string>
+    <string name="today_pages_taught">Pages taught</string>
+    <string name="custom_line_title">Start from this schedule and make it yours.</string>
+    <string name="custom_line_body">The proposed plan stays as your fallback.</string>
+    <string name="custom_line_create">Create</string>
+    <string name="ledger_this_week">This week</string>
+    <string name="ledger_next_week">Next week</string>
+    <string name="ledger_day_off">Day off · %1$s</string>
+    <string name="ledger_test">Test · %1$s</string>
+    <string name="ledger_by_hand">By hand</string>
+    <string name="ledger_supp">+ %1$s</string>
+    <string name="ledger_lesson_spoken">Lesson %1$d, %2$s. %3$s</string>
+    <string name="ledger_mark_not_done">Mark not done</string>
+    <string name="group_more">More options</string>
+    <string name="group_print">Print</string>
+    <string name="print_only_group">Only %1$s · %2$s</string>
+    <!-- Group, Stats tab (3.4.0) -->
+    <string name="stats_fix_short">Teach %1$s to finish, or skip %2$s.</string>
+    <plurals name="stats_more_pages">
+        <item quantity="one">about %d page more a lesson</item>
+        <item quantity="other">about %d pages more a lesson</item>
+    </plurals>
+    <plurals name="stats_pages">
+        <item quantity="one">%d page</item>
+        <item quantity="other">%d pages</item>
+    </plurals>
+    <plurals name="stats_fix_fits">
+        <item quantity="one">%1$d lesson to spare at %2$s pages a lesson.</item>
+        <item quantity="other">%1$d lessons to spare at %2$s pages a lesson.</item>
+    </plurals>
+    <string name="stats_fix_exact">The pages fit the term exactly at %1$s pages a lesson.</string>
+    <string name="stats_a_lesson">a lesson</string>
+    <string name="stats_pace_track">Pace track</string>
+    <string name="stats_set_position">Change position</string>
+    <string name="stats_lead_book">lead book</string>
+    <string name="stats_supplementary">supplementary</string>
+    <string name="stats_tag">" · %1$s"</string>
+    <string name="stats_page_of">p. %1$d of %2$d</string>
+    <string name="stats_placed">%1$d of %2$d placed</string>
+    <plurals name="stats_taught">
+        <item quantity="one">%d page taught</item>
+        <item quantity="other">%d pages taught</item>
+    </plurals>
+    <plurals name="stats_left_rate">
+        <item quantity="one">%1$d page left · %2$s a lesson</item>
+        <item quantity="other">%1$d pages left · %2$s a lesson</item>
+    </plurals>
+    <plurals name="stats_behind_lead">
+        <item quantity="one">%1$d lesson behind the lead book · in step at p. %2$d</item>
+        <item quantity="other">%1$d lessons behind the lead book · in step at p. %2$d</item>
+    </plurals>
+    <plurals name="stats_behind_others">
+        <item quantity="one">%1$d lesson behind the other books</item>
+        <item quantity="other">%1$d lessons behind the other books</item>
+    </plurals>
+    <plurals name="stats_month_spoken">
+        <item quantity="one">%1$s: %2$d lesson</item>
+        <item quantity="other">%1$s: %2$d lessons</item>
+    </plurals>
 </resources>

@@ -26,24 +26,44 @@ import androidx.compose.ui.res.stringResource
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.ui.theme.Space
 
-/** Picks which classes to print, all by default, and the page margins. */
+/**
+ * Picks which classes to print, all by default, and the page margins. Opened from a group's ⋮ with [only] (its class
+ * and group ids), it starts with just that group chosen; unticking it offers the classes.
+ */
 @Composable
-fun PrintDialog(year: SchoolYear, onDismiss: () -> Unit) {
+fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val toggle = rememberToggleHaptic()
     val segment = rememberSegmentHaptic()
     var chosen by rememberSaveable(year.id) { mutableStateOf(year.classes.map { it.id }) }
     var margin by rememberSaveable { mutableStateOf(PrintMargin.NORMAL) }
+    val onlyClass = only?.let { (c, _) -> year.classes.firstOrNull { it.id == c } }
+    val onlyGroup = only?.let { (_, g) -> onlyClass?.groups?.firstOrNull { it.id == g } }
+    var justGroup by rememberSaveable(only) { mutableStateOf(onlyGroup != null) }
     AddDialogFrame(
         stringResource(R.string.print_title),
-        canAdd = chosen.isNotEmpty(),
-        onAdd = { PrintSheet.print(context, year.name, year.classes.filter { it.id in chosen }.map(year::planFor), margin) },
+        canAdd = justGroup || chosen.isNotEmpty(),
+        onAdd = {
+            val plans = if (justGroup && onlyClass != null && onlyGroup != null) listOf(year.planFor(onlyClass).copy(groups = listOf(onlyGroup)))
+            else year.classes.filter { it.id in chosen }.map(year::planFor)
+            PrintSheet.print(context, year.name, plans, margin)
+        },
         onDismiss = onDismiss,
         confirm = stringResource(R.string.print_print),
     ) {
-        Eyebrow(stringResource(R.string.print_classes))
-        if (year.classes.isEmpty()) Hint(stringResource(R.string.print_none))
-        year.classes.forEach { c ->
+        if (onlyClass != null && onlyGroup != null) Row(
+            Modifier.fillMaxWidth().toggleable(value = justGroup, role = Role.Checkbox) { value -> toggle(value); justGroup = value },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = justGroup, onCheckedChange = null)
+            Text(
+                stringResource(R.string.print_only_group, onlyClass.name.ifBlank { context.getString(R.string.print_class) }, onlyGroup.name),
+                style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = Space.m, top = Space.s, bottom = Space.s),
+            )
+        }
+        if (!justGroup) Eyebrow(stringResource(R.string.print_classes))
+        if (!justGroup && year.classes.isEmpty()) Hint(stringResource(R.string.print_none))
+        if (!justGroup) year.classes.forEach { c ->
             val on = c.id in chosen
             Row(
                 Modifier.fillMaxWidth().toggleable(value = on, role = Role.Checkbox) { value -> toggle(value); chosen = if (value) chosen + c.id else chosen - c.id },

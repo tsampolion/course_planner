@@ -185,18 +185,21 @@ fun TertiaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
     }
 }
 
-/** An icon button on a 40dp surface pill inside a 48dp touch target (§6 Buttons). [label] is what TalkBack reads. */
+/**
+ * An icon button on a 40dp surface pill inside a 48dp touch target (§6 Buttons). [label] is what TalkBack reads; a
+ * button that isn't [enabled] draws its symbol in `outline`.
+ */
 @Composable
-fun PillIconButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun PillIconButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, content: @Composable () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     Box(
         modifier.pressFeedback(interaction)
             .size(48.dp)
-            .clickable(interactionSource = interaction, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = interaction, indication = androidx.compose.material3.ripple(), enabled = enabled, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
-        Surface(shape = CircleShape, color = Pacer.colors.surface, contentColor = Pacer.colors.ink, modifier = Modifier.size(40.dp)) {
+        Surface(shape = CircleShape, color = Pacer.colors.surface, contentColor = if (enabled) Pacer.colors.ink else Pacer.colors.outline, modifier = Modifier.size(40.dp)) {
             Box(contentAlignment = Alignment.Center) { content() }
         }
     }

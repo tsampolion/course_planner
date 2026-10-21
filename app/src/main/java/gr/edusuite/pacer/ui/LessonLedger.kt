@@ -293,12 +293,12 @@ private val TickW = 48.dp
 /** A book's pages as a row shows them, "SB 38–40 · WB 20–21", with supplementary books left for the line under it. */
 private fun corePages(l: Lesson, names: List<String>, supplementary: List<Boolean>): String =
     l.cells.withIndex().filter { (i, _) -> !supplementary.getOrElse(i) { false } }
-        .joinToString(" · ") { (i, cell) -> "${names.getOrElse(i) { "${i + 1}" }} $cell" }
+        .joinToString(" · ") { (i, cell) -> names.getOrElse(i) { (i + 1).toString() } + " " + cell }
 
 /** The supplementary pages a lesson places, by full name: "Reader 5–8". */
 private fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String>> =
     l.cells.withIndex().filter { (i, cell) -> actions.supplementary.getOrElse(i) { false } && cell != collapse(emptyList()) }
-        .map { (i, cell) -> i to "${actions.bookNames.getOrElse(i) { "" }} $cell" }
+        .map { (i, cell) -> i to actions.bookNames.getOrElse(i) { "" } + " " + cell }
 
 /**
  * Today's lesson, first on the Plan tab (decision 8): its date and pages, with Done and Pages taught. A long-press

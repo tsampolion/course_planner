@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
@@ -151,10 +153,27 @@ fun PacerApp(vm: PacerViewModel) {
     // The group switcher and the Warnings sheet belong to the screen they opened on.
     var switching by rememberSaveable(screen.key()) { mutableStateOf(false) }
     var warningsOpen by rememberSaveable(screen.key()) { mutableStateOf(false) }
-    val warnings = remember(screen, ui.data.plan) {
+    // What the group's ⋮ menu opened: Term weeks or Tips on the screen, or Print over it.
+    var groupSheet by rememberSaveable(screen.key()) { mutableStateOf<GroupSheet?>(null) }
+    var printing by rememberSaveable(screen.key()) { mutableStateOf(false) }
+    val groupReport = remember(screen, ui.data.plan) {
         val plan = ui.data.plan
         val group = (screen as? Screen.Group)?.let { s -> plan?.groups?.firstOrNull { it.id == s.id } }
-        if (plan == null || group == null) emptyList() else groupWarnings(GroupReport(plan, group))
+        if (plan == null || group == null) null else GroupReport(plan, group)
+    }
+    val warnings = remember(groupReport) { groupReport?.let(::groupWarnings).orEmpty() }
+    val groupMenu = groupReport?.let { report ->
+        GroupMenu(
+            hasRows = report.rows.isNotEmpty(),
+            copy = {
+                copy(context, report.asTsv())
+                // Android 13+ shows its own copy confirmation.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) toast(context.getString(R.string.app_copied))
+            },
+            share = { share(context, "${report.plan.name} — ${report.group.name}", report.asTsv()) },
+            print = { printing = true },
+            open = { groupSheet = it },
+        )
     }
     val recent by vm.recent.collectAsState()
 
@@ -193,6 +212,7 @@ fun PacerApp(vm: PacerViewModel) {
                     onMenu = openMenu,
                     onSwitch = { switching = true },
                     onWarnings = { warningsOpen = true },
+                    groupMenu = groupMenu,
                 )
             },
         ) { padding ->
@@ -215,6 +235,7 @@ fun PacerApp(vm: PacerViewModel) {
                     ScreenContent(
                         s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context,
                         onMenu = openMenu, warningsOpen = warningsOpen && s == screen, onWarningsClose = { warningsOpen = false },
+                        groupSheet = groupSheet.takeIf { s == screen }, onGroupSheetClose = { groupSheet = null },
                     )
                 }
             }
@@ -223,6 +244,9 @@ fun PacerApp(vm: PacerViewModel) {
     val year = ui.data.year
     if (switching && screen is Screen.Group && year != null) {
         GroupSwitcherSheet(year, ui.data.activeClass, screen.id, recent, vm) { switching = false }
+    }
+    if (printing && year != null && groupReport != null) {
+        PrintDialog(year, only = ui.data.activeClass to groupReport.group.id) { printing = false }
     }
     setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
 }
@@ -242,6 +266,8 @@ private fun ScreenContent(
     onMenu: () -> Unit,
     warningsOpen: Boolean,
     onWarningsClose: () -> Unit,
+    groupSheet: GroupSheet?,
+    onGroupSheetClose: () -> Unit,
 ) {
     // Each is null for a moment while the screen of something just deleted fades out.
     val year = data.year
@@ -267,16 +293,12 @@ private fun ScreenContent(
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return
             val report = remember(plan, group) { GroupReport(plan, group) }
             GroupScreen(
-                report, settings.scheduleByMonth, vm, padding,
-                onCopy = {
-                    copy(context, report.asTsv())
-                    // Android 13+ shows its own copy confirmation.
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) toast(context.getString(R.string.app_copied))
-                },
-                onShare = { share(context, "${plan.name} — ${report.group.name}", report.asTsv()) },
+                report, vm, padding,
                 undoToast = undoToast,
                 warningsOpen = warningsOpen,
                 onWarningsClose = onWarningsClose,
+                sheet = groupSheet,
+                onSheetClose = onGroupSheetClose,
             )
         }
     }
@@ -284,13 +306,34 @@ private fun ScreenContent(
 
 @Composable
 private fun UndoButton(vm: PacerViewModel, depth: Int) {
-    TertiaryButton(if (depth > 0) pluralStringResource(R.plurals.app_undo_steps, depth, depth) else stringResource(R.string.app_undo), vm::undo, enabled = depth > 0)
+    // A symbol, so the bar keeps room for the title; TalkBack still hears how many steps it can take back.
+    val label = if (depth > 0) pluralStringResource(R.plurals.app_undo_steps, depth, depth) else stringResource(R.string.app_undo)
+    PillIconButton(label, vm::undo, enabled = depth > 0) { AppIcon(AppIcons.Undo) }
+}
+
+/** What a group's ⋮ menu does: Copy and Share the schedule, Print it starting with this group, or open a sheet. */
+private class GroupMenu(val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit)
+
+/** The group's ⋮: Copy, Share, Print, Term weeks and Tips. */
+@Composable
+private fun GroupMenuButton(menu: GroupMenu) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.group_copy)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.ContentCopy) }, onClick = { open = false; menu.copy() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.group_share)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.Share) }, onClick = { open = false; menu.share() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.group_term_weeks)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.TERM_WEEKS) })
+            DropdownMenuItem(text = { Text(stringResource(R.string.group_tips)) }, leadingIcon = { AppIcon(AppIcons.Info) }, onClick = { open = false; menu.open(GroupSheet.TIPS) })
+        }
+    }
 }
 
 /**
  * Every other screen's bar: ☰ for the menu, where the screen sits over its title, and Undo where school-year data
  * changes ([undoDepth] null hides it). On a group, the title opens the group switcher and a warning button with the
- * count opens the Warnings sheet. System Back still pops the back stack.
+ * count opens the Warnings sheet, and ⋮ holds the schedule's Copy, Share, Print, Term weeks and Tips. System Back still pops the back stack.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -303,6 +346,7 @@ private fun ScreenBar(
     onMenu: () -> Unit,
     onSwitch: () -> Unit,
     onWarnings: () -> Unit,
+    groupMenu: GroupMenu?,
 ) {
     val context = LocalContext.current
     val switchable = screen is Screen.Group && data.year != null
@@ -333,6 +377,7 @@ private fun ScreenBar(
         actions = {
             if (warnings > 0) WarningButton(warnings, onWarnings)
             if (undoDepth != null) UndoButton(vm, undoDepth)
+            if (groupMenu != null) GroupMenuButton(groupMenu)
         },
     )
 }
