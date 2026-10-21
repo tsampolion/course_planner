@@ -21,7 +21,6 @@ import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.engine.verdict
 import gr.edusuite.pacer.model.SchoolYear
-import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 

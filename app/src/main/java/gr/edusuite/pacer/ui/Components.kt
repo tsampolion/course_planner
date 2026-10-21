@@ -83,7 +83,7 @@ import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.model.Settings
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
@@ -261,7 +261,7 @@ fun CommitField(
         supportingText = if (error || !isValid(text)) { { Text(errorMessage) } } else null,
         placeholder = placeholder?.let { { Text(it) } },
         singleLine = true,
-        textStyle = if (numeric) MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono) else MaterialTheme.typography.bodyLarge,
+        textStyle = if (numeric) MaterialTheme.typography.bodyLarge.merge(Figures) else MaterialTheme.typography.bodyLarge,
         shape = MaterialTheme.shapes.small,
         keyboardOptions = KeyboardOptions(
             keyboardType = when {
@@ -396,7 +396,7 @@ fun RemoveButton(what: String, onClick: () -> Unit) {
     ) { AppIcon(AppIcons.Close) }
 }
 
-/** One row in a setup list (§6 List row): a title, an optional chip, a mono detail line, and a remove button. */
+/** One row in a setup list (§6 List row): a title, an optional chip, a detail line in Figures, and a remove button. */
 @Composable
 fun ListItemRow(title: String, detail: String, tag: String? = null, warn: Boolean = false, onRemove: () -> Unit) {
     ListGroup {
@@ -409,8 +409,7 @@ fun ListItemRow(title: String, detail: String, tag: String? = null, warn: Boolea
                 }
                 Text(
                     detail,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontFamily = Mono,
+                    style = MaterialTheme.typography.bodySmall.merge(Figures),
                     color = if (warn) Pacer.colors.warn else Pacer.colors.muted,
                 )
             }

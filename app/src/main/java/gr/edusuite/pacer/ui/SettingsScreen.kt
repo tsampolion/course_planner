@@ -47,7 +47,7 @@ import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.ui.theme.Pacer
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Space
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
@@ -122,7 +122,7 @@ fun SettingsScreen(
         item(key = "about") {
             Section(stringResource(R.string.settings_about), modifier = Modifier.animateItem()) {
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.bodyLarge)
-                Text(version, style = MaterialTheme.typography.bodyMedium, fontFamily = Mono)
+                Text(version, style = MaterialTheme.typography.bodyMedium.merge(Figures))
                 Hint(stringResource(R.string.settings_local_storage))
                 Hint(stringResource(R.string.settings_suite))
                 Hint(stringResource(R.string.settings_credits))

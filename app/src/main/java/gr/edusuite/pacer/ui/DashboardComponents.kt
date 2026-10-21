@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.short
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.DayOfWeek
@@ -42,7 +42,7 @@ import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import kotlinx.coroutines.launch
 
-/** A responsive stat block; labels and units remain sans while figures use mono. */
+/** A responsive stat block; labels and units stay plain while figures use Figures. */
 @Composable
 fun StatTile(label: String, value: String, modifier: Modifier = Modifier, color: Color = Pacer.colors.tileSky, unit: String? = null) {
     Surface(modifier, shape = MaterialTheme.shapes.medium, color = color, contentColor = Pacer.colors.onTile) {
@@ -62,7 +62,7 @@ fun MoreOptions(title: String = stringResource(R.string.component_more_options),
     val description = stringResource(if (expanded) R.string.component_expanded else R.string.component_collapsed)
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, if (motion) Motion.content() else snap(), label = "expand")
     Column(modifier.fillMaxWidth().animateContentSize(if (motion) Motion.settle() else snap()), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        TextButton(onClick = { haptic(); expanded = !expanded }, modifier = Modifier.semantics { stateDescription = description }) {
+        TextButton(onClick = { haptic(); expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp).semantics { stateDescription = description }) {
             Text(title)
             AppIcon(AppIcons.ExpandMore, Modifier.rotate(rotation))
         }
@@ -71,25 +71,27 @@ fun MoreOptions(title: String = stringResource(R.string.component_more_options),
 }
 
 /**
- * A row of mutually exclusive choices (§5 chips): one ink pill slides from the old choice to the new one
- * and never jumps. Each choice is a tab for accessibility, and switching ticks like a segment.
+ * A row of mutually exclusive choices (docs/PACER_DESIGN.md D10): a filled 48dp switch whose ink selected side slides
+ * from the old choice to the new one and never jumps. Each choice is a full-height 48dp tab for accessibility, and
+ * switching ticks like a segment.
  */
 @Composable
 fun SegmentedToggle(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
     val motion = animationsEnabled()
     val haptic = rememberSegmentHaptic()
     var height by remember { mutableIntStateOf(0) }
-    BoxWithConstraints(modifier.fillMaxWidth().background(Pacer.colors.surfaceContainer, CircleShape).padding(Space.xs)) {
+    BoxWithConstraints(modifier.fillMaxWidth().background(Pacer.colors.surfaceContainer, CircleShape)) {
         val width = maxWidth / options.size.coerceAtLeast(1)
         val offset by animateDpAsState(width * selected.coerceIn(0, options.lastIndex.coerceAtLeast(0)), if (motion) Motion.settle() else snap(), label = "segment")
         val measured = with(LocalDensity.current) { height.toDp() }
-        Box(Modifier.offset { IntOffset(offset.roundToPx(), 0) }.width(width).height(measured).background(Pacer.colors.ink, CircleShape))
+        // The ink side sits inset in the track; the tabs under it fill the whole 48dp height.
+        Box(Modifier.offset { IntOffset(offset.roundToPx(), 0) }.width(width).height(measured).padding(Space.xs).background(Pacer.colors.ink, CircleShape))
         Row(Modifier.fillMaxWidth().onSizeChanged { height = it.height }.selectableGroup()) {
             options.forEachIndexed { i, label ->
                 val on = i == selected
                 val ink by animateColorAsState(if (on) Pacer.colors.paper else Pacer.colors.ink, if (motion) Motion.quick() else snap(), label = "segment ink")
                 Box(
-                    Modifier.weight(1f).heightIn(min = 40.dp).clip(CircleShape)
+                    Modifier.weight(1f).heightIn(min = 48.dp).clip(CircleShape)
                         .selectable(selected = on, role = Role.Tab) { if (!on) { haptic(); onSelect(i) } },
                     contentAlignment = Alignment.Center,
                 ) { Text(label, style = MaterialTheme.typography.labelLarge, color = ink, modifier = Modifier.padding(horizontal = Space.m, vertical = Space.s)) }
@@ -120,7 +122,7 @@ fun DateBadge(date: LocalDate, modifier: Modifier = Modifier) {
     Surface(modifier, color = Pacer.colors.surfaceContainer, shape = MaterialTheme.shapes.medium) {
         Column(Modifier.padding(Space.m), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(date.dayOfWeek.short(), style = MaterialTheme.typography.labelSmall)
-            Text(date.fmtShort(), style = MaterialTheme.typography.bodyMedium, fontFamily = Mono)
+            Text(date.fmtShort(), style = MaterialTheme.typography.bodyMedium.merge(Figures))
         }
     }
 }
@@ -180,7 +182,7 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
                             Column(Modifier.padding(vertical = Space.s), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Box(Modifier.size(Space.xs).background(if (date == today) ink else Color.Transparent, CircleShape))
                                 Text(date.dayOfWeek.short(), style = MaterialTheme.typography.labelSmall)
-                                Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.bodySmall, fontFamily = Mono)
+                                Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.bodySmall.merge(Figures))
                                 Box(Modifier.size(Space.xs).background(if (date in lessonDates) ink else Color.Transparent, CircleShape))
                             }
                         }

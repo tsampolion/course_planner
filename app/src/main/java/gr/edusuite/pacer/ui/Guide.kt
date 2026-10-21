@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 
@@ -59,7 +59,7 @@ fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
                     Tile(color = if (i % 2 == 0) Pacer.colors.tileLilac else Pacer.colors.tileSky) {
                         Surface(shape = CircleShape, color = Pacer.colors.accentSoft, contentColor = Pacer.colors.onAccentSoft) {
                             Box(Modifier.sizeIn(minWidth = Space.xxl, minHeight = Space.xxl).padding(Space.xs), contentAlignment = Alignment.Center) {
-                                Text(stringResource(R.string.guide_step_number, i + 1), style = MaterialTheme.typography.labelMedium, fontFamily = Mono)
+                                Text(stringResource(R.string.guide_step_number, i + 1), style = MaterialTheme.typography.labelMedium.merge(Figures))
                             }
                         }
                         Text(stringResource(title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })

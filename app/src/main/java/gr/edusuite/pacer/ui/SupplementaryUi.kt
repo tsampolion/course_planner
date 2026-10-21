@@ -38,7 +38,7 @@ import gr.edusuite.pacer.engine.supplementaryBooks
 import gr.edusuite.pacer.engine.unplacedPages
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.PlannedLesson
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.Space
 
@@ -175,7 +175,7 @@ private fun PageField(b: Book, text: String, onChange: (String) -> Unit, error: 
         singleLine = true,
         isError = error,
         supportingText = { (if (error) errorText else support)?.let { Text(it) } },
-        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono),
+        textStyle = MaterialTheme.typography.bodyLarge.merge(Figures),
         modifier = Modifier.fillMaxWidth().fieldFeedback(error),
     )
 }
