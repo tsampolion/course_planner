@@ -96,39 +96,6 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues) 
     }
 }
 
-/**
- * The verdict in one line on the plan: "On track", or how short the group is, in warn colours.
- * Tapping it opens the stats. Nothing shows when there is nothing to measure.
- */
-@Composable
-fun StatusChip(report: GroupReport, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    val verdict = remember(report) { report.verdict() } ?: return
-    val bad = verdict is Verdict.Short
-    val c = Pacer.colors
-    val text = when (verdict) {
-        is Verdict.Short -> stringResource(R.string.group_status_short, verdict.by.fixed2())
-        is Verdict.Fits -> stringResource(R.string.group_on_track)
-    }
-    val interaction = remember { MutableInteractionSource() }
-    Surface(
-        modifier = modifier.heightIn(min = 48.dp).pressFeedback(interaction),
-        shape = CircleShape,
-        color = if (bad) c.warnSoft else c.okSoft,
-        contentColor = if (bad) c.onWarnSoft else c.onOkSoft,
-    ) {
-        Row(
-            Modifier.clickable(interactionSource = interaction, indication = androidx.compose.material3.ripple(), onClickLabel = stringResource(R.string.group_open_stats), onClick = onOpen)
-                .padding(start = Space.m, end = Space.s, top = Space.s, bottom = Space.s),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Space.s),
-        ) {
-            Box(Modifier.width(Space.s).height(Space.s).background(if (bad) c.warn else c.ok, CircleShape))
-            Text(text, style = MaterialTheme.typography.labelLarge)
-            AppIcon(AppIcons.Forward)
-        }
-    }
-}
-
 @Composable
 fun Stat(k: String, v: String, modifier: Modifier = Modifier) {
     Column(modifier) {

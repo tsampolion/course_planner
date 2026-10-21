@@ -117,6 +117,7 @@ fun HomeScreen(
     welcome: Boolean,
     onDeleted: (String) -> Unit,
     undoToast: (String) -> Unit = {},
+    onMenu: () -> Unit = {},
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var picking by rememberSaveable { mutableStateOf(false) }
@@ -148,7 +149,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.xl)) {
-                Header(today) { vm.open(Screen.Settings) }
+                Header(today, onMenu)
                 if (year == null) {
                     EmptyState(
                         AppIcons.Add,
@@ -208,10 +209,12 @@ private fun openForClass(year: SchoolYear, vm: PacerViewModel, screen: Screen, c
     }
 }
 
-/** §6 "Home header": the logo, a greeting over today's date, and Settings at the end. */
+/** §6 "Home header": ☰ for the menu (which holds Settings), the logo, and a greeting over today's date. */
 @Composable
-private fun Header(today: LocalDate, onSettings: () -> Unit) {
+private fun Header(today: LocalDate, onMenu: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
+        PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
+        Spacer(Modifier.width(Space.s))
         Logo(48.dp)
         Spacer(Modifier.width(Space.m))
         Column(Modifier.weight(1f)) {
@@ -222,10 +225,6 @@ private fun Header(today: LocalDate, onSettings: () -> Unit) {
                 modifier = Modifier.semantics { heading() },
             )
             Text(today.format(HEADER_DATE), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
-        }
-        PillIconButton(stringResource(R.string.home_settings), onSettings) {
-            // U+FE0E asks for the text glyph rather than an emoji.
-            AppIcon(AppIcons.Settings)
         }
     }
 }
@@ -402,10 +401,10 @@ private fun HomeTile(
     }
 }
 
-/** A bottom sheet for Home's pickers (§6 Bottom sheet): 28dp top corners on surface. [content] gets a close that slides it away. */
+/** A bottom sheet for Home's pickers, the group switcher and Warnings (§6 Bottom sheet): 28dp top corners on surface. [content] gets a close that slides it away. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeSheet(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.(close: () -> Unit) -> Unit) {
+fun HomeSheet(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.(close: () -> Unit) -> Unit) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val close = { scope.launch { state.hide() }.invokeOnCompletion { onDismiss() }; Unit }
@@ -538,7 +537,7 @@ private fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss
 
 /** The launcher icon, drawn from the same artwork: the open book on the teal tile. Decorative, so TalkBack skips it (§7). */
 @Composable
-private fun Logo(size: Dp) {
+fun Logo(size: Dp) {
     Box(
         // The logo tile's corners are a quarter of its size (style guide §4), the one shape outside MaterialTheme.shapes.
         Modifier.size(size).clip(RoundedCornerShape(size / 4)).background(colorResource(R.color.launcher_tile)),

@@ -48,6 +48,54 @@ class NavTest {
         assertEquals(classStack + Screen.Group("b"), Nav.push(a, Screen.Group("b")))
     }
 
+    @Test fun drawerListsItsDestinationsInOrder() {
+        assertEquals(
+            listOf(Screen.Home, Screen.Overview, Screen.Classes, Screen.YearSettings, Screen.Settings),
+            Nav.drawer(hasYear = true),
+        )
+        // With no year open, only what needs none.
+        assertEquals(listOf(Screen.Home, Screen.Settings), Nav.drawer(hasYear = false))
+    }
+
+    @Test fun drawerDestinationsAndBack() {
+        val group = classStack + Screen.Group("a")
+        // A screen not on the stack goes on top, so Back returns to where the teacher was.
+        Nav.drawer(hasYear = true).filter { it != Screen.Home && it != Screen.Classes }.forEach { s ->
+            val opened = Nav.goTo(group, s)
+            assertEquals(group + s, opened)
+            assertEquals(group, Nav.pop(opened))
+        }
+        // One already open underneath is gone back to, not stacked twice.
+        assertEquals(listOf(Screen.Home, Screen.Classes), Nav.goTo(group, Screen.Classes))
+        assertEquals(classStack, Nav.goTo(group, Screen.Class))
+        assertEquals(home, Nav.goTo(group, Screen.Home))
+        assertEquals(group, Nav.goTo(group, Screen.Group("a")))
+        // Another group swaps in, as from the group switcher.
+        assertEquals(classStack + Screen.Group("b"), Nav.goTo(group, Screen.Group("b")))
+        // Opening Overview twice from the menu leaves one Overview.
+        val overview = Nav.goTo(home, Screen.Overview)
+        assertEquals(overview, Nav.goTo(overview, Screen.Overview))
+        assertEquals(home, Nav.pop(overview))
+    }
+
+    @Test fun undoShowsOnlyWhereSchoolYearDataChanges() {
+        val with = listOf(Screen.Group("g"), Screen.Class, Screen.Classes, Screen.YearSettings, Screen.Tests, Screen.Homework)
+        with.forEach { assertTrue("$it", it.showsUndo) }
+        listOf(Screen.Settings, Screen.Overview, Screen.Home).forEach { assertFalse("$it", it.showsUndo) }
+    }
+
+    @Test fun recentGroupsPutTheLatestFirst() {
+        val a = GroupRef("c", "a")
+        val b = GroupRef("c", "b")
+        assertEquals(listOf(a), Nav.recent(emptyList(), a))
+        assertEquals(listOf(b, a), Nav.recent(listOf(a), b))
+        // Opening one again moves it to the front without repeating it.
+        assertEquals(listOf(a, b), Nav.recent(listOf(b, a), a))
+        val many = (1..10).fold(emptyList<GroupRef>()) { r, i -> Nav.recent(r, GroupRef("c", "g$i")) }
+        assertEquals(Nav.RECENT, many.size)
+        assertEquals(GroupRef("c", "g10"), many.first())
+    }
+
     @Test fun screensKnowWhatTheyNeed() {
         assertFalse(Screen.Home.needsYear)
         assertFalse(Screen.Settings.needsYear)

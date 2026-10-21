@@ -22,6 +22,29 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-10-21
+
+The redesign's navigation (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR2).
+
+### Added
+
+- **☰ menu** on every screen, Home included: "Find a class or group", Home, Pacing overview with how many groups are behind, Classes (an expandable list of the year's classes), School year and Settings. System Back closes it first, then pops screens as before.
+- **Group switcher**: tap a group's title for a sheet with search, the groups opened recently this session and the class's groups, each with its status ("On pace" or "Short by 2 lessons").
+- **Warnings sheet**: a warning button with a count in the group's top bar ("2 warnings" to TalkBack) lists each warning with its fix: Catch up, Bring in step, and the custom plan's Re-pace, Fit to term and Tidy.
+- Home, Search and Menu symbols (Material Symbols Rounded, Apache 2.0) in `AppIcons.kt`.
+
+### Changed
+
+- ☰ replaces the back arrow at the start of every top bar, and Settings moves from Home's header into the menu.
+- Undo sits in the top bar only on Group, Class, Classes, School year, Tests and Homework; Pacing overview no longer shows it.
+- Overview is now called **Pacing overview**.
+- Lesson counts in status labels are whole lessons, rounded up, through one helper (`wholeLessons`).
+
+### Removed
+
+- The warning banners and the status chip on a group's Plan tab, and the fix chips on the custom-plan card; their fixes are in the Warnings sheet.
+- The group title's dropdown, replaced by the group switcher.
+
 ## [2.10.1] - 2026-10-21
 
 ### Documentation
@@ -460,7 +483,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v2.10.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/tsampolion/course_planner/compare/v3.1.0...v3.2.0
 [2.10.1]: https://github.com/tsampolion/course_planner/compare/v2.10.0...v2.10.1
 [2.10.0]: https://github.com/tsampolion/course_planner/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/tsampolion/course_planner/compare/v2.8.0...v2.9.0

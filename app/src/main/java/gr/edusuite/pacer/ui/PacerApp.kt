@@ -28,12 +28,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarData
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -53,6 +54,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -61,13 +63,11 @@ import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.asTsv
-import gr.edusuite.pacer.engine.lessonsFor
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.ui.theme.Motion
@@ -145,6 +145,19 @@ fun PacerApp(vm: PacerViewModel) {
     }
 
     BackHandler(enabled = ui.stack.size > 1) { vm.back() }
+    // ☰ opens the menu on every screen; Back closes it before it pops a screen.
+    val drawer = rememberDrawerState(DrawerValue.Closed)
+    val openMenu: () -> Unit = { scope.launch { drawer.open() } }
+    BackHandler(enabled = drawer.isOpen) { scope.launch { drawer.close() } }
+    // The group switcher and the Warnings sheet belong to the screen they opened on.
+    var switching by rememberSaveable(screen.key()) { mutableStateOf(false) }
+    var warningsOpen by rememberSaveable(screen.key()) { mutableStateOf(false) }
+    val warnings = remember(screen, ui.data.plan) {
+        val plan = ui.data.plan
+        val group = (screen as? Screen.Group)?.let { s -> plan?.groups?.firstOrNull { it.id == s.id } }
+        if (plan == null || group == null) emptyList() else groupWarnings(GroupReport(plan, group))
+    }
+    val recent by vm.recent.collectAsState()
 
     // Screens keep their scroll position while they are on the stack, and forget it once popped.
     val saved = rememberSaveableStateHolder()
@@ -155,41 +168,62 @@ fun PacerApp(vm: PacerViewModel) {
         live.retainAll(keys)
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(snackbar) { data ->
-                val motion = animationsEnabled()
-                val visible = remember(data) { MutableTransitionState(false).apply { targetState = true } }
-                AnimatedVisibility(visibleState = visible,
-                    enter = if (motion) slideInVertically(Motion.content()) { it } else EnterTransition.None,
-                    exit = if (motion) slideOutVertically(Motion.content()) { it } else ExitTransition.None,
-                ) { UndoSnackbar(data, undoStep >= 0, undoMillis) }
-            }
-        },
-        topBar = {
-            // Home is just the logo, the year picker and Settings, with no bar.
-            if (screen != Screen.Home) ScreenBar(screen, ui.data, vm, undoDepth = if (screen == Screen.Settings) null else ui.undoDepth)
-        },
-    ) { padding ->
-        val motion = animationsEnabled()
-        AnimatedContent(
-            targetState = screen to ui.stack.size,
-            contentKey = { it.first },
-            transitionSpec = {
-                if (!motion) EnterTransition.None togetherWith ExitTransition.None
-                else {
-                    val direction = if (targetState.second < initialState.second) -1 else 1
-                    (slideInHorizontally(Motion.screen()) { it / 12 * direction } + fadeIn(Motion.screen())) togetherWith
-                        (slideOutHorizontally(Motion.screen()) { -it / 12 * direction } + fadeOut(Motion.screen()))
+    ModalNavigationDrawer(
+        drawerContent = { AppDrawer(ui.data, screen, vm) { scope.launch { drawer.close() } } },
+        drawerState = drawer,
+        // Swiping only closes it, so an edge swipe never fights the month pager or the system Back gesture.
+        gesturesEnabled = drawer.isOpen,
+    ) {
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(snackbar) { data ->
+                    val motion = animationsEnabled()
+                    val visible = remember(data) { MutableTransitionState(false).apply { targetState = true } }
+                    AnimatedVisibility(visibleState = visible,
+                        enter = if (motion) slideInVertically(Motion.content()) { it } else EnterTransition.None,
+                        exit = if (motion) slideOutVertically(Motion.content()) { it } else ExitTransition.None,
+                    ) { UndoSnackbar(data, undoStep >= 0, undoMillis) }
                 }
             },
-            label = "screen",
-        ) { (s, _) ->
-            live += s.key()
-            saved.SaveableStateProvider(s.key()) {
-                ScreenContent(s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context)
+            topBar = {
+                // Home has its own header, with ☰ at its start.
+                if (screen != Screen.Home) ScreenBar(
+                    screen, ui.data, vm,
+                    undoDepth = if (screen.showsUndo) ui.undoDepth else null,
+                    warnings = warnings.size,
+                    onMenu = openMenu,
+                    onSwitch = { switching = true },
+                    onWarnings = { warningsOpen = true },
+                )
+            },
+        ) { padding ->
+            val motion = animationsEnabled()
+            AnimatedContent(
+                targetState = screen to ui.stack.size,
+                contentKey = { it.first },
+                transitionSpec = {
+                    if (!motion) EnterTransition.None togetherWith ExitTransition.None
+                    else {
+                        val direction = if (targetState.second < initialState.second) -1 else 1
+                        (slideInHorizontally(Motion.screen()) { it / 12 * direction } + fadeIn(Motion.screen())) togetherWith
+                            (slideOutHorizontally(Motion.screen()) { -it / 12 * direction } + fadeOut(Motion.screen()))
+                    }
+                },
+                label = "screen",
+            ) { (s, _) ->
+                live += s.key()
+                saved.SaveableStateProvider(s.key()) {
+                    ScreenContent(
+                        s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context,
+                        onMenu = openMenu, warningsOpen = warningsOpen && s == screen, onWarningsClose = { warningsOpen = false },
+                    )
+                }
             }
         }
+    }
+    val year = ui.data.year
+    if (switching && screen is Screen.Group && year != null) {
+        GroupSwitcherSheet(year, ui.data.activeClass, screen.id, recent, vm) { switching = false }
     }
     setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
 }
@@ -206,6 +240,9 @@ private fun ScreenContent(
     toast: (String) -> Unit,
     undoToast: (String) -> Unit,
     context: Context,
+    onMenu: () -> Unit,
+    warningsOpen: Boolean,
+    onWarningsClose: () -> Unit,
 ) {
     // Each is null for a moment while the screen of something just deleted fades out.
     val year = data.year
@@ -217,6 +254,7 @@ private fun ScreenContent(
             welcome = canWelcome && !settings.welcomeSeen && data.years.isEmpty(),
             onDeleted = { undoToast(context.getString(R.string.app_deleted, it)) },
             undoToast = undoToast,
+            onMenu = onMenu,
         )
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
         Screen.YearSettings -> YearSettingsScreen(year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast(context.getString(R.string.app_deleted, it)) })
@@ -238,6 +276,8 @@ private fun ScreenContent(
                 },
                 onShare = { share(context, "${plan.name} — ${report.group.name}", report.asTsv()) },
                 undoToast = undoToast,
+                warningsOpen = warningsOpen,
+                onWarningsClose = onWarningsClose,
             )
         }
     }
@@ -249,56 +289,52 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
 }
 
 /**
- * Every other screen's bar: back, where the screen sits over its title, and undo where edits happen
- * ([undoDepth] null hides it). On a group, the title switches between the class's groups.
+ * Every other screen's bar: ☰ for the menu, where the screen sits over its title, and Undo where school-year data
+ * changes ([undoDepth] null hides it). On a group, the title opens the group switcher and a warning button with the
+ * count opens the Warnings sheet. System Back still pops the back stack.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ScreenBar(screen: Screen, data: AppData, vm: PacerViewModel, undoDepth: Int?) {
+private fun ScreenBar(
+    screen: Screen,
+    data: AppData,
+    vm: PacerViewModel,
+    undoDepth: Int?,
+    warnings: Int,
+    onMenu: () -> Unit,
+    onSwitch: () -> Unit,
+    onWarnings: () -> Unit,
+) {
     val context = LocalContext.current
-    val segment = rememberSegmentHaptic()
-    var groups by remember { mutableStateOf(false) }
-    val plan = data.plan
-    val switchable = screen is Screen.Group && plan != null && plan.groups.size > 1
+    val switchable = screen is Screen.Group && data.year != null
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         navigationIcon = {
-            PillIconButton(stringResource(R.string.app_back), { vm.back() }) { AppIcon(AppIcons.Back) }
+            PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
         },
         title = {
-            Box {
-                val heading = @Composable {
-                    Column {
-                        Text(screen.context(data, context), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                          Text(
+            val heading = @Composable {
+                Column {
+                    Text(screen.context(data, context), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
                             screen.title(data, context),
                             style = MaterialTheme.typography.titleLarge,
                             maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f, fill = false),
-                          )
-                          if (switchable) AppIcon(AppIcons.ExpandMore)
-                        }
-                    }
-                }
-                if (switchable) TextButton(onClick = { groups = true }) { heading() } else heading()
-                if (plan != null) DropdownMenu(expanded = groups, onDismissRequest = { groups = false }) {
-                    plan.groups.forEach { g ->
-                        val count = remember(plan, g) { plan.lessonsFor(g).size }
-                        DropdownMenuItem(
-                            text = {
-                                Row {
-                                    Text(g.name.ifBlank { context.getString(R.string.app_group) }, fontWeight = if (screen == Screen.Group(g.id)) FontWeight.SemiBold else FontWeight.Normal)
-                                    val description = pluralStringResource(R.plurals.app_lessons_left, count, count)
-                                    AnimatedFigure(count.toString(), Modifier.padding(start = Space.s).semantics { contentDescription = description }, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
-                                }
-                            },
-                            onClick = { groups = false; segment(); vm.open(Screen.Group(g.id)) },
                         )
+                        if (switchable) AppIcon(AppIcons.ArrowDropDown)
                     }
                 }
             }
+            if (switchable) {
+                val label = stringResource(R.string.switcher_open)
+                TextButton(onClick = onSwitch, modifier = Modifier.semantics { onClick(label) { onSwitch(); true } }) { heading() }
+            } else heading()
         },
-        actions = { if (undoDepth != null) UndoButton(vm, undoDepth) },
+        actions = {
+            if (warnings > 0) WarningButton(warnings, onWarnings)
+            if (undoDepth != null) UndoButton(vm, undoDepth)
+        },
     )
 }
 

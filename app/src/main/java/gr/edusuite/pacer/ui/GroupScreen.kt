@@ -204,6 +204,9 @@ fun GroupScreen(
     onCopy: () -> Unit,
     onShare: () -> Unit,
     undoToast: (String) -> Unit = {},
+    /** The Warnings sheet, opened from the top bar's warning button. */
+    warningsOpen: Boolean = false,
+    onWarningsClose: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val segmentHaptic = rememberSegmentHaptic()
@@ -302,12 +305,6 @@ fun GroupScreen(
                 item(key = "hero") {
                     NextLessonTile(report, vm, Modifier.padding(horizontal = Space.l), undoToast) { next -> editingDate = next.date.toString() }
                 }
-                item(key = "status") {
-                    StatusChip(report, { tab = TAB_STATS }, Modifier.padding(start = Space.l, end = Space.l, top = Space.m))
-                }
-                item(key = "warnings") {
-                    if (!handled) Warnings(report, lags, { catchingUp = true }, { folding = it.bookId }, Modifier.padding(start = Space.l, end = Space.l, top = Space.m))
-                }
                 item(key = "custom") {
                     Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                         // Quiet, not a warning: what each supplementary book still has to place.
@@ -329,8 +326,6 @@ fun GroupScreen(
                             if (showMine && cov != null) CoverageCard(
                                 shown, cov, plan.groups.filter { it.id != g.id },
                                 onRepace = { vm.repaceFrom(g.id, 0); undoToast(context.getString(R.string.custom_repaced)) },
-                                onTidy = { vm.tidyCustomPlan(g.id); undoToast(context.getString(R.string.custom_tidied)) },
-                                onFit = { vm.fitCustomPlanToTerm(g.id); undoToast(context.getString(R.string.custom_fitted)) },
                                 onCopy = { o -> vm.copyCustomPlan(g.id, o.id); undoToast(context.getString(R.string.custom_copied, o.name)) },
                                 onDelete = { vm.deleteCustomPlan(g.id); undoToast(context.getString(R.string.custom_deleted)) },
                             )
@@ -482,6 +477,16 @@ fun GroupScreen(
         )
     }
 
+    if (warningsOpen) {
+        val warnings = remember(report) { groupWarnings(report) }
+        WarningsSheet(report, warnings, WarningFixes(
+            catchUp = { catchingUp = true },
+            fold = { folding = it.bookId },
+            repace = { vm.repaceFrom(g.id, 0); undoToast(context.getString(R.string.custom_repaced)) },
+            fit = { vm.fitCustomPlanToTerm(g.id); undoToast(context.getString(R.string.custom_fitted)) },
+            tidy = { vm.tidyCustomPlan(g.id); undoToast(context.getString(R.string.custom_tidied)) },
+        ), onWarningsClose)
+    }
     if (catchingUp) CatchUpSheet(report, { boost ->
         vm.applyCatchUp(g.id, boost)
         showMine = true

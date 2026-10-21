@@ -87,6 +87,15 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         _setAside.value = null
     }
 
+    /** Groups opened this session, latest first, for the group switcher. Not saved: a new session starts empty. */
+    private val _recent = MutableStateFlow(recentAfter(emptyList(), _state.value))
+    val recent: StateFlow<List<GroupRef>> = _recent.asStateFlow()
+
+    private fun recentAfter(recent: List<GroupRef>, ui: UiState): List<GroupRef> {
+        val g = ui.screen as? Screen.Group ?: return recent
+        return Nav.recent(recent, GroupRef(ui.data.activeClass, g.id))
+    }
+
     private val _settings = MutableStateFlow(settingsStore.load())
     val settings: StateFlow<Settings> = _settings.asStateFlow()
 
@@ -147,6 +156,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
             else -> stack
         }
         _state.value = stateFor(next, s, undoStack.size).copy(historyStep = historyStep)
+        _recent.value = recentAfter(_recent.value, _state.value)
         scheduleSave()
     }
 
@@ -237,6 +247,24 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun openGroup(classId: String, groupId: String) {
         if (classId != data.activeClass) publish(data.copy(activeClass = classId))
         open(Screen.Group(groupId))
+    }
+
+    /** Opens [screen] from the menu ([Nav.goTo]): back to it when it is already open underneath. */
+    fun goTo(screen: Screen) {
+        val stack = Nav.goTo(_state.value.stack, screen)
+        if (stack != _state.value.stack) publish(data, stack)
+    }
+
+    /** Opens a class from the menu. */
+    fun goToClass(id: String) {
+        if (id != data.activeClass) publish(data.copy(activeClass = id))
+        goTo(Screen.Class)
+    }
+
+    /** Opens a group of any class in the open year from the menu's search or the group switcher. */
+    fun goToGroup(classId: String, groupId: String) {
+        if (classId != data.activeClass) publish(data.copy(activeClass = classId))
+        goTo(Screen.Group(groupId))
     }
 
     /** Opens a class's [Screen.Tests] or [Screen.Homework] from Home, over that class. */
