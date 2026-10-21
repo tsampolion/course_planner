@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -245,8 +246,10 @@ private fun Modifier.lessonNode(description: String, done: Boolean, onToggle: ((
     val toggleLabel = stringResource(if (done) R.string.ledger_mark_not_done else R.string.group_mark_done)
     val optionsLabel = stringResource(R.string.component_options)
     val hasMenu = items.isNotEmpty()
+    // A reused row gets another lesson's menu, so the gesture always calls the latest one.
+    val longPress by rememberUpdatedState(onLongPress)
     return this
-        .pointerInput(hasMenu) { detectTapGestures(onLongPress = { if (hasMenu) onLongPress() }) }
+        .pointerInput(hasMenu) { detectTapGestures(onLongPress = { if (hasMenu) longPress() }) }
         .clearAndSetSemantics {
             contentDescription = description
             if (onToggle != null) {
