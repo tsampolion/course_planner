@@ -26,6 +26,7 @@ class NoHardcodedTextTest {
         "Components.kt" to setOf("swipe action", "save completion"),
         "DashboardComponents.kt" to setOf("expand", "segment", "segment ink", "selected day"),
         "SettingsScreen.kt" to setOf("about", "application/json", "backup", "defaults", "help", "theme", "wt", "w", "\\uFEFF"),
+        "GroupModel.kt" to setOf("[^\\\\p{L}\\\\p{N}']+", "B", "book"),
         "NavModel.kt" to setOf("\\\\p{Mn}+", "\\\\s+"),
         "SetAside.kt" to setOf("application/json", "course-pacer-unreadable-.json"),
     )
