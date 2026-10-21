@@ -19,8 +19,6 @@ data class Settings(
     val lessonMins: Int = DEFAULT_MINS,
     /** Sustainable pace, in pages per lesson, for new classes. */
     val pace: Double = DEFAULT_PACE,
-    /** Schedules show one month at a time, in tabs, instead of every month in one list. */
-    val scheduleByMonth: Boolean = false,
     /** The welcome guide was shown and closed, so a launch with no school years doesn't show it again. */
     val welcomeSeen: Boolean = false,
     /** The teacher's name for Home's greeting. Empty means Home says "Hello" alone. */

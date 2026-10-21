@@ -15,7 +15,7 @@ class NoHardcodedTextTest {
     private val uiAssignment = Regex("""\b(?:text|title|label|contentDescription|stateDescription|onClickLabel|onLongClickLabel|actionLabel|placeholder|confirm)\s*=\s*$""")
     private val dataStrings = mapOf(
         "ClassScreens.kt" to setOf("add", "books", "class", "delete", "empty", "groups", "guide", "hint", "lessons", "more", "name", "past", "upcoming", "group:"),
-        "YearScreens.kt" to setOf("add", "delete", "empty", "end", "foot", "greek", "hint", "name", "offhead", "start", "year", "term", "more", "classes", "days-off", "years", "print"),
+        "YearScreens.kt" to setOf("add", "delete", "empty", "end", "foot", "greek", "hint", "name", "offhead", "start", "year", "term", "more", "classes", "days-off", "years"),
         "OverviewScreen.kt" to setOf("empty", "class:", "head:", "none:"),
         "GroupScreen.kt" to setOf("a", "custom", "empty", "today", "week", "lesson", "slim", "wb", "w", "r", "d", "p", "L", "N", "S"),
         "LessonLedger.kt" to setOf("EEEE d MMMM"),

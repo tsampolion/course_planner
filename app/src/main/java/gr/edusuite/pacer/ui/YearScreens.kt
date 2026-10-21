@@ -63,14 +63,13 @@ private fun whoTag(context: Context, year: SchoolYear, who: String): String? {
 
 /**
  * The year switcher at the top (decision 6: every school year, with + New year, Rename and Delete), then the open
- * year's name, term dates and days off, and printing.
+ * year's name, term dates and days off. Printing is in a group's ⋮ menu.
  */
 @Composable
 fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
     val context = LocalContext.current
     var adding by rememberSaveable { mutableStateOf(false) }
     var newYear by rememberSaveable { mutableStateOf(false) }
-    var printing by rememberSaveable { mutableStateOf(false) }
     // The year being renamed, by id.
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var editing by rememberSaveable(year.id) { mutableStateOf<String?>(null) }
@@ -133,12 +132,6 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 )
             }
         }
-        item(key = "print") {
-            // Until the group's ⋮ menu offers Print (3.4.0), the year's print lives here.
-            Section(stringResource(R.string.home_print)) {
-                LinkRow(stringResource(R.string.home_print), stringResource(R.string.home_print_hint)) { printing = true }
-            }
-        }
         item(key = "delete") {
             MoreOptions {
                 TertiaryButton(stringResource(R.string.year_delete), { deleteYear(year) }, color = Pacer.colors.warn)
@@ -148,7 +141,6 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
 
     if (adding) AddClosureSheet(year, vm) { adding = false }
     if (newYear) NewYearDialog(years, vm) { newYear = false }
-    if (printing) PrintDialog(year) { printing = false }
     years.firstOrNull { it.id == renaming }?.let { y -> RenameYearSheet(y, vm) { renaming = null } }
     editing?.let { field ->
         SheetFrame(if (field == "name") stringResource(R.string.year_school_year_name) else stringResource(R.string.year_term), stringResource(R.string.year_done), true, {}, { editing = null }) {

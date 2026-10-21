@@ -42,7 +42,8 @@ The redesign's group screen, Plan and Stats (`docs/superpowers/plans/2026-10-21-
 
 ### Removed
 
-- The All months | By month switch: the schedule is one list in week sections.
+- The All months | By month switch: the schedule is one list in week sections. Its stored setting goes too, and older installs drop it on the next settings save.
+- Print on the School year screen: it is in a group's ⋮ menu, which starts with that group and can print whole classes instead.
 - The Schedule heading with Copy and Share (now in ⋮), the Term weeks and Tips sections on the page, and the custom plan's coverage bars.
 
 ## [3.3.0] - 2026-10-21

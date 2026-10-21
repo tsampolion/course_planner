@@ -240,8 +240,6 @@
     <string name="home_overview_hint">Open Pacing overview to see where each group stands.</string>
     <string name="home_lesson_done">Lesson marked done</string>
     <string name="home_classes">Classes</string>
-    <string name="home_print">Print or save PDF</string>
-    <string name="home_print_hint">Choose classes and margins</string>
     <string name="home_overview">Pacing overview</string>
     <string name="home_dates_missing">Dates not set</string>
     <string name="home_rename">Rename</string>
