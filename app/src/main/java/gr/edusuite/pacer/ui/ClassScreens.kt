@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
@@ -32,6 +33,7 @@ import androidx.compose.ui.res.pluralStringResource
 import gr.edusuite.pacer.R
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.WEEK
@@ -51,7 +53,7 @@ import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.TestEvent
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
@@ -225,7 +227,7 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
     val count = lessons.size
     Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
         AnimatedFigure(pluralStringResource(R.plurals.class_lessons_left, count, count), style = MaterialTheme.typography.bodyMedium)
-        TextButton(onClick = { vm.open(Screen.Group(g.id)) }) {
+        TextButton(onClick = { vm.open(Screen.Group(g.id)) }, modifier = Modifier.heightIn(min = 48.dp)) {
             AppIcon(AppIcons.ChevronRight)
             Text(stringResource(R.string.class_open_schedule))
         }
@@ -292,7 +294,7 @@ private fun BookEditor(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (
         Text(name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
         if (b.supplementary) {
             val n = remember(b.include) { b.includedPages().size }
-            Text(b.include, style = MaterialTheme.typography.titleMedium, fontFamily = Mono)
+            Text(b.include, style = MaterialTheme.typography.titleMedium.merge(Figures))
             Text(pluralStringResource(R.plurals.supp_pages, n, n), color = Pacer.colors.onTileMuted)
         } else {
         Text(stringResource(R.string.class_page_range, b.first, b.last), style = MaterialTheme.typography.titleMedium)
@@ -338,7 +340,7 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
     val skipN = remember(b.skip, b.first, b.last) { parseRanges(b.skip).count { it in b.first..b.last } }
     Text(
         stringResource(R.string.class_book_summary, stringResource(R.string.class_page_range, b.first, b.last), pluralStringResource(R.plurals.class_teachable, maxOf(0, b.last - b.first + 1 - skipN), maxOf(0, b.last - b.first + 1 - skipN))),
-        style = MaterialTheme.typography.bodySmall, fontFamily = Mono, color = Pacer.colors.muted,
+        style = MaterialTheme.typography.bodySmall.merge(Figures), color = Pacer.colors.muted,
     )
 }
 

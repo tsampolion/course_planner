@@ -70,7 +70,7 @@ import gr.edusuite.pacer.engine.lessonPages
 import gr.edusuite.pacer.engine.remainingPages
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.Group
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
@@ -214,7 +214,7 @@ fun PlannedLessonSheet(
                         proposed != null -> Text(stringResource(R.string.custom_proposed_line, collapse(proposed[b.id].orEmpty())))
                     }
                 },
-                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Mono),
+                textStyle = MaterialTheme.typography.bodyLarge.merge(Figures),
                 modifier = Modifier.fillMaxWidth().fieldFeedback(bad),
             )
         }

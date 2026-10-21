@@ -51,7 +51,7 @@ import gr.edusuite.pacer.engine.includedPages
 import gr.edusuite.pacer.engine.placedPages
 import gr.edusuite.pacer.engine.taughtPages
 import gr.edusuite.pacer.model.MAX_PAGE
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
@@ -100,8 +100,8 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues) 
 fun Stat(k: String, v: String, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(k, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
-        // A stat tile's figure (§6): mono in titleLarge, which is already SemiBold.
-        AnimatedFigure(v, style = MaterialTheme.typography.titleLarge.copy(fontFamily = Mono))
+        // A stat tile's figure (§6): Figures in titleLarge, which is already SemiBold.
+        AnimatedFigure(v, style = MaterialTheme.typography.titleLarge.merge(Figures))
     }
 }
 
@@ -169,12 +169,12 @@ private fun MonthBars(report: GroupReport) {
     Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
         months.forEach { (m, n) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${m.monthShort()} ${m.year % 100}", style = MaterialTheme.typography.labelSmall, fontFamily = Mono, color = Pacer.colors.muted, modifier = Modifier.width(54.dp))
+                Text("${m.monthShort()} ${m.year % 100}", style = MaterialTheme.typography.labelSmall.merge(Figures), color = Pacer.colors.muted, modifier = Modifier.width(54.dp))
                 Box(Modifier.weight(1f).height(9.dp).clip(CircleShape).background(Pacer.colors.accentSoft)) {
                     Box(Modifier.fillMaxHeight().fillMaxWidth(n.toFloat() / max).background(MaterialTheme.colorScheme.primary))
                 }
                 Spacer(Modifier.width(Space.s))
-                AnimatedFigure(n.toString(), style = MaterialTheme.typography.labelSmall.copy(fontFamily = Mono), color = Pacer.colors.muted, modifier = Modifier.width(22.dp))
+                AnimatedFigure(n.toString(), style = MaterialTheme.typography.labelSmall.merge(Figures), color = Pacer.colors.muted, modifier = Modifier.width(22.dp))
             }
         }
     }

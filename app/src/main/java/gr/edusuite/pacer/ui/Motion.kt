@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.Space
 
@@ -55,7 +55,7 @@ fun AnimatedFigure(value: String, modifier: Modifier = Modifier, style: TextStyl
         if (enabled) (slideInVertically(Motion.content()) { if (increasing) it else -it } + fadeIn(Motion.quick())) togetherWith
             (slideOutVertically(Motion.content()) { if (increasing) -it else it } + fadeOut(Motion.quick()))
         else EnterTransition.None togetherWith ExitTransition.None
-    }, label = "figure") { Text(it, style = style, fontFamily = Mono, color = color) }
+    }, label = "figure") { Text(it, style = style.merge(Figures), color = color) }
 }
 
 /** Switching between sibling views: a shared-axis slide plus fade toward the side chosen (§5). */

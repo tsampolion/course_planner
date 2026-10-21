@@ -15,12 +15,12 @@ import androidx.compose.ui.res.pluralStringResource
 import gr.edusuite.pacer.R
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.SchoolYear
-import gr.edusuite.pacer.ui.theme.Mono
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
@@ -89,7 +89,7 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
                 TextButton(onClick = {
                     val n = vm.addGreekHolidays()
                     toast(if (n > 0) context.resources.getQuantityString(R.plurals.year_holidays_added, n, n) else context.getString(R.string.year_already_there))
-                }, enabled = year.start != null && year.end != null) { Text(stringResource(R.string.year_add_holidays)) }
+                }, enabled = year.start != null && year.end != null, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.year_add_holidays)) }
                 Hint(
                     stringResource(R.string.year_holidays_hint),
                 )

@@ -37,7 +37,7 @@ import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.foldBacklog
 import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.engine.short
-import gr.edusuite.pacer.ui.theme.Mono
+import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 
@@ -82,7 +82,7 @@ fun CatchUpSheet(report: GroupReport, onApply: (Int) -> Unit, onDismiss: () -> U
         Text(pluralStringResource(R.plurals.warn_behind, cu.behind, cu.behind, report.plan.pace.plain()), style = MaterialTheme.typography.bodyLarge)
         SegmentedToggle(BOOSTS.map { stringResource(R.string.warn_boost, it) }, choice, { choice = it })
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-            AnimatedFigure("${cu.lessons}", style = MaterialTheme.typography.displaySmall.copy(fontFamily = Mono))
+            AnimatedFigure("${cu.lessons}", style = MaterialTheme.typography.displaySmall.merge(Figures))
             Text(pluralStringResource(R.plurals.warn_lessons_word, cu.lessons), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = Space.s))
         }
         val until = cu.until
@@ -131,7 +131,7 @@ private fun previewOf(report: GroupReport, group: gr.edusuite.pacer.model.Group?
 private fun PreviewLines(lines: List<String>) {
     if (lines.isEmpty()) return
     Section(stringResource(R.string.warn_first_lessons)) {
-        lines.forEach { Text(it, style = MaterialTheme.typography.bodyMedium, fontFamily = Mono) }
+        lines.forEach { Text(it, style = MaterialTheme.typography.bodyMedium.merge(Figures)) }
     }
 }
 

@@ -10,9 +10,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import gr.edusuite.pacer.R
 
-/** Money, dates, counts and page numbers use the system monospace font, so figures line up (§3). */
-val Mono: FontFamily = FontFamily.Monospace
-
 // Font variation settings are still marked experimental in Compose; they're backed by the platform since API 26.
 @OptIn(ExperimentalTextApi::class)
 private fun outfit(weight: FontWeight) =
@@ -23,6 +20,13 @@ private fun outfit(weight: FontWeight) =
  * three weights the guide uses, smaller than three static files. minSdk 26 supports font variations.
  */
 val Outfit = FontFamily(outfit(FontWeight.Normal), outfit(FontWeight.Medium), outfit(FontWeight.SemiBold))
+
+/**
+ * Dates, counts and page numbers: Outfit with tabular figures, so digits keep one width and line up in columns and in
+ * AnimatedFigure (docs/PACER_DESIGN.md D2, in place of the guide's monospace). Merge it into a style:
+ * `MaterialTheme.typography.bodyMedium.merge(Figures)`.
+ */
+val Figures = TextStyle(fontFamily = Outfit, fontFeatureSettings = "tnum")
 
 private val Base = Typography()
 

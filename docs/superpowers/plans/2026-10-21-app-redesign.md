@@ -20,24 +20,24 @@ and `ContrastTest` green.
 
 ## PR1: foundation tokens and type (3.1.0)
 
-- [ ] **`Tokens.kt`:**
+- [x] **`Tokens.kt`:**
   - the new dark set;
   - `warnSoft`/`onWarnSoft` dark;
   - the six edge tokens, light and dark.
-- [ ] **`ContrastTest`:**
+- [x] **`ContrastTest`:**
   - the shared light rows stay checked against the guide;
   - a Pacer table checks the new dark values and the edge tokens against `docs/PACER_ACCENT_CONTRAST.md` (renamed in
     the docs to Course Pacer contrast);
   - `everyPairMeetsItsTarget` also covers edges at 3:1.
-- [ ] **`Type.kt`:** `Figures` (Outfit, `tnum`) replaces `Mono`, and all about 36 uses move to it. Check that digits
+- [x] **`Type.kt`:** `Figures` (Outfit, `tnum`) replaces `Mono`, and all about 36 uses move to it. Check that digits
   line up in `AnimatedFigure`.
-- [ ] **Components** (`Components.kt`, `DashboardComponents.kt`):
+- [x] **Components** (`Components.kt`, `DashboardComponents.kt`):
   - 48dp segmented switch with an ink selected side;
   - 48dp buttons and text-link targets;
   - pale status pill.
   - Lesson rows lose `alpha(0.6f)`.
-- [ ] **Check:** screens keep their layouts in this PR; only colours, figures and target sizes change. Before/after
-  screenshots in the PR.
+- [x] **Check:** screens keep their layouts in this PR; only colours, figures and target sizes change. Before/after
+  screenshots in the PR (or a note there when no emulator was available).
 
 ## PR2: navigation (3.2.0)
 
