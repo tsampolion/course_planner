@@ -219,28 +219,30 @@
     <string name="home_create_year_hint">Give it its first and last teaching day. The Greek public holidays can come in as days off.</string>
     <string name="home_new_year">New school year</string>
     <string name="home_year">School year</string>
-    <string name="home_choose_tests">Tests for which class?</string>
-    <string name="home_choose_homework">Homework for which class?</string>
     <string name="home_hello">Hello</string>
-    <string name="home_change_year">Change school year</string>
+    <string name="home_hello_name">Hello, %1$s</string>
+    <string name="home_next_today">Next · today · %1$d of %2$d left</string>
+    <string name="home_next_on">Next · %1$s</string>
+    <string name="home_next_overdue">Next · overdue · %1$s</string>
+    <string name="home_done">Done</string>
+    <string name="home_all_classes">All %1$d ›</string>
+    <string name="home_see_all">See all ›</string>
+    <string name="home_board_empty">Add a group to a class and it shows here.</string>
+    <string name="home_legend_behind">Behind, lessons short</string>
+    <string name="home_cell_behind">%1$s −%2$d</string>
+    <string name="home_cell">%1$s %2$s</string>
+    <string name="home_cell_on_pace">%1$s %2$s, on pace</string>
+    <string name="home_open_group">Open group</string>
     <string name="home_add_first_class">Add your first class</string>
     <string name="home_first_class_hint">A class holds its books, lesson days and groups. Add one and its next lesson shows here.</string>
     <string name="home_add_class">Add a class</string>
     <string name="home_no_lessons">No lessons left this term</string>
     <string name="home_overview_hint">Open Pacing overview to see where each group stands.</string>
-    <string name="home_next_lesson">Next lesson</string>
-    <string name="home_overdue">Overdue</string>
     <string name="home_lesson_done">Lesson marked done</string>
-    <string name="home_mark_done">Mark done</string>
     <string name="home_classes">Classes</string>
-    <string name="home_none">None yet</string>
-    <string name="home_tests">Tests</string>
     <string name="home_print">Print or save PDF</string>
     <string name="home_print_hint">Choose classes and margins</string>
     <string name="home_overview">Pacing overview</string>
-    <string name="home_needs_look">Needs a look</string>
-    <string name="home_homework">Homework</string>
-    <string name="home_days_dates">Days off &amp; dates</string>
     <string name="home_dates_missing">Dates not set</string>
     <string name="home_rename">Rename</string>
     <string name="home_delete">Delete</string>
@@ -256,9 +258,6 @@
     <string name="home_holidays">Add the Greek public holidays as days off</string>
     <string name="home_date_range">%1$s – %2$s</string>
     <string name="home_pair">%1$s · %2$s</string>
-    <string name="home_next_test">Next: %1$s · %2$s</string>
-    <string name="home_no_problems">No problems · %1$s</string>
-    <string name="home_dates_and_off">%1$s – %2$s · %3$s</string>
     <string name="home_options">Options for %1$s</string>
     <string name="print_title">Print or save PDF</string>
     <string name="print_print">Print</string>
@@ -278,23 +277,15 @@
         <item quantity="one">%d group</item>
         <item quantity="other">%d groups</item>
     </plurals>
-    <plurals name="home_tests_count">
-        <item quantity="one">%d test</item>
-        <item quantity="other">%d tests</item>
+    <plurals name="home_behind_count">
+        <item quantity="one">%d behind</item>
+        <item quantity="other">%d behind</item>
     </plurals>
-    <plurals name="home_problems_count">
-        <item quantity="one">%d problem</item>
-        <item quantity="other">%d problems</item>
+    <plurals name="home_cell_short">
+        <item quantity="one">%1$s %2$s, short by %3$d lesson</item>
+        <item quantity="other">%1$s %2$s, short by %3$d lessons</item>
     </plurals>
-    <plurals name="home_assignments_count">
-        <item quantity="one">%d assignment</item>
-        <item quantity="other">%d assignments</item>
-    </plurals>
-    <plurals name="home_days_off_count">
-        <item quantity="one">%d day off</item>
-        <item quantity="other">%d days off</item>
-    </plurals>
-    <string name="settings_theme_system">Follow the system</string>
+    <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme">Theme</string>
@@ -302,6 +293,12 @@
     <string name="settings_class_defaults">Class defaults</string>
     <string name="settings_defaults_hint">Used when you add a class. Existing classes keep their own values, which you change on the class screen.</string>
     <string name="settings_help">Help</string>
+    <string name="settings_you">You</string>
+    <string name="settings_your_name">Your name</string>
+    <string name="settings_name_hint">Home greets you by it. Leave it empty and Home says Hello.</string>
+    <string name="settings_show_tips">Show tips again</string>
+    <string name="settings_show_tips_detail">Tips you closed come back where they first appeared.</string>
+    <string name="settings_tips_reset">Tips will show again</string>
     <string name="settings_getting_started">Getting started</string>
     <string name="settings_getting_started_detail">What the app does, and the steps to a first schedule</string>
     <string name="settings_about">About</string>
@@ -392,6 +389,7 @@
     <string name="year_already_there">Already there</string>
     <string name="year_holidays_hint">Greek holidays are computed from Orthodox Easter for every calendar year the school year touches. Check them against your school’s calendar before relying on them.</string>
     <string name="year_school_year">School year</string>
+    <string name="year_switch">School years</string>
     <string name="year_name">Name</string>
     <string name="year_starts">Starts</string>
     <string name="year_ends">Ends</string>

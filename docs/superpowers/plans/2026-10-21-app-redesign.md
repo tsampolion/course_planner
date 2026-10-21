@@ -57,19 +57,19 @@ and `ContrastTest` green.
 
 ## PR3: Home (3.3.0)
 
-- [ ] **Header:** "Hello, *name*" (or "Hello" when no name is set), with the date and the year. ☰ is on the left.
-- [ ] **Settings:** `Settings.name` field, the theme as a segmented switch, "Show tips again" and `seenTips`, kept in
+- [x] **Header:** "Hello, *name*" (or "Hello" when no name is set), with the date and the year. ☰ is on the left.
+- [x] **Settings:** `Settings.name` field, the theme as a segmented switch, "Show tips again" and `seenTips`, kept in
   `SettingsStore`, outside undo. `data_extraction_rules.xml` already covers `settings.xml`.
-- [ ] **Next-lesson bar** with Done.
-- [ ] **Classes card:** a `LazyRow` of class chips and "All N ›".
-- [ ] **`PacingBoard`:**
+- [x] **Next-lesson bar** with Done.
+- [x] **Classes card:** a `LazyRow` of class chips and "All N ›".
+- [x] **`PacingBoard`:**
   - one cell per group, grouped by class. On-pace cells are neutral and behind cells are rust with "−N".
   - Tapping a cell opens that group. Legend and "See all ›".
   - TalkBack reads each cell as "FCE Wed–Fri, short by 2 lessons".
-- [ ] **Removed from Home:** the tiles, `YearChip` and `HomeGrid`. Year switching moves into this PR: the School year
+- [x] **Removed from Home:** the tiles, `YearChip` and `HomeGrid`. Year switching moves into this PR: the School year
   screen gets the year switcher at its top (with + New year, rename and delete from the old picker), so no release
   lacks it. PR5 restyles the rest of that screen.
-- [ ] **`wholeLessons()` helper** (round up, at least 1), unit-tested. Used by the board, the switcher, Class,
+- [x] **`wholeLessons()` helper** (round up, at least 1), unit-tested. Used by the board, the switcher, Class,
   Pacing overview, Warnings and, in PR4, Stats. It comes from the existing `verdict()`.
 
 ## PR4: group Plan and Stats (3.4.0)

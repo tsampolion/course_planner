@@ -15,6 +15,9 @@ class SettingsStore(context: Context) {
         pace = prefs.getString(PACE, null)?.toDoubleOrNull() ?: Settings.DEFAULT_PACE,
         scheduleByMonth = prefs.getBoolean(BY_MONTH, false),
         welcomeSeen = prefs.getBoolean(WELCOME, false),
+        name = prefs.getString(NAME, null).orEmpty(),
+        // A copy: the set SharedPreferences returns must not be changed or kept.
+        seenTips = prefs.getStringSet(TIPS, null)?.toSet().orEmpty(),
     ).sanitised()
 
     fun save(s: Settings) {
@@ -24,6 +27,8 @@ class SettingsStore(context: Context) {
             .putString(PACE, s.pace.toString())
             .putBoolean(BY_MONTH, s.scheduleByMonth)
             .putBoolean(WELCOME, s.welcomeSeen)
+            .putString(NAME, s.name)
+            .putStringSet(TIPS, s.seenTips.toSet())
             .apply()
     }
 
@@ -35,5 +40,7 @@ class SettingsStore(context: Context) {
         const val PACE = "pace"
         const val BY_MONTH = "scheduleByMonth"
         const val WELCOME = "welcomeSeen"
+        const val NAME = "name"
+        const val TIPS = "seenTips"
     }
 }

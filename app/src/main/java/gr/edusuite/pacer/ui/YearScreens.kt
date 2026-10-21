@@ -2,7 +2,17 @@ package gr.edusuite.pacer.ui
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,15 +61,43 @@ private fun whoTag(context: Context, year: SchoolYear, who: String): String? {
     return context.getString(R.string.year_removed_group)
 }
 
-/** The year's name, term dates and deleting it at the top, then its days off. */
+/**
+ * The year switcher at the top (decision 6: every school year, with + New year, Rename and Delete), then the open
+ * year's name, term dates and days off, and printing.
+ */
 @Composable
-fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
+fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
     val context = LocalContext.current
     var adding by rememberSaveable { mutableStateOf(false) }
+    var newYear by rememberSaveable { mutableStateOf(false) }
+    var printing by rememberSaveable { mutableStateOf(false) }
+    // The year being renamed, by id.
+    var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var editing by rememberSaveable(year.id) { mutableStateOf<String?>(null) }
     val problems = remember(year) { Nav.problems(year).filter { it.fix == Screen.YearSettings } }
+    val sorted = remember(years) { years.sortedByDescending { it.start } }
+    val deleteYear = { y: SchoolYear ->
+        val name = y.name.ifBlank { context.getString(R.string.year_school_year) }
+        vm.deleteYear(y.id)
+        onDeleted(name)
+    }
 
     ScreenList(padding) {
+        item(key = "years") {
+            Section(stringResource(R.string.year_switch)) {
+                Column(Modifier.selectableGroup()) {
+                    sorted.forEach { y ->
+                        YearRow(
+                            y, selected = y.id == year.id,
+                            onOpen = { vm.switchYear(y.id) },
+                            onRename = { renaming = y.id },
+                            onDelete = { deleteYear(y) },
+                        )
+                    }
+                }
+                AddButton(stringResource(R.string.home_new_year)) { newYear = true }
+            }
+        }
         items(problems) { Box(Modifier.animateItem()) { ErrorBox(it.text) } }
         item(key = "year") {
             Section(stringResource(R.string.year_school_year)) {
@@ -95,18 +133,23 @@ fun YearSettingsScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingVal
                 )
             }
         }
+        item(key = "print") {
+            // Until the group's ⋮ menu offers Print (3.4.0), the year's print lives here.
+            Section(stringResource(R.string.home_print)) {
+                LinkRow(stringResource(R.string.home_print), stringResource(R.string.home_print_hint)) { printing = true }
+            }
+        }
         item(key = "delete") {
             MoreOptions {
-                TertiaryButton(stringResource(R.string.year_delete), {
-                    val name = year.name.ifBlank { context.getString(R.string.year_school_year) }
-                    vm.deleteYear(year.id)
-                    onDeleted(name)
-                }, color = Pacer.colors.warn)
+                TertiaryButton(stringResource(R.string.year_delete), { deleteYear(year) }, color = Pacer.colors.warn)
             }
         }
     }
 
     if (adding) AddClosureSheet(year, vm) { adding = false }
+    if (newYear) NewYearDialog(years, vm) { newYear = false }
+    if (printing) PrintDialog(year) { printing = false }
+    years.firstOrNull { it.id == renaming }?.let { y -> RenameYearSheet(y, vm) { renaming = null } }
     editing?.let { field ->
         SheetFrame(if (field == "name") stringResource(R.string.year_school_year_name) else stringResource(R.string.year_term), stringResource(R.string.year_done), true, {}, { editing = null }) {
             if (field == "name") CommitField(year.name, { vm.renameYear(year.id, it) }, stringResource(R.string.year_name), Modifier.fillMaxWidth())
@@ -177,5 +220,52 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
         SheetFrame(stringResource(R.string.year_new_class), stringResource(R.string.year_add), true, { vm.newClass(name.trim()) }, { adding = false }) {
             CommitField(name, { name = it }, stringResource(R.string.year_name), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_class_example))
         }
+    }
+}
+
+/** A year in the picker: a radio, its name over its dates and class count, and a ⋮ menu. */
+@Composable
+internal fun YearRow(y: SchoolYear, selected: Boolean, onOpen: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
+    var menu by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val tick = rememberSegmentHaptic()
+    val name = y.name.ifBlank { context.getString(R.string.home_year) }
+    val options = stringResource(R.string.home_options, name)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = { tick(); onOpen() }),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = null, modifier = Modifier.padding(horizontal = Space.m))
+        Column(Modifier.weight(1f).padding(vertical = Space.s)) {
+            Text(name, style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.home_pair, y.dates(context), pluralStringResource(R.plurals.home_classes_count, y.classes.size, y.classes.size)),
+                style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted,
+            )
+        }
+        Box {
+            TextButton(
+                onClick = { menu = true },
+                contentPadding = PaddingValues(0.dp),
+                modifier = Modifier.size(48.dp).semantics { contentDescription = options },
+            ) { AppIcon(AppIcons.MoreVert) }
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.home_rename)) }, onClick = { menu = false; onRename() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.home_delete), color = Pacer.colors.warn) }, onClick = { menu = false; onDelete() })
+            }
+        }
+    }
+}
+
+/** Renames a year in a sheet; the name is saved once, on Save. */
+@Composable
+internal fun RenameYearSheet(y: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
+    var name by rememberSaveable { mutableStateOf(y.name) }
+    SheetFrame(stringResource(R.string.home_rename_year), stringResource(R.string.home_save), name.isNotBlank(), { vm.renameYear(y.id, name.trim()) }, onDismiss) {
+        CommitField(name, { name = it }, stringResource(R.string.home_name), Modifier.fillMaxWidth())
     }
 }

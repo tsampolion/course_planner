@@ -42,6 +42,7 @@ import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.model.ThemeMode
@@ -238,6 +239,14 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         publish(data.copy(activeYear = id, activeClass = ""), Nav.root)
     }
 
+    /** Opens another year from the School year screen's switcher, and stays on School year for it. */
+    fun switchYear(id: String) {
+        if (id == data.activeYear || data.years.none { it.id == id }) return
+        clearHistory()
+        publish(data.copy(activeYear = id, activeClass = ""))
+        publish(data, Nav.push(_state.value.stack, Screen.YearSettings))
+    }
+
     fun openClass(id: String) {
         if (id != data.activeClass) publish(data.copy(activeClass = id))
         open(Screen.Class)
@@ -267,12 +276,6 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         goTo(Screen.Group(groupId))
     }
 
-    /** Opens a class's [Screen.Tests] or [Screen.Homework] from Home, over that class. */
-    fun openClassScreen(classId: String, screen: Screen) {
-        openClass(classId)
-        open(screen)
-    }
-
     // ---- settings (not undoable, saved at once) ----------------------------
 
     private fun editSettings(change: (Settings) -> Settings) {
@@ -287,6 +290,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }
     fun setScheduleByMonth(v: Boolean) = editSettings { it.copy(scheduleByMonth = v) }
     fun setWelcomeSeen() = editSettings { it.copy(welcomeSeen = true) }
+    fun setName(v: String) = editSettings { it.copy(name = v) }
+    fun markHintSeen(id: String) = editSettings { Hints.markSeen(it, id) }
+    fun showTipsAgain() = editSettings { Hints.reset(it) }
 
     // ---- school years ------------------------------------------------------
 

@@ -6,8 +6,9 @@ import gr.edusuite.pacer.model.SchoolYear
 import java.time.LocalDate
 
 /*
- * What Home shows about the open school year (style guide §6 "Hero tile" and "Tile grid"), worked out in plain Kotlin
- * from the engine, so it is unit-testable and the screen only lays it out.
+ * What Home shows about the open school year (docs/PACER_DESIGN.md D3, D4: the next-lesson bar, the Classes card and the
+ * Pacing overview board), worked out in plain Kotlin from the engine, so it is unit-testable and the screen only lays it
+ * out.
  */
 
 /** The next lesson to teach in the year, whichever class and group it belongs to. */
@@ -68,58 +69,44 @@ fun SchoolYear.markNextLessonDone(classId: String, groupId: String): SchoolYear 
     return copy(classes = classes.map { k -> if (k.id != classId) k else k.copy(groups = k.groups.map { if (it.id == groupId) next else it }) })
 }
 
-/** The live subtitles of Home's tiles. */
-data class HomeSummary(
-    val classes: Int,
-    val groups: Int,
-    val problems: Int,
-    val tests: Int,
-    /** The first test on or after today, by date then name. */
-    val nextTest: Pair<LocalDate, String>?,
-    val homework: Int,
-    val daysOff: Int,
-    val datesSet: Boolean,
-)
+/** Today's lessons over the whole year: how many are still to teach, out of all of them (done ones included). */
+data class TodayCount(val left: Int, val total: Int)
 
-fun homeSummary(year: SchoolYear, today: LocalDate): HomeSummary {
-    val events = year.classes.flatMap { it.events }
-    return HomeSummary(
-        classes = year.classes.size,
-        groups = year.classes.sumOf { it.groups.size },
-        problems = Nav.problems(year).size,
-        tests = events.size,
-        nextTest = events.filter { !it.date.isBefore(today) }.minWithOrNull(compareBy({ it.date }, { it.name }))?.let { it.date to it.name },
-        homework = year.classes.sumOf { it.homework.size },
-        daysOff = year.closures.size,
-        datesSet = year.start != null && year.end != null,
-    )
+/** Every group's lessons dated [today], as each group's schedule has them, plus those already marked done today. */
+fun lessonsToday(year: SchoolYear, today: LocalDate): TodayCount {
+    var left = 0
+    var done = 0
+    for (c in year.classes) {
+        val plan = year.planFor(c)
+        for (g in plan.groups) {
+            // A done lesson's date leaves the schedule, so the two never count the same lesson.
+            left += GroupReport(plan, g).rows.count { it.date == today }
+            done += g.done.count { it.date == today }
+        }
+    }
+    return TodayCount(left, left + done)
 }
+
+/** One group on Home's Pacing overview board. [short] is [lessonsShort]: 0 on pace, null with nothing to measure. */
+data class BoardCell(val classId: String, val groupId: String, val groupName: String, val short: Int?) {
+    val behind: Boolean get() = (short ?: 0) > 0
+}
+
+/** One class's line on the board: its groups in the class's order. */
+data class BoardRow(val classId: String, val className: String, val cells: List<BoardCell>)
+
+/** Home's Pacing overview board: one row per class that has groups, in the year's order, from the same verdict as every status label. */
+fun pacingBoard(year: SchoolYear): List<BoardRow> = year.classes.filter { it.groups.isNotEmpty() }.map { c ->
+    val plan = year.planFor(c)
+    BoardRow(c.id, c.name, plan.groups.map { BoardCell(c.id, it.id, it.name, GroupReport(plan, it).lessonsShort()) })
+}
+
+/** "16 groups · 3 behind" over the board. */
+data class BoardSummary(val groups: Int, val behind: Int)
+
+fun List<BoardRow>.summary(): BoardSummary =
+    flatMap { it.cells }.let { cells -> BoardSummary(cells.size, cells.count { it.behind }) }
 
 /** The year Home opens when none is open: the one that starts last (a year with no start date comes last). Null when there are none. */
 fun defaultYearId(years: List<SchoolYear>): String? =
     years.maxWithOrNull(compareBy<SchoolYear, LocalDate?>(nullsFirst()) { it.start })?.id
-
-/**
- * How many columns Home's tile grid gets (§6 "Tile grid"): as many [minDp] columns as [widthDp] fits, at least two and
- * at most one per tile. [widthDp] is the grid's own width, inside the 16dp screen edges, so §6's "under 360dp" is under
- * 328dp here; there, or at 200% font, the grid is one column.
- */
-fun homeColumns(widthDp: Float, fontScale: Float, tiles: Int, minDp: Float = 160f, gapDp: Float = 8f): Int {
-    if (fontScale >= 2f || widthDp < 360f - 32f) return 1
-    val fits = ((widthDp + gapDp) / (minDp + gapDp)).toInt()
-    return fits.coerceIn(2, maxOf(2, tiles))
-}
-
-/**
- * Where each tile of a masonry grid goes, as (column, y): in order, each tile drops into the column that is shortest so
- * far, the leftmost on a tie, [gap] below the tile above it.
- */
-fun masonryPlacement(heights: List<Int>, columns: Int, gap: Int): List<Pair<Int, Int>> {
-    val bottoms = IntArray(columns)
-    return heights.map { h ->
-        val column = bottoms.indices.minBy { bottoms[it] }
-        val y = bottoms[column]
-        bottoms[column] = y + h + gap
-        column to y
-    }
-}
