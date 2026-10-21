@@ -92,9 +92,6 @@ private fun LocalDate.barDate(): String = format(DateTimeFormatter.ofPattern("EE
 /** Today on the Home header, such as "Wednesday 21 October". */
 private val HEADER_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.getDefault())
 
-/** From this font scale the board gives each group cell a whole line (docs/PACER_DESIGN.md, large text). */
-private const val LARGE_TEXT = 1.5f
-
 /**
  * The start screen (docs/PACER_DESIGN.md D3, D4): "Hello, name" over today's date and the open year, the next-lesson
  * bar with Done, the Classes card and the Pacing overview board. With no years it offers to create the first one.
@@ -108,7 +105,7 @@ fun HomeScreen(
     padding: PaddingValues,
     welcome: Boolean,
     undoToast: (String) -> Unit = {},
-    onMenu: () -> Unit = {},
+    onMenu: (() -> Unit)? = null,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     val today = remember { LocalDate.now() }
@@ -159,11 +156,14 @@ fun HomeScreen(
 
 /** D3: ☰ for the menu (which holds Settings), the logo, "Hello, name" and, under it, today's date and the open year. */
 @Composable
-private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: () -> Unit) {
+private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: (() -> Unit)?) {
     val context = LocalContext.current
     Row(verticalAlignment = Alignment.CenterVertically) {
-        PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
-        Spacer(Modifier.width(Space.s))
+        // On a tablet with the menu always open there is no ☰.
+        if (onMenu != null) {
+            PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
+            Spacer(Modifier.width(Space.s))
+        }
         Logo(48.dp)
         Spacer(Modifier.width(Space.m))
         Column(Modifier.weight(1f)) {
@@ -204,7 +204,7 @@ private fun NextLessonBar(year: SchoolYear, today: LocalDate, vm: PacerViewModel
         }
         return
     }
-    val large = LocalDensity.current.fontScale >= LARGE_TEXT
+    val large = rememberLargeText()
     val label = when {
         next.overdue -> stringResource(R.string.home_next_overdue, next.date.barDate())
         next.date == today -> stringResource(R.string.home_next_today, count.left, count.total)
@@ -262,6 +262,16 @@ private fun HomeCard(title: String, link: String?, onLink: () -> Unit, content: 
 private fun ClassesCard(year: SchoolYear, vm: PacerViewModel) {
     val context = LocalContext.current
     val n = year.classes.size
+    // Large text: the chips wait behind one row.
+    if (rememberLargeText()) {
+        Surface(
+            onClick = { vm.goTo(Screen.Classes) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            shape = MaterialTheme.shapes.large, color = Pacer.colors.surface, contentColor = Pacer.colors.ink,
+        ) {
+            Text(stringResource(R.string.home_classes_link), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.m))
+        }
+        return
+    }
     HomeCard(stringResource(R.string.home_classes), stringResource(R.string.home_all_classes, n), { vm.goTo(Screen.Classes) }) {
         LazyRow(contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
             items(year.classes, key = { it.id }) { k ->
@@ -290,9 +300,13 @@ private fun ClassesCard(year: SchoolYear, vm: PacerViewModel) {
 @Composable
 private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
     val context = LocalContext.current
-    val board = remember(year) { pacingBoard(year) }
-    val summary = remember(board) { board.summary() }
-    val perLine = if (LocalDensity.current.fontScale >= LARGE_TEXT) 1 else 2
+    val full = remember(year) { pacingBoard(year) }
+    val summary = remember(full) { full.summary() }
+    // Large text: only the groups behind, with the groups on pace one tap away.
+    val large = rememberLargeText()
+    val board = if (large) full.behindOnly().rows else full
+    val onPace = if (large) full.behindOnly().onPace else 0
+    val perLine = if (large) 1 else 2
     Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = Pacer.colors.surface, contentColor = Pacer.colors.ink) {
         Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m, bottom = Space.xs), verticalArrangement = Arrangement.spacedBy(Space.s)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -310,7 +324,10 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
             if (board.isEmpty()) Hint(stringResource(R.string.home_board_empty))
             board.forEach { row ->
                 val className = row.className.ifBlank { context.getString(R.string.home_class) }
-                Row(verticalAlignment = Alignment.Top) {
+                if (large) Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    Text(className, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    row.cells.forEach { cell -> BoardCellView(className, cell, Modifier.fillMaxWidth()) { vm.openGroup(cell.classId, cell.groupId) } }
+                } else Row(verticalAlignment = Alignment.Top) {
                     // Level with the first line of cells.
                     Box(Modifier.weight(1f).heightIn(min = 48.dp).padding(end = Space.s), contentAlignment = Alignment.CenterStart) {
                         Text(className, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -325,7 +342,10 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
                     }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            if (large) TertiaryButton(
+                if (onPace > 0) pluralStringResource(R.plurals.home_groups_on_pace, onPace, onPace) else stringResource(R.string.home_see_all),
+                { vm.goTo(Screen.Overview) }, Modifier.fillMaxWidth(), color = Pacer.colors.accent,
+            ) else Row(verticalAlignment = Alignment.CenterVertically) {
                 Legend(Modifier.weight(1f))
                 TertiaryButton(stringResource(R.string.home_see_all), { vm.goTo(Screen.Overview) }, color = Pacer.colors.accent)
             }

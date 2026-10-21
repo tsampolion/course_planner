@@ -706,4 +706,23 @@
     <string name="overview_sort_name">by name</string>
     <string name="overview_sort_next">by next lesson</string>
     <string name="overview_problems">Problems in this year</string>
+    <!-- 3.6.0: large text -->
+    <string name="home_classes_link">Classes ›</string>
+    <plurals name="home_groups_on_pace">
+        <item quantity="one">%d group on pace ›</item>
+        <item quantity="other">%d groups on pace ›</item>
+    </plurals>
+    <plurals name="overview_on_pace_link">
+        <item quantity="one">%d on pace ›</item>
+        <item quantity="other">%d on pace ›</item>
+    </plurals>
+    <plurals name="overview_classes_on_pace">
+        <item quantity="one">%d class all on pace ›</item>
+        <item quantity="other">%d classes all on pace ›</item>
+    </plurals>
+    <string name="overview_hide_on_pace">Hide groups on pace</string>
+    <string name="stats_more">More stats ›</string>
+    <string name="stats_fewer">Fewer stats</string>
+    <string name="group_make_custom_plan">Make a custom plan</string>
+    <string name="panes_pick_group">Pick a group to open it here.</string>
 </resources>

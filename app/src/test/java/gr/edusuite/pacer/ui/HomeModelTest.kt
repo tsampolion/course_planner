@@ -115,4 +115,18 @@ class HomeModelTest {
         assertEquals("u", defaultYearId(listOf(undated)))
         assertNull(defaultYearId(emptyList()))
     }
+
+    @Test fun largeBoardKeepsOnlyGroupsBehind() {
+        fun cell(g: String, short: Int?) = BoardCell("c", g, g, short)
+        val board = listOf(
+            BoardRow("c1", "A", listOf(cell("a1", 0), cell("a2", 2), cell("a3", null))),
+            BoardRow("c2", "B", listOf(cell("b1", 0))),
+            BoardRow("c3", "C", listOf(cell("c1", 1), cell("c2", 3))),
+        )
+        val large = board.behindOnly()
+        assertEquals(listOf("A", "C"), large.rows.map { it.className })
+        assertEquals(listOf(listOf("a2"), listOf("c1", "c2")), large.rows.map { r -> r.cells.map { it.groupId } })
+        assertEquals(3, large.onPace)
+        assertEquals(0, emptyList<BoardRow>().behindOnly().onPace)
+    }
 }

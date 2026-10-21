@@ -58,6 +58,23 @@ fun sortGroups(classes: List<OverviewClass>, order: GroupOrder): List<OverviewCl
     return classes.map { it.copy(groups = it.groups.sortedWith(by)) }
 }
 
+/** A class on Pacing overview in large-text mode: [shown] holds only its groups behind, and [onPace] are the rest. */
+data class LargeClass(val shown: OverviewClass, val onPace: List<OverviewGroup>)
+
+/**
+ * Large-text Pacing overview: the classes with a group behind (their groups behind only, the rest one tap away) and,
+ * apart, the classes whose groups are all on pace. Classes with no groups are left out.
+ */
+data class LargeOverview(val classes: List<LargeClass>, val allOnPace: List<OverviewClass>)
+
+fun largeOverview(classes: List<OverviewClass>): LargeOverview {
+    val behind = classes.filter { it.behind > 0 }.map { c ->
+        val (late, ok) = c.groups.partition { it.behind }
+        LargeClass(c.copy(groups = late), ok)
+    }
+    return LargeOverview(behind, classes.filter { it.behind == 0 && it.groups.isNotEmpty() })
+}
+
 /** A class on the Classes screen: its groups' names, how many books, and how many groups are behind. */
 data class ClassSummary(
     val classId: String,

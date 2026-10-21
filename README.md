@@ -26,6 +26,7 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 - **Tests and homework**: a test can take the whole lesson or run alongside it. Homework already set drops its pages from the lessons. Each is a dated row with ⋮ Remove.
 - **Pacing overview**: every group class by class, one line each with its next lesson and status, sorted inside each class by most behind, name or next lesson. The year's problems are behind the warning button, each with its fix.
 - **Output**: from a group's ⋮ menu, copy its schedule as tab-separated text, share it, or print or save it as a PDF (that group, its class, or the whole year).
+- **Large text and tablets**: from font scale 1.5 the screens show less, with the rest one tap away (groups on pace, more stats), and buttons go full width under their text. On a tablet, Pacing overview and the open group sit side by side, and from 840dp the menu stays open.
 - **Undo**: up to 60 steps within the open school year.
 - **Settings**: your name for Home's greeting, theme, defaults for new classes, "Show tips again", and back up and restore. Export saves every school year to a file you choose. Import reads that file, or the web page's export, and adds its years beside yours or replaces them.
 

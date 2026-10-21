@@ -320,11 +320,12 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
     val items = lessonMenu(next, actions)
     val description = spokenLesson(next, actions)
     val label = stringResource(if (next.date == today) R.string.today_label else R.string.today_next_label, next.n)
+    val large = rememberLargeText()
     Box(modifier) {
         Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.accent, contentColor = c.onAccent) {
-            Row(Modifier.padding(Space.l), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
+            val info = @Composable { m: Modifier ->
                 Column(
-                    Modifier.weight(1f).lessonNode("$label. $description", next.done, null, items) { menu = true },
+                    m.lessonNode("$label. $description", next.done, null, items) { menu = true },
                     verticalArrangement = Arrangement.spacedBy(Space.xs),
                 ) {
                     Text(label, style = MaterialTheme.typography.labelMedium)
@@ -336,19 +337,29 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         suppPages(next, actions).forEach { (_, text) -> Text(stringResource(R.string.ledger_supp, text), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
                     }
                 }
-                if (actions.canTick) Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+            }
+            // Large text: the buttons go full width under the lesson instead of beside it.
+            val buttons = @Composable { m: Modifier, end: Alignment.Horizontal ->
+                Column(m, horizontalAlignment = end, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     Button(
                         onClick = onDone,
                         shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink),
-                        modifier = Modifier.heightIn(min = 48.dp),
+                        modifier = Modifier.heightIn(min = 48.dp).then(if (large) Modifier.fillMaxWidth() else Modifier),
                     ) {
                         Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(Space.xs))
                         Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
                     }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, color = c.onAccent)
+                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, color = c.onAccent)
                 }
+            }
+            if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                info(Modifier.fillMaxWidth())
+                if (actions.canTick) buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally)
+            } else Row(Modifier.padding(Space.l), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
+                info(Modifier.weight(1f))
+                if (actions.canTick) buttons(Modifier, Alignment.End)
             }
         }
         LessonMenu(menu, items) { menu = false }
@@ -423,6 +434,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
     val items = lessonMenu(l, actions)
     val description = spokenLesson(l, actions)
     val ink = if (l.done) c.muted else c.ink
+    val large = rememberLargeText()
     val subtitle = buildList {
         if (l.events.isNotEmpty()) add(l.events.joinToString(" · ") { it.name })
         if (l.free) add(stringResource(R.string.custom_free))
@@ -444,15 +456,20 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.width(EdgeW).fillMaxHeight().padding(vertical = Space.s).background(l.kind(actions.supplementary).edge()))
-                Text(
-                    "${l.date.dayOfWeek.short()} ${l.date.fmtShort()}", style = MaterialTheme.typography.titleSmall.merge(Figures), color = ink,
-                    modifier = Modifier.width(DateW).padding(start = Space.m),
-                )
-                Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                val date = "${l.date.dayOfWeek.short()} ${l.date.fmtShort()}"
+                val details = @Composable {
                     Text(main, style = MaterialTheme.typography.bodyLarge.merge(Figures), color = ink)
                     if (main != l.note && l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = c.muted)
                     if (subtitle.isNotEmpty()) Text(subtitle.joinToString(" · "), style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
                     l.proposed?.let { Text(stringResource(R.string.custom_proposed_line, it), style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted) }
+                }
+                // Large text: the date sits over the pages, so neither is squeezed into a column.
+                if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = Space.m, bottom = Space.m), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = ink)
+                    details()
+                } else {
+                    Text(date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = ink, modifier = Modifier.width(DateW).padding(start = Space.m))
+                    Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(2.dp)) { details() }
                 }
                 if (grip != null) grip(stringResource(R.string.custom_drag, l.n))
                 RoundTick(l.done, actions.canTick) { actions.toggle(l.date) }
@@ -471,6 +488,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
 internal fun SlimRow(entry: Entry, actions: LessonActions) {
     val c = Pacer.colors
     val lesson = (entry as? Entry.Item)?.lesson
+    val large = rememberLargeText()
     var menu by rememberSaveable(entry.date.toString()) { mutableStateOf(false) }
     val items = if (lesson != null) lessonMenu(lesson, actions) else emptyList()
     val text = when (entry) {
@@ -488,11 +506,14 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.width(EdgeW).fillMaxHeight().padding(vertical = Space.xs).background(if (lesson != null) c.edgeTest else c.edgeDayOff))
-                Text(
-                    "${entry.date.dayOfWeek.short()} ${entry.date.fmtShort()}", style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted,
-                    modifier = Modifier.width(DateW).padding(start = Space.m),
-                )
-                Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted, modifier = Modifier.weight(1f).padding(vertical = Space.s))
+                val date = "${entry.date.dayOfWeek.short()} ${entry.date.fmtShort()}"
+                if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = Space.s, bottom = Space.s)) {
+                    Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
+                    Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                } else {
+                    Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted, modifier = Modifier.width(DateW).padding(start = Space.m))
+                    Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted, modifier = Modifier.weight(1f).padding(vertical = Space.s))
+                }
                 if (lesson != null) RoundTick(lesson.done, actions.canTick) { actions.toggle(lesson.date) }
             }
             HorizontalDivider(Modifier.padding(start = Space.l), color = c.line)

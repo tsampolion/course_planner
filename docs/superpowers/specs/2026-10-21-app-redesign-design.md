@@ -39,7 +39,7 @@ Course Pacer becomes the launchpad for a future EduSuite guide. For now every de
 | 12 | **Colour for status:** on-pace is neutral (`surfaceContainer` with ink, or grey "On pace" text). Only groups that are behind take colour: rust cells on the board, pale `warnSoft` pills with `onWarnSoft` text. Each row carries one status mark. |
 | 13 | **Lesson-kind edge tokens (Pacer-only),** at least 3:1 against `surface` in both modes: `edgeTest`, `edgeDayOff`, `edgeEdited`, `edgeHand`, `edgeFree` and `edgeSupp`. The words still name each kind. |
 | 14 | **Dark mode has its own palette** (Pacer-only): a near-black ground with bright accents, so status and actions stand out against the dark background. Values are below. |
-| 15 | **Background pattern** (light mode only): a seamless 324dp tile of tilted Material Symbols Rounded school icons (book, cap, flask, pencil, ruler, compass, bulb, globe, palette, backpack, clock, note, clip, scissors, ball, calculator, microscope, abc, 123, fx, rocket and others), drawn in `ink` at 14%. There's no pattern in dark mode or on the welcome page. Lists and header text sit on a solid paper sheet with rounded top corners, so no text sits on the pattern. |
+| 15 | **Dropped by the owner before it was built (3.6.0):** the background pattern. Original text: **Background pattern** (light mode only): a seamless 324dp tile of tilted Material Symbols Rounded school icons (book, cap, flask, pencil, ruler, compass, bulb, globe, palette, backpack, clock, note, clip, scissors, ball, calculator, microscope, abc, 123, fx, rocket and others), drawn in `ink` at 14%. There's no pattern in dark mode or on the welcome page. Lists and header text sit on a solid paper sheet with rounded top corners, so no text sits on the pattern. |
 | 16 | **Large-text mode** from font scale 1.5. Android's non-linear scaling applies. Layouts reflow (buttons go full width under their text, and rows stack the date over the pages). Each screen also shows less and abbreviates more, but anything hidden stays one tap away: "Classes ›", "13 groups on pace ›", "6 classes all on pace ›" and "More stats ›". The custom-plan line moves to ⋮, and a top bar's title is cut short with "…". |
 | 17 | **Tablet:** a permanent drawer, a list pane (Pacing overview or Classes) and a detail pane (group). The width breakpoint comes from `LocalConfiguration.screenWidthDp`, since no new window-size library is added. There's one set of actions per window, in the detail pane. The list pane has no ☰ or Undo, and the chosen row is highlighted. |
 | 18 | **Undo** sits in the top bar only on screens that change school-year data: Group, Class, Classes, School year, Tests and Homework. Settings, Pacing overview and Home have none. Every timed snackbar shows its countdown as an emptying bar, with no words. |
@@ -71,7 +71,7 @@ candidates for the next suite guide.
 | D9 | §6 GuideCard or dialog for the welcome | A full first-run page |
 | D10 | §6 segmented control | A filled segmented switch with an ink selected side, 48dp |
 | D11 | §2.2 tiles carry status (mint for done) | On-pace is neutral and only behind is coloured. Pills are pale tints. |
-| D12 | §1 Flat, colour blocks only | A light-mode background pattern under solid sheets |
+| D12 | §1 Flat, colour blocks only | ~~A light-mode background pattern under solid sheets~~ Dropped (3.6.0) |
 
 ## Tokens
 
