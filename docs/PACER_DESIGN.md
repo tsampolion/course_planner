@@ -7,7 +7,9 @@
 > name (D5 on phones, D7). **Home landed in 3.3.0** (PR3): "Hello, name", the next-lesson bar, the Classes card and
 > the Pacing overview board (D3, D4, D11's board cells), with the year switcher moved to School year. **The group
 > screen landed in 3.4.0** (PR4): today's box, the custom-plan line, the lesson ledger in week sections with edge
-> colours, the ⋮ menu, and Stats with the pace track (D6, D8 on lesson rows). Until each later PR lands, the rest of
+> colours, the ⋮ menu, and Stats with the pace track (D6, D8 on lesson rows). **The other screens landed in 3.5.0**
+> (PR5): Classes, Class, School year, Pacing overview (sorted inside each class, problems in the warning sheet), Tests
+> and Homework as ledger rows with edges and one status mark, the full-page welcome (D9) and Print's three choices. Until each later PR lands, the rest of
 > the app still follows `docs/EDUSUITE_STYLE_GUIDE.md`. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.

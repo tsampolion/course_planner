@@ -2,7 +2,6 @@ package gr.edusuite.pacer.ui
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
@@ -18,7 +17,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import gr.edusuite.pacer.R
@@ -41,44 +45,53 @@ private val STEPS = listOf(
 )
 
 /**
- * What the app does and the steps to a first schedule. Home shows it once, on a launch with
- * no school years; Settings shows it again. With [onStart] it offers to create a school year.
+ * The welcome page (decision 20, D9): a full page with the logo, what the app does and the four steps to a first
+ * schedule as a numbered list. Home shows it once, on a launch with no school years; Settings → Getting started shows
+ * it again. With [onStart] it offers to create a school year, else Got it closes it. It has no background pattern.
  */
 @Composable
-fun WelcomeDialog(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.guide_welcome, stringResource(R.string.app_name))) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.m)) {
-                Text(
-                    stringResource(R.string.guide_intro, stringResource(R.string.app_name)),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(stringResource(R.string.guide_four_steps), style = MaterialTheme.typography.bodyMedium)
-                STEPS.forEachIndexed { i, (title, detail) ->
-                    Tile(color = if (i % 2 == 0) Pacer.colors.tileLilac else Pacer.colors.tileSky) {
-                        Surface(shape = CircleShape, color = Pacer.colors.accentSoft, contentColor = Pacer.colors.onAccentSoft) {
-                            Box(Modifier.sizeIn(minWidth = Space.xxl, minHeight = Space.xxl).padding(Space.xs), contentAlignment = Alignment.Center) {
-                                Text(stringResource(R.string.guide_step_number, i + 1), style = MaterialTheme.typography.labelMedium.merge(Figures))
+fun WelcomePage(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
+    val c = Pacer.colors
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxSize(), color = c.paper, contentColor = c.ink) {
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).systemBarsPadding()
+                    .padding(horizontal = Space.xl, vertical = Space.xl),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(Modifier.widthIn(max = 560.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                    Logo(56.dp)
+                    Text(
+                        stringResource(R.string.guide_welcome, stringResource(R.string.app_name)),
+                        style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = Space.s).semantics { heading() },
+                    )
+                    Text(stringResource(R.string.guide_intro, stringResource(R.string.app_name)), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.guide_four_steps), style = MaterialTheme.typography.bodyMedium, color = c.muted, modifier = Modifier.padding(top = Space.s))
+                    Column {
+                        STEPS.forEachIndexed { i, (title, detail) ->
+                            HorizontalDivider(color = c.line)
+                            Row(Modifier.fillMaxWidth().padding(vertical = Space.m).semantics(mergeDescendants = true) {}, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+                                Box(Modifier.size(28.dp).background(c.accent, CircleShape), contentAlignment = Alignment.Center) {
+                                    Text(stringResource(R.string.guide_step_number, i + 1), style = MaterialTheme.typography.labelLarge.merge(Figures), color = c.onAccent)
+                                }
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+                                    Text(stringResource(detail), style = MaterialTheme.typography.bodyMedium, color = c.muted)
+                                }
                             }
                         }
-                        Text(stringResource(title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-                        Text(stringResource(detail), style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)
+                    }
+                    Hint(stringResource(R.string.guide_hint))
+                    if (onStart != null) {
+                        PrimaryButton(stringResource(R.string.guide_create_year), { onStart(); onDismiss() }, Modifier.fillMaxWidth().padding(top = Space.m))
+                        TertiaryButton(stringResource(R.string.guide_not_now), onDismiss, Modifier.align(Alignment.CenterHorizontally))
+                    } else {
+                        PrimaryButton(stringResource(R.string.guide_got_it), onDismiss, Modifier.fillMaxWidth().padding(top = Space.m))
                     }
                 }
-                Hint(stringResource(R.string.guide_hint))
             }
-        },
-        shape = MaterialTheme.shapes.extraLarge,
-        containerColor = Pacer.colors.surface,
-        tonalElevation = 0.dp,
-        confirmButton = {
-            if (onStart != null) PrimaryButton(stringResource(R.string.guide_create_year), { onStart(); onDismiss() })
-            else PrimaryButton(stringResource(R.string.guide_got_it), onDismiss)
-        },
-        dismissButton = if (onStart != null) ({ TertiaryButton(stringResource(R.string.guide_not_now), onDismiss) }) else null,
-    )
+        }
+    }
 }
 
 /**

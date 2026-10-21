@@ -136,7 +136,7 @@ fun SettingsScreen(
             Hint(stringResource(R.string.settings_defaults_saved))
         }
     }
-    if (guide) WelcomeDialog(onStart = null) { guide = false }
+    if (guide) WelcomePage(onStart = null) { guide = false }
 }
 
 /** Export saves every school year to a file the teacher picks; Import reads one back after asking Add or Replace all. */

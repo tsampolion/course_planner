@@ -153,7 +153,7 @@ fun HomeScreen(
         }
     }
 
-    if (welcome) WelcomeDialog(onStart = { adding = true }, onDismiss = vm::setWelcomeSeen)
+    if (welcome) WelcomePage(onStart = { adding = true }, onDismiss = vm::setWelcomeSeen)
     if (adding) NewYearDialog(data.years, vm) { adding = false }
 }
 

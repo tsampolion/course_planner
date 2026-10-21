@@ -22,6 +22,27 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-10-21
+
+The redesign's other screens (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR5).
+
+### Added
+
+- **Pacing overview** lists every group class by class, one line per group with its next lesson, lessons left and one status mark ("Short by 2 lessons" on a pale pill, or a muted "On pace"). Each class says "All on pace" or how many groups are behind. A sort ("Groups: most behind first", by name, by next lesson) reorders groups only inside each class. The year's problems moved off the page into a sheet behind the warning button in the top bar, each with its Fix.
+- **Print** offers three choices as radio buttons: this group, every group in its class, or every group this year, then the margins as a segmented switch.
+
+### Changed
+
+- **Classes** is a list: a row per class with its groups, how many books, and one status mark (groups behind, problems, or "On pace"), with a New class button at the bottom end.
+- **Class** puts the lesson length and pace on one line with Edit, then the groups with their next lesson and status (tap to open, the pencil to edit days and next lesson), the books with the lead book and supplementary books marked (tap to edit), Tests & worksheets (with the next upcoming one) and Homework, and Reset all positions and Delete this class at the end. The class's problems moved off the page into a sheet behind a warning button with a count in the top bar.
+- **School year** switches years with chips at the top and + New year. The term is one line with its weeks and days off, the days off are dated rows with the day-off edge (swipe or long-press to remove), and Rename and Delete this school year sit at the end.
+- **Tests & worksheets** and **Homework** are restyled and titled with the class ("FCE · Tests & worksheets", "FCE · Homework"): dated rows (tests with the test edge), ⋮ with Remove on each row beside the swipe and long-press, a "2 past tests · Show" line, and on Homework a section for every group with its own "+ Add" and rows such as "Workbook 12–13 · Set Fri 9 Oct".
+- **Welcome** is a full first-run page in place of the dialog: the logo, the same words, the four steps as a numbered list, "Create your school year" and "Not now". Settings → Getting started opens it too.
+
+### Removed
+
+- The tile grids on Classes, Class and Pacing overview, and the year picker's radio list with its per-year ⋮ (rename and delete now act on the open year).
+
 ## [3.4.0] - 2026-10-21
 
 The redesign's group screen, Plan and Stats (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR4).
@@ -547,7 +568,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/tsampolion/course_planner/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/tsampolion/course_planner/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/tsampolion/course_planner/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/tsampolion/course_planner/compare/v3.1.0...v3.2.0
