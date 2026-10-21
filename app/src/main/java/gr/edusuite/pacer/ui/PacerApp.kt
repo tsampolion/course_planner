@@ -26,6 +26,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -162,6 +166,7 @@ fun PacerApp(vm: PacerViewModel) {
     // What the group's ⋮ menu opened: Term weeks or Tips on the screen, or Print over it.
     var groupSheet by rememberSaveable(screen.key()) { mutableStateOf<GroupSheet?>(null) }
     var printing by rememberSaveable(screen.key()) { mutableStateOf(false) }
+    val large = rememberLargeText()
     val groupReport = remember(screen, ui.data.plan) {
         val plan = ui.data.plan
         val group = (screen as? Screen.Group)?.let { s -> plan?.groups?.firstOrNull { it.id == s.id } }
@@ -184,6 +189,10 @@ fun PacerApp(vm: PacerViewModel) {
             share = { share(context, "${report.plan.name} — ${report.group.name}", report.asTsv()) },
             print = { printing = true },
             open = { groupSheet = it },
+            customPlan = if (large && report.group.custom == null && report.rows.isNotEmpty()) ({
+                vm.createCustomPlan(report.group.id)
+                toast(context.getString(R.string.custom_created))
+            }) else null,
         )
     }
     val recent by vm.recent.collectAsState()
@@ -197,12 +206,41 @@ fun PacerApp(vm: PacerViewModel) {
         live.retainAll(keys)
     }
 
-    ModalNavigationDrawer(
-        drawerContent = { AppDrawer(ui.data, screen, vm) { scope.launch { drawer.close() } } },
-        drawerState = drawer,
-        // Swiping only closes it, so an edge swipe never fights the month pager or the system Back gesture.
-        gesturesEnabled = drawer.isOpen,
-    ) {
+    // A tablet 840dp wide or more keeps the menu open beside the screens; a smaller one slides it over them. From 600dp,
+    // Pacing overview and an open group share the window as a list pane and a detail pane (decision 17).
+    val layout = rememberWindowLayout()
+    val permanent = layout == WindowLayout.EXPANDED
+    val panes = Nav.panes(ui.stack, layout)
+    // One set of actions per window: on a tablet they sit in the detail pane's bar, which has ☰ only where the menu isn't always open.
+    val bar: @Composable (Boolean) -> Unit = { titled ->
+        ScreenBar(
+            screen, ui.data, vm,
+            undoDepth = if (screen.showsUndo) ui.undoDepth else null,
+            warnings = when (screen) {
+                Screen.Overview -> yearProblems
+                Screen.Class -> classProblems
+                else -> warnings.size
+            },
+            showMenu = !permanent,
+            titled = titled,
+            onMenu = openMenu,
+            onSwitch = { switching = true },
+            onWarnings = { if (screen == Screen.Overview || screen == Screen.Class) problemsOpen = true else warningsOpen = true },
+            groupMenu = groupMenu,
+        )
+    }
+    val screenContent: @Composable (Screen, PaddingValues) -> Unit = { s, padding ->
+        live += s.key()
+        saved.SaveableStateProvider(s.key()) {
+            ScreenContent(
+                s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context,
+                onMenu = openMenu.takeIf { !permanent }, warningsOpen = warningsOpen && s == screen, onWarningsClose = { warningsOpen = false },
+                groupSheet = groupSheet.takeIf { s == screen }, onGroupSheetClose = { groupSheet = null },
+                selectedGroup = (panes?.detail as? Screen.Group)?.id,
+            )
+        }
+    }
+    val body: @Composable () -> Unit = {
         Scaffold(
             snackbarHost = {
                 SnackbarHost(snackbar) { data ->
@@ -215,22 +253,34 @@ fun PacerApp(vm: PacerViewModel) {
                 }
             },
             topBar = {
-                // Home has its own header, with ☰ at its start.
-                if (screen != Screen.Home) ScreenBar(
-                    screen, ui.data, vm,
-                    undoDepth = if (screen.showsUndo) ui.undoDepth else null,
-                    warnings = when (screen) {
-                        Screen.Overview -> yearProblems
-                        Screen.Class -> classProblems
-                        else -> warnings.size
-                    },
-                    onMenu = openMenu,
-                    onSwitch = { switching = true },
-                    onWarnings = { if (screen == Screen.Overview || screen == Screen.Class) problemsOpen = true else warningsOpen = true },
-                    groupMenu = groupMenu,
-                )
+                // Home has its own header, with ☰ at its start; on a tablet the panes each have their own.
+                if (screen != Screen.Home && panes == null) bar(true)
             },
         ) { padding ->
+            if (panes != null) {
+                val below = PaddingValues(bottom = padding.calculateBottomPadding())
+                Row(Modifier.fillMaxSize()) {
+                    Column(Modifier.weight(0.4f).fillMaxHeight()) {
+                        // The list pane has no ☰, Undo or warning button: only its title.
+                        Text(
+                            stringResource(if (panes.list == Screen.Classes) R.string.app_classes else R.string.app_overview),
+                            style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = Space.xs).semantics { heading() },
+                        )
+                        Box(Modifier.weight(1f)) { screenContent(panes.list, below) }
+                    }
+                    VerticalDivider(color = Pacer.colors.line)
+                    Column(Modifier.weight(0.6f).fillMaxHeight()) {
+                        bar(panes.detail != null)
+                        Box(Modifier.weight(1f)) {
+                            val detail = panes.detail
+                            if (detail != null) screenContent(detail, below)
+                            else Hint(stringResource(R.string.panes_pick_group), Modifier.padding(Space.l))
+                        }
+                    }
+                }
+                return@Scaffold
+            }
             val motion = animationsEnabled()
             AnimatedContent(
                 targetState = screen to ui.stack.size,
@@ -244,18 +294,18 @@ fun PacerApp(vm: PacerViewModel) {
                     }
                 },
                 label = "screen",
-            ) { (s, _) ->
-                live += s.key()
-                saved.SaveableStateProvider(s.key()) {
-                    ScreenContent(
-                        s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context,
-                        onMenu = openMenu, warningsOpen = warningsOpen && s == screen, onWarningsClose = { warningsOpen = false },
-                        groupSheet = groupSheet.takeIf { s == screen }, onGroupSheetClose = { groupSheet = null },
-                    )
-                }
-            }
+            ) { (s, _) -> screenContent(s, padding) }
         }
     }
+    if (permanent) Row(Modifier.fillMaxSize()) {
+        AppDrawer(ui.data, screen, vm, onClose = {}, permanent = true)
+        Box(Modifier.weight(1f)) { body() }
+    } else ModalNavigationDrawer(
+        drawerContent = { AppDrawer(ui.data, screen, vm, onClose = { scope.launch { drawer.close() } }) },
+        drawerState = drawer,
+        // Swiping only closes it, so an edge swipe never fights the month pager or the system Back gesture.
+        gesturesEnabled = drawer.isOpen,
+    ) { body() }
     val year = ui.data.year
     if (switching && screen is Screen.Group && year != null) {
         GroupSwitcherSheet(year, ui.data.activeClass, screen.id, recent, vm) { switching = false }
@@ -285,11 +335,13 @@ private fun ScreenContent(
     toast: (String) -> Unit,
     undoToast: (String) -> Unit,
     context: Context,
-    onMenu: () -> Unit,
+    onMenu: (() -> Unit)?,
     warningsOpen: Boolean,
     onWarningsClose: () -> Unit,
     groupSheet: GroupSheet?,
     onGroupSheetClose: () -> Unit,
+    /** The group open in the detail pane of a tablet, highlighted in the list beside it. */
+    selectedGroup: String? = null,
 ) {
     // Each is null for a moment while the screen of something just deleted fades out.
     val year = data.year
@@ -304,7 +356,7 @@ private fun ScreenContent(
         )
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
         Screen.YearSettings -> YearSettingsScreen(data.years, year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast(context.getString(R.string.app_deleted, it)) })
-        Screen.Overview -> OverviewScreen(year ?: return, vm, padding)
+        Screen.Overview -> OverviewScreen(year ?: return, vm, padding, selectedGroup)
         Screen.Classes -> ClassesScreen(year ?: return, vm, padding)
         Screen.Class -> ClassScreen(plan ?: return, vm, padding, undoToast)
         Screen.Tests -> TestsScreen(plan ?: return, vm, padding, undoToast)
@@ -334,7 +386,11 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
 }
 
 /** What a group's ⋮ menu does: Copy and Share the schedule, Print it starting with this group, or open a sheet. */
-private class GroupMenu(val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit)
+private class GroupMenu(
+    val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit,
+    /** Large text: "Make a custom plan", which the Plan tab's line offers otherwise. Null when there is nothing to offer. */
+    val customPlan: (() -> Unit)? = null,
+)
 
 /** The group's ⋮: Copy, Share, Print, Term weeks and Tips. */
 @Composable
@@ -343,6 +399,9 @@ private fun GroupMenuButton(menu: GroupMenu) {
     Box {
         PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            menu.customPlan?.let { make ->
+                DropdownMenuItem(text = { Text(stringResource(R.string.group_make_custom_plan)) }, leadingIcon = { AppIcon(AppIcons.Edit) }, onClick = { open = false; make() })
+            }
             DropdownMenuItem(text = { Text(stringResource(R.string.group_copy)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.ContentCopy) }, onClick = { open = false; menu.copy() })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_share)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.Share) }, onClick = { open = false; menu.share() })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
@@ -365,6 +424,10 @@ private fun ScreenBar(
     vm: PacerViewModel,
     undoDepth: Int?,
     warnings: Int,
+    /** False where the menu is always open (a tablet 840dp wide or more). */
+    showMenu: Boolean,
+    /** False for the empty detail pane of a tablet: its bar holds the actions but no title. */
+    titled: Boolean,
     onMenu: () -> Unit,
     onSwitch: () -> Unit,
     onWarnings: () -> Unit,
@@ -375,9 +438,10 @@ private fun ScreenBar(
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         navigationIcon = {
-            PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
+            if (showMenu) PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
         },
         title = {
+            if (!titled) return@TopAppBar
             val heading = @Composable {
                 Column {
                     Text(screen.context(data, context), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)

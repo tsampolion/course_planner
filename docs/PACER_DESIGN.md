@@ -1,6 +1,6 @@
 # Course Pacer design language
 
-> **Status: approved, being built.** Agreed with the owner on 2026-10-21. It ships in 3.1.0 to 3.7.0 following
+> **Status: approved, being built.** Agreed with the owner on 2026-10-21. It ships in 3.1.0 to 3.6.0 following
 > `docs/superpowers/plans/2026-10-21-app-redesign.md`. **Tokens and type landed in 3.1.0** (PR1): the dark set, the edge
 > tokens, `Figures`, the 48dp segmented switch and targets, and the pale status pill (D1, D2, D8, D10, D11's pills).
 > **Navigation landed in 3.2.0** (PR2): the ☰ menu, the group switcher, the Warnings sheet and the Pacing overview
@@ -9,8 +9,10 @@
 > screen landed in 3.4.0** (PR4): today's box, the custom-plan line, the lesson ledger in week sections with edge
 > colours, the ⋮ menu, and Stats with the pace track (D6, D8 on lesson rows). **The other screens landed in 3.5.0**
 > (PR5): Classes, Class, School year, Pacing overview (sorted inside each class, problems in the warning sheet), Tests
-> and Homework as ledger rows with edges and one status mark, the full-page welcome (D9) and Print's three choices. Until each later PR lands, the rest of
-> the app still follows `docs/EDUSUITE_STYLE_GUIDE.md`. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
+> and Homework as ledger rows with edges and one status mark, the full-page welcome (D9) and Print's three choices. **Large text and the tablet landed in 3.6.0** (PR6 and PR7 together): the reflow and
+> "show less" rules from font scale 1.5, and the list and detail panes with a permanent menu (D5 on tablets). **The
+> background pattern (D12) was dropped by the owner before it was built**, so there is no pattern, no `SolidSheet` and
+> no `PatternBackground`, and the before/after boards still show it. The rest of the design is built. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.
 This file records where Course Pacer departs from it. Every departure is Pacer-only for now. Together they are
@@ -37,7 +39,7 @@ are whole lessons, rounded up. The look is bright and friendly, and precise like
 | D9 | §6 GuideCard or dialog for the welcome | A full first-run page |
 | D10 | §6 segmented control | A filled segmented switch with an ink selected side, 48dp |
 | D11 | §2.2 tiles carry status (mint for done) | On-pace is neutral and only behind is coloured. Pills are pale tints. |
-| D12 | §1 Flat, colour blocks only | A light-mode background pattern of school icons, under solid sheets |
+| D12 | §1 Flat, colour blocks only | ~~A light-mode background pattern of school icons, under solid sheets~~ Dropped by the owner (3.6.0): the app stays flat, with no pattern |
 
 ## Tokens
 
@@ -76,16 +78,15 @@ both since 3.1.0, against the Course Pacer contrast table in `docs/PACER_ACCENT_
 - **Status:** one mark per row. On pace is neutral. Behind is rust (a filled cell on the board, a pale pill in lists).
 - **Lesson kinds:** a 4dp edge in the kind's token, and the words still say the kind.
 - **Undo:** in the top bar only where school-year data changes. Timed snackbars show an emptying bar, with no words.
-- **Background pattern:**
-  - a 324dp tile of tilted Material Symbols Rounded school icons, `ink` at 14%;
-  - light mode only, and not on the welcome page;
-  - text never sits on it, because lists and header text sit on a solid paper sheet with 28dp top corners.
-- **Large text** (font scale 1.5 and up):
-  - layouts reflow;
-  - screens show less and abbreviate more;
-  - everything hidden is one tap away.
+- **Large text** (font scale 1.5 and up, `largeText`):
+  - layouts reflow: buttons go full width under their text, and a row's date sits over its pages;
+  - screens show less: Home and Pacing overview list only the groups behind, with "N groups on pace ›", "N on pace ›" and "N classes all on pace ›"; Stats puts the months and details behind "More stats ›"; the custom-plan line moves to ⋮;
+  - everything hidden is one tap away, and a top bar's title is cut short with "…".
 - **Touch targets** are 48dp or more, text links included.
-- **Tablets:** a permanent drawer, a list pane and a detail pane, with one set of actions per window.
+- **Tablets** (the window's width in dp, no window-size library):
+  - from 600dp, Pacing overview and the open group share the window as a list pane and a detail pane, with one set of actions in the detail pane's bar and the open group highlighted in the list;
+  - from 840dp the menu is a permanent drawer, so there is no ☰;
+  - Back closes the detail pane first (`Nav.panes`).
 
 ## Pictures
 

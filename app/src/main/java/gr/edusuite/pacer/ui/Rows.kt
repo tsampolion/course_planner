@@ -94,6 +94,9 @@ fun LedgerRow(
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val c = Pacer.colors
+    // Large text: the date sits over the title instead of taking a column of its own.
+    val large = rememberLargeText()
+    val side = date != null && !large
     Row(
         modifier.fillMaxWidth().height(IntrinsicSize.Min).heightIn(min = 56.dp)
             .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
@@ -103,14 +106,15 @@ fun LedgerRow(
         if (edge != null) Box(Modifier.width(4.dp).fillMaxHeight().padding(vertical = Space.s).background(edge))
         if (icon != null) AppIcon(icon, Modifier.padding(start = Space.l))
         val start = if (edge != null || icon != null) Space.m else Space.l
-        if (date != null) Text(
-            date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = c.ink,
+        if (side) Text(
+            date!!, style = MaterialTheme.typography.titleSmall.merge(Figures), color = c.ink,
             modifier = Modifier.width(DATE_W).padding(start = start),
         )
         Column(
-            Modifier.weight(1f).padding(start = if (date != null) Space.s else start, end = Space.s, top = Space.s, bottom = Space.s),
+            Modifier.weight(1f).padding(start = if (side) Space.s else start, end = Space.s, top = Space.s, bottom = Space.s),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
+            if (date != null && large) Text(date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = c.ink)
             Text(title, style = MaterialTheme.typography.bodyLarge, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (!detail.isNullOrEmpty()) Text(detail, style = MaterialTheme.typography.bodySmall.merge(Figures), color = if (warn) c.warn else c.muted)
         }

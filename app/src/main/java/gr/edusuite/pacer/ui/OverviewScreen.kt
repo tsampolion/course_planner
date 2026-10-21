@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
@@ -32,11 +33,15 @@ import gr.edusuite.pacer.ui.theme.Space
 
 /**
  * Pacing overview (decision 7): every group of the year class by class, with a sort that reorders groups only inside
- * each class and one status mark per row. The year's problems are in the sheet behind the top bar's warning button.
+ * each class and one status mark per row. With [selected] (a group open beside it on a tablet) that row is highlighted. The year's problems are in the sheet behind the top bar's warning button.
  */
 @Composable
-fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
+fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, selected: String? = null) {
     var order by rememberSaveable { mutableStateOf(GroupOrder.MOST_BEHIND) }
+    val large = rememberLargeText()
+    // Large text: the classes whose on-pace groups are shown, and whether the classes all on pace are.
+    var opened by rememberSaveable { mutableStateOf(emptySet<String>()) }
+    var allOpen by rememberSaveable { mutableStateOf(false) }
     val overview = remember(year) { pacingOverview(year) }
     val classes = remember(overview, order) { sortGroups(overview, order) }
     val groups = overview.sumOf { it.groups.size }
@@ -46,45 +51,94 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues)
         if (classes.isEmpty()) item(key = "empty") {
             EmptyState(AppIcons.Add, stringResource(R.string.overview_no_classes), stringResource(R.string.overview_empty_hint), stringResource(R.string.overview_open_classes), { vm.open(Screen.Classes) })
         } else item(key = "head") {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(Modifier.weight(1f)) {
+            val counts = @Composable { m: Modifier ->
+                Row(m) {
                     Text(pluralStringResource(R.plurals.year_groups, groups, groups), style = MaterialTheme.typography.bodySmall.merge(Figures), color = Pacer.colors.muted)
                     if (behind > 0) Text(
                         pluralStringResource(R.plurals.overview_behind_suffix, behind, behind),
                         style = MaterialTheme.typography.bodySmall.merge(Figures), color = Pacer.colors.warn,
                     )
                 }
+            }
+            // Large text: the sort pill goes under the counts.
+            if (large) Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                counts(Modifier)
+                SortButton(order) { order = it }
+            } else Row(verticalAlignment = Alignment.CenterVertically) {
+                counts(Modifier.weight(1f))
                 SortButton(order) { order = it }
             }
         }
-        classes.forEach { c ->
-            item(key = "class:${c.classId}") {
-                Column(Modifier.animateItem()) {
-                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = Space.s), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            c.name.ifBlank { stringResource(R.string.overview_class) }, style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f).semantics { heading() },
-                        )
-                        when {
-                            c.behind > 0 -> Text(pluralStringResource(R.plurals.overview_class_behind, c.behind, c.behind), style = MaterialTheme.typography.labelMedium.merge(Figures), color = Pacer.colors.warn)
-                            c.groups.any { it.short != null } -> Text(stringResource(R.string.overview_all_on_pace), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted)
-                        }
-                    }
-                    if (c.groups.isEmpty()) Hint(stringResource(R.string.overview_no_groups))
-                    else RowGroup {
-                        c.groups.forEachIndexed { i, g ->
-                            if (i > 0) HorizontalDivider(Modifier.padding(start = Space.l), color = Pacer.colors.line)
-                            val next = g.next?.let { stringResource(R.string.overview_next_on, it.dayOfWeek.short(), it.fmtShort()) }
-                            val left = pluralStringResource(R.plurals.class_lessons_left, g.lessonsLeft, g.lessonsLeft)
-                            LedgerRow(
-                                g.name.ifBlank { stringResource(R.string.overview_group) },
-                                detail = if (next == null) stringResource(R.string.overview_no_lessons) else stringResource(R.string.home_pair, next, left),
-                                onClick = { vm.openGroup(c.classId, g.groupId) },
-                            ) { StatusLabel(g.short, Modifier.padding(end = Space.s)) }
-                        }
+        if (large) {
+            // Large text: each class shows only its groups behind, the rest behind "N on pace ›"; classes all on pace wait in one link.
+            val l = largeOverview(classes)
+            l.classes.forEach { lc ->
+                item(key = "class:${lc.shown.classId}") {
+                    val open = lc.shown.classId in opened
+                    Column(Modifier.animateItem()) {
+                        ClassHead(lc.shown, if (lc.onPace.isEmpty()) null else {
+                            { TertiaryButton(if (open) stringResource(R.string.overview_hide_on_pace) else pluralStringResource(R.plurals.overview_on_pace_link, lc.onPace.size, lc.onPace.size), { opened = if (open) opened - lc.shown.classId else opened + lc.shown.classId }, color = Pacer.colors.accent) }
+                        })
+                        GroupRows(lc.shown.copy(groups = if (open) (lc.shown.groups + lc.onPace) else lc.shown.groups), vm, selected)
                     }
                 }
             }
+            if (l.allOnPace.isNotEmpty()) item(key = "all-on-pace") {
+                Column {
+                    TertiaryButton(
+                        if (allOpen) stringResource(R.string.overview_hide_on_pace) else pluralStringResource(R.plurals.overview_classes_on_pace, l.allOnPace.size, l.allOnPace.size),
+                        { allOpen = !allOpen }, Modifier.fillMaxWidth(), color = Pacer.colors.accent,
+                    )
+                    if (allOpen) l.allOnPace.forEach { c ->
+                        ClassHead(c, null)
+                        GroupRows(c, vm, selected)
+                    }
+                }
+            }
+        } else classes.forEach { c ->
+            item(key = "class:${c.classId}") {
+                Column(Modifier.animateItem()) {
+                    ClassHead(c, null)
+                    GroupRows(c, vm, selected)
+                }
+            }
+        }
+    }
+}
+
+/** A class's heading, with how many of its groups are behind (or "All on pace") and an optional [link] at the end. */
+@Composable
+private fun ClassHead(c: OverviewClass, link: (@Composable () -> Unit)?) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = Space.s), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            c.name.ifBlank { stringResource(R.string.overview_class) }, style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.weight(1f).semantics { heading() },
+        )
+        if (link != null) link() else when {
+            c.behind > 0 -> Text(pluralStringResource(R.plurals.overview_class_behind, c.behind, c.behind), style = MaterialTheme.typography.labelMedium.merge(Figures), color = Pacer.colors.warn)
+            c.groups.any { it.short != null } -> Text(stringResource(R.string.overview_all_on_pace), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted)
+        }
+    }
+}
+
+/** A class's groups, one line each with the next lesson, lessons left and one status mark. [selected] is highlighted. */
+@Composable
+private fun GroupRows(c: OverviewClass, vm: PacerViewModel, selected: String?) {
+    if (c.groups.isEmpty()) {
+        Hint(stringResource(R.string.overview_no_groups))
+        return
+    }
+    RowGroup {
+        c.groups.forEachIndexed { i, g ->
+            if (i > 0) HorizontalDivider(Modifier.padding(start = Space.l), color = Pacer.colors.line)
+            val next = g.next?.let { stringResource(R.string.overview_next_on, it.dayOfWeek.short(), it.fmtShort()) }
+            val left = pluralStringResource(R.plurals.class_lessons_left, g.lessonsLeft, g.lessonsLeft)
+            LedgerRow(
+                g.name.ifBlank { stringResource(R.string.overview_group) },
+                if (g.groupId == selected) Modifier.background(Pacer.colors.accentSoft) else Modifier,
+                detail = if (next == null) stringResource(R.string.overview_no_lessons) else stringResource(R.string.home_pair, next, left),
+                onClick = { vm.openGroup(c.classId, g.groupId) },
+            ) { StatusLabel(g.short, Modifier.padding(end = Space.s)) }
         }
     }
 }

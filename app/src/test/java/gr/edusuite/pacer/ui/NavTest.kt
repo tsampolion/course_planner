@@ -11,6 +11,7 @@ import java.time.DayOfWeek.MONDAY
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -167,5 +168,51 @@ class NavTest {
         )
         val empty = year.copy(start = LocalDate.parse("2026-09-01"), end = LocalDate.parse("2027-06-01"), classes = emptyList())
         assertEquals(listOf(Problem("Add at least one class.", Screen.Classes)), Nav.problems(empty))
+    }
+
+    @Test fun aPhoneIsAlwaysOnePane() {
+        assertNull(Nav.panes(listOf(Screen.Home, Screen.Overview, Screen.Group("g")), WindowLayout.COMPACT))
+    }
+
+    @Test fun aTabletShowsTheOpenGroupBesidePacingOverview() {
+        val viaOverview = listOf(Screen.Home, Screen.Overview, Screen.Group("g"))
+        val viaClass = listOf(Screen.Home, Screen.Classes, Screen.Class, Screen.Group("g"))
+        for (layout in listOf(WindowLayout.MEDIUM, WindowLayout.EXPANDED)) {
+            assertEquals(Panes(Screen.Overview, Screen.Group("g")), Nav.panes(viaOverview, layout))
+            assertEquals(Panes(Screen.Overview, Screen.Group("g")), Nav.panes(viaClass, layout))
+        }
+    }
+
+    @Test fun aListScreenOnTopStandsAloneInTheListPane() {
+        assertEquals(Panes(Screen.Overview, null), Nav.panes(listOf(Screen.Home, Screen.Overview), WindowLayout.EXPANDED))
+        assertEquals(Panes(Screen.Classes, null), Nav.panes(listOf(Screen.Home, Screen.Classes), WindowLayout.MEDIUM))
+    }
+
+    @Test fun otherScreensStayOnePaneOnATablet() {
+        for (s in listOf(Screen.Home, Screen.Settings, Screen.YearSettings, Screen.Class, Screen.Tests, Screen.Homework)) {
+            assertNull("$s", Nav.panes(listOf(Screen.Home, s), WindowLayout.EXPANDED))
+        }
+    }
+
+    @Test fun backClosesTheDetailPaneFirst() {
+        val stack = listOf(Screen.Home, Screen.Overview, Screen.Group("g"))
+        // Picking another group beside the list swaps the detail instead of stacking.
+        assertEquals(listOf(Screen.Home, Screen.Overview, Screen.Group("h")), Nav.push(stack, Screen.Group("h")))
+        val back = Nav.pop(stack)
+        assertEquals(Panes(Screen.Overview, null), Nav.panes(back, WindowLayout.EXPANDED))
+        assertNull(Nav.panes(Nav.pop(back), WindowLayout.EXPANDED))
+    }
+
+    @Test fun windowLayoutBreaksAt600And840() {
+        assertEquals(WindowLayout.COMPACT, windowLayout(599))
+        assertEquals(WindowLayout.MEDIUM, windowLayout(600))
+        assertEquals(WindowLayout.MEDIUM, windowLayout(839))
+        assertEquals(WindowLayout.EXPANDED, windowLayout(840))
+    }
+
+    @Test fun largeTextStartsAtOnePointFive() {
+        assertFalse(largeText(1.3f))
+        assertTrue(largeText(1.5f))
+        assertTrue(largeText(2f))
     }
 }

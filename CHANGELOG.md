@@ -22,6 +22,23 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-10-21
+
+The redesign's large text and tablet layout (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR6 and PR7 together). The background pattern was dropped at the owner's request, so there is none.
+
+### Added
+
+- **Large text** (font scale 1.5 and up): screens show less, and the rest is one tap away.
+  - Home lists only the groups behind, with "N groups on pace ›", and its Classes card becomes one "Classes ›" row.
+  - Pacing overview lists only the groups behind in each class, with "N on pace ›" on a class and "N classes all on pace ›" for the classes with nothing behind. The sort pill goes under the counts.
+  - Stats puts lessons by month and the details behind "More stats ›".
+  - The custom-plan line moves into the group's ⋮ menu as "Make a custom plan".
+- **Tablets**: from 600dp wide, Pacing overview and the open group share the window as a list pane and a detail pane. The group's actions are in the detail pane's bar, the open group is highlighted in the list, and Back closes the group first. From 840dp the menu stays open beside the screens, so there is no ☰.
+
+### Changed
+
+- With large text, the "Done" and "Pages taught" buttons on today's lesson go full width under it, and each lesson row, day off and ledger row puts its date over its pages instead of beside them.
+
 ## [3.5.0] - 2026-10-21
 
 The redesign's other screens (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR5).
@@ -568,7 +585,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.5.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.6.0...HEAD
+[3.6.0]: https://github.com/tsampolion/course_planner/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/tsampolion/course_planner/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/tsampolion/course_planner/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/tsampolion/course_planner/compare/v3.2.0...v3.3.0

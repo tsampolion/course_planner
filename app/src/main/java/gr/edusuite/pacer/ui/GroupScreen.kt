@@ -163,6 +163,7 @@ fun GroupScreen(
     // Plan is the main view; the figures wait one tap away on Stats. The plan keeps its scroll position across switches.
     var tab by rememberSaveable(g.id) { mutableIntStateOf(TAB_PLAN) }
     val planList = rememberLazyListState(initialFirstVisibleItemIndex = todayIndex)
+    val largeText = rememberLargeText()
     val motion = animationsEnabled()
     Column(Modifier.fillMaxSize().imePadding()) {
         SegmentedToggle(
@@ -187,7 +188,8 @@ fun GroupScreen(
                 item(key = "custom") {
                     Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                         if (custom == null) {
-                            if (report.rows.isNotEmpty()) CustomPlanLine({
+                            // Large text: the line lives in the ⋮ menu instead.
+                            if (report.rows.isNotEmpty() && !largeText) CustomPlanLine({
                                 toggleHaptic(true)
                                 vm.createCustomPlan(g.id)
                                 showMine = true

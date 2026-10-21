@@ -107,6 +107,15 @@ data class BoardSummary(val groups: Int, val behind: Int)
 fun List<BoardRow>.summary(): BoardSummary =
     flatMap { it.cells }.let { cells -> BoardSummary(cells.size, cells.count { it.behind }) }
 
+/** Home's board in large-text mode: only the groups behind, grouped by class, and how many groups are on pace. */
+data class LargeBoard(val rows: List<BoardRow>, val onPace: Int)
+
+/** Keeps each class's groups that are behind and drops the classes with none; every other group counts as on pace. */
+fun List<BoardRow>.behindOnly(): LargeBoard {
+    val rows = mapNotNull { r -> r.cells.filter { it.behind }.takeIf { it.isNotEmpty() }?.let { r.copy(cells = it) } }
+    return LargeBoard(rows, sumOf { r -> r.cells.count { !it.behind } })
+}
+
 /** The year Home opens when none is open: the one that starts last (a year with no start date comes last). Null when there are none. */
 fun defaultYearId(years: List<SchoolYear>): String? =
     years.maxWithOrNull(compareBy<SchoolYear, LocalDate?>(nullsFirst()) { it.start })?.id

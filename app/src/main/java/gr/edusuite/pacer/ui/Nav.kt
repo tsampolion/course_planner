@@ -39,6 +39,9 @@ val Screen.showsUndo: Boolean
     get() = this == Screen.Class || this == Screen.Classes || this == Screen.YearSettings ||
         this == Screen.Tests || this == Screen.Homework || this is Screen.Group
 
+/** The two panes of a tablet window: the [list] screen, and the open [detail] group beside it if there is one. */
+data class Panes(val list: Screen, val detail: Screen.Group?)
+
 /** A group of the open year, by its class: what the group switcher's Recent list remembers. */
 data class GroupRef(val classId: String, val groupId: String)
 
@@ -84,6 +87,21 @@ object Nav {
     fun goTo(stack: List<Screen>, screen: Screen): List<Screen> {
         val at = stack.indexOf(screen)
         return if (at >= 0) stack.take(at + 1) else push(stack, screen)
+    }
+
+    /**
+     * What a window shows beside the menu: on a tablet ([layout] medium or wide) a list pane and, where a group is
+     * open, that group in a detail pane. Pacing overview or Classes on top show as the list with nothing beside it; a
+     * group on top shows Pacing overview beside it, whichever screen it was opened from. Anything else, and every
+     * phone, is one pane. Back pops the stack as usual, so it closes the detail pane first.
+     */
+    fun panes(stack: List<Screen>, layout: WindowLayout): Panes? {
+        if (layout == WindowLayout.COMPACT) return null
+        return when (val top = stack.last()) {
+            is Screen.Group -> Panes(Screen.Overview, top)
+            Screen.Overview, Screen.Classes -> Panes(top, null)
+            else -> null
+        }
     }
 
     /** How many groups the switcher's Recent list keeps. */

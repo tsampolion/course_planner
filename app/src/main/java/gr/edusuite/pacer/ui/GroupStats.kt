@@ -89,8 +89,17 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
             PaceTrack(report) { bookId = it }
             if (plan.leadBook() != null) ShowOnceHint(Hints.PACE_TRACK, seenTips, stringResource(R.string.hint_pace_track), vm::markHintSeen)
         }
-        if (report.lessonsByMonth.isNotEmpty()) MonthColumns(report)
-        Details(report)
+        // Large text: the months and details wait behind one link.
+        val large = rememberLargeText()
+        var more by rememberSaveable(report.group.id) { mutableStateOf(false) }
+        if (large) TertiaryButton(
+            stringResource(if (more) R.string.stats_fewer else R.string.stats_more), { more = !more },
+            Modifier.fillMaxWidth(), color = Pacer.colors.accent,
+        )
+        if (!large || more) {
+            if (report.lessonsByMonth.isNotEmpty()) MonthColumns(report)
+            Details(report)
+        }
     }
     val book = plan.books.firstOrNull { it.id == bookId }
     if (book != null) {
@@ -140,10 +149,10 @@ private fun FigureStrip(report: GroupReport) {
         Triple(stringResource(R.string.group_pages_left), "${report.pages}", null),
         Triple(stringResource(R.string.group_pace_needed), if (report.teaching > 0) report.rate.fixed2() else "—", stringResource(R.string.stats_a_lesson)),
     )
-    val fontScale = LocalDensity.current.fontScale
+    val large = rememberLargeText()
     Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = Pacer.colors.surface) {
         BoxWithConstraints {
-            val stacked = fontScale >= 2f || maxWidth < 280.dp
+            val stacked = large || maxWidth < 280.dp
             val cell = @Composable { f: Triple<String, String, String?>, m: Modifier ->
                 Column(m.padding(Space.m).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(f.first, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)

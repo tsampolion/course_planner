@@ -16,7 +16,7 @@ class NoHardcodedTextTest {
     private val dataStrings = mapOf(
         "ClassScreens.kt" to setOf("add", "books", "class", "delete", "empty", "groups", "guide", "hint", "lessons", "more", "name", "past", "upcoming", "group:"),
         "YearScreens.kt" to setOf("add", "delete", "empty", "end", "foot", "greek", "hint", "name", "offhead", "start", "year", "term", "more", "classes", "days-off", "years", "head", "space"),
-        "OverviewScreen.kt" to setOf("empty", "class:", "head"),
+        "OverviewScreen.kt" to setOf("empty", "class:", "head", "all-on-pace"),
         "GroupScreen.kt" to setOf("a", "custom", "empty", "today", "week", "lesson", "slim", "wb", "w", "r", "d", "p", "L", "N", "S"),
         "LessonLedger.kt" to setOf("EEEE d MMMM"),
         "SupplementaryUi.kt" to setOf("replace", "answers", "asking", "k", "s"),

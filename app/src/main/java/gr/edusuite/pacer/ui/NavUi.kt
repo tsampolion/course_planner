@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -104,9 +105,10 @@ private fun groupLabel(className: String, groupName: String): String = stringRes
 /**
  * The ☰ menu (decision 3): search over the year's classes and groups, then Home, Pacing overview with how many groups
  * are behind, Classes as an expandable list, School year and Settings. [onClose] closes the drawer before it moves.
+ * With [permanent] (a tablet 840dp wide or more) it is the always-open drawer beside the screens.
  */
 @Composable
-fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> Unit) {
+fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> Unit, permanent: Boolean = false) {
     val c = Pacer.colors
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -114,7 +116,7 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
     val status = remember(year) { year?.let(::yearStatus).orEmpty() }
     val hits = remember(year, query) { year?.let { searchGroups(it, query) }.orEmpty() }
     val go: (() -> Unit) -> Unit = { move -> query = ""; onClose(); move() }
-    ModalDrawerSheet(drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) {
+    val content: @Composable () -> Unit = {
         Column(
             Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Space.m, vertical = Space.l),
             verticalArrangement = Arrangement.spacedBy(Space.xs),
@@ -156,6 +158,9 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
             }
         }
     }
+    // A tablet at 840dp or wider keeps the menu open beside the screens; anywhere else it slides over them.
+    if (permanent) PermanentDrawerSheet(Modifier.width(320.dp), drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) { content() }
+    else ModalDrawerSheet(drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) { content() }
 }
 
 /** Classes in the menu: the row opens and closes the list of classes, each with its group count, and "All 9 classes". */

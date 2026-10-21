@@ -1,4 +1,4 @@
-# App redesign (3.1.0 to 3.7.0): implementation plan
+# App redesign (3.1.0 to 3.6.0): implementation plan
 
 **Spec:** `docs/superpowers/specs/2026-10-21-app-redesign-design.md`. **Product record:** `PRODUCT.md`. There is no
 engine change and no JSON schema change in any PR (`PacerTest` and the extension tests stay unchanged and green).
@@ -124,39 +124,30 @@ and `ContrastTest` green.
 - [x] **Welcome:** a full first-run page in place of `WelcomeDialog`. Settings → Getting started opens it.
 - [x] **Print sheet:** radio buttons (this group, the class, the year) and margins.
 
-## PR6: large text and the background pattern (3.6.0)
+## PR6: large text and PR7: tablet (both 3.6.0)
 
-- [ ] **`largeText(fontScale)`** (≥ 1.5), unit-tested. It drives:
+The owner asked for these two together, so they ship as one PR and one version (3.6.0; there is no 3.7.0). The owner
+also dropped the background pattern before it was built, so `PatternBackground`, `SolidSheet` and the school symbols
+were never made.
+
+- [x] **`largeText(fontScale)`** (≥ 1.5), unit-tested. It drives:
   - **Reflow:** full-width buttons under text, and stacked rows.
   - **Hiding with a one-tap path:**
     - Home shows only the groups behind, with "N groups on pace ›" and "Classes ›";
-    - Pacing overview shows only the groups behind, with "N classes all on pace ›";
+    - Pacing overview shows only the groups behind, with "N on pace ›" per class and "N classes all on pace ›";
     - Stats moves months and details behind "More stats ›";
     - the custom-plan line moves to ⋮.
   - **Titles** cut short with "…".
-- [ ] **`PatternBackground`** (light mode only):
-  - a 324dp tile drawn once into an `ImageBitmap` from `AppIcons` paths (school symbols added as path data) and
-    repeated with an `ImageShader`;
-  - `ink` at 14%, with no animation;
-  - absent in dark mode and on the welcome page.
-- [ ] **`SolidSheet`:** lists and header text sit on paper with 28dp top corners.
-- [ ] **Checks:**
-  - a unit test that the tile's seed and layout are stable;
-  - a contrast note in `PACER_DESIGN.md`;
-  - screenshots at 100% and 200% on the emulator.
-
-## PR7: tablet (3.7.0)
-
-- [ ] **Layout:** at `screenWidthDp` ≥ 840, a `PermanentNavigationDrawer`, a list pane (Pacing overview or Classes)
-  and a detail pane (Group). Between 600 and 839, a two-pane layout with the modal drawer.
-- [ ] **Panes:** one set of actions per window, in the detail pane. The list pane has no ☰ or Undo. The chosen row is
-  highlighted.
-- [ ] **Behaviour:** Back closes the detail pane first, following `Nav.kt` rules with new tests. The Activity's own
-  rotation handling stays.
+- [x] **Layout:** from 840dp, a permanent drawer (no ☰) and a list pane (Pacing overview) beside a detail pane (Group).
+  From 600dp to 839dp, the same two panes with the modal drawer. The width is the window's own, in dp.
+- [x] **Panes:** one set of actions per window, in the detail pane. The list pane has no ☰ or Undo. The open group is
+  highlighted in the list.
+- [x] **Behaviour:** Back closes the detail pane first, following `Nav.panes` with new tests in `NavTest`.
+- [ ] **Owner device check** at 100% and 200% font size, and on a tablet or emulator (no emulator was available).
 
 ## After each PR
 
 - [ ] **Owner device check** (`installDebug`): light and dark, 100% and 200% font size, TalkBack on lesson rows,
-  tablet or emulator for PR7.
+  tablet or emulator for the tablet layout.
 - [ ] **Docs:** README features, `CLAUDE.md` architecture notes (Home, navigation, Pacing overview), and
   `PACER_DESIGN.md`.
