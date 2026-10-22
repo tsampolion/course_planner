@@ -110,10 +110,10 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     // ---- plumbing ----------------------------------------------------------
 
-    private fun edit(tag: String? = null, change: (AppData) -> AppData) {
+    private fun edit(tag: String? = null, change: (AppData) -> AppData): Boolean {
         val before = data
         val after = change(before)
-        if (after == before) return
+        if (after == before) return false
         val now = SystemClock.elapsedRealtime()
         if (!(tag != null && tag == lastTag && now - lastTime < COALESCE_MS)) {
             undoStack.addLast(Snapshot(before.years, before.activeYear, before.activeClass))
@@ -123,6 +123,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         lastTag = tag
         lastTime = now
         publish(after)
+        return true
     }
 
     /** Edits the open year. Does nothing when no year is open. */
@@ -464,12 +465,12 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     // ---- custom plans ------------------------------------------------------
 
     /** Applies [change] to the group's custom plan, laid out by a report that follows it. Does nothing when it has none. */
-    private fun editCustom(groupId: String, tag: String? = null, change: (GroupReport, CustomPlan) -> CustomPlan?) {
-        val plan = data.plan ?: return
-        val g = plan.groups.firstOrNull { it.id == groupId } ?: return
-        val c = g.custom ?: return
-        val next = change(GroupReport(plan, g, Source.CUSTOM), c) ?: return
-        editGroup(groupId, tag) { it.copy(custom = next) }
+    private fun editCustom(groupId: String, tag: String? = null, change: (GroupReport, CustomPlan) -> CustomPlan?): Boolean {
+        val plan = data.plan ?: return false
+        val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
+        val c = g.custom ?: return false
+        val next = change(GroupReport(plan, g, Source.CUSTOM), c) ?: return false
+        return editGroup(groupId, tag) { it.copy(custom = next) }
     }
 
     /** Makes the group's own plan from the proposed one and makes it active. The proposed plan stays as it is. */
@@ -527,11 +528,11 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         editLessons(groupId) { r, g -> r.foldBacklog(bookId, over)?.let { g.copy(custom = it) } ?: g }
 
     /** Gives group [to] a copy of group [from]'s plan, replacing any it had, in one undo step. */
-    fun copyCustomPlan(from: String, to: String) {
-        val plan = data.plan ?: return
-        val c = plan.groups.firstOrNull { it.id == from }?.custom ?: return
-        val target = plan.groups.firstOrNull { it.id == to } ?: return
-        editGroup(to) { it.copy(custom = plan.copyCustomPlan(c, target)) }
+    fun copyCustomPlan(from: String, to: String): Boolean {
+        val plan = data.plan ?: return false
+        val c = plan.groups.firstOrNull { it.id == from }?.custom ?: return false
+        val target = plan.groups.firstOrNull { it.id == to } ?: return false
+        return editGroup(to) { it.copy(custom = plan.copyCustomPlan(c, target)) }
     }
 
     /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */

@@ -136,7 +136,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
                 GuideCard(
                     stringResource(R.string.class_add_a_group),
                     stringResource(R.string.class_a_group_is_a_set_of_students_taught_from_these_books_with_it),
-                    action = stringResource(R.string.class_add_group) to vm::addGroup,
+                    action = stringResource(R.string.class_add_group) to { vm.addGroup(); Unit },
                 )
             }
         }
