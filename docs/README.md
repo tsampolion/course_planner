@@ -19,7 +19,7 @@ Each one records why a feature was built. The code and `CLAUDE.md` describe the 
 - [SIGNING_BRIEF.md](SIGNING_BRIEF.md): the permanent release signing key (built in 1.5.3; secrets limited to `main` since 1.7.3).
 - [BACKUP_BRIEF.md](BACKUP_BRIEF.md): export and import of school years (1.6.0).
 - [CUSTOM_PLANS_BRIEF.md](CUSTOM_PLANS_BRIEF.md): custom plans, a lead book and pace warnings (built in 2.6.0 to 2.9.0; menu and Undo fixes in 3.6.1).
-- [CATCH_UP_REPACE_BRIEF.md](CATCH_UP_REPACE_BRIEF.md): preserving the chosen catch-up pace when re-pacing and adjusting it directly (3.6.1, schema 9).
+- [CATCH_UP_REPACE_BRIEF.md](CATCH_UP_REPACE_BRIEF.md): preserving the chosen catch-up pace when re-pacing and adjusting it directly (3.6.2, schema 9).
 - [SUPPLEMENTARY_BOOKS_BRIEF.md](SUPPLEMENTARY_BOOKS_BRIEF.md): supplementary books placed by hand in chosen lessons (2.10.0).
 - [superpowers/](superpowers/): brainstorming specs and plans for Course Pacer only.
 
