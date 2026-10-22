@@ -102,12 +102,17 @@ private fun Plan.restoreSlots(before: Group, after: Group, id: () -> String = ::
  * Re-spreads the pages from lesson [from] on, by the proposed plan's rule (allocatePages, finish-by dates included):
  * the pages still to teach that no earlier lesson and no touched lesson has go over the untouched lessons from
  * [from] that fall in the term. Touched lessons and lessons before [from] never change; untouched lessons past the
- * term end are dropped. Re-pacing a plan nobody touched from its first lesson gives the proposed plan back.
+ * term end are dropped. A saved catch-up boost is used while the group is short; without it, re-pacing a plan
+ * nobody touched from its first lesson gives the proposed plan back.
  * Only core pages move: supplementary pages stay in their lessons, and an untouched lesson past the term end that
  * holds some stays too, without its core pages.
  */
 fun GroupReport.repaceFrom(from: Int): CustomPlan? {
     val c = group.custom ?: return null
+    // The selected catch-up policy owns the allocation until the group is back on pace.
+    c.catchUpBoost?.let { boost ->
+        catchUpPlan(boost, from = from)?.let { return it.copy(active = c.active) }
+    }
     val days = teachingDates
     val k = from.coerceAtLeast(0)
     val kept = c.lessons.withIndex().mapNotNull { (i, l) ->
@@ -235,7 +240,7 @@ fun Plan.copyCustomPlan(c: CustomPlan, target: Group, id: () -> String = ::newId
     val keep = { m: Map<String, List<Int>> ->
         m.mapNotNull { (book, ps) -> ps.filter { left[book]?.contains(it) == true }.takeIf { it.isNotEmpty() }?.let { book to it } }.toMap()
     }
-    return CustomPlan(true, c.lessons.map { l ->
+    return c.copy(active = true, lessons = c.lessons.map { l ->
         val pages = keep(l.pages)
         l.copy(id = id(), pages = pages, inLesson = l.inLesson.filterTo(HashSet()) { it in pages }, replacementBase = l.replacementBase?.let { coreOf(keep(it)) })
     })

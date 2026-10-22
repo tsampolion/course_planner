@@ -70,7 +70,7 @@ private val BOOSTS = listOf(1, 2, 3)
  */
 @Composable
 fun CatchUpSheet(report: GroupReport, onApply: (Int) -> Unit, onDismiss: () -> Unit) {
-    var choice by rememberSaveable(report.group.id) { mutableIntStateOf(0) }
+    var choice by rememberSaveable(report.group.id) { mutableIntStateOf(BOOSTS.indexOf(report.group.custom?.catchUpBoost).coerceAtLeast(0)) }
     val boost = BOOSTS[choice]
     val cu = remember(report, boost) { report.catchUp(boost) }
     val preview = remember(report, boost) { previewOf(report, report.catchUpPlan(boost)?.let { report.group.copy(custom = it) }) }
@@ -93,6 +93,7 @@ fun CatchUpSheet(report: GroupReport, onApply: (Int) -> Unit, onDismiss: () -> U
         }
         PreviewLines(preview)
         Hint(stringResource(R.string.warn_writes_custom))
+        Hint(stringResource(R.string.warn_repace_keeps_catch_up))
     }
 }
 

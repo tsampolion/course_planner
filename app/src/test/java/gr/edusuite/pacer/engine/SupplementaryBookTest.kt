@@ -164,6 +164,20 @@ class SupplementaryBookTest {
         return g.copy(custom = c.copy(lessons = c.lessons.toMutableList().apply { set(1, l.copy(pages = l.pages + ("c" to listOf(12, 13)))) }))
     }
 
+    @Test fun savingSupplementaryPagesKeepsTheChosenCatchUp() {
+        val p = plan(pace = 2.0)
+        val g = p.groups[0]
+        val c = GroupReport(p, g).catchUpPlan(2, ids())!!
+        val report = GroupReport(p, g.copy(custom = c))
+        val saved = report.saveLesson(0, LessonSave(c.lessons[0].pages, mapOf("c" to listOf(12)), emptySet(), "Reader"), ids())!!
+        assertEquals(2, saved.catchUpBoost)
+        assertEquals(listOf(12), saved.lessons[0].pages["c"])
+        val repaced = GroupReport(p, g.copy(custom = saved)).repaceFrom(0)!!
+        assertEquals(saved.lessons[0], repaced.lessons[0])
+        assertEquals(2, repaced.catchUpBoost)
+        assertTrue(GroupReport(p, g.copy(custom = repaced)).coverage()!!.ok)
+    }
+
     @Test fun automaticFixesKeepSupplementaryPages() {
         val p = plan(pace = 2.0)
         val g = withUntouchedPlacement(p)

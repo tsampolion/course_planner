@@ -35,7 +35,12 @@ data class Group(
  * takes the group's k-th teaching day, so a day off or a test moves the content to the next lesson and keeps it.
  * [active] is true when it drives the schedule; false keeps it beside the proposed plan, unused.
  */
-data class CustomPlan(val active: Boolean, val lessons: List<PlannedLesson>)
+data class CustomPlan(
+    val active: Boolean,
+    val lessons: List<PlannedLesson>,
+    /** Extra pages per lesson chosen for catch-up; re-pacing keeps this policy while the group is short. */
+    val catchUpBoost: Int? = null,
+)
 
 /**
  * One lesson of a [CustomPlan]: the pages it teaches from each book (book id to pages) and a note.

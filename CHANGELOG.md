@@ -22,6 +22,22 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.6.2] - 2026-10-22
+
+### Fixed
+
+- Re-pacing a catch-up plan preserves its chosen boost instead of silently replacing it with proposed pacing. The choice is saved, survives copying and lesson edits, and recalculates as lessons are taught.
+- My plan offers "Adjust catch-up…" directly, even when the warning is hidden. The sheet starts with the saved choice. On older plans, use this once to record the boost that previous versions did not save.
+- Applying an unchanged catch-up choice says "Already up to date" rather than offering Undo for an unrelated edit.
+
+### Data
+
+- Saved-data version 9 adds the optional catch-up boost to custom plans. Older files still open; older builds refuse imports of the new format.
+
+### Tests
+
+- Catch-up preservation through re-pacing, taught lessons, manual edits, copying and supplementary-page saves, with parity when no boost is saved. Real JSON round-trips and re-pacing after reopening were checked separately.
+
 ## [3.6.1] - 2026-10-22
 
 ### Fixed
@@ -597,7 +613,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.6.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.6.2...HEAD
+[3.6.2]: https://github.com/tsampolion/course_planner/compare/v3.6.1...v3.6.2
 [3.6.1]: https://github.com/tsampolion/course_planner/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/tsampolion/course_planner/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/tsampolion/course_planner/compare/v3.4.0...v3.5.0

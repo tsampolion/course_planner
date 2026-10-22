@@ -131,7 +131,7 @@ fun GroupReport.saveLesson(slot: Int, save: LessonSave, id: () -> String = ::new
         else -> old.replacementBase
     }
     lessons[at] = old.copy(pages = core + supp, note = save.note.trim(), touched = true, inLesson = inLesson, replacementBase = replacementBase)
-    val saved = CustomPlan(true, lessons)
+    val saved = base.copy(active = true, lessons = lessons)
     if (core == oldCore && inLesson == old.inLesson) return saved
     return GroupReport(plan, group.copy(custom = saved), Source.CUSTOM).repaceFrom(at + 1)
 }

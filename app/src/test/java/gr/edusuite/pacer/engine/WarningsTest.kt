@@ -86,6 +86,73 @@ class WarningsTest {
         assertEquals(before, report(p, Source.PROPOSED).rows)
     }
 
+    @Test fun repacingCatchUpPlanPreservesItsChosenDistribution() {
+        val p = plan(2.0)
+        val original = report(p).catchUpPlan(2, ids())!!
+        val g = p.groups[0].copy(custom = original)
+        val repaced = GroupReport(p, g).repaceFrom(0)!!
+        assertEquals(original.lessons.map { it.pages }, repaced.lessons.map { it.pages })
+    }
+
+    @Test fun repacingCatchUpKeepsEarlierAndTouchedLessons() {
+        val p = plan(2.0)
+        val original = report(p).catchUpPlan(2, ids())!!
+        val chosen = original.lessons[3]
+        val edited = original.editLesson(chosen.id, chosen.pages.mapValues { it.value.take(1) }, "Speaking")
+        val g = p.groups[0].copy(custom = edited)
+        val repaced = GroupReport(p, g).repaceFrom(2)!!
+        assertEquals(2, repaced.catchUpBoost)
+        assertEquals(edited.lessons.take(2), repaced.lessons.take(2))
+        assertEquals(edited.lessons[3], repaced.lessons[3])
+        assertTrue(GroupReport(p, g.copy(custom = repaced)).coverage()!!.ok)
+    }
+
+    @Test fun tickingThenRepacingRecalculatesTheRemainingCatchUp() {
+        val p = plan(2.0)
+        val original = report(p).catchUpPlan(2, ids())!!
+        val g = p.groups[0].copy(custom = original)
+        val r = GroupReport(p, g)
+        val done = r.markDone(setOf(r.rows.first().date))
+        val remaining = GroupReport(p, done)
+        assertEquals(4, remaining.catchUp(2)!!.lessons)
+        val repaced = remaining.repaceFrom(0)!!
+        assertEquals(2, repaced.catchUpBoost)
+        assertEquals(4 * 4, repaced.lessons.take(4).sumOf { it.pages.values.sumOf { ps -> ps.size } })
+        assertTrue(GroupReport(p, done.copy(custom = repaced)).coverage()!!.ok)
+        val again = GroupReport(p, done.copy(custom = repaced)).repaceFrom(0)!!
+        assertEquals(repaced, again)
+    }
+
+    @Test fun finishedCatchUpReturnsToNormalPacingAndKeepsItsChoice() {
+        val p = plan(2.0)
+        val original = report(p).catchUpPlan(2, ids())!!
+        val g = p.groups[0].copy(custom = original)
+        val r = GroupReport(p, g)
+        val done = r.markDoneUpTo(r.rows[4].date)
+        val remaining = GroupReport(p, done)
+        assertNull(remaining.catchUp(2))
+        val repaced = remaining.repaceFrom(0)!!
+        assertEquals(2, repaced.catchUpBoost)
+        assertEquals(List(5) { 2 }, repaced.lessons.map { it.pages.values.sumOf { ps -> ps.size } })
+    }
+
+    @Test fun repacingAnInactiveCatchUpDoesNotActivateIt() {
+        val p = plan(2.0)
+        val original = report(p).catchUpPlan(2, ids())!!.copy(active = false)
+        val g = p.groups[0].copy(custom = original)
+        val repaced = GroupReport(p, g, Source.CUSTOM).repaceFrom(0)!!
+        assertEquals(original, repaced)
+    }
+
+    @Test fun copyingCatchUpKeepsItsChoice() {
+        val p = plan(2.0)
+        val original = report(p).catchUpPlan(2, ids())!!
+        val copy = p.copyCustomPlan(original, p.groups[0].copy(id = "other"), ids())
+        assertEquals(2, copy.catchUpBoost)
+        val repaced = GroupReport(p, p.groups[0].copy(custom = copy)).repaceFrom(0)!!
+        assertEquals(copy.lessons.map { it.pages }, repaced.lessons.map { it.pages })
+    }
+
     @Test fun catchUpPlanKeepsTouchedLessons() {
         val p0 = plan(2.0)
         val g0 = p0.groups[0]

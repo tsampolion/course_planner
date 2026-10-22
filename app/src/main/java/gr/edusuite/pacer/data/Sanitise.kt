@@ -34,7 +34,7 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
         g.copy(
             done = g.done.distinctBy { it.date },
             custom = g.custom?.let { p ->
-                p.copy(lessons = unique(p.lessons, { it.id }) { l, id -> l.copy(id = id) }.map { l ->
+                p.copy(catchUpBoost = p.catchUpBoost?.takeIf { it in 1..MAX_PAGE }, lessons = unique(p.lessons, { it.id }) { l, id -> l.copy(id = id) }.map { l ->
                     val pages = l.pages.filterKeys { it in books }.mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE } }.filterValues { it.isNotEmpty() }
                     l.copy(
                         pages = pages,

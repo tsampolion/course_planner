@@ -726,4 +726,6 @@
     <string name="group_make_custom_plan">Make a custom plan</string>
     <string name="panes_pick_group">Pick a group to open it here.</string>
     <string name="toast_nothing_changed">Already up to date</string>
+    <string name="custom_adjust_catch_up">Adjust catch-up…</string>
+    <string name="warn_repace_keeps_catch_up">Re-pacing untouched lessons keeps your chosen catch-up pace.</string>
 </resources>

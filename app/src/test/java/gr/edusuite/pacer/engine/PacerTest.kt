@@ -13,6 +13,7 @@ import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -31,6 +32,16 @@ class PacerTest {
         groups = listOf(Group("g", "G", setOf(MONDAY, WEDNESDAY), d("2027-03-01"))),
         closures = closures, books = books, homework = homework, events = events,
     )
+
+    @Test fun noCatchUpChoiceKeepsProposedPacingUnchanged() {
+        val p = plan()
+        val g = p.groups[0]
+        val proposed = GroupReport(p, g)
+        val custom = proposed.toCustomPlan()
+        assertNull(custom.catchUpBoost)
+        val repaced = GroupReport(p, g.copy(custom = custom)).repaceFrom(0)!!
+        assertEquals(proposed.rows.map { it.pages }, GroupReport(p, g.copy(custom = repaced)).rows.map { it.pages })
+    }
 
     @Test fun parsesRanges() {
         assertEquals(setOf(8, 24, 25, 26, 27, 30), parseRanges("8, 24–27; 30"))
