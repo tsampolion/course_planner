@@ -74,6 +74,7 @@ fun GroupScreen(
     vm: PacerViewModel,
     padding: PaddingValues,
     undoToast: (String) -> Unit = {},
+    toast: (String) -> Unit = {},
     /** The Warnings sheet, opened from the top bar's warning button. */
     warningsOpen: Boolean = false,
     onWarningsClose: () -> Unit = {},
@@ -83,6 +84,9 @@ fun GroupScreen(
     seenTips: Set<String> = emptySet(),
 ) {
     val context = LocalContext.current
+    fun changed(didChange: Boolean, message: String) {
+        if (didChange) undoToast(message) else toast(context.getString(R.string.toast_nothing_changed))
+    }
     val toggleHaptic = rememberToggleHaptic()
     val plan = report.plan
     val g = report.group
@@ -120,7 +124,7 @@ fun GroupScreen(
             plan = { l -> planning = if (l.lessonId != null) "L${l.lessonId}" else "N${c.lessons.size}" },
             addBefore = { l -> planning = "N${l.index}" },
             move = { l, to -> vm.movePlannedLesson(g.id, l.lessonId ?: return@CustomActions, to); undoToast(context.getString(R.string.custom_moved)) },
-            repace = { l -> vm.repaceFrom(g.id, l.index); undoToast(context.getString(R.string.custom_repaced)) },
+            repace = { l -> changed(vm.repaceFrom(g.id, l.index), context.getString(R.string.custom_repaced)) },
             remove = { l -> vm.removePlannedLesson(g.id, l.lessonId ?: return@CustomActions); undoToast(context.getString(R.string.custom_removed)) },
         )
     }
@@ -200,9 +204,9 @@ fun GroupScreen(
                             PlanSourceBar(custom, showMine, { showMine = it }, { vm.setCustomActive(g.id, showMine) })
                             if (showMine) PlanOptions(
                                 plan.groups.filter { it.id != g.id },
-                                onRepace = { vm.repaceFrom(g.id, 0); undoToast(context.getString(R.string.custom_repaced)) },
-                                onCopy = { o -> vm.copyCustomPlan(g.id, o.id); undoToast(context.getString(R.string.custom_copied, o.name)) },
-                                onDelete = { vm.deleteCustomPlan(g.id); undoToast(context.getString(R.string.custom_deleted)) },
+                                onRepace = { changed(vm.repaceFrom(g.id, 0), context.getString(R.string.custom_repaced)) },
+                                onCopy = { o -> changed(vm.copyCustomPlan(g.id, o.id), context.getString(R.string.custom_copied, o.name)) },
+                                onDelete = { changed(vm.deleteCustomPlan(g.id), context.getString(R.string.custom_deleted)) },
                             )
                         }
                         // Quiet, not a warning: what each supplementary book still has to place.
@@ -318,9 +322,9 @@ fun GroupScreen(
         WarningsSheet(report, warnings, WarningFixes(
             catchUp = { catchingUp = true },
             fold = { folding = it.bookId },
-            repace = { vm.repaceFrom(g.id, 0); undoToast(context.getString(R.string.custom_repaced)) },
-            fit = { vm.fitCustomPlanToTerm(g.id); undoToast(context.getString(R.string.custom_fitted)) },
-            tidy = { vm.tidyCustomPlan(g.id); undoToast(context.getString(R.string.custom_tidied)) },
+            repace = { changed(vm.repaceFrom(g.id, 0), context.getString(R.string.custom_repaced)) },
+            fit = { changed(vm.fitCustomPlanToTerm(g.id), context.getString(R.string.custom_fitted)) },
+            tidy = { changed(vm.tidyCustomPlan(g.id), context.getString(R.string.custom_tidied)) },
         ), onWarningsClose)
     }
     if (catchingUp) CatchUpSheet(report, { boost ->

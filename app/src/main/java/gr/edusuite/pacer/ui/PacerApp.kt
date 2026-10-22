@@ -40,6 +40,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -123,34 +124,39 @@ fun PacerApp(vm: PacerViewModel) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    // The history step the snackbar's Undo takes back, or -1 when no Undo is on show.
+    val undoGate = remember { UndoGate() }
+    var undoToken by remember { mutableLongStateOf(-1L) }
     var undoStep by remember { mutableLongStateOf(-1L) }
     val toast: (String) -> Unit = { msg ->
-        undoStep = -1L
-        scope.launch { snackbar.currentSnackbarData?.dismiss(); snackbar.showSnackbar(msg) }
+        undoGate.close(undoToken)
+        undoToken = -1L
+        snackbar.currentSnackbarData?.dismiss()
+        scope.launch { snackbar.showSnackbar(msg) }
     }
-    // Deletes happen at once and offer Undo for 5 s (style guide §14 "Undo over confirm"), longer when the
-    // accessibility settings ask for more time. It undoes only its own change: called right after the change, it
-    // notes the step that change made.
     val accessibility = LocalAccessibilityManager.current
     val undoMillis = accessibility?.calculateRecommendedTimeoutMillis(UNDO_MILLIS, containsText = true, containsControls = true) ?: UNDO_MILLIS
     val undoToast: (String) -> Unit = { msg ->
         val step = vm.state.value.historyStep
+        val token = undoGate.open()
+        undoToken = token
         undoStep = step
+        snackbar.currentSnackbarData?.dismiss()
         scope.launch {
-            snackbar.currentSnackbarData?.dismiss()
-            val timeout = launch { delay(undoMillis); if (undoStep == step) snackbar.currentSnackbarData?.dismiss() }
-            val result = snackbar.showSnackbar(msg, actionLabel = context.getString(R.string.app_undo), duration = SnackbarDuration.Indefinite)
-            timeout.cancel()
-            if (undoStep == step) undoStep = -1L
-            if (result == SnackbarResult.ActionPerformed) vm.undoIfLatest(step)
+            if (undoGate.isCurrent(token)) {
+                try {
+                    val result = snackbar.showSnackbar(UndoNotice(msg, context.getString(R.string.app_undo), token, undoMillis))
+                    if (result == SnackbarResult.ActionPerformed && undoGate.isCurrent(token)) vm.undoIfLatest(step)
+                } finally {
+                    if (undoGate.close(token)) undoToken = -1L
+                }
+            }
         }
     }
-    // Another edit, an undo, or opening a year (which clears the history) leaves the Undo on show pointing at
-    // something else, so it goes rather than undoing the wrong thing or nothing.
-    LaunchedEffect(ui.historyStep) {
-        if (undoStep >= 0 && undoStep != ui.historyStep) {
-            undoStep = -1L
+    // A later edit or year switch invalidates the notification's Undo action.
+    LaunchedEffect(ui.historyStep, undoToken) {
+        if (undoToken >= 0 && undoStep != ui.historyStep) {
+            undoGate.close(undoToken)
+            undoToken = -1L
             snackbar.currentSnackbarData?.dismiss()
         }
     }
@@ -249,7 +255,7 @@ fun PacerApp(vm: PacerViewModel) {
                     AnimatedVisibility(visibleState = visible,
                         enter = if (motion) slideInVertically(Motion.content()) { it } else EnterTransition.None,
                         exit = if (motion) slideOutVertically(Motion.content()) { it } else ExitTransition.None,
-                    ) { UndoSnackbar(data, undoStep >= 0, undoMillis) }
+                    ) { UndoSnackbar(data, undoGate) }
                 }
             },
             topBar = {
@@ -368,6 +374,7 @@ private fun ScreenContent(
             GroupScreen(
                 report, vm, padding,
                 undoToast = undoToast,
+                toast = toast,
                 warningsOpen = warningsOpen,
                 onWarningsClose = onWarningsClose,
                 sheet = groupSheet,
@@ -473,16 +480,36 @@ private fun copy(context: Context, text: String) {
     cm.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.app_schedule), text))
 }
 
-/** The Undo time limit is also expressed by the action; this optional visual never delays or controls Undo. */
+/** The displayed notification carries its own token and timeout, independent of undo history. */
+private class UndoNotice(
+    override val message: String,
+    override val actionLabel: String,
+    val token: Long,
+    val durationMillis: Long,
+) : SnackbarVisuals {
+    override val withDismissAction = false
+    override val duration = SnackbarDuration.Indefinite
+}
+
 @Composable
-private fun UndoSnackbar(data: SnackbarData, undo: Boolean, durationMillis: Long) {
+private fun UndoSnackbar(data: SnackbarData, gate: UndoGate) {
+    val notice = data.visuals as? UndoNotice
     val enabled = animationsEnabled()
-    val progress = remember(data) { Animatable(1f) }
-    val started = remember(data) { android.os.SystemClock.elapsedRealtime() }
-    LaunchedEffect(data, enabled, undo, durationMillis) {
+    val token = notice?.token
+    val durationMillis = notice?.durationMillis ?: 0L
+    val progress = remember(data, token) { Animatable(1f) }
+    val started = remember(data, token) { android.os.SystemClock.elapsedRealtime() }
+    // Start only once the snackbar is actually displayed, including when it waited behind another snackbar.
+    LaunchedEffect(data, token) {
+        if (notice != null) {
+            delay(durationMillis)
+            if (gate.isCurrent(notice.token)) data.dismiss()
+        }
+    }
+    LaunchedEffect(data, token, enabled) {
         val remaining = (durationMillis - (android.os.SystemClock.elapsedRealtime() - started)).coerceAtLeast(0)
-        progress.snapTo(if (enabled && undo) remaining.toFloat() / durationMillis else 0f)
-        if (enabled && undo && remaining > 0) progress.animateTo(0f, tween(remaining.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(), easing = LinearEasing))
+        progress.snapTo(if (enabled && notice != null && durationMillis > 0) remaining.toFloat() / durationMillis else 0f)
+        if (enabled && notice != null && remaining > 0) progress.animateTo(0f, tween(remaining.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(), easing = LinearEasing))
     }
     Snackbar(modifier = Modifier.padding(Space.m), action = {
         data.visuals.actionLabel?.let { label ->
@@ -491,7 +518,7 @@ private fun UndoSnackbar(data: SnackbarData, undo: Boolean, durationMillis: Long
     }) {
         Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
             Text(data.visuals.message)
-            if (undo) LinearProgressIndicator(progress = { progress.value }, modifier = Modifier.fillMaxWidth(),
+            if (notice != null) LinearProgressIndicator(progress = { progress.value }, modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.inverseOnSurface, trackColor = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = .24f))
         }
     }

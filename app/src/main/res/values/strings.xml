@@ -154,7 +154,7 @@
     <string name="group_add_books">Add this class\'s books</string>
     <string name="group_add_books_hint">Each lesson shows its pages once the class has books. Add them on the class screen.</string>
     <string name="group_no_range">No lessons left in this range.</string>
-    <string name="group_edit_pages_menu">Edit pages taught…</string>
+    <string name="group_edit_pages_menu">Record what I taught…</string>
     <string name="group_done_up_to">Done up to here</string>
     <string name="group_not_done_from">Not done from here</string>
     <string name="group_edited">Edited</string>
@@ -448,7 +448,7 @@
     <string name="custom_tidied">Plan tidied</string>
     <string name="custom_fitted">Plan fitted to the term</string>
     <string name="custom_hint">Long-press a lesson to plan its pages, add a lesson, move it or re-pace from it. Drag the handle to move a lesson. Lessons you change keep an accent edge, and re-pacing never touches them.</string>
-    <string name="custom_plan_lesson">Plan this lesson…</string>
+    <string name="custom_plan_lesson">Change planned pages…</string>
     <string name="custom_add_before">Add a lesson before</string>
     <string name="custom_add_here">Plan a lesson here…</string>
     <string name="custom_move_earlier">Move earlier</string>
@@ -725,4 +725,5 @@
     <string name="stats_fewer">Fewer stats</string>
     <string name="group_make_custom_plan">Make a custom plan</string>
     <string name="panes_pick_group">Pick a group to open it here.</string>
+    <string name="toast_nothing_changed">Already up to date</string>
 </resources>

@@ -306,7 +306,7 @@ class WarningFixes(
 
 /**
  * The Warnings sheet (decision 9): every warning on the group with its fix. Catch up and Bring in step close it and
- * open their sheets; the custom plan's fixes apply at once, and the list updates under them.
+ * open their sheets; the custom plan's fixes close it too so their Undo notification is visible.
  */
 @Composable
 fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: WarningFixes, onDismiss: () -> Unit) {
@@ -329,19 +329,19 @@ fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: Warn
                 ) { close(); fixes.fold(w.lag) }
                 is GroupWarning.Missing -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.custom_missing, w.pages, w.pages),
-                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_repace), onFix = fixes.repace,
+                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_repace), onFix = { close(); fixes.repace() },
                 )
                 is GroupWarning.Overflow -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.custom_overflow, w.lessons, w.lessons),
-                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_fit), onFix = fixes.fit,
+                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_fit), onFix = { close(); fixes.fit() },
                 )
                 is GroupWarning.Doubled -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.custom_doubled, w.pages, w.pages),
-                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_tidy), onFix = fixes.tidy,
+                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_tidy), onFix = { close(); fixes.tidy() },
                 )
                 is GroupWarning.Stale -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.custom_stale, w.pages, w.pages),
-                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_tidy), onFix = fixes.tidy,
+                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_tidy), onFix = { close(); fixes.tidy() },
                 )
             }
         }
