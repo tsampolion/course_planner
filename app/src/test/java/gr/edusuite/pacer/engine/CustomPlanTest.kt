@@ -8,6 +8,7 @@ import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.TestEvent
+import gr.edusuite.pacer.ui.daysOff
 import gr.edusuite.pacer.model.seedPlan
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.TUESDAY
@@ -56,6 +57,26 @@ class CustomPlanTest {
             assertNull(GroupReport(p, off).custom)
             assertEquals(rows(p, g0), rows(p, off, Source.CUSTOM))
         }
+    }
+
+    @Test fun plannedDatesMatchProposedWhenPlanIsCreatedWithHolidays() {
+        val base = plan()
+        val holidays = greekHolidays(base.start!!, base.end!!).mapIndexed { i, (date, label) ->
+            Closure("holiday$i", label, date, date, ALL_GROUPS)
+        }
+        val p = base.copy(closures = holidays)
+        val g = p.groups[0]
+        val proposed = GroupReport(p, g, Source.PROPOSED).rows
+        assertTrue(proposed.size < GroupReport(base, g).rows.size)
+        assertEquals(proposed.map { it.date to it.pages }, rows(p, withPlan(p)))
+    }
+
+    @Test fun daysOffStillListedInCustomView() {
+        val p = plan(closures = listOf(Closure("holiday", "Day off", d("2027-03-08"), d("2027-03-08"), ALL_GROUPS)))
+        val g = withPlan(p)
+        val report = GroupReport(p, g)
+        assertTrue(report.custom != null)
+        assertEquals(listOf(d("2027-03-08")), p.daysOff(g, report.rows.mapTo(HashSet()) { it.date }).map { it.date })
     }
 
     @Test fun aDayOffMovesTheContentAndKeepsIt() {
