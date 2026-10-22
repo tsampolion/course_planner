@@ -4,6 +4,7 @@ import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.DoneLesson
+import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.TestEvent
@@ -122,8 +123,9 @@ fun Plan.remainingPages(g: Group, b: Book): List<Int> {
     val skip = parseRanges(b.skip)
     val hw = homeworkPages(g.id, b.id)
     val taught = g.taughtPages(b.id)
+    val pinned = activeExtras(g).flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
     val out = ArrayList<Int>()
-    for (p in position(g, b)..b.last) if (p !in skip && p !in hw && p !in taught) out += p
+    for (p in position(g, b)..b.last) if (p !in skip && p !in hw && p !in taught && p !in pinned) out += p
     return out
 }
 
@@ -153,7 +155,6 @@ fun Plan.closedDates(groupId: String): Map<LocalDate, String> {
 fun Plan.lessonsFor(g: Group): List<LocalDate> {
     val end = end ?: return emptyList()
     var d = g.from ?: start ?: return emptyList()
-    if (g.days.isEmpty()) return emptyList()
     val closed = closedDates(g.id)
     val taught = g.done.mapTo(HashSet()) { it.date }
     val out = ArrayList<LocalDate>()
@@ -161,7 +162,15 @@ fun Plan.lessonsFor(g: Group): List<LocalDate> {
         if (d.dayOfWeek in g.days && d !in closed && d !in taught) out += d
         d = d.plusDays(1)
     }
-    return out
+    return (out + activeExtras(g).map { it.date }).distinct().sorted()
+}
+
+/** Extras outside the remaining term, already taught, or blocked by a whole-lesson test do not reserve pages. */
+fun Plan.activeExtras(g: Group): List<ExtraLesson> {
+    val first = g.from ?: start ?: return emptyList()
+    val last = end ?: return emptyList()
+    val taught = g.done.mapTo(HashSet()) { it.date }
+    return g.extras.filter { it.date in first..last && it.date !in taught && eventsOn(g, it.date).none { e -> e.consumes } }
 }
 
 fun Plan.eventsOn(g: Group, date: LocalDate): List<TestEvent> =
@@ -191,6 +200,7 @@ data class Row(
     val note: String = "",
     /** The custom plan's lesson on this day, or null (the proposed plan, a test, or a day the custom plan leaves free). */
     val lessonId: String? = null,
+    val extraId: String? = null,
 ) {
     val cells: List<String> get() = if (blocked) pages.map { "" } else pages.map(::collapse)
 }
@@ -220,7 +230,8 @@ class GroupReport(val plan: Plan, val group: Group, val source: Source = Source.
     val lessons: List<LocalDate> = plan.lessonsFor(group)
     internal val eventsByLesson: List<List<TestEvent>> = lessons.map { plan.eventsOn(group, it) }
     internal val blockedByLesson: List<Boolean> = eventsByLesson.map { list -> list.any { it.consumes } }
-    val teachingDates: List<LocalDate> = lessons.filterIndexed { i, _ -> !blockedByLesson[i] }
+    internal val extrasByDate = plan.activeExtras(group).associateBy { it.date }
+    val teachingDates: List<LocalDate> = lessons.filterIndexed { i, date -> !blockedByLesson[i] && date !in extrasByDate }
 
     // A supplementary book keeps its place in the list, so indices match plan.books, with nothing to pace.
     val bookStats: List<BookStats> = plan.books.map { b ->
@@ -230,28 +241,35 @@ class GroupReport(val plan: Plan, val group: Group, val source: Source = Source.
     val pages: Int = bookStats.sumOf { it.pages }
     val banked: Int = plan.books.sumOf { plan.bankedPages(group, it) }
     val teaching: Int get() = teachingDates.size
-    val blocked: Int get() = lessons.size - teaching
+    val blocked: Int get() = blockedByLesson.count { it }
     val rate: Double get() = if (teaching > 0) pages.toDouble() / teaching else 0.0
 
     val rows: List<Row> by lazy {
         custom?.let { return@lazy customRows(it) }
-        val alloc = plan.books.mapIndexed { i, b ->
-            var m = bookStats[i].lessons
-            // Finish-by date before the next lesson: everything lands at once.
-            if (m == 0 && teaching > 0) m = 1
-            val a = allocatePages(plan.remainingPages(group, b), m).toMutableList()
-            // Nothing after the finish-by date.
-            while (a.size < teaching) a += emptyList<Int>()
-            a
-        }.let { followLead(it) }
+        val alloc = proposedAllocation(teachingDates)
         var k = 0
         lessons.mapIndexed { i, date ->
             val blocked = blockedByLesson[i]
-            val pages = if (blocked) plan.books.map { emptyList() } else alloc.map { it.getOrElse(k) { emptyList() } }
-            if (!blocked) k++
-            Row(i + 1, date, eventsByLesson[i], blocked, pages)
+            val extra = extrasByDate[date]
+            val pages = when {
+                blocked -> plan.books.map { emptyList() }
+                extra != null -> plan.books.map { b -> if (b.supplementary) emptyList() else extra.pages[b.id].orEmpty() }
+                else -> alloc.map { it.getOrElse(k) { emptyList() } }
+            }
+            if (!blocked && extra == null) k++
+            Row(i + 1, date, eventsByLesson[i], blocked, pages, extraId = extra?.id)
         }
     }
+
+    /** The proposed allocation over ordinary slots, also used for a floating extra's pre-fill. */
+    internal fun proposedAllocation(dates: List<LocalDate>): List<MutableList<List<Int>>> =
+        plan.books.map { b ->
+            var m = if (b.supplementary) 0 else bookLessons(b, dates)
+            if (m == 0 && dates.isNotEmpty()) m = 1
+            allocatePages(plan.remainingPages(group, b), m).toMutableList().apply {
+                while (size < dates.size) add(emptyList())
+            }
+        }.let { followLead(it) }
 
     /** Most pages, summed over books, any single lesson carries. */
     val peak: Int by lazy {

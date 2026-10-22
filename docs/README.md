@@ -18,6 +18,7 @@ Each one records why a feature was built. The code and `CLAUDE.md` describe the 
 - [LESSON_PAGES_BRIEF.md](LESSON_PAGES_BRIEF.md): recording the pages a lesson actually covered (1.5.0; date-specific menu actions in 3.6.1).
 - [SIGNING_BRIEF.md](SIGNING_BRIEF.md): the permanent release signing key (built in 1.5.3; secrets limited to `main` since 1.7.3).
 - [BACKUP_BRIEF.md](BACKUP_BRIEF.md): export and import of school years (1.6.0).
+- [EXTRA_LESSONS_BRIEF.md](EXTRA_LESSONS_BRIEF.md): date-pinned core-book extra lessons, editing, re-pacing and schema 10 (3.7.0).
 - [CUSTOM_PLANS_BRIEF.md](CUSTOM_PLANS_BRIEF.md): custom plans, a lead book and pace warnings (built in 2.6.0 to 2.9.0; menu and Undo fixes in 3.6.1).
 - [CATCH_UP_REPACE_BRIEF.md](CATCH_UP_REPACE_BRIEF.md): preserving the chosen catch-up pace when re-pacing and adjusting it directly (3.6.2, schema 9).
 - [SUPPLEMENTARY_BOOKS_BRIEF.md](SUPPLEMENTARY_BOOKS_BRIEF.md): supplementary books placed by hand in chosen lessons (2.10.0).

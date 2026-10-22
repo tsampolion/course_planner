@@ -88,6 +88,7 @@ object PrintSheet {
                 append(if (row.blocked) "<tr class=ev>" else "<tr>")
                 append("<td class=n>").append(row.n).append("</td><td>").append(row.date.fmt()).append(' ')
                     .append(row.date.dayOfWeek.short())
+                if (row.extraId != null) append(" <b>[Extra]</b>")
                 if (!row.blocked && names.isNotEmpty()) append(" <b>[").append(names).append("]</b>")
                 append("</td>")
                 if (row.blocked) {

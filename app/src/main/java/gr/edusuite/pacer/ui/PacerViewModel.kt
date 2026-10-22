@@ -8,6 +8,8 @@ import gr.edusuite.pacer.data.JsonCodec
 import gr.edusuite.pacer.data.PlanStore
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
+import gr.edusuite.pacer.engine.withExtra
+import gr.edusuite.pacer.engine.withoutExtra
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.LessonSave
 import gr.edusuite.pacer.engine.Source
@@ -36,6 +38,7 @@ import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.PlannedLesson
+import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
 import gr.edusuite.pacer.model.MAX_LAG_LESSONS
@@ -462,6 +465,28 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         r.rows.firstOrNull()?.let { r.markDone(setOf(it.date)) } ?: g
     }
 
+    // ---- date-pinned extra lessons -----------------------------------------
+
+    fun addExtra(groupId: String, date: LocalDate, pages: Map<String, List<Int>>): Boolean {
+        val plan = data.plan ?: return false
+        return editGroup(groupId) { g ->
+            if (g.extras.any { it.date == date } || g.done.any { it.date == date }) g
+            else plan.withExtra(g, ExtraLesson(newId(), date, pages))
+        }
+    }
+
+    fun saveExtra(groupId: String, extraId: String, pages: Map<String, List<Int>>): Boolean {
+        val plan = data.plan ?: return false
+        return editGroup(groupId) { g ->
+            g.extras.firstOrNull { it.id == extraId }?.let { plan.withExtra(g, it.copy(pages = pages)) } ?: g
+        }
+    }
+
+    fun removeExtra(groupId: String, extraId: String): Boolean {
+        val plan = data.plan ?: return false
+        return editGroup(groupId) { plan.withoutExtra(it, extraId) }
+    }
+
     // ---- custom plans ------------------------------------------------------
 
     /** Applies [change] to the group's custom plan, laid out by a report that follows it. Does nothing when it has none. */
@@ -577,6 +602,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
                 g.copy(
                     pos = g.pos - id,
                     done = g.done.map { it.copy(pages = it.pages - id) },
+                    extras = g.extras.map { it.copy(pages = it.pages - id) },
                     custom = g.custom?.let { p ->
                         p.copy(lessons = p.lessons.map { l ->
                             // The lesson keeps the core pages the teacher chose; with nothing left counting in it, its base goes.

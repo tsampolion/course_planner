@@ -19,6 +19,9 @@ internal fun GroupReport.customRows(c: CustomPlan): List<Row> {
     return lessons.mapIndexed { i, date ->
         if (blockedByLesson[i]) {
             Row(i + 1, date, eventsByLesson[i], true, plan.books.map { emptyList() })
+        } else if (date in extrasByDate) {
+            val extra = extrasByDate.getValue(date)
+            Row(i + 1, date, eventsByLesson[i], false, plan.books.map { b -> if (b.supplementary) emptyList() else extra.pages[b.id].orEmpty() }, extraId = extra.id)
         } else {
             val l = c.lessons.getOrNull(k++)
             Row(i + 1, date, eventsByLesson[i], false, plan.books.map { l?.pages?.get(it.id).orEmpty() }, l?.note.orEmpty(), l?.id)
@@ -29,7 +32,7 @@ internal fun GroupReport.customRows(c: CustomPlan): List<Row> {
 /** The proposed plan's lessons as a new custom plan, active, with no lesson touched. */
 fun GroupReport.toCustomPlan(id: () -> String = ::newId): CustomPlan {
     val proposed = if (source == Source.PROPOSED) this else GroupReport(plan, group, Source.PROPOSED)
-    return CustomPlan(true, proposed.rows.filter { !it.blocked }.map { PlannedLesson(id(), proposed.pagesByBook(it)) })
+    return CustomPlan(true, proposed.rows.filter { !it.blocked && it.extraId == null }.map { PlannedLesson(id(), proposed.pagesByBook(it)) })
 }
 
 /**
@@ -74,7 +77,7 @@ fun GroupReport.coverage(): Coverage? {
  */
 internal fun Plan.takeSlots(g: Group, dates: Set<LocalDate>): CustomPlan? {
     val c = g.custom ?: return null
-    val ids = GroupReport(this, g, Source.CUSTOM).rows.filter { it.date in dates }.mapNotNullTo(HashSet()) { it.lessonId }
+    val ids = GroupReport(this, g, Source.CUSTOM).rows.filter { it.date in dates && it.extraId == null }.mapNotNullTo(HashSet()) { it.lessonId }
     return if (ids.isEmpty()) c else c.copy(lessons = c.lessons.filter { it.id !in ids })
 }
 

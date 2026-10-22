@@ -33,6 +33,10 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
         val supp = c.books.filter { it.supplementary }.mapTo(HashSet()) { it.id }
         g.copy(
             done = g.done.distinctBy { it.date },
+            extras = unique(g.extras.distinctBy { it.date }, { it.id }) { e, id -> e.copy(id = id) }.map { e ->
+                e.copy(pages = e.pages.filterKeys { it in books && it !in supp }
+                    .mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE }.distinct().sorted() }.filterValues { it.isNotEmpty() })
+            },
             custom = g.custom?.let { p ->
                 p.copy(catchUpBoost = p.catchUpBoost?.takeIf { it in 1..MAX_PAGE }, lessons = unique(p.lessons, { it.id }) { l, id -> l.copy(id = id) }.map { l ->
                     val pages = l.pages.filterKeys { it in books }.mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE } }.filterValues { it.isNotEmpty() }

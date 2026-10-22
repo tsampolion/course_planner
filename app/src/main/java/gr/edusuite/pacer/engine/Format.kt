@@ -37,7 +37,7 @@ fun GroupReport.asTsv(): String {
         } else {
             cols.map { r.cells[it] }.mapIndexed { i, c -> if (i == 0 && names.isNotEmpty()) "$c  [$names]" else c }
         }
-        lines += (listOf(r.n.toString(), r.date.fmt(), r.date.dayOfWeek.short()) + cells + if (notes) listOf(r.note.replace('\t', ' ').replace('\n', ' ')) else emptyList()).joinToString("\t")
+        lines += (listOf(r.n.toString(), r.date.fmt(), r.date.dayOfWeek.short() + if (r.extraId != null) " [Extra]" else "") + cells + if (notes) listOf(r.note.replace('\t', ' ').replace('\n', ' ')) else emptyList()).joinToString("\t")
     }
     return lines.joinToString("\n")
 }

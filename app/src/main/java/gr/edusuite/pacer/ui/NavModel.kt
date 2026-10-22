@@ -4,6 +4,7 @@ import gr.edusuite.pacer.engine.BookLag
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Source
 import gr.edusuite.pacer.engine.Verdict
+import gr.edusuite.pacer.engine.activeExtras
 import gr.edusuite.pacer.engine.bookLags
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.verdict
@@ -61,6 +62,7 @@ fun searchGroups(year: SchoolYear, query: String): List<GroupHit> {
 
 /** One warning on a group and the fix the Warnings sheet offers for it. */
 sealed interface GroupWarning {
+    data class ExtraUnavailable(val date: java.time.LocalDate) : GroupWarning
     /** Short of the term: Catch up. [pages] is how many pages more than the pace fits. */
     data class Behind(val lessons: Int, val pages: Int) : GroupWarning
     /** A book left behind the others: Bring in step. */
@@ -84,6 +86,9 @@ fun groupWarnings(report: GroupReport): List<GroupWarning> {
     val plan = report.plan
     val handled = report.custom != null && report.coverage()?.ok == true
     val out = ArrayList<GroupWarning>()
+    val active = plan.activeExtras(report.group).mapTo(HashSet()) { it.id }
+    report.group.extras.filter { e -> e.id !in active && report.group.done.none { it.date == e.date } }
+        .forEach { out += GroupWarning.ExtraUnavailable(it.date) }
     if (!handled) {
         (report.verdict() as? Verdict.Short)?.let { out += GroupWarning.Behind(wholeLessons(it.by), it.cutPages) }
         report.bookLags(plan.lead, plan.lagLessons.toDouble()).forEach { out += GroupWarning.BookBehind(it, wholeLessons(it.lessonsBehind)) }

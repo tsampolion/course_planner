@@ -8,6 +8,7 @@ import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.DEFAULT_LAG_LESSONS
 import gr.edusuite.pacer.model.DoneLesson
+import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
 import gr.edusuite.pacer.model.PlannedLesson
@@ -32,11 +33,11 @@ import org.json.JSONObject
  * lessons a book may fall behind before a warning (missing reads as the default); version 8 adds supplementary books
  * (`supplementary`, `include`, `countInLesson`) and, on a custom plan's lessons, the books that count in the lesson
  * (`inLesson`) and the core pages to restore (`replacementBase`); version 9 adds the chosen catch-up boost
- * (`catchUpBoost`) on custom plans. Missing reads as none. Version 1
+ * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`). Missing reads as none. Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 9
+    const val VERSION = 10
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -143,6 +144,9 @@ object JsonCodec {
                     .put("pages", pages(l.pages))
                     .apply { if (l.edited) put("edited", true) }
             }))
+            .put("extras", JSONArray(g.extras.map { e ->
+                JSONObject().put("id", e.id).put("date", e.date.toString()).put("pages", pages(e.pages))
+            }))
             .apply { g.custom?.let { put("custom", custom(it)) } }
     })
 
@@ -181,6 +185,10 @@ object JsonCodec {
             done = g.optJSONArray("done").rows { l ->
                 val date = l.date("date") ?: return@rows null
                 DoneLesson(date, pages(l.optJSONObject("pages")), l.optBoolean("edited", false))
+            }.sortedBy { it.date },
+            extras = g.optJSONArray("extras").rows { e ->
+                val date = e.date("date") ?: return@rows null
+                ExtraLesson(e.id(), date, pages(e.optJSONObject("pages")))
             }.sortedBy { it.date },
             custom = runCatching { custom(g.optJSONObject("custom")) }.getOrNull(),
         )

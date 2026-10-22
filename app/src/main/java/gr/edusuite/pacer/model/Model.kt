@@ -28,7 +28,12 @@ data class Group(
     val done: List<DoneLesson> = emptyList(),
     /** The teacher's own plan, built from the proposed one. Null when the group has none. */
     val custom: CustomPlan? = null,
+    /** Date-pinned core-book lessons, shared by both plans. */
+    val extras: List<ExtraLesson> = emptyList(),
 )
+
+/** A saved extra lesson keeps its date and pages until the teacher edits it. */
+data class ExtraLesson(val id: String, val date: LocalDate, val pages: Map<String, List<Int>> = emptyMap())
 
 /**
  * The teacher's own plan for a group: the lessons still to teach, in order. Dates are not stored; lesson k
