@@ -22,6 +22,18 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.6.1] - 2026-10-22
+
+### Fixed
+
+- Undo notifications keep their countdown and dismiss themselves after repeated re-pacing. Each notification has its own lifetime, and its timeout starts when it appears. A fix that changes nothing says "Already up to date".
+- Applying a fix in the Warnings sheet closes the sheet so its notification is visible.
+- A lesson's long-press menu and TalkBack actions offer "Change planned pages…" for future custom lessons and "Record what I taught…" for today and past lessons, removing the duplicate pages action.
+
+### Tests
+
+- Custom plans preserve proposed dates and pages when created with Greek holidays, and still list their days off.
+
 ## [3.6.0] - 2026-10-21
 
 The redesign's large text and tablet layout (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR6 and PR7 together). The background pattern was dropped at the owner's request, so there is none.
@@ -585,7 +597,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.6.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.6.1...HEAD
+[3.6.1]: https://github.com/tsampolion/course_planner/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/tsampolion/course_planner/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/tsampolion/course_planner/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/tsampolion/course_planner/compare/v3.3.0...v3.4.0

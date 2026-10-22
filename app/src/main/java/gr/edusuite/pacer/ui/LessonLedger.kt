@@ -188,13 +188,12 @@ internal class CustomActions(
 internal class MenuItem(val label: String, val enabled: Boolean = true, val divider: Boolean = false, val run: () -> Unit)
 
 /**
- * Everything a lesson offers, in menu order: adding supplementary pages, the custom plan's actions, then Edit pages
- * taught, Done up to here and Not done from here.
+ * Everything a lesson offers, shared by the long-press menu and TalkBack. Future lessons offer planned pages;
+ * today and past lessons offer recording what was taught.
  */
 @Composable
 internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     val ca = actions.custom?.takeIf { !l.done && !l.blocked && (l.lessonId != null || l.free) }
-    val placed = ca != null && l.lessonId != null
     val addSupp = actions.addSupplementary?.takeIf { !l.done && !l.blocked && l.slot >= 0 }
     val suppLabels = actions.supplementaryBooks.map { (_, name) -> stringResource(R.string.supp_add_pages, name) }
     val planIt = stringResource(if (l.lessonId != null) R.string.custom_plan_lesson else R.string.custom_add_here)
@@ -206,22 +205,21 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     val edit = stringResource(R.string.group_edit_pages_menu)
     val upTo = stringResource(R.string.group_done_up_to)
     val notFrom = stringResource(R.string.group_not_done_from)
+    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(LocalDate.now()), hasCustomPlan = ca != null, canTick = actions.canTick)
     return buildList {
-        if (addSupp != null) suppLabels.forEach { add(MenuItem(it) { addSupp(l) }) }
-        if (ca != null) {
-            add(MenuItem(planIt, divider = isNotEmpty()) { ca.plan(l) })
-            if (placed) {
-                add(MenuItem(addBefore) { ca.addBefore(l) })
-                add(MenuItem(earlier, enabled = l.index > 0) { ca.move(l, l.index - 1) })
-                add(MenuItem(later, enabled = l.index < ca.last) { ca.move(l, l.index + 1) })
-                add(MenuItem(repace) { ca.repace(l) })
-                add(MenuItem(remove) { ca.remove(l) })
+        kinds.forEach { kind ->
+            when (kind) {
+                MenuItemKind.ADD_SUPPLEMENTARY -> if (addSupp != null) suppLabels.forEach { label -> add(MenuItem(label) { addSupp(l) }) }
+                MenuItemKind.PLAN_LESSON -> if (ca != null) add(MenuItem(planIt, divider = isNotEmpty()) { ca.plan(l) })
+                MenuItemKind.ADD_BEFORE -> if (ca != null) add(MenuItem(addBefore) { ca.addBefore(l) })
+                MenuItemKind.MOVE_EARLIER -> if (ca != null) add(MenuItem(earlier, enabled = l.index > 0) { ca.move(l, l.index - 1) })
+                MenuItemKind.MOVE_LATER -> if (ca != null) add(MenuItem(later, enabled = l.index < ca.last) { ca.move(l, l.index + 1) })
+                MenuItemKind.REPACE -> if (ca != null) add(MenuItem(repace) { ca.repace(l) })
+                MenuItemKind.REMOVE -> if (ca != null) add(MenuItem(remove) { ca.remove(l) })
+                MenuItemKind.RECORD_TAUGHT -> add(MenuItem(edit, divider = isNotEmpty()) { actions.edit(l) })
+                MenuItemKind.DONE_UP_TO -> add(MenuItem(upTo, enabled = actions.canUpTo(l.date)) { actions.upTo(l.date) })
+                MenuItemKind.NOT_DONE_FROM -> add(MenuItem(notFrom, enabled = actions.canNotFrom(l.date)) { actions.notFrom(l.date) })
             }
-        }
-        if (actions.canTick) {
-            add(MenuItem(edit, divider = isNotEmpty()) { actions.edit(l) })
-            add(MenuItem(upTo, enabled = actions.canUpTo(l.date)) { actions.upTo(l.date) })
-            add(MenuItem(notFrom, enabled = actions.canNotFrom(l.date)) { actions.notFrom(l.date) })
         }
     }
 }
