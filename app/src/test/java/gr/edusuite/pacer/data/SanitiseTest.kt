@@ -2,6 +2,7 @@ package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.markDoneUpTo
+import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.PlannedLesson
@@ -112,4 +113,23 @@ class SanitiseTest {
         assertEquals(setOf("s"), l.inLesson)
         assertEquals(mapOf(c.books.first().id to listOf(1, 2)), l.replacementBase)
     }
+    @Test fun extrasKeepOnePerDateAndUniqueIdsAndOnlyCoreBookPages() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val b = c.books.first().id
+        val date = y.start!!
+        val extras = listOf(
+            ExtraLesson("same", date, mapOf(b to listOf(-1, 0, 1, MAX_PAGE, MAX_PAGE + 1), "gone" to listOf(1), "s" to listOf(2))),
+            ExtraLesson("duplicate-date", date),
+            ExtraLesson("same", date.plusDays(1)),
+        )
+        val dirty = c.copy(books = c.books + Book("s", "Reader", 1, 2, supplementary = true), groups = listOf(c.groups.first().copy(extras = extras)))
+        val out = sanitiseYears(listOf(y.copy(classes = listOf(dirty)))).single().classes.single().groups.single().extras
+        assertEquals(2, out.size)
+        assertNotEquals(out[0].id, out[1].id)
+        assertEquals(mapOf(b to listOf(0, 1, MAX_PAGE)), out[0].pages)
+        val removed = dirty.copy(books = dirty.books.filter { it.id != b })
+        assertEquals(emptyMap<String, List<Int>>(), sanitiseYears(listOf(y.copy(classes = listOf(removed)))).single().classes.single().groups.single().extras.first().pages)
+    }
+
 }

@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
+import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.BookLag
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.plain
@@ -302,6 +303,7 @@ class WarningFixes(
     val repace: () -> Unit,
     val fit: () -> Unit,
     val tidy: () -> Unit,
+    val extra: (java.time.LocalDate) -> Unit = {},
 )
 
 /**
@@ -317,6 +319,10 @@ fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: Warn
         warnings.forEachIndexed { i, w ->
             if (i > 0) HorizontalDivider(color = Pacer.colors.line)
             when (w) {
+                is GroupWarning.ExtraUnavailable -> WarningItem(
+                    AppIcons.Warning, stringResource(R.string.extra_unavailable, w.date.fmt()),
+                    stringResource(R.string.extra_unavailable_hint), stringResource(R.string.extra_edit),
+                ) { close(); fixes.extra(w.date) }
                 is GroupWarning.Behind -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.status_short, w.lessons, w.lessons),
                     pluralStringResource(R.plurals.warn_behind, w.pages, w.pages, plan.pace.plain()),

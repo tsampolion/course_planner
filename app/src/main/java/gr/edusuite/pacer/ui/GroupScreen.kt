@@ -63,7 +63,7 @@ private const val TAB_STATS = 1
 private const val REVEAL_MS = 1000L
 
 /** The sheets the group's ⋮ menu opens on the screen itself. */
-enum class GroupSheet { TERM_WEEKS, TIPS }
+enum class GroupSheet { TERM_WEEKS, TIPS, EXTRA }
 
 /**
  * A group (design decision 8). Plan opens on today's lesson, with the done lessons above it and the lessons to come
@@ -116,6 +116,7 @@ fun GroupScreen(
     val lessons = remember(viewed, compare) { lessonsOf(viewed, compare) }
     val today = remember { LocalDate.now() }
     var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.firstOrNull() ?: today).toString()) }
+    var extraDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     val editing = lessons.firstOrNull { it.date.toString() == editingDate }
     val customActions = remember(shown, g.id) {
@@ -147,6 +148,9 @@ fun GroupScreen(
             canNotFrom = { d -> lessons.any { it.done && !it.date.isBefore(d) } },
             canTick = canTick,
             custom = customActions,
+            addExtra = { extraDate = it.toString() },
+            editExtra = { extraDate = it.date.toString() },
+            deleteExtra = { l -> l.extraId?.let { changed(vm.removeExtra(g.id, it), context.getString(R.string.extra_deleted)) } },
         )
     }
     // Today's box holds the next lesson. Done lessons, and days off before it, sit above it; the rest follow it.
@@ -265,6 +269,7 @@ fun GroupScreen(
                 DayStrip(start, end, LocalDate.parse(selectedDay), lessons.map { it.date }.toSet(), { selectedDay = it.toString() })
                 val date = LocalDate.parse(selectedDay)
                 val lesson = lessons.firstOrNull { it.date == date }
+                if (lesson?.done != true) TertiaryButton(stringResource(if (lesson?.extraId == null) R.string.extra_add else R.string.extra_edit), { onSheetClose(); extraDate = date.toString() })
                 if (lesson != null) {
                     EntryRow(Entry.Item(lesson), actions)
                 } else {
@@ -278,7 +283,16 @@ fun GroupScreen(
             Hint(stringResource(R.string.group_tick_hint))
             if (custom != null) Hint(stringResource(R.string.custom_hint))
         }
-        null -> Unit
+        GroupSheet.EXTRA, null -> Unit
+    }
+
+    if (sheet == GroupSheet.EXTRA || extraDate != null) {
+        ExtraLessonSheet(report, extraDate?.let(LocalDate::parse) ?: (report.lessons.firstOrNull() ?: g.from ?: plan.start ?: today),
+            chooseDate = sheet == GroupSheet.EXTRA,
+            onSave = { date, id, pages -> changed(if (id == null) vm.addExtra(g.id, date, pages) else vm.saveExtra(g.id, id, pages), context.getString(R.string.extra_saved)) },
+            onDelete = { changed(vm.removeExtra(g.id, it), context.getString(R.string.extra_deleted)) },
+            onDismiss = { extraDate = null; onSheetClose() },
+        )
     }
 
     planning?.takeIf { plan.supplementaryBooks.isNotEmpty() && (it.startsWith("L") || it.startsWith("S")) }?.let { key ->
@@ -327,6 +341,7 @@ fun GroupScreen(
             repace = { changed(vm.repaceFrom(g.id, 0), context.getString(R.string.custom_repaced)) },
             fit = { changed(vm.fitCustomPlanToTerm(g.id), context.getString(R.string.custom_fitted)) },
             tidy = { changed(vm.tidyCustomPlan(g.id), context.getString(R.string.custom_tidied)) },
+            extra = { extraDate = it.toString() },
         ), onWarningsClose)
     }
     if (catchingUp) CatchUpSheet(report, { boost ->

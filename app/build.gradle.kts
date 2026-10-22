@@ -13,8 +13,9 @@ android {
         // 26 gives java.time without core-library desugaring and adaptive icons without PNG fallbacks.
         minSdk = 26
         targetSdk = 35
-        versionCode = 41
-        versionName = "3.6.2"
+        versionCode = 42
+        versionName = "3.7.0"
+        testInstrumentationRunner = "gr.edusuite.pacer.data.ExtraLessonCodecTest"
     }
 
     androidResources {

@@ -1,5 +1,7 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -100,6 +102,7 @@ internal data class Lesson(
     val slot: Int = -1,
     /** The supplementary books that count in this planned lesson. */
     val inLesson: Set<String> = emptySet(),
+    val extraId: String? = null,
 )
 
 /**
@@ -112,7 +115,7 @@ internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<
     val done = g.done.map { d ->
         val events = plan.eventsOn(g, d.date)
         val blocked = d.pages.isEmpty() && events.any { it.consumes }
-        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited)
+        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, extraId = g.extras.firstOrNull { it.date == d.date }?.id)
     }
     val custom = report.custom
     val places = custom?.lessons?.withIndex()?.associate { (i, l) -> l.id to (i to l.touched) }.orEmpty()
@@ -126,8 +129,8 @@ internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<
         Lesson(
             0, r.date, r.events, r.blocked, r.cells, done = false, note = r.note, lessonId = r.lessonId,
             index = place?.first ?: -1, touched = place?.second ?: false,
-            free = custom != null && r.lessonId == null && !r.blocked, proposed = proposed,
-            slot = if (r.blocked) -1 else slot++, inLesson = r.lessonId?.let(counting::get).orEmpty(),
+            free = custom != null && r.lessonId == null && r.extraId == null && !r.blocked, proposed = proposed,
+            slot = if (r.blocked || r.extraId != null) -1 else slot++, inLesson = r.lessonId?.let(counting::get).orEmpty(), extraId = r.extraId,
         )
     }
     return (done + upcoming).sortedBy { it.date }.mapIndexed { i, l -> l.copy(n = i + 1) }
@@ -172,6 +175,9 @@ internal class LessonActions(
     val canTick: Boolean = true,
     /** Set while a custom plan is shown: what its lessons' menus offer. */
     val custom: CustomActions? = null,
+    val addExtra: (LocalDate) -> Unit = {},
+    val editExtra: (Lesson) -> Unit = {},
+    val deleteExtra: (Lesson) -> Unit = {},
 )
 
 /** What a lesson of a custom plan offers. [last] is the plan's last place. */
@@ -202,6 +208,8 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     val later = stringResource(R.string.custom_move_later)
     val repace = stringResource(R.string.custom_repace_here)
     val remove = stringResource(R.string.custom_remove)
+    val editExtra = stringResource(R.string.extra_edit)
+    val deleteExtra = stringResource(R.string.extra_delete)
     val edit = stringResource(R.string.group_edit_pages_menu)
     val upTo = stringResource(R.string.group_done_up_to)
     val notFrom = stringResource(R.string.group_not_done_from)
@@ -209,6 +217,8 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     return buildList {
         kinds.forEach { kind ->
             when (kind) {
+                MenuItemKind.EDIT_EXTRA -> add(MenuItem(editExtra) { actions.editExtra(l) })
+                MenuItemKind.DELETE_EXTRA -> add(MenuItem(deleteExtra) { actions.deleteExtra(l) })
                 MenuItemKind.ADD_SUPPLEMENTARY -> if (addSupp != null) suppLabels.forEach { label -> add(MenuItem(label) { addSupp(l) }) }
                 MenuItemKind.PLAN_LESSON -> if (ca != null) add(MenuItem(planIt, divider = isNotEmpty()) { ca.plan(l) })
                 MenuItemKind.ADD_BEFORE -> if (ca != null) add(MenuItem(addBefore) { ca.addBefore(l) })
@@ -327,6 +337,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                     verticalArrangement = Arrangement.spacedBy(Space.xs),
                 ) {
                     Text(label, style = MaterialTheme.typography.labelMedium)
+                    if (next.extraId != null) Text(stringResource(R.string.extra_label), style = MaterialTheme.typography.labelMedium)
                     Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall.merge(Figures))
                     if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
                     if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
@@ -393,6 +404,7 @@ private fun spokenLesson(l: Lesson, actions: LessonActions): String {
             if (supp && cell == collapse(emptyList())) return@forEachIndexed
             add(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell))
         }
+        if (l.extraId != null) add(stringResource(R.string.extra_label))
         if (l.free) add(stringResource(R.string.custom_free))
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
         if (l.edited) add(stringResource(R.string.group_edited))
@@ -435,6 +447,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
     val large = rememberLargeText()
     val subtitle = buildList {
         if (l.events.isNotEmpty()) add(l.events.joinToString(" · ") { it.name })
+        if (l.extraId != null) add(stringResource(R.string.extra_label))
         if (l.free) add(stringResource(R.string.custom_free))
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
         if (l.edited) add(stringResource(R.string.group_edited))
@@ -482,13 +495,15 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
  * A slim row for a day off or a whole-lesson test: the date and what the day holds, with its kind's edge and no lesson
  * number. A test still takes the lesson's tick and menu; a day off has none.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun SlimRow(entry: Entry, actions: LessonActions) {
     val c = Pacer.colors
     val lesson = (entry as? Entry.Item)?.lesson
     val large = rememberLargeText()
     var menu by rememberSaveable(entry.date.toString()) { mutableStateOf(false) }
-    val items = if (lesson != null) lessonMenu(lesson, actions) else emptyList()
+    val addLabel = stringResource(R.string.extra_add)
+    val items = if (lesson != null) lessonMenu(lesson, actions) else listOf(MenuItem(addLabel) { actions.addExtra(entry.date) })
     val text = when (entry) {
         is Entry.DayOff -> stringResource(R.string.ledger_day_off, entry.label)
         is Entry.Item -> stringResource(R.string.ledger_test, entry.lesson.events.joinToString(" · ") { it.name })
@@ -497,9 +512,15 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
     Box {
         Column {
             Row(
-                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.surface).heightIn(min = 40.dp).then(
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.surface).heightIn(min = 48.dp).then(
                     if (lesson != null) Modifier.lessonNode(spoken, lesson.done, if (actions.canTick) ({ actions.toggle(lesson.date) }) else null, items) { menu = true }
-                    else Modifier.clearAndSetSemantics { contentDescription = spoken },
+                    else Modifier.combinedClickable(onClick = { actions.addExtra(entry.date) }, onLongClick = { menu = true })
+                        .clearAndSetSemantics {
+                            contentDescription = spoken
+                            onClick(addLabel) { actions.addExtra(entry.date); true }
+                            onLongClick(addLabel) { menu = true; true }
+                            customActions = listOf(CustomAccessibilityAction(addLabel) { actions.addExtra(entry.date); true })
+                        },
                 ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

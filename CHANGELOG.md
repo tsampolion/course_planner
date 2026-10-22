@@ -22,6 +22,15 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-10-22
+
+### Added
+
+- Extra lessons with pinned core-book pages on any date in the group’s remaining term, including days off. Add one from a day-off row, Term weeks or the group menu; edit or delete it from the lesson menu, with Undo.
+- The editor pre-fills the proposed share and previews the remaining shortfall. Extra lessons work in Proposed and My plan, re-pacing untouched custom lessons in the same edit and keeping taught history.
+- Extra labels in the ledger, Print and TSV, and warnings when a whole-lesson test or the date range excludes a saved extra and returns its pages to the remaining plan.
+- JSON schema 10 stores extras while continuing to read older backups.
+
 ## [3.6.2] - 2026-10-22
 
 ### Fixed
@@ -613,7 +622,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.6.2...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.7.0...HEAD
+[3.7.0]: https://github.com/tsampolion/course_planner/compare/v3.6.2...v3.7.0
 [3.6.2]: https://github.com/tsampolion/course_planner/compare/v3.6.1...v3.6.2
 [3.6.1]: https://github.com/tsampolion/course_planner/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/tsampolion/course_planner/compare/v3.5.0...v3.6.0

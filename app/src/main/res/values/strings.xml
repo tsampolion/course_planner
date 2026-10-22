@@ -728,4 +728,22 @@
     <string name="toast_nothing_changed">Already up to date</string>
     <string name="custom_adjust_catch_up">Adjust catch-up…</string>
     <string name="warn_repace_keeps_catch_up">Re-pacing untouched lessons keeps your chosen catch-up pace.</string>
+    <string name="extra_add">Add extra lesson…</string>
+    <string name="extra_edit">Edit extra lesson…</string>
+    <string name="extra_delete">Delete extra lesson</string>
+    <string name="extra_label">Extra</string>
+    <string name="extra_hint">Pages stay pinned to this date in both plans. Other lessons re-pace when you save. Core books only.</string>
+    <string name="extra_blocked">A whole-lesson test blocks this extra lesson. Its pages return to the remaining plan.</string>
+    <string name="extra_outside">Choose a date from the group’s next lesson through the term end. Outside this range, extra pages stay in the remaining plan.</string>
+    <string name="extra_done_hint">This lesson is already taught. Use Record what I taught to change its history, or mark it not done before editing its pin.</string>
+    <string name="extra_after_fits">After this: Fits</string>
+    <string name="extra_after_unmeasured">After this: No regular lessons left to measure</string>
+    <string name="extra_saved">Extra lesson saved</string>
+    <string name="extra_deleted">Extra lesson deleted</string>
+    <string name="extra_unavailable">Extra lesson on %1$s is unavailable</string>
+    <string name="extra_unavailable_hint">A whole-lesson test or the group’s date range excludes it. Its pages are back in the remaining plan.</string>
+    <plurals name="extra_after_short">
+        <item quantity="one">After this: Short by %d lesson</item>
+        <item quantity="other">After this: Short by %d lessons</item>
+    </plurals>
 </resources>
