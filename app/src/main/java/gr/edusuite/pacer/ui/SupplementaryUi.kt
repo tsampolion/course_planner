@@ -15,7 +15,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -143,6 +142,7 @@ fun LessonPlanSheet(
             )
         }
         OutlinedTextField(
+            colors = paletteFieldColors(),
             value = note,
             onValueChange = { note = it },
             label = { Text(stringResource(R.string.custom_note)) },
@@ -168,6 +168,7 @@ fun LessonPlanSheet(
 @Composable
 private fun PageField(b: Book, text: String, onChange: (String) -> Unit, error: Boolean, support: String?, errorText: String = stringResource(R.string.group_page_error, b.first, b.last)) {
     OutlinedTextField(
+            colors = paletteFieldColors(),
         value = text,
         onValueChange = onChange,
         label = { Text(b.name) },
@@ -223,8 +224,8 @@ private fun ReplacementDialog(
                 typedSupp.forEach { (b, ps) -> Text(stringResource(R.string.supp_line, b.name, collapse(ps)), style = MaterialTheme.typography.bodyMedium) }
             }
         },
-        confirmButton = { TextButton(onClick = { next() }, enabled = valid) { Text(stringResource(R.string.supp_replace_apply)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.supp_cancel)) } },
+        confirmButton = { PaletteTextButton(onClick = { next() }, enabled = valid) { Text(stringResource(R.string.supp_replace_apply)) } },
+        dismissButton = { PaletteTextButton(onClick = onDismiss) { Text(stringResource(R.string.supp_cancel)) } },
     )
 
     if (asking in core.indices) {
@@ -235,9 +236,9 @@ private fun ReplacementDialog(
             text = { Text(stringResource(R.string.supp_keep_text, b.name, collapse(entry[asking]))) },
             confirmButton = {
                 Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
-                    TextButton(onClick = { answers[asking] = "k"; asking = -1; next() }) { Text(stringResource(R.string.supp_keep)) }
-                    TextButton(onClick = { answers[asking] = "s"; asking = -1; next() }) { Text(stringResource(R.string.supp_skip)) }
-                    TextButton(onClick = { asking = -1 }) { Text(stringResource(R.string.supp_cancel)) }
+                    PaletteTextButton(onClick = { answers[asking] = "k"; asking = -1; next() }) { Text(stringResource(R.string.supp_keep)) }
+                    PaletteTextButton(onClick = { answers[asking] = "s"; asking = -1; next() }) { Text(stringResource(R.string.supp_skip)) }
+                    PaletteTextButton(onClick = { asking = -1 }) { Text(stringResource(R.string.supp_cancel)) }
                 }
             },
         )

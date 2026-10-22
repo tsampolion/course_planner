@@ -19,7 +19,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -99,9 +98,9 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 sorted.forEach { y ->
                     YearChip(y.name.ifBlank { stringResource(R.string.home_year) }, y.id == year.id) { tick(); vm.switchYear(y.id) }
                 }
-                TextButton(onClick = { newYear = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                PaletteTextButton(onClick = { newYear = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                     AppIcon(AppIcons.Add, Modifier.size(18.dp).padding(end = Space.xs))
-                    Text(stringResource(R.string.home_new_year), style = MaterialTheme.typography.labelLarge, color = Pacer.colors.accent)
+                    Text(stringResource(R.string.home_new_year), style = MaterialTheme.typography.labelLarge, color = Pacer.colors.accentText)
                 }
             }
         }
@@ -138,7 +137,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
         }
         item(key = "greek") {
             Column {
-                TextButton(onClick = {
+                PaletteTextButton(onClick = {
                     val n = vm.addGreekHolidays()
                     toast(if (n > 0) context.resources.getQuantityString(R.plurals.year_holidays_added, n, n) else context.getString(R.string.year_already_there))
                 }, enabled = year.start != null && year.end != null, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.year_add_greek)) }

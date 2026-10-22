@@ -8,7 +8,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -77,7 +76,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
                     val open = lc.shown.classId in opened
                     Column(Modifier.animateItem()) {
                         ClassHead(lc.shown, if (lc.onPace.isEmpty()) null else {
-                            { TertiaryButton(if (open) stringResource(R.string.overview_hide_on_pace) else pluralStringResource(R.plurals.overview_on_pace_link, lc.onPace.size, lc.onPace.size), { opened = if (open) opened - lc.shown.classId else opened + lc.shown.classId }, color = Pacer.colors.accent) }
+                            { TertiaryButton(if (open) stringResource(R.string.overview_hide_on_pace) else pluralStringResource(R.plurals.overview_on_pace_link, lc.onPace.size, lc.onPace.size), { opened = if (open) opened - lc.shown.classId else opened + lc.shown.classId }, color = Pacer.colors.accentText) }
                         })
                         GroupRows(lc.shown.copy(groups = if (open) (lc.shown.groups + lc.onPace) else lc.shown.groups), vm, selected)
                     }
@@ -87,7 +86,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
                 Column {
                     TertiaryButton(
                         if (allOpen) stringResource(R.string.overview_hide_on_pace) else pluralStringResource(R.plurals.overview_classes_on_pace, l.allOnPace.size, l.allOnPace.size),
-                        { allOpen = !allOpen }, Modifier.fillMaxWidth(), color = Pacer.colors.accent,
+                        { allOpen = !allOpen }, Modifier.fillMaxWidth(), color = Pacer.colors.accentText,
                     )
                     if (allOpen) l.allOnPace.forEach { c ->
                         ClassHead(c, null)
@@ -148,7 +147,7 @@ private fun GroupRows(c: OverviewClass, vm: PacerViewModel, selected: String?) {
 private fun SortButton(order: GroupOrder, onOrder: (GroupOrder) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        TextButton(
+        PaletteTextButton(
             onClick = { open = true }, modifier = Modifier.heightIn(min = 48.dp), shape = CircleShape,
             colors = ButtonDefaults.textButtonColors(containerColor = Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink),
         ) {

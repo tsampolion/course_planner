@@ -4,9 +4,9 @@ The root `README.md` and `CLAUDE.md` are the entry points. This folder holds the
 
 ## Rules and reference
 
+- [PACER_ACCENT_CONTRAST.md](PACER_ACCENT_CONTRAST.md): measured contrast pairs for all four Bone/Saffron sets (3.8.0, D13). The shared suite guide remains on the previous palette.
 - [BRIEF.md](BRIEF.md): the original port brief and the feature-parity checklist.
 - [EDUSUITE_STYLE_GUIDE.md](EDUSUITE_STYLE_GUIDE.md): the shared EduSuite look. A copy of the canonical guide.
-- [PACER_ACCENT_CONTRAST.md](PACER_ACCENT_CONTRAST.md): Course Pacer contrast: its accent, dark set and lesson-kind edge pairs and their ratios.
 - [PACER_DESIGN.md](PACER_DESIGN.md): Course Pacer's own design language and its departures from the shared guide (approved redesign, built in 3.1.0 to 3.6.0; tokens landed in 3.1.0, navigation in 3.2.0, large text and the tablet layout in 3.6.0).
 - [../PRODUCT.md](../PRODUCT.md): the product record (users, purpose, constraints, principles).
 

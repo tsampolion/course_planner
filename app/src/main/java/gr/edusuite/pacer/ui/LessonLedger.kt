@@ -330,7 +330,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
     val label = stringResource(if (next.date == today) R.string.today_label else R.string.today_next_label, next.n)
     val large = rememberLargeText()
     Box(modifier) {
-        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.accent, contentColor = c.onAccent) {
+        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.surfaceContainer, contentColor = c.ink) {
             val info = @Composable { m: Modifier ->
                 Column(
                     m.lessonNode("$label. $description", next.done, null, items) { menu = true },
@@ -360,7 +360,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         Spacer(Modifier.width(Space.xs))
                         Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
                     }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, color = c.onAccent)
+                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, color = c.accentText)
                 }
             }
             if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {

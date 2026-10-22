@@ -50,7 +50,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -465,7 +464,7 @@ private fun ScreenBar(
             }
             if (switchable) {
                 val label = stringResource(R.string.switcher_open)
-                TextButton(onClick = onSwitch, modifier = Modifier.semantics { onClick(label) { onSwitch(); true } }) { heading() }
+                PaletteTextButton(onClick = onSwitch, modifier = Modifier.semantics { onClick(label) { onSwitch(); true } }) { heading() }
             } else heading()
         },
         actions = {
@@ -514,7 +513,7 @@ private fun UndoSnackbar(data: SnackbarData, gate: UndoGate) {
     }
     Snackbar(modifier = Modifier.padding(Space.m), action = {
         data.visuals.actionLabel?.let { label ->
-            TextButton(onClick = data::performAction, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.inversePrimary)) { Text(label) }
+            PaletteTextButton(onClick = data::performAction, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.inversePrimary)) { Text(label) }
         }
     }) {
         Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {

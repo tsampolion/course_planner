@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 private fun c(argb: Long) = Color(argb)
 
 /**
- * The style guide's tokens on Material 3's roles (§2.1, §2.3, §2.4). Every role is set, so a Compose update can't change
+ * Pacer's palette tokens on Material 3's roles (D13). Every role is set, so a Compose update can't change
  * the look, and wallpaper (dynamic) colour is never used (§11): the accent is what identifies the app.
  */
 internal fun schemeFor(t: Tokens, other: Tokens, dark: Boolean): ColorScheme {
@@ -48,7 +48,7 @@ private class SchemeArgs(t: Tokens, other: Tokens) {
     val onPrimary = c(t.onAccent)
     val soft = c(t.accentSoft)
     val onSoft = c(t.onAccentSoft)
-    val inversePrimary = c(other.accent)
+    val inversePrimary = c(other.accentText)
     val paper = c(t.paper)
     val surface = c(t.surface)
     val container = c(t.surfaceContainer)
@@ -56,7 +56,7 @@ private class SchemeArgs(t: Tokens, other: Tokens) {
     val ink = c(t.ink)
 }
 
-/** The guide's tokens and Course Pacer's edges that Material 3 has no role for, or that read better by name. */
+/** The palette tokens and Course Pacer's edges that Material 3 has no role for, or that read better by name. */
 @Immutable
 data class PacerColors(
     val paper: Color,
@@ -82,6 +82,7 @@ data class PacerColors(
     val okSoft: Color,
     val onOkSoft: Color,
     val accent: Color,
+    val accentText: Color,
     val onAccent: Color,
     val accentSoft: Color,
     val onAccentSoft: Color,
@@ -100,7 +101,7 @@ internal fun colorsFor(t: Tokens) = PacerColors(
     tilePink = c(t.tilePink), onTile = c(t.onTile), onTileMuted = c(t.onTileMuted),
     warn = c(t.warn), onWarn = c(t.onWarn), warnSoft = c(t.warnSoft), onWarnSoft = c(t.onWarnSoft),
     ok = c(t.ok), onOk = c(t.onOk), okSoft = c(t.okSoft), onOkSoft = c(t.onOkSoft),
-    accent = c(t.accent), onAccent = c(t.onAccent), accentSoft = c(t.accentSoft), onAccentSoft = c(t.onAccentSoft),
+    accent = c(t.accent), accentText = c(t.accentText), onAccent = c(t.onAccent), accentSoft = c(t.accentSoft), onAccentSoft = c(t.onAccentSoft),
     edgeTest = c(t.edgeTest), edgeDayOff = c(t.edgeDayOff), edgeEdited = c(t.edgeEdited), edgeHand = c(t.edgeHand),
     edgeFree = c(t.edgeFree), edgeSupp = c(t.edgeSupp),
 )

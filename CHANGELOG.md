@@ -22,6 +22,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-10-22
+
+### Added
+
+- Selectable Bone & green and Saffron & ink palettes, each with light and dark mode. Settings saves the choice outside undo, applies it immediately and falls back to Bone for unknown or corrupt stored choices.
+- Contrast checks across all four token sets, including readable foreground controls for Saffron, distinct non-violet lesson edges and warning/accent hue separation.
+
+### Changed
+
+- Home’s next-lesson and Group’s today panels use neutral surfaces to limit accent coverage. Links, date-picker controls, field focus and text buttons use readable foreground colours.
+- The in-app logo follows the selected palette. Static launcher artwork and the first-frame background follow Bone. The shared suite guide remains unchanged and shows the previous palette; other suite apps may adopt these later.
+
+
 ## [3.7.0] - 2026-10-22
 
 ### Added
@@ -622,7 +635,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.7.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.8.0...HEAD
+[3.8.0]: https://github.com/tsampolion/course_planner/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/tsampolion/course_planner/compare/v3.6.2...v3.7.0
 [3.6.2]: https://github.com/tsampolion/course_planner/compare/v3.6.1...v3.6.2
 [3.6.1]: https://github.com/tsampolion/course_planner/compare/v3.6.0...v3.6.1

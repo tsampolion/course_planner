@@ -72,6 +72,7 @@ fun ExtraLessonSheet(
         books.forEachIndexed { i, b ->
             val bad = parsed[i] == null
             OutlinedTextField(
+            colors = paletteFieldColors(),
                 value = texts[i], onValueChange = { texts[i] = it }, label = { Text(b.name) }, singleLine = true,
                 placeholder = { Text(stringResource(R.string.group_none)) }, isError = bad,
                 supportingText = {

@@ -746,4 +746,12 @@
         <item quantity="one">After this: Short by %d lesson</item>
         <item quantity="other">After this: Short by %d lessons</item>
     </plurals>
+    <string name="settings_palette">Palette</string>
+    <string name="palette_bone">Bone &amp; green</string>
+    <string name="palette_bone_body">Warm paper, bottle-green accent</string>
+    <string name="palette_saffron">Saffron &amp; ink</string>
+    <string name="palette_saffron_body">Cool paper, saffron signal, bottle-green ink</string>
+    <string name="palette_selected">Selected</string>
+    <string name="palette_unselected">Not selected</string>
+    <string name="palette_description">%1$s. %2$s</string>
 </resources>

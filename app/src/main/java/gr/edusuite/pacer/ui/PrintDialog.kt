@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.R
 import androidx.compose.ui.res.stringResource
 import gr.edusuite.pacer.model.SchoolYear
@@ -67,7 +68,7 @@ fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss:
                     Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = scope == s, role = Role.RadioButton) { segment(); scope = s },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    RadioButton(selected = scope == s, onClick = null)
+                    RadioButton(selected = scope == s, onClick = null, colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = Pacer.colors.accentText))
                     Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = Space.m))
                 }
             }

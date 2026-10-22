@@ -62,7 +62,7 @@ fun MoreOptions(title: String = stringResource(R.string.component_more_options),
     val description = stringResource(if (expanded) R.string.component_expanded else R.string.component_collapsed)
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, if (motion) Motion.content() else snap(), label = "expand")
     Column(modifier.fillMaxWidth().animateContentSize(if (motion) Motion.settle() else snap()), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        TextButton(onClick = { haptic(); expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp).semantics { stateDescription = description }) {
+        PaletteTextButton(onClick = { haptic(); expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp).semantics { stateDescription = description }) {
             Text(title)
             AppIcon(AppIcons.ExpandMore, Modifier.rotate(rotation))
         }
@@ -144,11 +144,11 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
     val lessonLabel = stringResource(R.string.component_lesson)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
       Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage - 1) else pager.scrollToPage(pager.currentPage - 1) } }, enabled = pager.currentPage > 0,
+        PaletteTextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage - 1) else pager.scrollToPage(pager.currentPage - 1) } }, enabled = pager.currentPage > 0,
             modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = previousLabel }) { AppIcon(AppIcons.Back) }
         val weekStart = first.plusWeeks(pager.currentPage.toLong())
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Eyebrow(stringResource(R.string.component_week_range, weekStart.fmtShort(), weekStart.plusDays(6).fmtShort())) }
-        TextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage + 1) else pager.scrollToPage(pager.currentPage + 1) } }, enabled = pager.currentPage < weeks - 1,
+        PaletteTextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage + 1) else pager.scrollToPage(pager.currentPage + 1) } }, enabled = pager.currentPage < weeks - 1,
             modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = nextLabel }) { AppIcon(AppIcons.Forward) }
       }
       BoxWithConstraints(Modifier.fillMaxWidth()) {

@@ -18,7 +18,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import gr.edusuite.pacer.engine.plain
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import gr.edusuite.pacer.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
@@ -37,6 +36,7 @@ import gr.edusuite.pacer.data.JsonCodec
 import gr.edusuite.pacer.data.MAX_IMPORT_BYTES
 import gr.edusuite.pacer.data.backupFileName
 import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.ui.theme.Pacer
@@ -97,6 +97,7 @@ fun SettingsScreen(
                     THEMES.indexOfFirst { it.first == settings.theme }.coerceAtLeast(0),
                     { vm.setTheme(THEMES[it].first) },
                 )
+                PaletteChooser(settings.palette, vm::setPalette)
             }
         }
         item(key = "defaults") {
@@ -208,7 +209,7 @@ private fun ImportDialog(years: List<SchoolYear>, current: Int, onAdd: () -> Uni
                 PrimaryButton(stringResource(R.string.settings_add), { onAdd(); onDismiss() })
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_cancel)) } },
+        dismissButton = { PaletteTextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_cancel)) } },
     )
 }
 
