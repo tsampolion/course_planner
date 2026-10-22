@@ -32,7 +32,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 ### Tests
 
-- Custom plans preserve proposed dates and pages when created with Greek holidays, and still list their days off.
+- Custom plans preserve proposed dates and pages when created with Greek holidays, and still list their days off. Repeated re-pacing preserves lesson dates and holiday rows after modern and legacy imports.
 
 ## [3.6.0] - 2026-10-21
 

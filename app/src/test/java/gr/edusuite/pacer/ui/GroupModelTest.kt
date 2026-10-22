@@ -1,5 +1,11 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.data.addYears
+import gr.edusuite.pacer.data.migratePlans
+import gr.edusuite.pacer.data.sanitiseYears
+import gr.edusuite.pacer.engine.repaceFrom
+import gr.edusuite.pacer.engine.toCustomPlan
+import gr.edusuite.pacer.model.seedYear
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.model.Book
@@ -10,11 +16,38 @@ import gr.edusuite.pacer.model.Plan
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class GroupModelTest {
     private fun d(s: String) = LocalDate.parse(s)
+
+    @Test fun repacingImportedYearKeepsHolidayRows() {
+        val seed = seedYear()
+        // Both modern backups (including Add's id collision) and legacy flat-plan migration.
+        val imports = listOf(
+            addYears(listOf(seed), sanitiseYears(listOf(seed))).last(),
+            sanitiseYears(migratePlans(listOf(seed.planFor(seed.classes[0])), "", "").years).single(),
+        )
+        for (year in imports) {
+            val c = year.classes[0]
+            val plan = year.planFor(c)
+            for (g0 in c.groups) {
+                val g = g0.copy(custom = GroupReport(plan, g0).toCustomPlan())
+                val before = GroupReport(plan, g)
+                val holidays = plan.daysOff(g, lessonsOf(before).mapTo(HashSet()) { it.date })
+                assertTrue(holidays.isNotEmpty())
+                var after = g
+                repeat(2) {
+                    after = after.copy(custom = GroupReport(plan, after).repaceFrom(0))
+                    val report = GroupReport(plan, after)
+                    assertEquals(before.rows.map { it.date }, report.rows.map { it.date })
+                    assertEquals(holidays, plan.daysOff(after, lessonsOf(report).mapTo(HashSet()) { it.date }))
+                }
+            }
+        }
+    }
 
     @Test fun bookInitialsShortenNames() {
         assertEquals("SB", bookInitials("Student's Book"))
