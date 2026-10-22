@@ -46,6 +46,7 @@ import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Hints
+import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.model.ThemeMode
@@ -289,6 +290,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         settingsStore.save(next)
     }
 
+    fun setPalette(v: PaletteChoice) = editSettings { it.copy(palette = v) }
     fun setTheme(v: ThemeMode) = editSettings { it.copy(theme = v) }
     fun setDefaultMins(v: Int) = editSettings { it.copy(lessonMins = v) }
     fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }

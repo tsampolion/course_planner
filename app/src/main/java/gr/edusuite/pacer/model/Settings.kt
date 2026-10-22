@@ -9,6 +9,13 @@ enum class ThemeMode {
     }
 }
 
+enum class PaletteChoice {
+    BONE, SAFFRON;
+    companion object {
+        fun parse(name: String?): PaletteChoice = entries.firstOrNull { it.name == name } ?: BONE
+    }
+}
+
 /**
  * App-level preferences. They live outside the school years, so undo never touches them.
  * The new-class defaults match the class the app used to start with (75-minute lessons, 4 pages each).
@@ -25,6 +32,7 @@ data class Settings(
     val name: String = "",
     /** The "show once" hints already shown, by their stable [Hints] ids. "Show tips again" empties it. */
     val seenTips: Set<String> = emptySet(),
+    val palette: PaletteChoice = PaletteChoice.BONE,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(

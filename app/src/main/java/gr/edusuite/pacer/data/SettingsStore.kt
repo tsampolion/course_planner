@@ -1,6 +1,7 @@
 package gr.edusuite.pacer.data
 
 import android.content.Context
+import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 
@@ -10,6 +11,7 @@ class SettingsStore(context: Context) {
 
     fun load(): Settings = Settings(
         theme = ThemeMode.parse(prefs.getString(THEME, null)),
+        palette = PaletteChoice.parse(runCatching { prefs.getString(PALETTE, null) }.getOrNull()),
         lessonMins = prefs.getInt(MINS, Settings.DEFAULT_MINS),
         // A string, not a float, so 4.1 reads back as 4.1.
         pace = prefs.getString(PACE, null)?.toDoubleOrNull() ?: Settings.DEFAULT_PACE,
@@ -22,6 +24,7 @@ class SettingsStore(context: Context) {
     fun save(s: Settings) {
         prefs.edit()
             .putString(THEME, s.theme.name)
+            .putString(PALETTE, s.palette.name)
             .putInt(MINS, s.lessonMins)
             .putString(PACE, s.pace.toString())
             // The schedule's By month view went in 3.4.0; its old setting goes too.
@@ -36,6 +39,7 @@ class SettingsStore(context: Context) {
         /** Backed up by name in data_extraction_rules.xml. */
         const val FILE = "settings"
         const val THEME = "theme"
+        const val PALETTE = "palette"
         const val MINS = "lessonMins"
         const val PACE = "pace"
         /** No longer stored (3.4.0); removed from older installs on the next save. */
