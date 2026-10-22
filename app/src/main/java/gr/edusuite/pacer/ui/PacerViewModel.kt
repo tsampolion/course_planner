@@ -437,11 +437,11 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     // ---- done lessons ------------------------------------------------------
 
     /** Applies [change] to a group of the open class, given its current schedule. */
-    private fun editLessons(groupId: String, change: (GroupReport, Group) -> Group) {
-        val plan = data.plan ?: return
-        val g = plan.groups.firstOrNull { it.id == groupId } ?: return
+    private fun editLessons(groupId: String, change: (GroupReport, Group) -> Group): Boolean {
+        val plan = data.plan ?: return false
+        val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
         val next = change(GroupReport(plan, g), g)
-        editGroup(groupId) { next }
+        return editGroup(groupId) { next }
     }
 
     /** Ticks or unticks the lesson on [date] on its own. */

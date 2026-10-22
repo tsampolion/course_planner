@@ -132,10 +132,11 @@ fun PlanSourceBar(custom: CustomPlan, showingMine: Boolean, onShow: (Boolean) ->
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PlanOptions(others: List<Group>, onRepace: () -> Unit, onCopy: (Group) -> Unit, onDelete: () -> Unit, modifier: Modifier = Modifier) {
+fun PlanOptions(others: List<Group>, onRepace: () -> Unit, onCopy: (Group) -> Unit, onDelete: () -> Unit, modifier: Modifier = Modifier, onCatchUp: (() -> Unit)? = null) {
     var copying by remember { mutableStateOf(false) }
     FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
         TertiaryButton(stringResource(R.string.custom_repace_all), onRepace)
+        if (onCatchUp != null) TertiaryButton(stringResource(R.string.custom_adjust_catch_up), onCatchUp)
         if (others.isNotEmpty()) Box {
             TertiaryButton(stringResource(R.string.custom_copy_to), { copying = true })
             DropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {

@@ -40,6 +40,7 @@ import gr.edusuite.pacer.engine.Source
 import gr.edusuite.pacer.engine.bookLags
 import gr.edusuite.pacer.engine.closedDates
 import gr.edusuite.pacer.engine.collapse
+import gr.edusuite.pacer.engine.catchUp
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.fmtShort
@@ -207,6 +208,7 @@ fun GroupScreen(
                                 onRepace = { changed(vm.repaceFrom(g.id, 0), context.getString(R.string.custom_repaced)) },
                                 onCopy = { o -> changed(vm.copyCustomPlan(g.id, o.id), context.getString(R.string.custom_copied, o.name)) },
                                 onDelete = { changed(vm.deleteCustomPlan(g.id), context.getString(R.string.custom_deleted)) },
+                                onCatchUp = if (report.catchUp(1) != null) ({ catchingUp = true }) else null,
                             )
                         }
                         // Quiet, not a warning: what each supplementary book still has to place.
@@ -328,9 +330,9 @@ fun GroupScreen(
         ), onWarningsClose)
     }
     if (catchingUp) CatchUpSheet(report, { boost ->
-        vm.applyCatchUp(g.id, boost)
+        val didChange = vm.applyCatchUp(g.id, boost)
         showMine = true
-        undoToast(context.getString(R.string.warn_caught_up))
+        changed(didChange, context.getString(R.string.warn_caught_up))
     }, { catchingUp = false })
     folding?.let { id ->
         val lag = lags.firstOrNull { it.bookId == id }

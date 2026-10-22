@@ -15,6 +15,18 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class SanitiseTest {
+    @Test fun savedCatchUpChoicesSurviveAndInvalidChoicesAreIgnored() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val g = c.groups.first()
+        for (boost in listOf(null, 1, 2, 3, 0, -1, Int.MAX_VALUE)) {
+            val custom = CustomPlan(true, emptyList(), catchUpBoost = boost)
+            val incoming = y.copy(classes = listOf(c.copy(groups = listOf(g.copy(custom = custom)))))
+            val out = sanitiseYears(listOf(incoming)).single().classes.single().groups.single().custom!!
+            assertEquals(boost?.takeIf { it in 1..MAX_PAGE }, out.catchUpBoost)
+        }
+    }
+
     @Test fun aSavedYearComesThroughUnchanged() {
         val y = seedYear()
         assertEquals(listOf(y), sanitiseYears(listOf(y)))

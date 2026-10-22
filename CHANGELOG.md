@@ -29,6 +29,12 @@ Keep `[Unreleased]` empty between pull requests.
 - Undo notifications keep their countdown and dismiss themselves after repeated re-pacing. Each notification has its own lifetime, and its timeout starts when it appears. A fix that changes nothing says "Already up to date".
 - Applying a fix in the Warnings sheet closes the sheet so its notification is visible.
 - A lesson's long-press menu and TalkBack actions offer "Change planned pages…" for future custom lessons and "Record what I taught…" for today and past lessons, removing the duplicate pages action.
+- Re-pacing a catch-up plan preserves its chosen boost instead of silently replacing it with proposed pacing. The choice is saved, survives copying and lesson edits, and recalculates as lessons are taught.
+- My plan offers "Adjust catch-up…" directly, even when the warning is hidden. The sheet starts with the saved choice. On older plans, use this once to record the boost that previous versions did not save.
+
+### Data
+
+- Saved-data version 9 adds the optional catch-up boost to custom plans. Older files still open; older builds refuse imports of the new format.
 
 ### Tests
 

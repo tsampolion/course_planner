@@ -31,11 +31,12 @@ import org.json.JSONObject
  * adds each class's lead book and each book's unit start pages (missing reads as none); version 7 adds the
  * lessons a book may fall behind before a warning (missing reads as the default); version 8 adds supplementary books
  * (`supplementary`, `include`, `countInLesson`) and, on a custom plan's lessons, the books that count in the lesson
- * (`inLesson`) and the core pages to restore (`replacementBase`); missing reads as none. Version 1
+ * (`inLesson`) and the core pages to restore (`replacementBase`); version 9 adds the chosen catch-up boost
+ * (`catchUpBoost`) on custom plans. Missing reads as none. Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 8
+    const val VERSION = 9
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -156,7 +157,7 @@ object JsonCodec {
             .apply { if (l.touched) put("touched", true) }
             .apply { if (l.inLesson.isNotEmpty()) put("inLesson", JSONArray(l.inLesson.sorted())) }
             .apply { l.replacementBase?.let { put("replacementBase", pages(it)) } }
-    }))
+    })).apply { c.catchUpBoost?.let { put("catchUpBoost", it) } }
 
     private fun custom(o: JSONObject?): CustomPlan? = o?.let {
         CustomPlan(it.optBoolean("active", true), it.optJSONArray("lessons").rows { l ->
@@ -166,7 +167,7 @@ object JsonCodec {
                 // Present but empty means the lesson had no core pages; missing means nothing to restore.
                 replacementBase = l.optJSONObject("replacementBase")?.let { pages(it) },
             )
-        })
+        }, catchUpBoost = it.optInt("catchUpBoost", 0).takeIf { boost -> boost > 0 })
     }
 
     private fun groups(a: JSONArray?): List<Group> = a.rows { g ->

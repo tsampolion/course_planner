@@ -50,7 +50,7 @@ fun GroupReport.catchUp(boost: Int): CatchUp? {
 }
 
 /** The custom plan a catch-up starts from (untouched lessons past the term dropped), and its untouched in-term lessons. */
-private fun GroupReport.catchUpBase(id: () -> String): Pair<MutableList<PlannedLesson>, List<Int>> {
+private fun GroupReport.catchUpBase(id: () -> String, from: Int = 0): Pair<MutableList<PlannedLesson>, List<Int>> {
     val c = group.custom ?: toCustomPlan(id)
     val days = teaching
     // Supplementary pages stay put: an untouched lesson past the term that holds some keeps only those.
@@ -61,7 +61,7 @@ private fun GroupReport.catchUpBase(id: () -> String): Pair<MutableList<PlannedL
             else -> null
         }
     }.toMutableList()
-    return kept to kept.indices.filter { it < days && !kept[it].touched }
+    return kept to kept.indices.filter { it >= from && it < days && !kept[it].touched }
 }
 
 /** Which of [targets] a book may use: those on or before its finish-by date, else the first one. */
@@ -73,12 +73,13 @@ private fun GroupReport.bookTargets(due: LocalDate?, targets: List<Int>): List<I
 /**
  * A custom plan that teaches [boost] extra pages per lesson until the catch-up is done ([catchUp]) and the
  * sustainable pace after. The pages still to teach that no touched lesson has spread over the untouched lessons in
- * the term by weight; touched lessons never change and untouched lessons past the term end are dropped.
+ * the term by weight; touched lessons and lessons before [from] never change. Untouched lessons past the term end
+ * are dropped. The chosen boost is saved so later re-pacing can keep it.
  * Null when the plan is not short or has no lesson to change.
  */
-fun GroupReport.catchUpPlan(boost: Int, id: () -> String = ::newId): CustomPlan? {
+fun GroupReport.catchUpPlan(boost: Int, id: () -> String = ::newId, from: Int = 0): CustomPlan? {
     val cu = catchUp(boost) ?: return null
-    val (out, targets) = catchUpBase(id)
+    val (out, targets) = catchUpBase(id, from.coerceAtLeast(0))
     if (targets.isEmpty()) return null
     val s100 = (plan.pace * 100).roundToLong()
     // By teaching slot, not by target order: the first cu.lessons days of the term carry the boost.
@@ -93,7 +94,7 @@ fun GroupReport.catchUpPlan(boost: Int, id: () -> String = ::newId): CustomPlan?
             if (pages.isNotEmpty()) out[ts[j]] = out[ts[j]].let { it.copy(pages = it.pages + (b.id to pages)) }
         }
     }
-    return CustomPlan(true, out)
+    return (group.custom ?: CustomPlan(true, out)).copy(active = true, lessons = out, catchUpBoost = cu.boost)
 }
 
 /** A book [lessonsBehind] lessons, at its own rate, behind the reference progress. */
@@ -160,5 +161,5 @@ fun GroupReport.foldBacklog(bookId: String, over: Int, id: () -> String = ::newI
     allocateWeighted(pool, ts.indices.map { j -> if (j < k) rate100 + extra else rate100 }).forEachIndexed { j, pages ->
         if (pages.isNotEmpty()) out[ts[j]] = out[ts[j]].let { it.copy(pages = it.pages + (b.id to pages)) }
     }
-    return CustomPlan(true, out)
+    return (group.custom ?: CustomPlan(true, out)).copy(active = true, lessons = out)
 }
