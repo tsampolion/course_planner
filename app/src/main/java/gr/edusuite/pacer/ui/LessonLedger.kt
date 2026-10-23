@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -237,7 +236,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
 /** The menu a long-press opens: the same items TalkBack offers as custom actions. */
 @Composable
 internal fun LessonMenu(expanded: Boolean, items: List<MenuItem>, onDismiss: () -> Unit) {
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+    PacerDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         items.forEach { item ->
             if (item.divider) HorizontalDivider(color = Pacer.colors.line)
             DropdownMenuItem(text = { Text(item.label) }, enabled = item.enabled, onClick = { onDismiss(); item.run() })

@@ -20,6 +20,9 @@ internal val PacerShapes = Shapes(
     extraLarge = RoundedCornerShape(28.dp),
 )
 
+/** Fixed corners keep the first/last menu rows inside the popup at every height. */
+internal val PacerMenuShape = PacerShapes.small
+
 /** The 4dp spacing grid (§4). */
 object Space {
     val xs = 4.dp
