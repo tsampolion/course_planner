@@ -47,6 +47,10 @@ import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Hints
+import gr.edusuite.pacer.model.ClassCollection
+import gr.edusuite.pacer.model.ClassOrder
+import gr.edusuite.pacer.model.withCollection
+import gr.edusuite.pacer.model.withoutCollection
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Settings
@@ -99,8 +103,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     val recent: StateFlow<List<GroupRef>> = _recent.asStateFlow()
 
     private fun recentAfter(recent: List<GroupRef>, ui: UiState): List<GroupRef> {
-        val g = ui.screen as? Screen.Group ?: return recent
-        return Nav.recent(recent, GroupRef(ui.data.activeClass, g.id))
+        val id = ui.screen.groupId ?: return recent
+        return Nav.recent(recent, GroupRef(ui.data.activeClass, id))
     }
 
     private val _settings = MutableStateFlow(settingsStore.load())
@@ -292,6 +296,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         settingsStore.save(next)
     }
 
+    fun setClassOrder(v: ClassOrder) = editSettings { it.copy(classOrder = v) }
+
     fun setPlanGrouping(v: PlanGrouping) = editSettings { it.copy(planGrouping = v) }
 
     fun setPalette(v: PaletteChoice) = editSettings { it.copy(palette = v) }
@@ -360,14 +366,17 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun removeClosure(id: String) = editYear { y -> y.copy(closures = y.closures.filter { it.id != id }) }
 
     /** Adds the Greek public holidays the term touches. Returns how many were new. */
-    fun addGreekHolidays(): Int {
+    fun addGreekHolidays(groupId: String? = null): Int {
         val y = data.year ?: return 0
         val start = y.start ?: return 0
         val end = y.end ?: return 0
-        val have = y.closures.map { it.from to it.label }.toHashSet()
+        val c = data.schoolClass
+        if (groupId != null && c?.groups?.none { it.id == groupId } != false) return 0
+        val scopes = if (groupId == null) setOf(ALL_GROUPS) else setOf(ALL_GROUPS, c!!.id, groupId)
+        val have = y.closures.filter { it.who in scopes }.map { it.from to it.label }.toHashSet()
         val fresh = greekHolidays(start, end).filter { have.add(it) }
         if (fresh.isNotEmpty()) {
-            editYear { it.copy(closures = it.closures + fresh.map { (d, l) -> Closure(newId(), l, d, d, ALL_GROUPS) }) }
+            editYear { it.copy(closures = it.closures + fresh.map { (d, l) -> Closure(newId(), l, d, d, groupId ?: ALL_GROUPS) }) }
         }
         return fresh.size
     }
@@ -384,6 +393,19 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         open(Screen.Class)
     }
 
+    fun addCollection(name: String, classIds: Set<String>): Boolean {
+        if (name.isBlank()) return false
+        val value = ClassCollection(newId(), name, classIds)
+        return editYear { it.withCollection(value) }
+    }
+
+    fun updateCollection(id: String, name: String, classIds: Set<String>): Boolean {
+        if (name.isBlank()) return false
+        return editYear { y -> if (y.collections.none { it.id == id }) y else y.withCollection(ClassCollection(id, name, classIds)) }
+    }
+
+    fun removeCollection(id: String) = editYear { it.withoutCollection(id) }
+
     fun renameClass(name: String) = editClass("cname") { it.copy(name = name) }
 
     /** Deletes the open class with the days off aimed only at it or its groups. */
@@ -393,7 +415,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         d.copy(
             years = d.years.map { y ->
                 if (y.id != d.activeYear) y
-                else y.copy(classes = y.classes.filter { it.id != c.id }, closures = y.closures.filter { it.who !in gone })
+                else y.copy(classes = y.classes.filter { it.id != c.id }, closures = y.closures.filter { it.who !in gone },
+                    collections = y.collections.map { it.copy(classIds = it.classIds - c.id) })
             },
             activeClass = "",
         )
@@ -434,6 +457,28 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     }
 
     fun setNextLesson(id: String, date: LocalDate?) = editGroup(id, "gfrom:$id") { it.copy(from = date) }
+
+    fun setGroupEnd(id: String, date: LocalDate?) = editGroup(id, "gend:$id") { it.copy(end = date) }
+
+    fun setGroupSkip(groupId: String, bookId: String, value: String) = editGroup(groupId, "gskip:$groupId:$bookId") { g ->
+        if (data.schoolClass?.books?.none { it.id == bookId } != false) g
+        else g.copy(skip = if (value.isBlank()) g.skip - bookId else g.skip + (bookId to value))
+    }
+
+    fun setGroupExtraBook(groupId: String, bookId: String, selected: Boolean) = editGroup(groupId) { g ->
+        if (data.schoolClass?.books?.none { it.id == bookId && it.groupOnly } != false) g
+        else g.copy(extraBooks = if (selected) g.extraBooks + bookId else g.extraBooks - bookId)
+    }
+
+    /** Adds one shared optional definition and selects it only for the intended group, in one undo step. */
+    fun addGroupBook(groupId: String, name: String, first: Int, last: Int): Boolean {
+        if (name.isBlank() || first !in 1..MAX_PAGE || last !in first..MAX_PAGE) return false
+        val book = Book(newId(), name.trim(), first, last, groupOnly = true)
+        return editClass { c ->
+            if (c.groups.none { it.id == groupId }) c
+            else c.copy(books = c.books + book, groups = c.groups.map { if (it.id == groupId) it.copy(extraBooks = it.extraBooks + book.id) else it })
+        }
+    }
 
     fun setPosition(groupId: String, bookId: String, page: Int) =
         editGroup(groupId, "pos:$groupId:$bookId") { it.copy(pos = it.pos + (bookId to page.coerceAtMost(MAX_PAGE + 1))) }
@@ -622,6 +667,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
             groups = c.groups.map { g ->
                 g.copy(
                     pos = g.pos - id,
+                    skip = g.skip - id,
+                    extraBooks = g.extraBooks - id,
                     done = g.done.map { it.copy(pages = it.pages - id) },
                     extras = g.extras.map { it.copy(pages = it.pages - id) },
                     custom = g.custom?.let { p ->

@@ -1,0 +1,15 @@
+<resources>
+    <string name="collections_sort">Classes: %1$s</string>
+    <string name="collections_your_order">Your order</string>
+    <string name="collections_name_order">Name</string>
+    <string name="collections_behind_order">Most behind</string>
+    <string name="collections_new">New collection…</string>
+    <string name="collections_edit">Edit collection</string>
+    <string name="collections_uncollected">Other classes</string>
+    <string name="collections_move_hint">Choose classes. A class selected from another collection moves here.</string>
+    <string name="collections_saved">Collection saved</string>
+    <string name="collections_delete">Delete collection</string>
+    <string name="collections_deleted">Deleted collection “%1$s”</string>
+    <string name="collections_keep_classes">Deleting this collection keeps all its classes.</string>
+    <string name="collections_empty">No classes in this collection.</string>
+</resources>

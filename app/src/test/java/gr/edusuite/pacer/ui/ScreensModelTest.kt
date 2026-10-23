@@ -1,6 +1,8 @@
 package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.model.ALL_GROUPS
+import gr.edusuite.pacer.model.ClassCollection
+import gr.edusuite.pacer.model.ClassOrder
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.seedYear
 import java.time.LocalDate
@@ -86,4 +88,36 @@ class ScreensModelTest {
         assertEquals(emptyList<OverviewGroup>(), l.classes.last().onPace)
         assertEquals(listOf("c3"), l.allOnPace.map { it.classId })
     }
+    private fun summary(id: String, name: String = id, behind: Int = 0, measured: Boolean = true) =
+        ClassSummary(id, name, emptyList(), 0, behind, measured)
+
+    @Test fun collectionKeysCannotCollideWithChromeOrUncollectedSections() {
+        val ids = listOf("head", "classes", "foot", "space", "null", "uncollected", "")
+        val keys = ids.map { classSectionKey(it) } + classSectionKey(null)
+        assertEquals(keys.size, keys.distinct().size)
+        org.junit.Assert.assertTrue(keys.none { it in setOf("head", "classes", "foot", "space") })
+    }
+
+    @Test fun classSortsKeepTiesAndPutUnmeasuredLast() {
+        val rows = listOf(summary("b", "Beta", 1), summary("a", "alpha", 1), summary("a2", "ALPHA", 0), summary("n", measured = false), summary("z"))
+        assertEquals(rows, sortClasses(rows, ClassOrder.YOUR_ORDER))
+        assertEquals(listOf("a", "a2", "b", "n", "z"), sortClasses(rows, ClassOrder.NAME).map { it.classId })
+        assertEquals(listOf("b", "a", "a2", "z", "n"), sortClasses(rows, ClassOrder.MOST_BEHIND).map { it.classId })
+    }
+
+    @Test fun collectionsKeepTheirOrderAndUniqueOwnershipThenUncollected() {
+        val rows = listOf(summary("a"), summary("b"), summary("c"), summary("d"))
+        val collections = listOf(ClassCollection("second", "Second", setOf("b", "missing")), ClassCollection("first", "First", setOf("a", "b")))
+        val sections = classSections(rows, collections, ClassOrder.YOUR_ORDER)
+        assertEquals(listOf("second", "first", null), sections.map { it.collection?.id })
+        assertEquals(listOf(listOf("b"), listOf("a"), listOf("c", "d")), sections.map { section -> section.classes.map { it.classId } })
+    }
+
+    @Test fun noCollectionsKeepsExistingClassRowsAndSortingStaysInsideSections() {
+        val rows = listOf(summary("b"), summary("a"), summary("c"))
+        assertEquals(rows, classSections(rows, emptyList(), ClassOrder.YOUR_ORDER).single().classes)
+        val sections = classSections(rows, listOf(ClassCollection("one", "One", setOf("b", "a"))), ClassOrder.NAME)
+        assertEquals(listOf(listOf("a", "b"), listOf("c")), sections.map { section -> section.classes.map { it.classId } })
+    }
+
 }

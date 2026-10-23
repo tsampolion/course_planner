@@ -32,6 +32,7 @@ import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.short
+import gr.edusuite.pacer.model.ClassOrder
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.ui.theme.Figures
@@ -207,15 +208,19 @@ private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () 
  * behind, its problems, or a muted "On pace"). Tap one to open it; New class floats at the bottom end.
  */
 @Composable
-fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) {
+fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, order: ClassOrder = ClassOrder.YOUR_ORDER, undoToast: (String) -> Unit = {}) {
+    val context = LocalContext.current
+    var newCollection by rememberSaveable { mutableStateOf(false) }
+    var editingCollection by rememberSaveable { mutableStateOf<String?>(null) }
     var adding by rememberSaveable { mutableStateOf(false) }
     val problems = remember(year) { Nav.problems(year).groupingBy { it.classId }.eachCount() }
     val rows = remember(year) { classSummaries(year) }
     val groups = rows.sumOf { it.groupNames.size }
+    val sections = remember(rows, year.collections, order) { classSections(rows, year.collections, order) }
 
     Box(Modifier.fillMaxSize()) {
     ScreenList(padding) {
-        if (year.classes.isEmpty()) {
+        if (year.classes.isEmpty() && year.collections.isEmpty()) {
             item(key = "hint") { Hint(stringResource(R.string.year_classes_hint)) }
             item(key = "empty") {
                 EmptyState(AppIcons.Add, stringResource(R.string.year_first_class), stringResource(R.string.year_first_class_hint), stringResource(R.string.year_new_class), { adding = true })
@@ -228,32 +233,52 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
                 )
             }
             item(key = "classes") {
-                RowGroup {
-                    rows.forEachIndexed { i, r ->
-                        if (i > 0) RowDivider()
-                        val days = r.groupNames.map { it.ifBlank { stringResource(R.string.app_group) } }.joinToString(" · ").ifEmpty { stringResource(R.string.year_no_groups) }
-                        LedgerRow(
-                            r.name.ifBlank { stringResource(R.string.year_class) },
-                            detail = stringResource(R.string.home_pair, days, pluralStringResource(R.plurals.year_books, r.books, r.books)),
-                            onClick = { vm.openClass(r.classId) },
-                        ) {
-                            val n = problems[r.classId] ?: 0
-                            when {
-                                r.behind > 0 -> Tag(pluralStringResource(R.plurals.classes_behind, r.behind, r.behind), warn = true)
-                                n > 0 -> Tag(pluralStringResource(R.plurals.year_problems, n, n), warn = true)
-                                r.measured -> StatusLabel(0)
+                Column {
+                    ClassOrderPicker(order, vm::setClassOrder)
+                }
+            }
+            sections.forEach { section ->
+                item(key = classSectionKey(section.collection?.id)) {
+                    Column {
+                        if (section.collection != null) CollectionSectionHead(section.collection,
+                            onEdit = { editingCollection = section.collection.id },
+                            onDelete = { if (vm.removeCollection(section.collection.id)) undoToast(context.getString(R.string.collections_deleted, section.collection.name)) },
+                        )
+                        else if (year.collections.isNotEmpty()) SectionHead(stringResource(R.string.collections_uncollected))
+                        if (section.classes.isEmpty()) Hint(stringResource(R.string.collections_empty))
+                        else RowGroup {
+                            section.classes.forEachIndexed { i, r ->
+                                if (i > 0) RowDivider()
+                                val days = r.groupNames.map { it.ifBlank { stringResource(R.string.app_group) } }.joinToString(" · ").ifEmpty { stringResource(R.string.year_no_groups) }
+                                LedgerRow(
+                                    r.name.ifBlank { stringResource(R.string.year_class) },
+                                    detail = stringResource(R.string.home_pair, days, pluralStringResource(R.plurals.year_books, r.books, r.books)),
+                                    onClick = { vm.openClass(r.classId) },
+                                ) {
+                                    val n = problems[r.classId] ?: 0
+                                    when {
+                                        r.behind > 0 -> Tag(pluralStringResource(R.plurals.classes_behind, r.behind, r.behind), warn = true)
+                                        n > 0 -> Tag(pluralStringResource(R.plurals.year_problems, n, n), warn = true)
+                                        r.measured -> StatusLabel(0)
+                                    }
+                                    Chevron()
+                                }
                             }
-                            Chevron()
                         }
                     }
                 }
             }
-            item(key = "foot") { Hint(stringResource(R.string.year_defaults_hint)) }
+            item(key = "foot") {
+                Column {
+                    TertiaryButton(stringResource(R.string.collections_new), { newCollection = true })
+                    Hint(stringResource(R.string.year_defaults_hint))
+                }
+            }
             // Room under the last row for the New class button.
             item(key = "space") { Spacer(Modifier.height(72.dp)) }
         }
     }
-        if (year.classes.isNotEmpty()) ExtendedFloatingActionButton(
+        if (year.classes.isNotEmpty() || year.collections.isNotEmpty()) ExtendedFloatingActionButton(
             onClick = { adding = true },
             icon = { AppIcon(AppIcons.Add) },
             text = { Text(stringResource(R.string.year_new_class)) },
@@ -263,6 +288,13 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues) 
             modifier = Modifier.align(Alignment.BottomEnd)
                 .padding(end = Space.l, bottom = padding.calculateBottomPadding() + Space.l),
         )
+    }
+
+    if (newCollection) CollectionSheet(year, null, vm, undoToast) { newCollection = false }
+    editingCollection?.let { id ->
+        year.collections.firstOrNull { it.id == id }?.let { collection ->
+            CollectionSheet(year, collection, vm, undoToast) { editingCollection = null }
+        }
     }
 
     if (adding) {

@@ -80,4 +80,11 @@ class SettingsTest {
         for (palette in PaletteChoice.entries) assertEquals(palette, Settings(palette = palette).sanitised().palette)
     }
 
+    @org.junit.Test fun classOrderDefaultsAndParsesStoredValues() {
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.ClassOrder.YOUR_ORDER, gr.edusuite.pacer.model.Settings().classOrder)
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.ClassOrder.NAME, gr.edusuite.pacer.model.ClassOrder.parse("NAME"))
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.ClassOrder.YOUR_ORDER, gr.edusuite.pacer.model.ClassOrder.parse("future"))
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.ClassOrder.YOUR_ORDER, gr.edusuite.pacer.model.ClassOrder.parse(null))
+    }
+
 }

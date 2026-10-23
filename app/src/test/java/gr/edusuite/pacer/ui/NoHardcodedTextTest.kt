@@ -14,6 +14,7 @@ class NoHardcodedTextTest {
     private val uiCall = Regex("""\b(?:Text|Hint|Tag|Heading|Eyebrow|PrimaryButton|SecondaryButton|TertiaryButton|AddButton|ErrorBox|GuideCard|LinkRow|SheetFrame|AddDialogFrame|PillIconButton)\s*\(\s*$""")
     private val uiAssignment = Regex("""\b(?:text|title|label|contentDescription|stateDescription|onClickLabel|onLongClickLabel|actionLabel|placeholder|confirm)\s*=\s*$""")
     private val dataStrings = mapOf(
+        "ScreensModel.kt" to setOf("uncollected", "collection:"),
         "ClassScreens.kt" to setOf("add", "books", "class", "delete", "empty", "groups", "guide", "hint", "lessons", "more", "name", "past", "upcoming", "group:"),
         "YearScreens.kt" to setOf("add", "delete", "empty", "end", "foot", "greek", "hint", "name", "offhead", "start", "year", "term", "more", "classes", "days-off", "years", "head", "space"),
         "OverviewScreen.kt" to setOf("empty", "class:", "head", "all-on-pace"),

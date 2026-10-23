@@ -22,6 +22,15 @@ sealed interface Screen {
     data object Homework : Screen
     /** A group of the open class. */
     data class Group(val id: String) : Screen
+    /** Calendar and book overrides for one group. */
+    data class GroupSettings(val id: String) : Screen
+}
+
+/** The group retained by a schedule or its settings destination. */
+val Screen.groupId: String? get() = when (this) {
+    is Screen.Group -> id
+    is Screen.GroupSettings -> id
+    else -> null
 }
 
 /** Shown only while a school year is open. */
@@ -29,7 +38,7 @@ val Screen.needsYear: Boolean get() = this != Screen.Home && this != Screen.Sett
 
 /** Shown only while a class is open. */
 val Screen.needsClass: Boolean
-    get() = this == Screen.Class || this == Screen.Tests || this == Screen.Homework || this is Screen.Group
+    get() = this == Screen.Class || this == Screen.Tests || this == Screen.Homework || this is Screen.Group || this is Screen.GroupSettings
 
 /**
  * Screens that change school-year data show Undo in their top bar (design decision 18). Settings, Pacing overview and
@@ -37,10 +46,10 @@ val Screen.needsClass: Boolean
  */
 val Screen.showsUndo: Boolean
     get() = this == Screen.Class || this == Screen.Classes || this == Screen.YearSettings ||
-        this == Screen.Tests || this == Screen.Homework || this is Screen.Group
+        this == Screen.Tests || this == Screen.Homework || this is Screen.Group || this is Screen.GroupSettings
 
 /** The two panes of a tablet window: the [list] screen, and the open [detail] group beside it if there is one. */
-data class Panes(val list: Screen, val detail: Screen.Group?)
+data class Panes(val list: Screen, val detail: Screen?)
 
 /** A group of the open year, by its class: what the group switcher's Recent list remembers. */
 data class GroupRef(val classId: String, val groupId: String)
@@ -64,12 +73,14 @@ object Nav {
 
     /** What to save in [AppData.view] for this stack. */
     fun viewOf(stack: List<Screen>): String =
-        (stack.lastOrNull { it is Screen.Group } as Screen.Group?)?.id ?: AppData.VIEW_SETUP
+        stack.asReversed().firstNotNullOfOrNull { it.groupId } ?: AppData.VIEW_SETUP
 
     /** Opens [screen]. Opening a group from a group swaps it rather than stacking groups. */
     fun push(stack: List<Screen>, screen: Screen): List<Screen> = when {
         screen == Screen.Home -> root
         stack.last() == screen -> stack
+        screen is Screen.Group && stack.last() is Screen.GroupSettings ->
+            stack.dropLastWhile { it is Screen.Group || it is Screen.GroupSettings } + screen
         screen is Screen.Group && stack.last() is Screen.Group -> stack.dropLast(1) + screen
         else -> stack + screen
     }
@@ -98,7 +109,7 @@ object Nav {
     fun panes(stack: List<Screen>, layout: WindowLayout): Panes? {
         if (layout == WindowLayout.COMPACT) return null
         return when (val top = stack.last()) {
-            is Screen.Group -> Panes(Screen.Overview, top)
+            is Screen.Group, is Screen.GroupSettings -> Panes(Screen.Overview, top)
             Screen.Overview, Screen.Classes -> Panes(top, null)
             else -> null
         }
@@ -119,7 +130,7 @@ object Nav {
     /** Drops screens for a year, class or group that no longer exists, for example after a delete or an undo. */
     fun prune(stack: List<Screen>, hasYear: Boolean, hasClass: Boolean, groupIds: Set<String>): List<Screen> {
         val kept = stack.filter {
-            (hasYear || !it.needsYear) && (hasClass || !it.needsClass) && (it !is Screen.Group || it.id in groupIds)
+            (hasYear || !it.needsYear) && (hasClass || !it.needsClass) && (it.groupId == null || it.groupId in groupIds)
         }
         return if (kept.firstOrNull() == Screen.Home) kept else root + kept.filter { it != Screen.Home }
     }

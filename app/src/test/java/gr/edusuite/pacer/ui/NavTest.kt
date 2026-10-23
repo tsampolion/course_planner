@@ -49,6 +49,23 @@ class NavTest {
         assertEquals(classStack + Screen.Group("b"), Nav.push(a, Screen.Group("b")))
     }
 
+    @Test fun groupSettingsRetainsGroupAndBackStack() {
+        val group = classStack + Screen.Group("g")
+        val settings = Nav.push(group, Screen.GroupSettings("g"))
+        assertEquals(group, Nav.pop(settings))
+        assertEquals("g", Nav.viewOf(settings))
+        assertEquals("g", Nav.viewOf(classStack + Screen.GroupSettings("g")))
+        assertTrue(Screen.GroupSettings("g").needsClass)
+        assertTrue(Screen.GroupSettings("g").needsYear)
+        assertTrue(Screen.GroupSettings("g").showsUndo)
+        assertEquals(classStack, Nav.prune(settings, true, true, emptySet()))
+        assertEquals(listOf(Screen.Home, Screen.Classes), Nav.afterClassSwitch(settings))
+        assertEquals(home, Nav.afterYearSwitch(settings))
+        assertEquals(Panes(Screen.Overview, Screen.GroupSettings("g")), Nav.panes(settings, WindowLayout.EXPANDED))
+        assertNull(Nav.panes(settings, WindowLayout.COMPACT))
+        assertEquals(classStack + Screen.Group("h"), Nav.goTo(settings, Screen.Group("h")))
+    }
+
     @Test fun drawerListsItsDestinationsInOrder() {
         assertEquals(
             listOf(Screen.Home, Screen.Overview, Screen.Classes, Screen.YearSettings, Screen.Settings),

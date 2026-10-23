@@ -1,6 +1,8 @@
 package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.model.ClassCollection
+import gr.edusuite.pacer.model.ClassOrder
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.SchoolYear
 import java.text.Collator
@@ -113,3 +115,35 @@ fun termSummary(year: SchoolYear): TermSummary? {
     }
     return TermSummary(weeks, off.size)
 }
+
+
+/** Stable sorting leaves the teacher's order intact whenever the selected figures tie. */
+fun sortClasses(classes: List<ClassSummary>, order: ClassOrder): List<ClassSummary> {
+    val collator = Collator.getInstance(Locale.ROOT).apply { strength = Collator.SECONDARY }
+    return when (order) {
+        ClassOrder.YOUR_ORDER -> classes
+        ClassOrder.NAME -> classes.sortedWith { a, b -> collator.compare(a.name, b.name) }
+        ClassOrder.MOST_BEHIND -> classes.sortedWith(
+            compareByDescending<ClassSummary> { it.behind }.thenByDescending { it.measured },
+        )
+    }
+}
+
+data class ClassSection(val collection: ClassCollection?, val classes: List<ClassSummary>)
+
+/** Collections retain their order; malformed duplicate membership belongs to the first collection. */
+fun classSections(classes: List<ClassSummary>, collections: List<ClassCollection>, order: ClassOrder): List<ClassSection> {
+    if (collections.isEmpty()) return listOf(ClassSection(null, sortClasses(classes, order)))
+    val owned = mutableSetOf<String>()
+    val sections = collections.map { collection ->
+        ClassSection(collection, sortClasses(classes.filter { it.classId in collection.classIds && owned.add(it.classId) }, order))
+    }
+    val remaining = classes.filter { it.classId !in owned }
+    return if (remaining.isEmpty()) sections else sections + ClassSection(null, sortClasses(remaining, order))
+}
+
+/** Stable section keys occupy a namespace distinct from screen chrome and the uncollected section. */
+fun classSectionKey(id: String?): String = if (id == null) "uncollected" else "collection:$id"
+
+fun classSections(year: SchoolYear, classes: List<ClassSummary>, order: ClassOrder): List<ClassSection> =
+    classSections(classes, year.collections, order)

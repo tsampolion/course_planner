@@ -3,6 +3,7 @@ package gr.edusuite.pacer.data
 import android.content.Context
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.PlanGrouping
+import gr.edusuite.pacer.model.ClassOrder
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 
@@ -11,6 +12,7 @@ class SettingsStore(context: Context) {
     private val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
     fun load(): Settings = Settings(
+        classOrder = ClassOrder.parse(runCatching { prefs.getString(CLASS_ORDER, null) }.getOrNull()),
         planGrouping = PlanGrouping.parse(runCatching { prefs.getString(GROUPING, null) }.getOrNull()),
         theme = ThemeMode.parse(prefs.getString(THEME, null)),
         palette = PaletteChoice.parse(runCatching { prefs.getString(PALETTE, null) }.getOrNull()),
@@ -26,6 +28,7 @@ class SettingsStore(context: Context) {
     fun save(s: Settings) {
         prefs.edit()
             .putString(THEME, s.theme.name)
+            .putString(CLASS_ORDER, s.classOrder.name)
             .putString(GROUPING, s.planGrouping.name)
             .putString(PALETTE, s.palette.name)
             .putInt(MINS, s.lessonMins)
@@ -41,6 +44,7 @@ class SettingsStore(context: Context) {
     private companion object {
         /** Backed up by name in data_extraction_rules.xml. */
         const val FILE = "settings"
+        const val CLASS_ORDER = "classOrder"
         const val GROUPING = "planGrouping"
         const val THEME = "theme"
         const val PALETTE = "palette"
