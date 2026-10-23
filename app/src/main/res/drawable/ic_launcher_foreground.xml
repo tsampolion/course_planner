@@ -13,11 +13,11 @@
     android:viewportHeight="108">
     <!-- Left page. -->
     <path
-        android:fillColor="#F6F5FA"
+        android:fillColor="#E9E6DD"
         android:pathData="M53,41C47.5,37.5 38,36.5 28,38L28,70C38,68.5 47.5,69.5 53,73Z" />
     <!-- Right page with three 4dp pacing lines, the last one shorter, as even-odd holes. -->
     <path
-        android:fillColor="#F6F5FA"
+        android:fillColor="#E9E6DD"
         android:fillType="evenOdd"
         android:pathData="M55,41C60.5,37.5 70,36.5 80,38L80,70C70,68.5 60.5,69.5 55,73Z M62,45H73A2,2 0 0,1 73,49H62A2,2 0 0,1 62,45Z M62,52H73A2,2 0 0,1 73,56H62A2,2 0 0,1 62,52Z M62,59H67A2,2 0 0,1 67,63H62A2,2 0 0,1 62,59Z" />
 </vector>

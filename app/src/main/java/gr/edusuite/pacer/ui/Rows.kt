@@ -22,7 +22,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,9 +55,9 @@ fun SectionHead(title: String, modifier: Modifier = Modifier, action: String? = 
         Text(title, style = MaterialTheme.typography.titleMedium, color = Pacer.colors.ink, modifier = Modifier.weight(1f).semantics { heading() })
         trailing?.invoke()
         if (action != null && onAction != null) {
-            TextButton(onClick = onAction, modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(horizontal = Space.s)) {
+            PaletteTextButton(onClick = onAction, modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(horizontal = Space.s)) {
                 if (plus) AppIcon(AppIcons.Add, Modifier.size(18.dp).padding(end = Space.xs))
-                Text(action, style = MaterialTheme.typography.labelLarge, color = Pacer.colors.accent)
+                Text(action, style = MaterialTheme.typography.labelLarge, color = Pacer.colors.accentText)
             }
         }
     }
@@ -137,7 +136,7 @@ fun RemoveMenu(what: String, onRemove: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     val label = stringResource(R.string.rows_options, what)
     Box {
-        TextButton(
+        PaletteTextButton(
             onClick = { open = true }, contentPadding = PaddingValues(0.dp),
             modifier = Modifier.size(48.dp).semantics { contentDescription = label },
         ) { AppIcon(AppIcons.MoreVert) }

@@ -408,6 +408,7 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
         books.forEachIndexed { i, b ->
             val bad = parsed[i] == null
             OutlinedTextField(
+            colors = paletteFieldColors(),
                 value = texts[i],
                 onValueChange = { texts[i] = it },
                 label = { Text(b.name) },

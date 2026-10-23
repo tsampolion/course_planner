@@ -87,11 +87,19 @@ fun SearchField(query: String, onQuery: (String) -> Unit, modifier: Modifier = M
         singleLine = true,
         shape = CircleShape,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = c.surfaceContainer, unfocusedContainerColor = c.surfaceContainer,
-            focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
-            focusedLeadingIconColor = c.muted, unfocusedLeadingIconColor = c.muted,
-        ),
+        colors = searchFieldColors(),
+    )
+}
+
+/** Search shares the palette foreground boundary with other input fields. */
+@Composable
+internal fun searchFieldColors(): androidx.compose.material3.TextFieldColors {
+    val c = Pacer.colors
+    return TextFieldDefaults.colors(
+        cursorColor = c.accentText,
+        focusedContainerColor = c.surfaceContainer, unfocusedContainerColor = c.surfaceContainer,
+        focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
+        focusedLeadingIconColor = c.muted, unfocusedLeadingIconColor = c.muted,
     )
 }
 
@@ -215,7 +223,7 @@ private fun DrawerRow(
 ) {
     val c = Pacer.colors
     NavigationDrawerItem(
-        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (accent && !selected) MaterialTheme.colorScheme.primary else Color.Unspecified) },
+        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (accent && !selected) c.accentText else Color.Unspecified) },
         selected = selected,
         onClick = onClick,
         modifier = modifier,

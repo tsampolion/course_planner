@@ -19,7 +19,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -239,7 +238,7 @@ private fun ClassGroupRow(plan: Plan, g: Group, vm: PacerViewModel, undoToast: (
         onClick = { vm.open(Screen.Group(g.id)) },
     ) {
         StatusLabel(short)
-        TextButton(
+        PaletteTextButton(
             onClick = { editing = true }, contentPadding = PaddingValues(0.dp),
             modifier = Modifier.size(48.dp).semantics { contentDescription = editLabel },
         ) { AppIcon(AppIcons.Edit) }
@@ -279,7 +278,7 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
     val count = lessons.size
     Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
         AnimatedFigure(pluralStringResource(R.plurals.class_lessons_left, count, count), style = MaterialTheme.typography.bodyMedium)
-        TextButton(onClick = { vm.open(Screen.Group(g.id)) }, modifier = Modifier.heightIn(min = 48.dp)) {
+        PaletteTextButton(onClick = { vm.open(Screen.Group(g.id)) }, modifier = Modifier.heightIn(min = 48.dp)) {
             AppIcon(AppIcons.ChevronRight)
             Text(stringResource(R.string.class_open_schedule))
         }
@@ -485,7 +484,7 @@ private fun AddEventDialog(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit
         MoreOptions {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
                 Text(stringResource(R.string.class_takes_the_whole_lesson), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                Switch(checked = consumes, onCheckedChange = { toggleHaptic(it); consumes = it },
+                Switch(colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper, checkedIconColor = Pacer.colors.accentText), checked = consumes, onCheckedChange = { toggleHaptic(it); consumes = it },
                     thumbContent = { AppIcon(if (consumes) AppIcons.Check else AppIcons.Close, Modifier.size(Space.l)) })
             }
         }
@@ -508,7 +507,7 @@ private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
     val toggleHaptic = rememberToggleHaptic()
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-        Switch(checked = checked, onCheckedChange = { toggleHaptic(it); onChange(it) },
+        Switch(colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper, checkedIconColor = Pacer.colors.accentText), checked = checked, onCheckedChange = { toggleHaptic(it); onChange(it) },
             thumbContent = { AppIcon(if (checked) AppIcons.Check else AppIcons.Close, Modifier.size(Space.l)) })
     }
 }

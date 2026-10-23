@@ -94,7 +94,7 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
         var more by rememberSaveable(report.group.id) { mutableStateOf(false) }
         if (large) TertiaryButton(
             stringResource(if (more) R.string.stats_fewer else R.string.stats_more), { more = !more },
-            Modifier.fillMaxWidth(), color = Pacer.colors.accent,
+            Modifier.fillMaxWidth(), color = Pacer.colors.accentText,
         )
         if (!large || more) {
             if (report.lessonsByMonth.isNotEmpty()) MonthColumns(report)

@@ -179,6 +179,7 @@ fun PlannedLessonSheet(
         books.forEachIndexed { i, b ->
             val bad = parsed[i] == null
             OutlinedTextField(
+            colors = paletteFieldColors(),
                 value = texts[i],
                 onValueChange = { texts[i] = it },
                 label = { Text(b.name) },
@@ -196,6 +197,7 @@ fun PlannedLessonSheet(
             )
         }
         OutlinedTextField(
+            colors = paletteFieldColors(),
             value = noteText,
             onValueChange = { noteText = it },
             label = { Text(stringResource(R.string.custom_note)) },

@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
                 val style = if (dark) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
             }
-            PacerTheme(dark = dark) { PacerApp(vm) }
+            PacerTheme(dark = dark, palette = settings.palette) { PacerApp(vm) }
         }
     }
 

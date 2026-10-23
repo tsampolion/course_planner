@@ -12,6 +12,8 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 
+- **Two palettes**: Bone & green (default) and Saffron & ink, each in light and dark mode. Choose in Settings; the choice applies immediately and is remembered. Text and lesson edges have tested contrast.
+
 - **Menu**: ☰ on every screen opens the menu: find a class or group by name, Home, Pacing overview with how many groups are behind, the year's classes, School year and Settings. System Back still steps back.
 - **Home**: "Hello" with your name, today's date and the open school year. Under it, the next lesson across every class and group with a **Done** button, a card of your classes, and the **Pacing overview** board: one cell per group, where only groups that are behind are coloured, with how many lessons short. Tap a cell to open its group.
 - **School year**: switch years with the chips at the top or add one, then the term on one line and the days off as dated rows. One tap adds the Greek public holidays, worked out from Orthodox Easter. Rename and delete the open year at the end.

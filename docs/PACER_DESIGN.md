@@ -12,7 +12,7 @@
 > and Homework as ledger rows with edges and one status mark, the full-page welcome (D9) and Print's three choices. **Large text and the tablet landed in 3.6.0** (PR6 and PR7 together): the reflow and
 > "show less" rules from font scale 1.5, and the list and detail panes with a permanent menu (D5 on tablets). **The
 > background pattern (D12) was dropped by the owner before it was built**, so there is no pattern, no `SolidSheet` and
-> no `PatternBackground`, and the before/after boards still show it. The rest of the design is built. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
+> no `PatternBackground`, and the before/after boards still show it. The rest of the design is built. **Selectable Bone and Saffron palettes land in 3.8.0** as D13. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.
 This file records where Course Pacer departs from it. Every departure is Pacer-only for now. Together they are
@@ -28,46 +28,62 @@ are whole lessons, rounded up. The look is bright and friendly, and precise like
 
 | # | Guide | Course Pacer |
 |---|---|---|
-| D1 | §2.1/§2.2/§10: the dark set is deep, low-light versions | Its own bright dark palette (below) |
+| D1 | §2.1/§2.2/§10: the dark set is deep, low-light versions | Deep green-tinted grounds and soft ink in both Pacer palettes (D13) |
 | D2 | §1/§3: figures in monospace | Outfit with tabular figures |
 | D3 | §6 Home header: "Hello" with a Settings button | "Hello, name" with the date and year. ☰ opens the menu. Settings is in the menu. |
 | D4 | §6 Tile grid (bento) on Home | Next-lesson bar, Classes card and Pacing overview board |
 | D5 | §15: a back arrow on every screen; no drawer | ☰ menu on every screen, a permanent drawer on tablets. System Back still works. |
 | D6 | §6 List row: a leading icon | Ledger rows with no icon. Edge colours mark the kind. |
 | D7 | §6 Warning banner on the screen | A warning button with a count, and the Warnings sheet |
-| D8 | §2: no kind colours | Six lesson-kind edge tokens |
+| D8 | §2: no kind colours | Six non-violet lesson-kind edge tokens, with words retained (D13) |
 | D9 | §6 GuideCard or dialog for the welcome | A full first-run page |
 | D10 | §6 segmented control | A filled segmented switch with an ink selected side, 48dp |
-| D11 | §2.2 tiles carry status (mint for done) | On-pace is neutral and only behind is coloured. Pills are pale tints. |
+| D11 | §2.2 tiles carry status (mint for done) | On-pace is neutral; behind keeps its word and pale pill, with rust/red distinct from the accent. |
 | D12 | §1 Flat, colour blocks only | ~~A light-mode background pattern of school icons, under solid sheets~~ Dropped by the owner (3.6.0): the app stays flat, with no pattern |
+| D13 | §2 shared light neutrals, tiles and accent | Pacer-owned Bone & green (default) and Saffron & ink, each light/dark. No dynamic colour. The suite guide still shows the old palette; other suite apps may adopt these later. |
 
 ## Tokens
 
-Light values are the guide's. Dark values and the edge tokens are Course Pacer's own.
+The palette is saved outside undo and changes the whole Compose theme immediately. Surface steps sit close to their ground. Saffron is a fill, never text on pale paper; foreground controls use accentText, derived from onAccentSoft. Legacy tile names remain for source compatibility, with new non-violet values. Values were tuned for text and edge contrast, edge separation and warning/accent hue separation. The Saffron warnings use a redder rust to reach the required 40° hue separation while keeping the seed accent.
 
-| Token | Light | Dark |
-|---|---|---|
-| paper | `#F6F5FA` | `#0E0E12` |
-| surface | `#FFFFFF` | `#1A1A21` |
-| surfaceContainer | `#E8E6EF` | `#26252E` |
-| line | `#E4E2EA` | `#2C2B35` |
-| outline | `#7A7686` | `#8F8C9C` |
-| muted | `#5E5A6B` | `#B9B6C4` |
-| ink | `#1B1A22` | `#F4F3F8` |
-| accent / onAccent | `#245E60` / `#FFFFFF` | `#4FD1C5` / `#062A27` |
-| accentSoft / onAccentSoft | `#D5EAE8` / `#0F2E2F` | `#163C3C` / `#D5F5F1` |
-| ok / onOk | `#3E6E47` / `#FFFFFF` | `#8BE3AE` / `#06301A` |
-| warn / onWarn | `#9E4A24` / `#FFFFFF` | `#FF8F6B` / `#3A1206` |
-| warnSoft / onWarnSoft | `#F7E4DA` / `#3E1A0A` | `#3A2018` / `#FFD2C2` |
-| edgeTest | `#6E4BC4` | `#C9B8FF` |
-| edgeDayOff | `#7A7686` | `#8F8C9C` |
-| edgeEdited | `#245E60` | `#4FD1C5` |
-| edgeHand | `#1F6F8B` | `#7FD4F0` |
-| edgeFree | `#A35A00` | `#FFC266` |
-| edgeSupp | `#B03A84` | `#FF9AD5` |
+| Token | Bone light | Bone dark | Saffron light | Saffron dark |
+|---|---|---|---|---|
+| paper | `#E9E6DD` | `#161C1A` | `#F6F4EC` | `#0E1A14` |
+| surface | `#F4F2EC` | `#1F2725` | `#FFFFFF` | `#16251D` |
+| surfaceContainer | `#E1DED4` | `#2A3330` | `#E9E9DF` | `#24352B` |
+| line | `#CDCABF` | `#3B4540` | `#D5D9CE` | `#35493B` |
+| outline | `#7D766C` | `#89908D` | `#738078` | `#828A85` |
+| muted | `#6B5B51` | `#9AA097` | `#5A6A60` | `#9DB0A4` |
+| ink | `#2A1D17` | `#E3E2DA` | `#0D2A1C` | `#EEF0E8` |
+| tileLilac | `#D7DFCA` | `#303E31` | `#F4E7AA` | `#454025` |
+| tileMint | `#E0DCD1` | `#3A3C34` | `#DCE7D9` | `#2D3F30` |
+| tileSky | `#D1DEE0` | `#2C3E42` | `#DCE7E5` | `#293D39` |
+| tileApricot | `#E5D9CB` | `#45382D` | `#EBE3CE` | `#413B2A` |
+| tilePink | `#DDE3BF` | `#3B4128` | `#E1E2D9` | `#363C32` |
+| onTile | `#2A1D17` | `#E3E2DA` | `#0D2A1C` | `#EEF0E8` |
+| onTileMuted | `#574D42` | `#C6C9BE` | `#42574A` | `#C8D4C8` |
+| warn | `#91421F` | `#FF8F6B` | `#9A2F24` | `#FF7C70` |
+| onWarn | `#F4F2EC` | `#3A1206` | `#FFFFFF` | `#3A1206` |
+| warnSoft | `#E9DCD0` | `#432B21` | `#F0DED4` | `#43291D` |
+| onWarnSoft | `#542811` | `#F8CBB6` | `#5F2416` | `#F8CBB6` |
+| ok | `#37622F` | `#9FC98E` | `#315F40` | `#A1CAA3` |
+| onOk | `#F4F2EC` | `#0F1A0C` | `#FFFFFF` | `#102719` |
+| okSoft | `#D9E1CF` | `#2C3F29` | `#DEE8D9` | `#283F2D` |
+| onOkSoft | `#233C1E` | `#CEE7C0` | `#1D4028` | `#D7EACF` |
+| accent | `#3F6B34` | `#9FC98E` | `#F0BF1A` | `#F2C94C` |
+| onAccent | `#F4F2EC` | `#0F1A0C` | `#0D2A1C` | `#0E1A14` |
+| accentSoft | `#D9E3D0` | `#2D4129` | `#F4E7AE` | `#423C1E` |
+| onAccentSoft | `#253F1F` | `#D4E8C8` | `#344522` | `#F1E2A8` |
+| edgeTest | `#994B39` | `#D77D60` | `#9A2F24` | `#D77D60` |
+| edgeDayOff | `#7D766C` | `#89908D` | `#738078` | `#828A85` |
+| edgeEdited | `#3F6B34` | `#9FC98E` | `#315F40` | `#F2C94C` |
+| edgeHand | `#2D6C84` | `#77B2C2` | `#2D6C84` | `#77B2C2` |
+| edgeFree | `#896900` | `#D8C26A` | `#896900` | `#9FC98E` |
+| edgeSupp | `#414700` | `#E0DDD0` | `#414700` | `#E0DDD0` |
 
-Edge tokens are at least 3:1 against `surface` in both modes. Text pairs are at least 4.5:1. `ContrastTest` checks
-both since 3.1.0, against the Course Pacer contrast table in `docs/PACER_ACCENT_CONTRAST.md`.
+The launcher icon and first-frame window background are static and always Bone (the background follows light/dark). Saffron users see that neutral Bone background only until Compose draws; it contains no launch text. The in-app logo follows the chosen palette, using accent and onAccent. The Home next-lesson and Group today panels are neutral so the accent stays concentrated in small controls.
+
+Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distance is at least 60. Every set excludes violet/indigo. `docs/PACER_ACCENT_CONTRAST.md` lists all measured pairs. ![Palette swatches, not app screenshots](images/palettes.svg)
 
 ## Rules
 

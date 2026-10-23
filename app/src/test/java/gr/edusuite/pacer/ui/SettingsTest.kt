@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
@@ -63,4 +64,13 @@ class SettingsTest {
     @Test fun sanitisingKeepsSeenTipsButDropsBlankIds() {
         assertEquals(setOf("a"), Settings(seenTips = setOf("a", "", " ")).sanitised().seenTips)
     }
+    @Test fun paletteDefaultsToBone() { assertEquals(PaletteChoice.BONE, Settings().palette) }
+    @Test fun unknownPaletteNameFallsBackToBone() {
+        for (name in listOf("neon", null, "", "123")) assertEquals(PaletteChoice.BONE, PaletteChoice.parse(name))
+        assertEquals(PaletteChoice.SAFFRON, PaletteChoice.parse("SAFFRON"))
+    }
+    @Test fun sanitisedKeepsAValidPalette() {
+        for (palette in PaletteChoice.entries) assertEquals(palette, Settings(palette = palette).sanitised().palette)
+    }
+
 }

@@ -62,7 +62,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -180,7 +179,7 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 @Composable
 fun TertiaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, color: Color = Color.Unspecified) {
     val interaction = remember { MutableInteractionSource() }
-    TextButton(onClick = onClick, interactionSource = interaction, enabled = enabled, modifier = modifier.pressFeedback(interaction).heightIn(min = 48.dp), shape = CircleShape) {
+    PaletteTextButton(onClick = onClick, interactionSource = interaction, enabled = enabled, modifier = modifier.pressFeedback(interaction).heightIn(min = 48.dp), shape = CircleShape) {
         Text(text, style = MaterialTheme.typography.labelLarge, color = color)
     }
 }
@@ -257,6 +256,7 @@ fun CommitField(
         if (!sameValue(text, value)) text = value
     }
     OutlinedTextField(
+            colors = paletteFieldColors(),
         value = text,
         onValueChange = { text = it; if (isValid(it)) onCommit(it) },
         label = { Text(label) },
@@ -317,6 +317,7 @@ fun DateField(
     val dateDescription = stringResource(R.string.component_date_description, label, value?.fmt() ?: unset)
     Box(modifier) {
         OutlinedTextField(
+            colors = paletteFieldColors(),
             value = value?.fmt() ?: "",
             onValueChange = {},
             readOnly = true,
@@ -342,18 +343,18 @@ fun DateField(
         DatePickerDialog(
             onDismissRequest = { open = false },
             confirmButton = {
-                TextButton(onClick = {
+                PaletteTextButton(onClick = {
                     state.selectedDateMillis?.let { onChange(LocalDate.ofEpochDay(Math.floorDiv(it, 86_400_000L))) }
                     open = false
                 }) { Text(stringResource(R.string.component_ok)) }
             },
             dismissButton = {
                 Row {
-                    if (clearable && value != null) TextButton(onClick = { onChange(null); open = false }) { Text(stringResource(R.string.component_clear)) }
-                    TextButton(onClick = { open = false }) { Text(stringResource(R.string.component_cancel)) }
+                    if (clearable && value != null) PaletteTextButton(onClick = { onChange(null); open = false }) { Text(stringResource(R.string.component_clear)) }
+                    PaletteTextButton(onClick = { open = false }) { Text(stringResource(R.string.component_cancel)) }
                 }
             },
-        ) { DatePicker(state = state) }
+        ) { ReadablePicker { DatePicker(state = state) } }
     }
 }
 
@@ -369,6 +370,7 @@ fun Picker(
     var open by remember { mutableStateOf(false) }
     Box(modifier) {
         OutlinedTextField(
+            colors = paletteFieldColors(),
             value = options.firstOrNull { it.first == selected }?.second ?: "",
             onValueChange = {},
             readOnly = true,
@@ -391,7 +393,7 @@ fun Picker(
 @Composable
 fun RemoveButton(what: String, onClick: () -> Unit) {
     val removeDescription = stringResource(R.string.component_remove_what, what)
-    TextButton(
+    PaletteTextButton(
         onClick = onClick,
         contentPadding = PaddingValues(0.dp),
         shape = CircleShape,
@@ -554,8 +556,8 @@ fun AddDialogFrame(
         shape = MaterialTheme.shapes.extraLarge,
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
-        confirmButton = { TextButton(onClick = { onAdd(); onDismiss() }, enabled = canAdd) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.component_cancel)) } },
+        confirmButton = { PaletteTextButton(onClick = { onAdd(); onDismiss() }, enabled = canAdd) { Text(confirm) } },
+        dismissButton = { PaletteTextButton(onClick = onDismiss) { Text(stringResource(R.string.component_cancel)) } },
     )
 }
 

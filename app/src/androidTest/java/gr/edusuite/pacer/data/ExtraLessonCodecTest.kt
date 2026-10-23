@@ -18,6 +18,7 @@ class ExtraLessonCodecTest : Instrumentation() {
     override fun onStart() {
         val checks = listOf(
             "extraRoundTripAndBackup" to ::testExtraRoundTripAndBackup,
+            "paletteRoundTripsThroughStore" to ::testPaletteRoundTripsThroughStore,
             "versionEightWithoutExtrasReadsUnchanged" to ::testVersionEightWithoutExtrasReadsUnchanged,
             "futureVersionIsRefused" to ::testFutureVersionIsRefused,
             "versionNineCatchUpWithoutExtrasReadsUnchanged" to ::testVersionNineCatchUpWithoutExtrasReadsUnchanged,
@@ -91,6 +92,22 @@ class ExtraLessonCodecTest : Instrumentation() {
         val read = JsonCodec.decode(o.toString()).years.single().classes.single().groups.single()
         assertEquals(emptyList<ExtraLesson>(), read.extras)
         assertEquals(CustomPlan(true, emptyList(), catchUpBoost = 2), read.custom)
+    }
+
+    fun testPaletteRoundTripsThroughStore() {
+        val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        assertEquals(PaletteChoice.BONE, SettingsStore(context).load().palette)
+        for (palette in PaletteChoice.entries) {
+            SettingsStore(context).save(Settings(palette = palette))
+            assertEquals(palette.name, prefs.getString("palette", null))
+            assertEquals(palette, SettingsStore(context).load().palette)
+        }
+        prefs.edit().putString("palette", "neon").commit()
+        assertEquals(PaletteChoice.BONE, SettingsStore(context).load().palette)
+        prefs.edit().putInt("palette", 7).commit()
+        assertEquals(PaletteChoice.BONE, SettingsStore(context).load().palette)
+        prefs.edit().clear().commit()
     }
 
 }

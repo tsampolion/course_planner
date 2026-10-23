@@ -51,7 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -186,7 +186,7 @@ private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: ((
 }
 
 /**
- * The next-lesson bar: the year's next lesson in the accent fill, with Done. Tapping the bar opens the group. Its
+ * The next-lesson bar: the year's next lesson on a neutral surface, with an accent Done button. Tapping the bar opens the group. Its
  * label says "today" with how many of today's lessons are left, the date, or that the lesson is overdue. A year with
  * no lesson left gets a neutral bar that opens Pacing overview.
  */
@@ -217,7 +217,7 @@ private fun NextLessonBar(year: SchoolYear, today: LocalDate, vm: PacerViewModel
                 undoToast(context.getString(R.string.home_lesson_done))
             },
             shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(containerColor = c.onAccent, contentColor = c.accent),
+            colors = ButtonDefaults.buttonColors(containerColor = c.accent, contentColor = c.onAccent),
             interactionSource = press,
             modifier = m.pressFeedback(press).heightIn(min = 48.dp),
         ) {
@@ -225,7 +225,7 @@ private fun NextLessonBar(year: SchoolYear, today: LocalDate, vm: PacerViewModel
             Text(stringResource(R.string.home_done), style = MaterialTheme.typography.labelLarge)
         }
     }
-    Tile(c.accent, contentColor = c.onAccent, onClick = { vm.openGroup(next.classId, next.groupId) }) {
+    Tile(c.surface, contentColor = c.ink, onClick = { vm.openGroup(next.classId, next.groupId) }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(label, style = MaterialTheme.typography.labelMedium.merge(Figures), modifier = Modifier.semantics { heading() })
@@ -250,7 +250,7 @@ private fun HomeCard(title: String, link: String?, onLink: () -> Unit, content: 
         Column(Modifier.padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.s)) {
             Row(Modifier.padding(start = Space.l, end = Space.xs), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).semantics { heading() })
-                if (link != null) TertiaryButton(link, onLink, color = Pacer.colors.accent)
+                if (link != null) TertiaryButton(link, onLink, color = Pacer.colors.accentText)
             }
             content()
         }
@@ -344,10 +344,10 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
             }
             if (large) TertiaryButton(
                 if (onPace > 0) pluralStringResource(R.plurals.home_groups_on_pace, onPace, onPace) else stringResource(R.string.home_see_all),
-                { vm.goTo(Screen.Overview) }, Modifier.fillMaxWidth(), color = Pacer.colors.accent,
+                { vm.goTo(Screen.Overview) }, Modifier.fillMaxWidth(), color = Pacer.colors.accentText,
             ) else Row(verticalAlignment = Alignment.CenterVertically) {
                 Legend(Modifier.weight(1f))
-                TertiaryButton(stringResource(R.string.home_see_all), { vm.goTo(Screen.Overview) }, color = Pacer.colors.accent)
+                TertiaryButton(stringResource(R.string.home_see_all), { vm.goTo(Screen.Overview) }, color = Pacer.colors.accentText)
             }
         }
     }
@@ -441,21 +441,21 @@ internal fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismis
         DateField(start, { startText = it?.toString() }, stringResource(R.string.home_starts))
         DateField(end, { endText = it?.toString() }, stringResource(R.string.home_ends))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = holidays, onCheckedChange = { toggle(it); holidays = it })
+            Checkbox(colors = androidx.compose.material3.CheckboxDefaults.colors(checkedColor = Pacer.colors.accentText, checkmarkColor = Pacer.colors.paper), checked = holidays, onCheckedChange = { toggle(it); holidays = it })
             Text(stringResource(R.string.home_holidays), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
-/** The launcher icon, drawn from the same artwork: the open book on the teal tile. Decorative, so TalkBack skips it (§7). */
+/** The in-app logo, drawn from the launcher artwork with the chosen palette. Decorative, so TalkBack skips it (§7). */
 @Composable
 fun Logo(size: Dp) {
     Box(
         // The logo tile's corners are a quarter of its size (style guide §4), the one shape outside MaterialTheme.shapes.
-        Modifier.size(size).clip(RoundedCornerShape(size / 4)).background(colorResource(R.color.launcher_tile)),
+        Modifier.size(size).clip(RoundedCornerShape(size / 4)).background(Pacer.colors.accent),
         contentAlignment = Alignment.Center,
     ) {
         // The artwork sits in the middle of a 108dp canvas; scaling it up crops the empty margin.
-        Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, modifier = Modifier.requiredSize(size * 1.5f))
+        Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, colorFilter = ColorFilter.tint(Pacer.colors.onAccent), modifier = Modifier.requiredSize(size * 1.5f))
     }
 }

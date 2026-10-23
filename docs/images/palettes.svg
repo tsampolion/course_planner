@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="410" viewBox="0 0 1120 410">
+<rect x="0" width="280" height="410" fill="#E9E6DD"/>
+<text x="20" y="35" fill="#2A1D17" font-family="sans-serif" font-size="19">BoneLight</text>
+<rect x="20" y="65" width="38" height="28" rx="4" fill="#E9E6DD" stroke="#7D766C"/>
+<text x="70" y="84" fill="#2A1D17" font-family="sans-serif" font-size="13">paper #E9E6DD</text>
+<rect x="20" y="107" width="38" height="28" rx="4" fill="#F4F2EC" stroke="#7D766C"/>
+<text x="70" y="126" fill="#2A1D17" font-family="sans-serif" font-size="13">surface #F4F2EC</text>
+<rect x="20" y="149" width="38" height="28" rx="4" fill="#2A1D17" stroke="#7D766C"/>
+<text x="70" y="168" fill="#2A1D17" font-family="sans-serif" font-size="13">ink #2A1D17</text>
+<rect x="20" y="191" width="38" height="28" rx="4" fill="#6B5B51" stroke="#7D766C"/>
+<text x="70" y="210" fill="#2A1D17" font-family="sans-serif" font-size="13">muted #6B5B51</text>
+<rect x="20" y="233" width="38" height="28" rx="4" fill="#3F6B34" stroke="#7D766C"/>
+<text x="70" y="252" fill="#2A1D17" font-family="sans-serif" font-size="13">accent #3F6B34</text>
+<rect x="20" y="275" width="38" height="28" rx="4" fill="#253F1F" stroke="#7D766C"/>
+<text x="70" y="294" fill="#2A1D17" font-family="sans-serif" font-size="13">accentText #253F1F</text>
+<rect x="20" y="317" width="38" height="28" rx="4" fill="#91421F" stroke="#7D766C"/>
+<text x="70" y="336" fill="#2A1D17" font-family="sans-serif" font-size="13">warn #91421F</text>
+<rect x="20" y="365" width="240" height="30" rx="15" fill="#E9DCD0"/>
+<text x="35" y="385" fill="#542811" font-family="sans-serif" font-size="13">Behind · 3 lessons</text>
+<rect x="280" width="280" height="410" fill="#161C1A"/>
+<text x="300" y="35" fill="#E3E2DA" font-family="sans-serif" font-size="19">BoneDark</text>
+<rect x="300" y="65" width="38" height="28" rx="4" fill="#161C1A" stroke="#89908D"/>
+<text x="350" y="84" fill="#E3E2DA" font-family="sans-serif" font-size="13">paper #161C1A</text>
+<rect x="300" y="107" width="38" height="28" rx="4" fill="#1F2725" stroke="#89908D"/>
+<text x="350" y="126" fill="#E3E2DA" font-family="sans-serif" font-size="13">surface #1F2725</text>
+<rect x="300" y="149" width="38" height="28" rx="4" fill="#E3E2DA" stroke="#89908D"/>
+<text x="350" y="168" fill="#E3E2DA" font-family="sans-serif" font-size="13">ink #E3E2DA</text>
+<rect x="300" y="191" width="38" height="28" rx="4" fill="#9AA097" stroke="#89908D"/>
+<text x="350" y="210" fill="#E3E2DA" font-family="sans-serif" font-size="13">muted #9AA097</text>
+<rect x="300" y="233" width="38" height="28" rx="4" fill="#9FC98E" stroke="#89908D"/>
+<text x="350" y="252" fill="#E3E2DA" font-family="sans-serif" font-size="13">accent #9FC98E</text>
+<rect x="300" y="275" width="38" height="28" rx="4" fill="#D4E8C8" stroke="#89908D"/>
+<text x="350" y="294" fill="#E3E2DA" font-family="sans-serif" font-size="13">accentText #D4E8C8</text>
+<rect x="300" y="317" width="38" height="28" rx="4" fill="#FF8F6B" stroke="#89908D"/>
+<text x="350" y="336" fill="#E3E2DA" font-family="sans-serif" font-size="13">warn #FF8F6B</text>
+<rect x="300" y="365" width="240" height="30" rx="15" fill="#432B21"/>
+<text x="315" y="385" fill="#F8CBB6" font-family="sans-serif" font-size="13">Behind · 3 lessons</text>
+<rect x="560" width="280" height="410" fill="#F6F4EC"/>
+<text x="580" y="35" fill="#0D2A1C" font-family="sans-serif" font-size="19">SaffronLight</text>
+<rect x="580" y="65" width="38" height="28" rx="4" fill="#F6F4EC" stroke="#738078"/>
+<text x="630" y="84" fill="#0D2A1C" font-family="sans-serif" font-size="13">paper #F6F4EC</text>
+<rect x="580" y="107" width="38" height="28" rx="4" fill="#FFFFFF" stroke="#738078"/>
+<text x="630" y="126" fill="#0D2A1C" font-family="sans-serif" font-size="13">surface #FFFFFF</text>
+<rect x="580" y="149" width="38" height="28" rx="4" fill="#0D2A1C" stroke="#738078"/>
+<text x="630" y="168" fill="#0D2A1C" font-family="sans-serif" font-size="13">ink #0D2A1C</text>
+<rect x="580" y="191" width="38" height="28" rx="4" fill="#5A6A60" stroke="#738078"/>
+<text x="630" y="210" fill="#0D2A1C" font-family="sans-serif" font-size="13">muted #5A6A60</text>
+<rect x="580" y="233" width="38" height="28" rx="4" fill="#F0BF1A" stroke="#738078"/>
+<text x="630" y="252" fill="#0D2A1C" font-family="sans-serif" font-size="13">accent #F0BF1A</text>
+<rect x="580" y="275" width="38" height="28" rx="4" fill="#344522" stroke="#738078"/>
+<text x="630" y="294" fill="#0D2A1C" font-family="sans-serif" font-size="13">accentText #344522</text>
+<rect x="580" y="317" width="38" height="28" rx="4" fill="#9A2F24" stroke="#738078"/>
+<text x="630" y="336" fill="#0D2A1C" font-family="sans-serif" font-size="13">warn #9A2F24</text>
+<rect x="580" y="365" width="240" height="30" rx="15" fill="#F0DED4"/>
+<text x="595" y="385" fill="#5F2416" font-family="sans-serif" font-size="13">Behind · 3 lessons</text>
+<rect x="840" width="280" height="410" fill="#0E1A14"/>
+<text x="860" y="35" fill="#EEF0E8" font-family="sans-serif" font-size="19">SaffronDark</text>
+<rect x="860" y="65" width="38" height="28" rx="4" fill="#0E1A14" stroke="#828A85"/>
+<text x="910" y="84" fill="#EEF0E8" font-family="sans-serif" font-size="13">paper #0E1A14</text>
+<rect x="860" y="107" width="38" height="28" rx="4" fill="#16251D" stroke="#828A85"/>
+<text x="910" y="126" fill="#EEF0E8" font-family="sans-serif" font-size="13">surface #16251D</text>
+<rect x="860" y="149" width="38" height="28" rx="4" fill="#EEF0E8" stroke="#828A85"/>
+<text x="910" y="168" fill="#EEF0E8" font-family="sans-serif" font-size="13">ink #EEF0E8</text>
+<rect x="860" y="191" width="38" height="28" rx="4" fill="#9DB0A4" stroke="#828A85"/>
+<text x="910" y="210" fill="#EEF0E8" font-family="sans-serif" font-size="13">muted #9DB0A4</text>
+<rect x="860" y="233" width="38" height="28" rx="4" fill="#F2C94C" stroke="#828A85"/>
+<text x="910" y="252" fill="#EEF0E8" font-family="sans-serif" font-size="13">accent #F2C94C</text>
+<rect x="860" y="275" width="38" height="28" rx="4" fill="#F1E2A8" stroke="#828A85"/>
+<text x="910" y="294" fill="#EEF0E8" font-family="sans-serif" font-size="13">accentText #F1E2A8</text>
+<rect x="860" y="317" width="38" height="28" rx="4" fill="#FF7C70" stroke="#828A85"/>
+<text x="910" y="336" fill="#EEF0E8" font-family="sans-serif" font-size="13">warn #FF7C70</text>
+<rect x="860" y="365" width="240" height="30" rx="15" fill="#43291D"/>
+<text x="875" y="385" fill="#F8CBB6" font-family="sans-serif" font-size="13">Behind · 3 lessons</text>
+</svg>
