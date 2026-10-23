@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -139,7 +138,7 @@ fun PlanOptions(others: List<Group>, onRepace: () -> Unit, onCopy: (Group) -> Un
         if (onCatchUp != null) TertiaryButton(stringResource(R.string.custom_adjust_catch_up), onCatchUp)
         if (others.isNotEmpty()) Box {
             TertiaryButton(stringResource(R.string.custom_copy_to), { copying = true })
-            DropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
+            PacerDropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
                 others.forEach { o -> DropdownMenuItem(text = { Text(o.name) }, onClick = { copying = false; onCopy(o) }) }
             }
         }

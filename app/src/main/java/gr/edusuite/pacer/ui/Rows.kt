@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -140,7 +139,7 @@ fun RemoveMenu(what: String, onRemove: () -> Unit) {
             onClick = { open = true }, contentPadding = PaddingValues(0.dp),
             modifier = Modifier.size(48.dp).semantics { contentDescription = label },
         ) { AppIcon(AppIcons.MoreVert) }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.component_remove), color = Pacer.colors.warn) },
                 leadingIcon = { AppIcon(AppIcons.Delete) },

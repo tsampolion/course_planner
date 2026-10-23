@@ -55,7 +55,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -381,7 +380,7 @@ fun Picker(
             modifier = Modifier.fillMaxWidth(),
         )
         Box(Modifier.matchParentSize().padding(top = 8.dp).clickable(role = Role.DropdownList) { open = true })
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { (id, name) ->
                 DropdownMenuItem(text = { Text(name) }, onClick = { onSelect(id); open = false })
             }
@@ -637,7 +636,7 @@ fun SwipeRow(what: String, onRemove: () -> Unit, content: @Composable () -> Unit
     ) {
         Box(Modifier.combinedClickable(onClick = {}, onLongClick = { menu = true }, onLongClickLabel = optionsLabel)) {
             content()
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            PacerDropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 DropdownMenuItem(text = { Text(stringResource(R.string.component_remove)) }, onClick = { menu = false; onRemove() })
             }
         }

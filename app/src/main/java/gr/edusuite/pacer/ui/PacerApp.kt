@@ -33,7 +33,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalNavigationDrawer
@@ -404,7 +403,7 @@ private fun GroupMenuButton(menu: GroupMenu) {
     var open by remember { mutableStateOf(false) }
     Box {
         PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             menu.customPlan?.let { make ->
                 DropdownMenuItem(text = { Text(stringResource(R.string.group_make_custom_plan)) }, leadingIcon = { AppIcon(AppIcons.Edit) }, onClick = { open = false; make() })
             }

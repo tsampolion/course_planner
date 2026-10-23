@@ -116,3 +116,7 @@ Before/after boards of the approved design are in `docs/images/redesign/`. Their
 ![Settings, welcome, sheets](images/redesign/settings.png)
 ![Large text](images/redesign/large.png)
 ![Tablet](images/redesign/tablet.png)
+
+## Popup corners (3.8.1)
+
+Dropdown menus use the shared `PacerDropdownMenu` with fixed 12dp corners. They must not inherit the percentage-rounded pill shape: on tall menus it cuts through the first and last option labels. Buttons and chips retain their pill shapes.

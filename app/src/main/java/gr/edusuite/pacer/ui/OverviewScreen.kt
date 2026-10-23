@@ -3,7 +3,6 @@ package gr.edusuite.pacer.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -154,7 +153,7 @@ private fun SortButton(order: GroupOrder, onOrder: (GroupOrder) -> Unit) {
             Text(stringResource(R.string.overview_sort, order.label()), style = MaterialTheme.typography.labelLarge)
             AppIcon(AppIcons.ArrowDropDown)
         }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             GroupOrder.entries.forEach { o ->
                 DropdownMenuItem(
                     text = { Text(o.label()) },

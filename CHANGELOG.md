@@ -22,6 +22,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.8.1] - 2026-10-23
+
+### Fixed
+
+- Dropdown popups use fixed 12dp corners rather than a percentage-rounded pill, keeping the first and last option labels visible in book selectors and action menus, including at large text sizes.
+
 ## [3.8.0] - 2026-10-22
 
 ### Added
@@ -635,7 +641,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.8.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.8.1...HEAD
+[3.8.1]: https://github.com/tsampolion/course_planner/compare/v3.8.0...v3.8.1
 [3.8.0]: https://github.com/tsampolion/course_planner/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/tsampolion/course_planner/compare/v3.6.2...v3.7.0
 [3.6.2]: https://github.com/tsampolion/course_planner/compare/v3.6.1...v3.6.2
