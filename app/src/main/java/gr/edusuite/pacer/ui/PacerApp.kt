@@ -96,6 +96,7 @@ private fun Screen.title(d: AppData, context: Context): String = when (this) {
     // "FCE · Tests & worksheets", as the locked mock-ups have it.
     Screen.Tests -> classTitle(d, context, context.getString(R.string.app_tests))
     Screen.Homework -> classTitle(d, context, context.getString(R.string.app_homework_short))
+    is Screen.GroupSettings -> context.getString(R.string.group_settings_title)
     is Screen.Group -> d.schoolClass?.groups?.firstOrNull { it.id == id }?.name?.ifBlank { null } ?: context.getString(R.string.app_group)
 }
 
@@ -109,6 +110,7 @@ private fun Screen.context(d: AppData, context: Context): String = when (this) {
     Screen.YearSettings, Screen.Overview, Screen.Classes, Screen.Class -> d.year?.name.orEmpty()
     Screen.Tests, Screen.Homework -> d.year?.name.orEmpty()
     is Screen.Group -> listOfNotNull(d.year?.name, d.schoolClass?.name).joinToString(" · ")
+    is Screen.GroupSettings -> listOfNotNull(d.schoolClass?.name, d.schoolClass?.groups?.firstOrNull { it.id == id }?.name).joinToString(" · ")
 }
 
 /** Keys each screen's saved state (scroll position, open dialogs) while it stays on the back stack. */
@@ -202,6 +204,7 @@ fun PacerApp(vm: PacerViewModel) {
             share = { share(context, "${report.plan.name} — ${report.group.name}", report.asTsv()) },
             print = { printing = true },
             open = { groupSheet = it },
+            settings = { vm.open(Screen.GroupSettings(report.group.id)) },
             customPlan = if (large && report.group.custom == null && report.rows.isNotEmpty()) ({
                 vm.createCustomPlan(report.group.id)
                 toast(context.getString(R.string.custom_created))
@@ -249,7 +252,7 @@ fun PacerApp(vm: PacerViewModel) {
                 s, ui.data, settings, setAside == null, vm, padding, toast, undoToast, context,
                 onMenu = openMenu.takeIf { !permanent }, warningsOpen = warningsOpen && s == screen, onWarningsClose = { warningsOpen = false },
                 groupSheet = groupSheet.takeIf { s == screen }, onGroupSheetClose = { groupSheet = null },
-                selectedGroup = (panes?.detail as? Screen.Group)?.id,
+                selectedGroup = panes?.detail?.groupId,
             )
         }
     }
@@ -370,10 +373,15 @@ private fun ScreenContent(
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
         Screen.YearSettings -> YearSettingsScreen(data.years, year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast(context.getString(R.string.app_deleted, it)) })
         Screen.Overview -> OverviewScreen(year ?: return, vm, padding, selectedGroup)
-        Screen.Classes -> ClassesScreen(year ?: return, vm, padding)
+        Screen.Classes -> ClassesScreen(year ?: return, vm, padding, order = settings.classOrder, undoToast = undoToast)
         Screen.Class -> ClassScreen(plan ?: return, vm, padding, undoToast)
         Screen.Tests -> TestsScreen(plan ?: return, vm, padding, undoToast)
         Screen.Homework -> HomeworkScreen(plan ?: return, vm, padding, undoToast)
+        is Screen.GroupSettings -> {
+            if (plan == null || year == null) return
+            val group = plan.groups.firstOrNull { it.id == s.id } ?: return
+            GroupSettingsScreen(year, plan, group, vm, padding, undoToast, toast)
+        }
         is Screen.Group -> {
             if (plan == null) return
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return
@@ -405,6 +413,7 @@ private class GroupMenu(
     val hasCustom: Boolean, val large: Boolean, val others: List<Pair<String, String>>,
     val repace: () -> Unit, val copyPlan: (String, String) -> Unit, val deletePlan: () -> Unit, val catchUp: Boolean,
     val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit,
+    val settings: () -> Unit,
     /** Large text: "Make a custom plan", which the Plan tab's line offers otherwise. Null when there is nothing to offer. */
     val customPlan: (() -> Unit)? = null,
 )
@@ -418,6 +427,7 @@ private fun GroupMenuButton(menu: GroupMenu) {
     Box {
         PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
         PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.group_settings_title)) }, leadingIcon = { AppIcon(AppIcons.Settings) }, onClick = { open = false; menu.settings() })
             if (GroupMenuItem.MY_PLAN in available) {
                 Text(stringResource(R.string.plan_menu_heading), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.s))
                 DropdownMenuItem(text = { Text(stringResource(R.string.custom_repace_all)) }, onClick = { open = false; menu.repace() })

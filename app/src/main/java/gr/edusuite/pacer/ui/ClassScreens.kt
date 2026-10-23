@@ -19,6 +19,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,7 @@ import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.engine.forGroup
 import gr.edusuite.pacer.engine.coreBooks
 import gr.edusuite.pacer.engine.includedPages
 import gr.edusuite.pacer.engine.parseInclude
@@ -146,7 +148,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
                 else RowGroup {
                     plan.groups.forEachIndexed { i, g ->
                         if (i > 0) RowDivider()
-                        ClassGroupRow(plan, g, vm, undoToast)
+                        ClassGroupRow(plan, g, vm)
                     }
                 }
             }
@@ -222,11 +224,10 @@ private const val NO_GROUPS = "Add at least one group."
  * row opens the group.
  */
 @Composable
-private fun ClassGroupRow(plan: Plan, g: Group, vm: PacerViewModel, undoToast: (String) -> Unit) {
-    val context = LocalContext.current
+private fun ClassGroupRow(plan: Plan, g: Group, vm: PacerViewModel) {
     val fallbackName = stringResource(R.string.class_group)
     val name = g.name.ifBlank { fallbackName }
-    // Its ticked lessons, homework, and the days off and tests aimed only at it go too; Undo brings them back.
+    // The short edit sheet links to the dedicated override and deletion screen.
     var editing by rememberSaveable(g.id) { mutableStateOf(false) }
     val report = remember(plan, g) { GroupReport(plan, g) }
     val short = remember(report) { report.lessonsShort() }
@@ -244,13 +245,13 @@ private fun ClassGroupRow(plan: Plan, g: Group, vm: PacerViewModel, undoToast: (
         ) { AppIcon(AppIcons.Edit) }
     }
     if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
-        GroupFields(plan, g, vm) { editing = false; vm.removeGroup(g.id); undoToast(context.getString(R.string.class_removed, name)) }
+        GroupFields(plan, g, vm) { editing = false; vm.open(Screen.GroupSettings(g.id)) }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, onRemove: () -> Unit) {
+private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, onSettings: () -> Unit) {
     val segmentHaptic = rememberSegmentHaptic()
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommitField(g.name, { vm.renameGroup(g.id, it) }, stringResource(R.string.class_name), Modifier.weight(1f))
@@ -274,7 +275,7 @@ private fun ColumnScope.GroupFields(plan: Plan, g: Group, vm: PacerViewModel, on
     val lessons = remember(plan, g) { plan.lessonsFor(g) }
     // The first lesson still to teach; once lessons are ticked, the stored date is the day after the last one taught.
     DateField(lessons.firstOrNull() ?: g.from ?: plan.start, { vm.setNextLesson(g.id, it) }, stringResource(R.string.class_next_lesson), Modifier.fillMaxWidth())
-    MoreOptions { TertiaryButton(stringResource(R.string.class_remove_group), onRemove, color = Pacer.colors.warn) }
+    TertiaryButton(stringResource(R.string.group_settings_title), onSettings)
     val count = lessons.size
     Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
         AnimatedFigure(pluralStringResource(R.plurals.class_lessons_left, count, count), style = MaterialTheme.typography.bodyMedium)
@@ -369,6 +370,7 @@ private fun BookRow(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (Str
         b.units.takeIf { it.isNotBlank() }?.let { pluralStringResource(R.plurals.class_units, b.unitStarts().size, b.unitStarts().size) },
     ).joinToString(" · ")
     LedgerRow(name, detail = detail, onClick = { editing = true }) {
+        if (b.groupOnly) Tag(stringResource(R.string.group_settings_optional_book))
         if (leads) Tag(stringResource(R.string.class_lead_book))
         if (b.supplementary) Tag(stringResource(R.string.supp_tag))
         Chevron()
@@ -543,7 +545,9 @@ private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
 @Composable
 private fun AddHomeworkDialog(plan: Plan, vm: PacerViewModel, startGroup: String?, onDismiss: () -> Unit) {
     var group by rememberSaveable { mutableStateOf(startGroup ?: plan.groups.firstOrNull()?.id) }
-    var book by rememberSaveable { mutableStateOf(plan.coreBooks.firstOrNull()?.id) }
+    val availableBooks = plan.groups.firstOrNull { it.id == group }?.let { plan.forGroup(it).coreBooks }.orEmpty()
+    var book by rememberSaveable { mutableStateOf(availableBooks.firstOrNull()?.id) }
+    LaunchedEffect(availableBooks.map { it.id }) { if (availableBooks.none { it.id == book }) book = availableBooks.firstOrNull()?.id }
     fun currentPage(): String {
         val g = plan.groups.firstOrNull { it.id == group }
         val b = plan.books.firstOrNull { it.id == book }
@@ -558,8 +562,13 @@ private fun AddHomeworkDialog(plan: Plan, vm: PacerViewModel, startGroup: String
     SheetFrame(stringResource(R.string.class_add_homework), stringResource(R.string.class_add), fromN != null && group != null && book != null, {
         vm.addHomework(group!!, book!!, fromN!!, toN!!, setOn)
     }, onDismiss) {
-        Picker(stringResource(R.string.class_group), plan.groups.map { it.id to it.name }, group, { group = it; from = currentPage(); to = "" })
-        Picker(stringResource(R.string.class_book), plan.coreBooks.map { it.id to it.name }, book, { book = it; from = currentPage(); to = "" })
+        Picker(stringResource(R.string.class_group), plan.groups.map { it.id to it.name }, group, { selected ->
+            group = selected
+            val choices = plan.groups.firstOrNull { it.id == selected }?.let { plan.forGroup(it).coreBooks }.orEmpty()
+            if (choices.none { it.id == book }) book = choices.firstOrNull()?.id
+            from = currentPage(); to = ""
+        })
+        Picker(stringResource(R.string.class_book), availableBooks.map { it.id to it.name }, book, { book = it; from = currentPage(); to = "" })
         Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
             CommitField(from, { from = it }, stringResource(R.string.class_from_p), Modifier.fillMaxWidth(), numeric = true,
                 error = from.isNotBlank() && fromN == null, errorMessage = stringResource(R.string.component_integer_range, 1, MAX_PAGE))

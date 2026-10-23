@@ -1,5 +1,12 @@
 package gr.edusuite.pacer.model
 
+enum class ClassOrder {
+    YOUR_ORDER, NAME, MOST_BEHIND;
+    companion object {
+        fun parse(name: String?): ClassOrder = entries.firstOrNull { it.name == name } ?: YOUR_ORDER
+    }
+}
+
 enum class PlanGrouping {
     WEEKS, MONTHS;
     companion object {
@@ -41,6 +48,7 @@ data class Settings(
     val seenTips: Set<String> = emptySet(),
     val palette: PaletteChoice = PaletteChoice.BONE,
     val planGrouping: PlanGrouping = PlanGrouping.WEEKS,
+    val classOrder: ClassOrder = ClassOrder.YOUR_ORDER,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(

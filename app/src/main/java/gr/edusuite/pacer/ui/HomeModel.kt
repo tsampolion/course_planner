@@ -37,14 +37,16 @@ fun nextLesson(year: SchoolYear, today: LocalDate): NextLesson? {
     for (c in year.classes) {
         val plan = year.planFor(c)
         for (g in plan.groups) {
-            val row = GroupReport(plan, g).rows.firstOrNull() ?: continue
+            val report = GroupReport(plan, g)
+            val row = report.rows.firstOrNull() ?: continue
+            val groupPlan = report.plan
             if (best != null && !row.date.isBefore(best.date)) continue
             val what = if (row.blocked) {
                 row.events.joinToString(" · ") { it.name }
             } else {
                 // A supplementary book shows only where the lesson has its pages.
-                plan.books.indices.filter { i -> row.cells[i].isNotEmpty() && (!plan.books[i].supplementary || row.pages[i].isNotEmpty()) }
-                    .joinToString(" · ") { i -> "${plan.books[i].name} ${row.cells[i]}" }
+                groupPlan.books.indices.filter { i -> row.cells[i].isNotEmpty() && (!groupPlan.books[i].supplementary || row.pages[i].isNotEmpty()) }
+                    .joinToString(" · ") { i -> "${groupPlan.books[i].name} ${row.cells[i]}" }
             }
             best = NextLesson(
                 c.id, g.id, c.name, g.name, row.date, row.blocked, what,

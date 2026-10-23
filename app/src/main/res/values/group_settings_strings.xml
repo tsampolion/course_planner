@@ -1,0 +1,24 @@
+<resources>
+    <string name="group_settings_title">Group settings</string>
+    <string name="group_settings_dates">Dates</string>
+    <string name="group_settings_end">End date (optional)</string>
+    <string name="group_settings_default_start">School year starts: %1$s. Clear to use this date.</string>
+    <string name="group_settings_default_end">School year ends: %1$s. Clear to use this date.</string>
+    <string name="group_settings_end_clamped">This group still finishes by the school year end.</string>
+    <string name="group_settings_days_off">Group days off</string>
+    <string name="group_settings_days_off_hint">These additions apply only to this group.</string>
+    <string name="group_settings_inherited_days_off">School year and class days off</string>
+    <string name="group_settings_no_days_off">No additional days off.</string>
+    <string name="group_settings_skipped_pages">Additional skipped pages</string>
+    <string name="group_settings_skip_hint">These pages are added to the class skips. Clear a field to use only the class skips.</string>
+    <string name="group_settings_class_skip">Class skips: %1$s</string>
+    <string name="group_settings_skip_example">8, 24-27</string>
+    <string name="group_settings_none">None</string>
+    <string name="group_settings_delete">Delete group</string>
+    <string name="group_settings_books">Books</string>
+    <string name="group_settings_books_hint">Class books are always included. Choose additional books for this group.</string>
+    <string name="group_settings_default_book">Class default · included</string>
+    <string name="group_settings_optional_book">Optional book</string>
+    <string name="group_settings_new_book_hint">This book is added to the class library and selected only for this group. Other groups can choose it in their settings.</string>
+    <string name="group_settings_page_range">Enter a last page at or after the first page.</string>
+</resources>

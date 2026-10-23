@@ -24,13 +24,15 @@ fun backupFileName(date: LocalDate): String = "course-pacer-$date.json"
 /**
  * The years after Add: [incoming] goes after [current], which is left as it is.
  * A year whose id is taken gets a new one; ids only need to be unique among years, since classes,
- * groups, books and days off are looked up inside their own year. A year whose name is taken gets
+ * groups, books and days off are looked up inside their own year. Collection ids are also remapped on clashes,
+ * without changing their class references. A year whose name is taken gets
  * " (imported)", or " (imported 2)" and so on, so the two copies can be told apart on Home.
  * Pure Kotlin, so it is unit-tested without org.json.
  */
 fun addYears(current: List<SchoolYear>, incoming: List<SchoolYear>): List<SchoolYear> {
     val ids = current.mapTo(HashSet()) { it.id }
     val names = current.mapTo(HashSet()) { it.name }
+    val collectionIds = current.flatMapTo(HashSet()) { y -> y.collections.map { it.id } }
     val added = incoming.map { y ->
         var id = y.id
         while (id in ids) id = newId()
@@ -42,7 +44,12 @@ fun addYears(current: List<SchoolYear>, incoming: List<SchoolYear>): List<School
         }
         ids += id
         names += name
-        y.copy(id = id, name = name)
+        val collections = y.collections.map { c ->
+            var collectionId = c.id
+            while (!collectionIds.add(collectionId)) collectionId = newId()
+            c.copy(id = collectionId)
+        }
+        y.copy(id = id, name = name, collections = collections)
     }
     return current + added
 }

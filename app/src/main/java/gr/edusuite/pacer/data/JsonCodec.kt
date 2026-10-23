@@ -4,6 +4,7 @@ import gr.edusuite.pacer.engine.collapse
 import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.ClassCollection
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.DEFAULT_LAG_LESSONS
@@ -33,11 +34,11 @@ import org.json.JSONObject
  * lessons a book may fall behind before a warning (missing reads as the default); version 8 adds supplementary books
  * (`supplementary`, `include`, `countInLesson`) and, on a custom plan's lessons, the books that count in the lesson
  * (`inLesson`) and the core pages to restore (`replacementBase`); version 9 adds the chosen catch-up boost
- * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`). Missing reads as none. Version 1
+ * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`); version 11 adds group end/skip/optional books and class collections. Missing reads as none. Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 10
+    const val VERSION = 11
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -89,6 +90,7 @@ object JsonCodec {
         .put("id", y.id).put("name", y.name)
         .put("start", y.start?.toString() ?: "").put("end", y.end?.toString() ?: "")
         .put("closures", closures(y.closures))
+        .put("collections", JSONArray(y.collections.map { c -> JSONObject().put("id", c.id).put("name", c.name).put("classIds", JSONArray(c.classIds.sorted())) }))
         .put("classes", JSONArray(y.classes.map { c ->
             JSONObject().put("id", c.id).put("name", c.name).put("mins", c.mins).put("pace", c.pace)
                 .put("groups", groups(c.groups)).put("books", books(c.books))
@@ -103,6 +105,9 @@ object JsonCodec {
         start = o.date("start"),
         end = o.date("end"),
         closures = closures(o.optJSONArray("closures")),
+        collections = o.optJSONArray("collections").rows { c ->
+            ClassCollection(c.id(), c.optString("name", "Collection"), c.optJSONArray("classIds").strings().toSet())
+        },
         classes = o.optJSONArray("classes").rows { c ->
             SchoolClass(
                 id = c.id(),
@@ -138,6 +143,9 @@ object JsonCodec {
         JSONObject().put("id", g.id).put("name", g.name)
             .put("days", JSONArray(g.days.map { it.value % 7 }))
             .put("from", g.from?.toString() ?: "")
+            .put("end", g.end?.toString() ?: "")
+            .put("skip", JSONObject(g.skip as Map<*, *>))
+            .put("extraBooks", JSONArray(g.extraBooks.sorted()))
             .put("pos", JSONObject(g.pos as Map<*, *>))
             .put("done", JSONArray(g.done.map { l ->
                 JSONObject().put("date", l.date.toString())
@@ -181,6 +189,9 @@ object JsonCodec {
             name = g.optString("name", "Group"),
             days = g.optJSONArray("days").ints().map { DayOfWeek.of(if (it == 0) 7 else it) }.toSet(),
             from = g.date("from"),
+            end = g.date("end"),
+            skip = g.optJSONObject("skip")?.let { skip -> skip.names().strings().associateWith { skip.optString(it, "") } }.orEmpty(),
+            extraBooks = g.optJSONArray("extraBooks").strings().toSet(),
             pos = pos?.names().strings().associateWith { pos!!.optInt(it) }.filterValues { it > 0 },
             done = g.optJSONArray("done").rows { l ->
                 val date = l.date("date") ?: return@rows null
@@ -207,6 +218,7 @@ object JsonCodec {
     private fun books(list: List<Book>) = JSONArray(list.map { b ->
         JSONObject().put("id", b.id).put("name", b.name).put("first", b.first).put("last", b.last)
             .put("skip", b.skip).put("due", b.due?.toString() ?: "")
+            .also { o -> if (b.groupOnly) o.put("groupOnly", true) }
             .also { o -> if (b.units.isNotBlank()) o.put("units", b.units) }
             .also { o -> if (b.supplementary) o.put("supplementary", true).put("include", b.include) }
             .also { o -> if (b.countInLesson) o.put("countInLesson", true) }
@@ -216,7 +228,7 @@ object JsonCodec {
         Book(b.id(), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
             b.optString("skip", ""), b.date("due"), b.optString("units", ""),
             supplementary = b.optBoolean("supplementary", false), include = b.optString("include", ""),
-            countInLesson = b.optBoolean("countInLesson", false))
+            countInLesson = b.optBoolean("countInLesson", false), groupOnly = b.optBoolean("groupOnly", false))
     }
 
     private fun homework(list: List<Homework>) = JSONArray(list.map { h ->

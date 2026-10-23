@@ -119,8 +119,8 @@ fun Group.taughtPages(bookId: String): Set<Int> = done.flatMapTo(HashSet()) { it
  * paced, only placed by hand (engine/Supplementary.kt).
  */
 fun Plan.remainingPages(g: Group, b: Book): List<Int> {
-    if (b.supplementary) return emptyList()
-    val skip = parseRanges(b.skip)
+    if (b.supplementary || (b.groupOnly && b.id !in g.extraBooks)) return emptyList()
+    val skip = parseRanges(b.skip) + parseRanges(g.skip[b.id].orEmpty())
     val hw = homeworkPages(g.id, b.id)
     val taught = g.taughtPages(b.id)
     val pinned = activeExtras(g).flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
@@ -131,8 +131,8 @@ fun Plan.remainingPages(g: Group, b: Book): List<Int> {
 
 /** Pages still ahead that were set for homework, so no lesson has to teach them. */
 fun Plan.bankedPages(g: Group, b: Book): Int {
-    if (b.supplementary) return 0
-    val skip = parseRanges(b.skip)
+    if (b.supplementary || (b.groupOnly && b.id !in g.extraBooks)) return 0
+    val skip = parseRanges(b.skip) + parseRanges(g.skip[b.id].orEmpty())
     val hw = homeworkPages(g.id, b.id)
     return (position(g, b)..b.last).count { it !in skip && it in hw }
 }
@@ -153,7 +153,7 @@ fun Plan.closedDates(groupId: String): Map<LocalDate, String> {
  * minus closures and lessons marked done.
  */
 fun Plan.lessonsFor(g: Group): List<LocalDate> {
-    val end = end ?: return emptyList()
+    val end = endFor(g) ?: return emptyList()
     var d = g.from ?: start ?: return emptyList()
     val closed = closedDates(g.id)
     val taught = g.done.mapTo(HashSet()) { it.date }
@@ -168,7 +168,7 @@ fun Plan.lessonsFor(g: Group): List<LocalDate> {
 /** Extras outside the remaining term, already taught, or blocked by a whole-lesson test do not reserve pages. */
 fun Plan.activeExtras(g: Group): List<ExtraLesson> {
     val first = g.from ?: start ?: return emptyList()
-    val last = end ?: return emptyList()
+    val last = endFor(g) ?: return emptyList()
     val taught = g.done.mapTo(HashSet()) { it.date }
     return g.extras.filter { it.date in first..last && it.date !in taught && eventsOn(g, it.date).none { e -> e.consumes } }
 }
@@ -220,7 +220,8 @@ enum class Source {
  * computed in a single pass. [source] picks the plan its rows follow; the figures that don't
  * depend on the rows (lessons, pages left, the verdict) are the same for both.
  */
-class GroupReport(val plan: Plan, val group: Group, val source: Source = Source.ACTIVE) {
+class GroupReport(base: Plan, val group: Group, val source: Source = Source.ACTIVE) {
+    val plan: Plan = base.forGroup(group)
     /** The custom plan the rows follow, or null for the proposed plan. */
     val custom: CustomPlan? = when (source) {
         Source.PROPOSED -> null
@@ -416,7 +417,9 @@ fun Plan.problems(): List<String> {
             msgs += "${b.name}: the finish-by date falls after the term ends, so it has no effect."
         }
         if (b.due != null) for (r in reports) {
-            val st = r.bookStats[i]
+            val effectiveIndex = r.plan.books.indexOfFirst { it.id == b.id }
+            if (effectiveIndex < 0) continue
+            val st = r.bookStats[effectiveIndex]
             if (st.crammed) {
                 msgs += "${b.name}: ${r.group.name} has no lesson left before the finish-by date. " +
                     "All ${st.pages} pages land in the next lesson."

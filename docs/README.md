@@ -2,6 +2,10 @@
 
 The root `README.md` and `CLAUDE.md` are the entry points. This folder holds the rules, the decision records and the ideas not yet approved.
 
+## Group and class organisation
+
+- [GROUP_SETTINGS_BRIEF.md](GROUP_SETTINGS_BRIEF.md): group calendar/skip overrides, shared optional books, Collections, sorting and schema 11 (3.10.0).
+
 ## Rules and reference
 
 - [PACER_ACCENT_CONTRAST.md](PACER_ACCENT_CONTRAST.md): measured contrast pairs for all four Bone/Saffron sets (3.8.0, D13). The shared suite guide remains on the previous palette.

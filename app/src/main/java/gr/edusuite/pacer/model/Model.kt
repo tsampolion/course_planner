@@ -30,6 +30,12 @@ data class Group(
     val custom: CustomPlan? = null,
     /** Date-pinned core-book lessons, shared by both plans. */
     val extras: List<ExtraLesson> = emptyList(),
+    /** Optional earlier finish date; null uses the school year's end. */
+    val end: LocalDate? = null,
+    /** Extra skipped page ranges by book id, added to the class defaults. */
+    val skip: Map<String, String> = emptyMap(),
+    /** Optional books from the class catalogue enabled for this group. */
+    val extraBooks: Set<String> = emptySet(),
 )
 
 /** A saved extra lesson keeps its date and pages until the teacher edits it. */
@@ -100,6 +106,8 @@ data class Book(
     val include: String = "",
     /** Whether a new placement of this supplementary book counts in the lesson (true) or comes on top (false). */
     val countInLesson: Boolean = false,
+    /** Optional catalogue entry: only groups selecting this book use it. */
+    val groupOnly: Boolean = false,
 )
 
 data class Homework(
@@ -158,6 +166,9 @@ data class SchoolClass(
     val lagLessons: Int = DEFAULT_LAG_LESSONS,
 )
 
+/** A named section on Classes. A class belongs to at most one collection. */
+data class ClassCollection(val id: String, val name: String, val classIds: Set<String> = emptySet())
+
 /** A school year: the calendar every one of its classes shares. */
 data class SchoolYear(
     val id: String,
@@ -167,6 +178,7 @@ data class SchoolYear(
     /** [Closure.who] is [ALL_GROUPS], a class id (every group in it) or a group id. */
     val closures: List<Closure>,
     val classes: List<SchoolClass>,
+    val collections: List<ClassCollection> = emptyList(),
 ) {
     /**
      * The [Plan] the engine paces for [c]: this year's term, the days off that reach the class,

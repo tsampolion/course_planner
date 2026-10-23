@@ -25,6 +25,14 @@ class HomeModelTest {
         return seed.copy(classes = listOf(sample, early))
     }
 
+    @Test fun optionalCatalogueBooksDoNotShiftHomePageLabels() {
+        val optional = gr.edusuite.pacer.model.Book("optional", "Optional", 1, 20, groupOnly = true)
+        val c = sample.copy(books = listOf(optional) + sample.books)
+        val next = nextLesson(seed.copy(classes = listOf(c)), LocalDate.parse("2026-09-01"))!!
+        assertTrue(next.what.startsWith("Student's Book "))
+        assertFalse(next.what.contains("Optional"))
+    }
+
     @Test fun theEarliestLessonAcrossClassesWins() {
         val next = nextLesson(twoClasses(), LocalDate.parse("2026-09-01"))!!
         assertEquals("c2", next.classId)

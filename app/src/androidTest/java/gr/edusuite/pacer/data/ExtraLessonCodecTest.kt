@@ -17,9 +17,12 @@ class ExtraLessonCodecTest : Instrumentation() {
 
     override fun onStart() {
         val checks = listOf(
+            "groupOverridesAndCollectionsRoundTrip" to ::testGroupOverridesAndCollectionsRoundTrip,
+            "versionTenDefaultsRemainUnchanged" to ::testVersionTenDefaultsRemainUnchanged,
             "extraRoundTripAndBackup" to ::testExtraRoundTripAndBackup,
             "paletteRoundTripsThroughStore" to ::testPaletteRoundTripsThroughStore,
             "planGroupingRoundTripsThroughStore" to ::testPlanGroupingRoundTripsThroughStore,
+            "classOrderRoundTripsThroughStore" to ::testClassOrderRoundTripsThroughStore,
             "versionEightWithoutExtrasReadsUnchanged" to ::testVersionEightWithoutExtrasReadsUnchanged,
             "futureVersionIsRefused" to ::testFutureVersionIsRefused,
             "versionNineCatchUpWithoutExtrasReadsUnchanged" to ::testVersionNineCatchUpWithoutExtrasReadsUnchanged,
@@ -59,6 +62,29 @@ class ExtraLessonCodecTest : Instrumentation() {
         val c = SchoolClass("c", "C", 60, 2.0, listOf(g), listOf(Book("b", "Book", 1, 20)), emptyList(), emptyList())
         return AppData(listOf(SchoolYear("y", "Y", date, date.plusDays(30), emptyList(), listOf(c))))
     }
+    fun testGroupOverridesAndCollectionsRoundTrip() {
+        val original = data()
+        val y = original.years.single()
+        val c = y.classes.single()
+        val optional = Book("optional", "Optional", 1, 10, groupOnly = true)
+        val g = c.groups.single().copy(end = date.plusDays(14), skip = mapOf("b" to "2-3"), extraBooks = setOf(optional.id))
+        val changedClass = c.copy(books = c.books + optional, groups = listOf(g))
+        val changedYear = y.copy(classes = listOf(changedClass), collections = listOf(ClassCollection("co", "Collection", setOf(c.id))))
+        val changed = original.copy(years = listOf(changedYear))
+        assertEquals(changed, JsonCodec.decode(JsonCodec.encode(changed)))
+    }
+
+    fun testVersionTenDefaultsRemainUnchanged() {
+        val original = data()
+        val o = JSONObject(JsonCodec.encode(original)).put("version", 10)
+        val y = o.getJSONArray("years").getJSONObject(0)
+        y.remove("collections")
+        val c = y.getJSONArray("classes").getJSONObject(0)
+        val g = c.getJSONArray("groups").getJSONObject(0)
+        g.remove("end"); g.remove("skip"); g.remove("extraBooks")
+        assertEquals(original, JsonCodec.decode(o.toString()))
+    }
+
     fun testExtraRoundTripAndBackup() {
         val data = data()
         val read = JsonCodec.decode(JsonCodec.encode(data))
@@ -74,7 +100,7 @@ class ExtraLessonCodecTest : Instrumentation() {
         assertEquals(data.years.single().classes.single().groups.single().copy(extras = emptyList()), g)
     }
     fun testFutureVersionIsRefused() {
-        assertEquals(ImportResult.Newer, JsonCodec.readImport(JSONObject(JsonCodec.encode(data())).put("version", 11).toString()))
+        assertEquals(ImportResult.Newer, JsonCodec.readImport(JSONObject(JsonCodec.encode(data())).put("version", JsonCodec.VERSION + 1).toString()))
     }
     fun testMalformedExtraDoesNotLoseItsGroupOrOtherExtras() {
         val o = JSONObject(JsonCodec.encode(data()))
@@ -93,6 +119,22 @@ class ExtraLessonCodecTest : Instrumentation() {
         val read = JsonCodec.decode(o.toString()).years.single().classes.single().groups.single()
         assertEquals(emptyList<ExtraLesson>(), read.extras)
         assertEquals(CustomPlan(true, emptyList(), catchUpBoost = 2), read.custom)
+    }
+
+    fun testClassOrderRoundTripsThroughStore() {
+        val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        assertEquals(ClassOrder.YOUR_ORDER, SettingsStore(context).load().classOrder)
+        for (order in ClassOrder.entries) {
+            SettingsStore(context).save(Settings(classOrder = order))
+            assertEquals(order.name, prefs.getString("classOrder", null))
+            assertEquals(order, SettingsStore(context).load().classOrder)
+        }
+        prefs.edit().putString("classOrder", "unknown").commit()
+        assertEquals(ClassOrder.YOUR_ORDER, SettingsStore(context).load().classOrder)
+        prefs.edit().putInt("classOrder", 7).commit()
+        assertEquals(ClassOrder.YOUR_ORDER, SettingsStore(context).load().classOrder)
+        prefs.edit().clear().commit()
     }
 
     fun testPlanGroupingRoundTripsThroughStore() {

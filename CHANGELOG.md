@@ -22,6 +22,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-10-23
+
+### Added
+
+- Group settings opens from the group menu or class group editor. It collects Next lesson, an optional earlier end date, group days off and Greek holidays, additional skipped pages, optional books and Delete group with Undo.
+- Optional books have one shared definition in the class library. A group chooses which optional books to use; other groups retain their defaults. All pacing, lead-book allocation, Home, Plan, Stats, print and TSV use the group's effective books and calendar.
+- Collections organise Classes with editable names and membership. Moving a class removes its previous collection membership; deleting a collection keeps every class. Classes can be sorted within sections by Your order, Name or Most behind, with the choice remembered outside undo.
+- Schema 11 stores group overrides, optional-book membership and class collections, reads older backups with unchanged defaults, and refuses future formats. Import sanitising removes unknown references; adding backups remaps clashing collection ids.
+
+### Changed
+
+- Combines handoff phases E and F in one release. Group settings remains in the tablet detail pane, and large-text controls retain their existing reflow and touch targets.
+
 ## [3.9.0] - 2026-10-23
 
 ### Added
@@ -656,7 +669,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.9.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.10.0...HEAD
+[3.10.0]: https://github.com/tsampolion/course_planner/compare/v3.9.0...v3.10.0
 [3.9.0]: https://github.com/tsampolion/course_planner/compare/v3.8.1...v3.9.0
 [3.8.1]: https://github.com/tsampolion/course_planner/compare/v3.8.0...v3.8.1
 [3.8.0]: https://github.com/tsampolion/course_planner/compare/v3.7.0...v3.8.0

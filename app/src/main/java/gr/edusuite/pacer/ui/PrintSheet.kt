@@ -73,7 +73,7 @@ object PrintSheet {
             // Every core book, and a supplementary book only when this group's table uses it.
             val cols = r.outputColumns()
             append("<table><thead><tr><th>#</th><th>Date</th>")
-            cols.forEach { append("<th>").append(esc(plan.books[it].name)).append("</th>") }
+            cols.forEach { append("<th>").append(esc(r.plan.books[it].name)).append("</th>") }
             if (notes) append("<th>Note</th>")
             append("</tr></thead><tbody>")
             var month = -1

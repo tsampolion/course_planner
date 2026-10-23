@@ -23,7 +23,12 @@ fun sanitiseYears(years: List<SchoolYear>): List<SchoolYear> =
             closures = unique(y.closures, { it.id }) { c, id -> c.copy(id = id) },
             classes = unique(y.classes, { it.id }) { c, id -> c.copy(id = id) }.map(::sanitiseClass),
         )
-        clean.copy(classes = clean.classes.map { c -> val plan = clean.planFor(c); c.copy(groups = c.groups.map(plan::settleNextLesson)) })
+        val classIds = clean.classes.mapTo(HashSet()) { it.id }
+        val assigned = HashSet<String>()
+        val collections = unique(clean.collections, { it.id }) { c, id -> c.copy(id = id) }.map { c ->
+            c.copy(classIds = c.classIds.filterTo(linkedSetOf()) { it in classIds && assigned.add(it) })
+        }
+        clean.copy(collections = collections, classes = clean.classes.map { c -> val plan = clean.planFor(c); c.copy(groups = c.groups.map(plan::settleNextLesson)) })
     }
 
 private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
@@ -32,6 +37,8 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
         val books = c.books.mapTo(HashSet()) { it.id }
         val supp = c.books.filter { it.supplementary }.mapTo(HashSet()) { it.id }
         g.copy(
+            skip = g.skip.filterKeys { it in books },
+            extraBooks = g.extraBooks.filterTo(linkedSetOf()) { id -> c.books.any { it.id == id && it.groupOnly } },
             done = g.done.distinctBy { it.date },
             extras = unique(g.extras.distinctBy { it.date }, { it.id }) { e, id -> e.copy(id = id) }.map { e ->
                 e.copy(pages = e.pages.filterKeys { it in books && it !in supp }

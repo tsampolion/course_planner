@@ -313,7 +313,7 @@ fun CustomPlan.moveLesson(id: String, to: Int): CustomPlan {
  * It replaces the target's own custom plan and becomes active.
  */
 fun Plan.copyCustomPlan(c: CustomPlan, target: Group, id: () -> String = ::newId): CustomPlan {
-    val left = books.associate { b ->
+    val left = books.filter { !it.groupOnly || it.id in target.extraBooks }.associate { b ->
         b.id to if (b.supplementary) (b.includedPages() - target.taughtPages(b.id)).toHashSet() else remainingPages(target, b).toHashSet()
     }
     val keep = { m: Map<String, List<Int>> ->
