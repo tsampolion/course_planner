@@ -1,5 +1,12 @@
 package gr.edusuite.pacer.model
 
+enum class PlanGrouping {
+    WEEKS, MONTHS;
+    companion object {
+        fun parse(name: String?): PlanGrouping = entries.firstOrNull { it.name == name } ?: WEEKS
+    }
+}
+
 enum class ThemeMode {
     SYSTEM, LIGHT, DARK;
 
@@ -33,6 +40,7 @@ data class Settings(
     /** The "show once" hints already shown, by their stable [Hints] ids. "Show tips again" empties it. */
     val seenTips: Set<String> = emptySet(),
     val palette: PaletteChoice = PaletteChoice.BONE,
+    val planGrouping: PlanGrouping = PlanGrouping.WEEKS,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(

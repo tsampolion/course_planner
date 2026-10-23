@@ -25,6 +25,7 @@ import gr.edusuite.pacer.engine.moveLesson
 import gr.edusuite.pacer.engine.removeLesson
 import gr.edusuite.pacer.engine.repaceFrom
 import gr.edusuite.pacer.engine.tidy
+import gr.edusuite.pacer.engine.customAtRate
 import gr.edusuite.pacer.engine.toCustomPlan
 import gr.edusuite.pacer.engine.unmarkLesson
 import gr.edusuite.pacer.engine.unmarkLessonsFrom
@@ -46,6 +47,7 @@ import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Hints
+import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.TestEvent
@@ -289,6 +291,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         _settings.value = next
         settingsStore.save(next)
     }
+
+    fun setPlanGrouping(v: PlanGrouping) = editSettings { it.copy(planGrouping = v) }
 
     fun setPalette(v: PaletteChoice) = editSettings { it.copy(palette = v) }
     fun setTheme(v: ThemeMode) = editSettings { it.copy(theme = v) }
@@ -539,6 +543,21 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun movePlannedLesson(groupId: String, lessonId: String, to: Int) = editCustom(groupId) { _, c -> c.moveLesson(lessonId, to) }
 
     fun repaceFrom(groupId: String, from: Int) = editCustom(groupId) { r, _ -> r.repaceFrom(from) }
+
+    /** Applies a chosen pace in one undo step, creating and activating the custom plan when needed. */
+    fun applyOwnPace(groupId: String, rate: Double): Boolean {
+        if (!rate.isFinite() || rate <= 0.0) return false
+        return editLessons(groupId) { r, g ->
+            try { g.copy(custom = r.customAtRate(rate)) } catch (_: IllegalArgumentException) { g }
+        }
+    }
+
+    /** Fits overflow first, then fills missing pages, preserving touched lessons in one undo step. */
+    fun repaceCustomPlanToFit(groupId: String) = editCustom(groupId) { r, _ ->
+        r.fitToTerm()?.let { fitted ->
+            GroupReport(r.plan, r.group.copy(custom = fitted), Source.CUSTOM).repaceFrom(0)
+        }
+    }
 
     fun tidyCustomPlan(groupId: String) = editCustom(groupId) { r, _ -> r.tidy() }
 

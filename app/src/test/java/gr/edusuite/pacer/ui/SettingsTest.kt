@@ -13,6 +13,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SettingsTest {
+    @org.junit.Test fun planGroupingDefaultsAndParses() {
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.PlanGrouping.WEEKS, gr.edusuite.pacer.model.Settings().planGrouping)
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.PlanGrouping.MONTHS, gr.edusuite.pacer.model.PlanGrouping.parse("MONTHS"))
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.PlanGrouping.WEEKS, gr.edusuite.pacer.model.PlanGrouping.parse("unknown"))
+        org.junit.Assert.assertEquals(gr.edusuite.pacer.model.PlanGrouping.MONTHS, gr.edusuite.pacer.model.Settings(planGrouping = gr.edusuite.pacer.model.PlanGrouping.MONTHS).sanitised().planGrouping)
+    }
+
     @Test fun themeParsesWithFallback() {
         assertEquals(ThemeMode.DARK, ThemeMode.parse("DARK"))
         assertEquals(ThemeMode.SYSTEM, ThemeMode.parse(null))

@@ -22,6 +22,21 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-10-23
+
+### Added
+
+- Stats follow My plan or Proposed, with planned lesson count, pace and completion versus term end. Own pace offers an editable rate and a live preview before saving one undoable plan change.
+- Shortfall coverage shows how much of the sustainable-pace gap a custom plan covers within the term. Warnings retain Catch up and offer Re-pace to fit while the shortfall remains.
+- Pace tracks add an outlined proposed-position line when actual progress is behind, with a combined accessible description.
+- The Plan tab remembers Weeks or Months, offers month navigation and selection, and collapses earlier lessons into one expandable row.
+
+### Changed
+
+- The next-lesson panel uses a compact two-row layout with equal action space while previewing either plan, plus full-width actions at large text sizes.
+- My plan actions move to the group menu: re-pace untouched lessons, adjust catch-up, copy and delete. The source switch labels the plan currently in use.
+- Combines handoff phases C and D in one release. Existing schema 10 files, pinned extra lessons, palettes and fixed menu corners remain supported.
+
 ## [3.8.1] - 2026-10-23
 
 ### Fixed
@@ -641,7 +656,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.8.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.9.0...HEAD
+[3.9.0]: https://github.com/tsampolion/course_planner/compare/v3.8.1...v3.9.0
 [3.8.1]: https://github.com/tsampolion/course_planner/compare/v3.8.0...v3.8.1
 [3.8.0]: https://github.com/tsampolion/course_planner/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/tsampolion/course_planner/compare/v3.6.2...v3.7.0

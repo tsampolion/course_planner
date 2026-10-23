@@ -1,0 +1,22 @@
+<resources>
+    <string name="stats_lessons_planned">Lessons planned</string>
+    <string name="stats_plan_rate">Planned pace</string>
+    <string name="stats_plan_end">Plan ends</string>
+    <string name="stats_term_end">Term ends</string>
+    <string name="stats_own_pace">Set my own pace…</string>
+    <string name="stats_own_pace_title">My own pace</string>
+    <string name="stats_own_pace_hint">Set pages per lesson across core books. Lessons you changed by hand stay as they are. You can also open this by holding Pace needed.</string>
+    <string name="stats_own_pace_error">Enter a positive pace. Try a higher number if the plan is too long.</string>
+    <string name="stats_own_pace_field">Pages per lesson</string>
+    <string name="stats_own_pace_preview">Ends %1$s</string>
+    <plurals name="stats_own_pace_overflow"><item quantity="one">%d planned lesson falls after the term.</item><item quantity="other">%d planned lessons fall after the term.</item></plurals>
+    <plurals name="stats_covered_short">
+        <item quantity="one">Your plan covers %1$d of %2$d short lesson.</item>
+        <item quantity="other">Your plan covers %1$d of %2$d short lessons.</item>
+    </plurals>
+    <string name="stats_beyond_term">Beyond the term</string>
+    <string name="stats_plan_position">On plan: page %1$d; you are at page %2$d</string>
+    <string name="stats_no_end">No dated lessons</string>
+    <string name="stats_my_plan">My plan</string>
+    <string name="stats_proposed">Proposed</string>
+</resources>

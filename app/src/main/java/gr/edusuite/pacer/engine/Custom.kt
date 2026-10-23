@@ -45,6 +45,7 @@ data class Coverage(
     val doubled: Map<String, List<Int>>,
     val stale: Map<String, List<Int>>,
     val overflow: Int,
+    val shortCovered: Int = 0,
 ) {
     val ok: Boolean get() = missing.isEmpty() && doubled.isEmpty() && stale.isEmpty() && overflow == 0
     val missingCount: Int get() = missing.values.sumOf { it.size }
@@ -68,7 +69,82 @@ fun GroupReport.coverage(): Coverage? {
         count.filterValues { it > 1 }.keys.sorted().takeIf { it.isNotEmpty() }?.let { doubled[b.id] = it }
         count.keys.filter { it !in leftSet }.sorted().takeIf { it.isNotEmpty() }?.let { stale[b.id] = it }
     }
-    return Coverage(missing, doubled, stale, (c.lessons.size - teaching).coerceAtLeast(0))
+    return Coverage(missing, doubled, stale, (c.lessons.size - teaching).coerceAtLeast(0), coveredShortLessons(c))
+}
+
+
+/** The shortfall accounted for by core pages actually scheduled inside the term. */
+data class ShortfallCoverage(val short: Int, val covered: Int, val complete: Boolean, val end: LocalDate?)
+
+fun GroupReport.shortfallCoverage(): ShortfallCoverage? {
+    if (custom == null) return null
+    val v = verdict() as? Verdict.Short ?: return null
+    val cov = coverage() ?: return null
+    val short = kotlin.math.ceil(v.by - 1e-9).toInt()
+    val end = rows.lastOrNull { row -> row.extraId == null && plan.books.indices.any { !plan.books[it].supplementary && row.pages[it].isNotEmpty() } }?.date
+    return ShortfallCoverage(short, cov.shortCovered, cov.ok && cov.shortCovered >= short, end)
+}
+
+private fun GroupReport.coveredShortLessons(c: CustomPlan): Int {
+    val v = verdict() as? Verdict.Short ?: return 0
+    val inTerm = plan.coreBooks.sumOf { b ->
+        val needed = plan.remainingPages(group, b).toHashSet()
+        c.lessons.take(teaching).flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }.count { it in needed }
+    }
+    val short = kotlin.math.ceil(v.by - 1e-9).toInt()
+    if (inTerm == pages) return short
+    return kotlin.math.floor(((inTerm - teaching * v.sustain) / v.sustain).coerceAtLeast(0.0) + 1e-9).toInt().coerceAtMost(short)
+}
+
+/**
+ * Plans at most [pagesPerLesson] core pages per ordinary lesson on average. Slower rates can extend past
+ * the term; those rows remain visible as overflow. Touched lessons and supplementary placements stay put.
+ * Invalid rates and horizons above 100,000 slots are rejected before allocating memory.
+ */
+fun GroupReport.customAtRate(pagesPerLesson: Double): CustomPlan {
+    require(pagesPerLesson.isFinite() && pagesPerLesson > 0) { "Choose a positive, finite pace." }
+    val base = group.custom ?: toCustomPlan()
+    val kept = base.lessons.withIndex().filter { it.value.touched || plan.hasSupplementary(it.value) }
+    val fixedPages = plan.coreBooks.sumOf { b ->
+        val needed = plan.remainingPages(group, b).toHashSet()
+        kept.filter { it.value.touched }.flatMapTo(HashSet()) { it.value.pages[b.id].orEmpty() }.count { it in needed }
+    }
+    val availablePages = (pages - fixedPages).coerceAtLeast(0)
+    val neededSlots = if (availablePages == 0) 0.0 else kotlin.math.ceil(availablePages / pagesPerLesson - 1e-9).coerceAtLeast(1.0)
+    require(neededSlots <= 100_000) { "This pace needs too many lessons." }
+    val lastKept = kept.maxOfOrNull { it.index + 1 } ?: 0
+    val size = maxOf(neededSlots.toInt() + kept.count { it.value.touched }, lastKept)
+    require(size <= 100_000) { "This pace needs too many lessons." }
+    // An empty course needs no generated rows, but existing hand-placed material is retained.
+    val out = MutableList(size) { i ->
+        val old = base.lessons.getOrNull(i)
+        when {
+            old?.touched == true -> old
+            old != null -> old.copy(pages = plan.supplementaryOf(old.pages))
+            else -> PlannedLesson(newId())
+        }
+    }
+    val targets = out.indices.filter { !out[it].touched }
+    if (targets.isNotEmpty()) {
+        val pools = plan.books.associate { b ->
+            val reserved = out.flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
+            b.id to plan.remainingPages(group, b).filter { it !in reserved }
+        }
+        val alloc = plan.books.map { b ->
+            // Out-of-term slots have no calendar date and cannot meet an in-term deadline.
+            val eligible = if (b.due == null) targets.size else targets.count { it < teaching && !teachingDates[it].isAfter(b.due) }.coerceAtLeast(1)
+            allocateWeighted(pools.getValue(b.id), List(eligible) { 1L }).toMutableList().apply {
+                while (this.size < targets.size) add(emptyList())
+            }
+        }
+        followLead(alloc) { pools.getValue(it.id) }.forEachIndexed { bi, allocation ->
+            allocation.forEachIndexed { j, ps -> if (ps.isNotEmpty()) {
+                val t = targets[j]
+                out[t] = out[t].copy(pages = out[t].pages + (plan.books[bi].id to ps))
+            } }
+        }
+    }
+    return base.copy(active = true, lessons = out, catchUpBoost = null)
 }
 
 /**

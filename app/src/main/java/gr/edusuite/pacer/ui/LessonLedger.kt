@@ -36,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -51,6 +52,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
@@ -351,6 +353,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                 Column(m, horizontalAlignment = end, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     Button(
                         onClick = onDone,
+                        enabled = actions.canTick,
                         shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink),
                         modifier = Modifier.heightIn(min = 48.dp).then(if (large) Modifier.fillMaxWidth() else Modifier),
@@ -359,15 +362,36 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         Spacer(Modifier.width(Space.xs))
                         Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
                     }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, color = c.accentText)
+                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, enabled = actions.canTick, color = c.accentText)
                 }
             }
             if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                 info(Modifier.fillMaxWidth())
                 if (actions.canTick) buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally)
-            } else Row(Modifier.padding(Space.l), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
-                info(Modifier.weight(1f))
-                if (actions.canTick) buttons(Modifier, Alignment.End)
+                else Box(Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) { buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally) }
+            } else Column(Modifier.padding(horizontal = Space.l, vertical = Space.s)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f).lessonNode("$label. $description", next.done, null, items) { menu = true }) {
+                        Text(if (next.extraId != null) "$label · ${stringResource(R.string.extra_label)}" else label, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.titleMedium.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    Button(enabled = actions.canTick, onClick = onDone, shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink), modifier = Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {})) {
+                        Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(Space.xs))
+                        Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f).clearAndSetSemantics {}) {
+                        if (!next.blocked) Text(
+                            (listOf(corePages(next, actions.shortNames, actions.supplementary)) + suppPages(next, actions).map { it.second }).joinToString(" · "),
+                            style = MaterialTheme.typography.bodyLarge.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                        val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
+                        if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}), enabled = actions.canTick, color = c.accentText)
+                }
             }
         }
         LessonMenu(menu, items) { menu = false }

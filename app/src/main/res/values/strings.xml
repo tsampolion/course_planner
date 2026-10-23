@@ -754,4 +754,5 @@
     <string name="palette_selected">Selected</string>
     <string name="palette_unselected">Not selected</string>
     <string name="palette_description">%1$s. %2$s</string>
+    <string name="warnings_repace_to_fit">Re-pace to fit</string>
 </resources>

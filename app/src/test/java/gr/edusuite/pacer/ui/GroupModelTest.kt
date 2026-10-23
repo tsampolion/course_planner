@@ -23,6 +23,35 @@ import org.junit.Test
 class GroupModelTest {
     private fun d(s: String) = LocalDate.parse(s)
 
+    @Test fun monthSectionsGroupByCalendarMonth() {
+        val dates = listOf(d("2026-11-02"), d("2026-10-31"), d("2026-10-01"))
+        val sections = monthSections(dates, d("2026-10-23")) { it }
+        assertEquals(listOf(java.time.YearMonth.of(2026, 10), java.time.YearMonth.of(2026, 11)), sections.map { it.month })
+        assertEquals(listOf(d("2026-10-01"), d("2026-10-31")), sections.first().items)
+    }
+
+    @Test fun monthSectionsLabelThisMonth() {
+        assertEquals(true, monthSections(listOf(d("2026-10-01")), d("2026-10-23")) { it }.single().thisMonth)
+    }
+
+    @Test fun monthFilterKeepsOnlyThatMonth() {
+        assertEquals(listOf(d("2026-10-31")), filterMonth(listOf(d("2026-10-31"), d("2026-11-01")), java.time.YearMonth.of(2026, 10)) { it })
+    }
+
+    @Test fun earlierRowCountsDoneAndPastLessons() {
+        val dates = listOf(d("2026-10-21"), d("2026-10-23"), d("2026-10-26"))
+        assertEquals(2, earlierSummary(dates, d("2026-10-23"), { it }, { it == d("2026-10-26") }))
+    }
+
+    @Test fun planMenuMatchesAvailableActions() {
+        assertEquals(false, GroupMenuItem.REPACE in groupMenuItems(true, false, 1, false))
+        assertTrue(GroupMenuItem.REPACE in groupMenuItems(true, true, 0, false))
+        assertEquals(false, GroupMenuItem.COPY_PLAN in groupMenuItems(true, true, 0, false))
+        assertTrue(GroupMenuItem.COPY_PLAN in groupMenuItems(true, true, 1, false))
+        assertTrue(GroupMenuItem.OWN_PACE in groupMenuItems(true, true, 1, true))
+        assertTrue(GroupMenuItem.CREATE_PLAN in groupMenuItems(true, false, 1, true))
+    }
+
     @Test fun repacingImportedYearKeepsHolidayRows() {
         val seed = seedYear()
         // Both modern backups (including Add's id collision) and legacy flat-plan migration.

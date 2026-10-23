@@ -270,4 +270,90 @@ class CustomPlanTest {
         val msgs = p.copy(groups = listOf(gap)).problems()
         assertTrue(msgs.toString(), msgs.contains("G's plan leaves 3 pages out."))
     }
+    @Test fun ownRateBuildsPlanAtThatRate() {
+        val p = plan()
+        val r = GroupReport(p, p.groups[0])
+        val c = r.customAtRate(2.0)
+        assertEquals(15, c.lessons.size)
+        assertEquals(30, c.lessons.sumOf { it.pages.values.sumOf(List<Int>::size) })
+        assertEquals(5, GroupReport(p, r.group.copy(custom = c)).coverage()!!.overflow)
+    }
+
+    @Test fun ownRateEqualsProposedWhenRateIsNeeded() {
+        val p = plan(due = d("2027-03-17")).copy(lead = "a")
+        val r = GroupReport(p, p.groups[0])
+        val c = r.customAtRate(r.rate)
+        assertEquals(r.toCustomPlan().lessons.map { it.pages }, c.lessons.map { it.pages })
+    }
+
+    @Test fun ownRateKeepsTouchedLessons() {
+        val p = plan()
+        val g = withPlan(p)
+        val c = g.custom!!
+        val edited = c.editLesson(c.lessons[2].id, mapOf("a" to (5..9).toList()), "Keep")
+        val out = GroupReport(p, g.copy(custom = edited)).customAtRate(2.0)
+        assertEquals(edited.lessons[2], out.lessons[2])
+        val cov = GroupReport(p, g.copy(custom = out)).coverage()!!
+        assertTrue(cov.missing.isEmpty())
+        assertTrue(cov.doubled.isEmpty())
+    }
+
+    @Test fun ownRateRejectsNonPositiveAndNonFiniteRates() {
+        val p = plan()
+        val r = GroupReport(p, p.groups[0])
+        for (rate in listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY, 1e-300)) {
+            assertTrue(runCatching { r.customAtRate(rate) }.exceptionOrNull() is IllegalArgumentException)
+        }
+    }
+
+    @Test fun shortGroupWithCompleteCustomPlanStillWarnsBehind() {
+        val p = plan().copy(pace = 1.875)
+        val g = p.groups[0]
+        // All pages exist in the plan, but six lessons fall after the term.
+        val c = CustomPlan(true, (0 until 16).map { i ->
+            PlannedLesson("slow$i", mapOf("a" to allocatePages((1..20).toList(), 16)[i], "b" to allocatePages((1..10).toList(), 16)[i]))
+        })
+        val r = GroupReport(p, g.copy(custom = c))
+        assertTrue(r.coverage()!!.missing.isEmpty())
+        assertEquals(6, r.shortfallCoverage()!!.short)
+        assertEquals(0, r.coverage()!!.shortCovered)
+        assertTrue(!r.shortfallCoverage()!!.complete)
+    }
+
+    @Test fun coveringPlanSilencesBehind() {
+        val p = plan().copy(pace = 1.875)
+        val r = GroupReport(p, withPlan(p))
+        assertEquals(6, r.coverage()!!.shortCovered)
+        assertTrue(r.shortfallCoverage()!!.complete)
+    }
+
+    @Test fun earlyCompletionWithEmptyTrailingSlotsStillCoversShortfall() {
+        val p = plan().copy(pace = 1.875)
+        val g = p.groups[0]
+        val c = GroupReport(p, g).customAtRate(6.0)
+        val r = GroupReport(p, g.copy(custom = c.copy(lessons = c.lessons + List(5) { PlannedLesson("empty$it") })))
+        assertEquals(6, r.coverage()!!.shortCovered)
+        assertTrue(r.shortfallCoverage()!!.complete)
+    }
+
+    @Test fun ownRateKeepsSupplementaryPlacementAndLeadUnits() {
+        val supp = Book("s", "Extra", 1, 20, supplementary = true, include = "1-20")
+        val p = plan().copy(lead = "a", books = listOf(Book("a", "SB", 1, 20, units = "1,11"), Book("b", "WB", 1, 10, units = "1,6"), supp))
+        val g = withPlan(p)
+        val first = g.custom!!.lessons[0].copy(pages = g.custom!!.lessons[0].pages + ("s" to listOf(3,4)), inLesson = setOf("s"))
+        val c = g.custom!!.copy(lessons = listOf(first) + g.custom!!.lessons.drop(1))
+        val out = GroupReport(p, g.copy(custom = c)).customAtRate(6.0)
+        assertEquals(listOf(3,4), out.lessons[0].pages["s"])
+        assertEquals(setOf("s"), out.lessons[0].inLesson)
+        assertEquals(listOf(2,2,2,2,2), out.lessons.map { it.pages["b"].orEmpty().size })
+        assertTrue(GroupReport(p, g.copy(custom = out)).coverage()!!.ok)
+    }
+
+    @Test fun veryHighOwnRateStillSchedulesRemainingPages() {
+        val p = plan()
+        val c = GroupReport(p, p.groups[0]).customAtRate(1e300)
+        assertEquals(1, c.lessons.size)
+        assertEquals(30, c.lessons[0].pages.values.sumOf { it.size })
+    }
+
 }
