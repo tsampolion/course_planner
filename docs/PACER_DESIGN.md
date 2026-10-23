@@ -1,6 +1,6 @@
 # Course Pacer design language
 
-> **Status: approved, being built.** Agreed with the owner on 2026-10-21. It ships in 3.1.0 to 3.6.0 following
+> **Status: approved, built; Stats and Plan refinements in 3.9.0.** Agreed with the owner on 2026-10-21. It ships in 3.1.0 to 3.6.0 following
 > `docs/superpowers/plans/2026-10-21-app-redesign.md`. **Tokens and type landed in 3.1.0** (PR1): the dark set, the edge
 > tokens, `Figures`, the 48dp segmented switch and targets, and the pale status pill (D1, D2, D8, D10, D11's pills).
 > **Navigation landed in 3.2.0** (PR2): the ☰ menu, the group switcher, the Warnings sheet and the Pacing overview
@@ -96,7 +96,7 @@ Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distan
 - **Undo:** in the top bar only where school-year data changes. Timed snackbars show an emptying bar, with no words.
 - **Large text** (font scale 1.5 and up, `largeText`):
   - layouts reflow: buttons go full width under their text, and a row's date sits over its pages;
-  - screens show less: Home and Pacing overview list only the groups behind, with "N groups on pace ›", "N on pace ›" and "N classes all on pace ›"; Stats puts the months and details behind "More stats ›"; the custom-plan line moves to ⋮;
+  - screens show less: Home and Pacing overview list only the groups behind, with "N groups on pace ›", "N on pace ›" and "N classes all on pace ›"; Stats puts the months and details behind "More stats ›"; the custom-plan actions and Own pace are available in ⋮;
   - everything hidden is one tap away, and a top bar's title is cut short with "…".
 - **Touch targets** are 48dp or more, text links included.
 - **Tablets** (the window's width in dp, no window-size library):
@@ -120,3 +120,12 @@ Before/after boards of the approved design are in `docs/images/redesign/`. Their
 ## Popup corners (3.8.1)
 
 Dropdown menus use the shared `PacerDropdownMenu` with fixed 12dp corners. They must not inherit the percentage-rounded pill shape: on tall menus it cuts through the first and last option labels. Buttons and chips retain their pill shapes.
+
+
+## Stats and Plan refinements (3.9.0)
+
+Stats follows the selected My plan or Proposed source. Custom figures show planned lessons, average core pages per lesson, and completion against the term end. Shortfall coverage counts core pages actually placed inside the term; content coverage alone cannot hide overflow. Own pace previews the chosen rate before saving, preserves touched lessons and supplementary placements, and is exposed by long-press plus a TalkBack action on Pace needed and the large-text menu.
+
+The book pace track retains its lead-book tick and adds a thin outlined proposed-position bar when the group is behind the calendar schedule. One accessible description names both positions; the outline carries the distinction beyond colour.
+
+The Plan hero is two compact rows: label/date with Done, then pages with Pages taught. Preview actions reserve the same space. Large text reflows actions below the lesson. The source switch labels the plan in use; re-pace, copy, delete and catch-up adjustment live in the group menu. Weeks or Months is remembered, month navigation stays above the list, and earlier/done lessons across months expand from one count. Calendar filtering precedes partitioning so list positioning stays aligned.

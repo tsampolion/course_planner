@@ -19,6 +19,7 @@ class ExtraLessonCodecTest : Instrumentation() {
         val checks = listOf(
             "extraRoundTripAndBackup" to ::testExtraRoundTripAndBackup,
             "paletteRoundTripsThroughStore" to ::testPaletteRoundTripsThroughStore,
+            "planGroupingRoundTripsThroughStore" to ::testPlanGroupingRoundTripsThroughStore,
             "versionEightWithoutExtrasReadsUnchanged" to ::testVersionEightWithoutExtrasReadsUnchanged,
             "futureVersionIsRefused" to ::testFutureVersionIsRefused,
             "versionNineCatchUpWithoutExtrasReadsUnchanged" to ::testVersionNineCatchUpWithoutExtrasReadsUnchanged,
@@ -92,6 +93,22 @@ class ExtraLessonCodecTest : Instrumentation() {
         val read = JsonCodec.decode(o.toString()).years.single().classes.single().groups.single()
         assertEquals(emptyList<ExtraLesson>(), read.extras)
         assertEquals(CustomPlan(true, emptyList(), catchUpBoost = 2), read.custom)
+    }
+
+    fun testPlanGroupingRoundTripsThroughStore() {
+        val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        assertEquals(PlanGrouping.WEEKS, SettingsStore(context).load().planGrouping)
+        for (grouping in PlanGrouping.entries) {
+            SettingsStore(context).save(Settings(planGrouping = grouping))
+            assertEquals(grouping.name, prefs.getString("planGrouping", null))
+            assertEquals(grouping, SettingsStore(context).load().planGrouping)
+        }
+        prefs.edit().putString("planGrouping", "unknown").commit()
+        assertEquals(PlanGrouping.WEEKS, SettingsStore(context).load().planGrouping)
+        prefs.edit().putInt("planGrouping", 7).commit()
+        assertEquals(PlanGrouping.WEEKS, SettingsStore(context).load().planGrouping)
+        prefs.edit().clear().commit()
     }
 
     fun testPaletteRoundTripsThroughStore() {

@@ -1,6 +1,6 @@
 # Task: Custom plans, a lead book, pace warnings and a calmer group screen
 
-> Decision record: built in 2.6.0 (the Plan | Stats split), 2.7.0 (custom plans), 2.8.0 (the lead book) and 2.9.0 (pace and left-behind warnings). Since 3.6.2, catch-up choices survive re-pacing (see `CATCH_UP_REPACE_BRIEF.md`). Since 3.6.1, future lessons offer "Change planned pages…", and fixes show a timed Undo only when they change the plan. The code and CLAUDE.md describe the current app.
+> Decision record: built in 2.6.0 (the Plan | Stats split), 2.7.0 (custom plans), 2.8.0 (the lead book) and 2.9.0 (pace and left-behind warnings). Since 3.6.2, catch-up choices survive re-pacing (see `CATCH_UP_REPACE_BRIEF.md`). Since 3.6.1, future lessons offer "Change planned pages…", and fixes show a timed Undo only when they change the plan. Since 3.9.0, Stats follows the selected plan, Own pace previews a chosen rate, shortfall coverage requires in-term pages, and plan actions live in the group menu. Weeks/Months and collapsed earlier lessons refine the Plan tab. The code and CLAUDE.md describe the current app.
 
 This is the improved version of two requests from the owner (2026-10-20). The answers to the clarifying questions are folded in. The design, with the engine rules and file-by-file changes, is `docs/superpowers/specs/2026-10-20-custom-plans-roadmap-design.md`.
 

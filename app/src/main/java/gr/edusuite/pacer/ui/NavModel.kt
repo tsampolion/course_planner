@@ -6,6 +6,7 @@ import gr.edusuite.pacer.engine.Source
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.activeExtras
 import gr.edusuite.pacer.engine.bookLags
+import gr.edusuite.pacer.engine.shortfallCoverage
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.verdict
 import gr.edusuite.pacer.model.SchoolYear
@@ -84,7 +85,8 @@ sealed interface GroupWarning {
  */
 fun groupWarnings(report: GroupReport): List<GroupWarning> {
     val plan = report.plan
-    val handled = report.custom != null && report.coverage()?.ok == true
+    val handled = report.custom != null && report.coverage()?.ok == true &&
+        (report.shortfallCoverage()?.complete != false)
     val out = ArrayList<GroupWarning>()
     val active = plan.activeExtras(report.group).mapTo(HashSet()) { it.id }
     report.group.extras.filter { e -> e.id !in active && report.group.done.none { it.date == e.date } }

@@ -312,6 +312,7 @@ class WarningFixes(
     val fit: () -> Unit,
     val tidy: () -> Unit,
     val extra: (java.time.LocalDate) -> Unit = {},
+    val repaceToFit: () -> Unit = repace,
 )
 
 /**
@@ -331,11 +332,17 @@ fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: Warn
                     AppIcons.Warning, stringResource(R.string.extra_unavailable, w.date.fmt()),
                     stringResource(R.string.extra_unavailable_hint), stringResource(R.string.extra_edit),
                 ) { close(); fixes.extra(w.date) }
-                is GroupWarning.Behind -> WarningItem(
-                    AppIcons.Warning, pluralStringResource(R.plurals.status_short, w.lessons, w.lessons),
-                    pluralStringResource(R.plurals.warn_behind, w.pages, w.pages, plan.pace.plain()),
-                    stringResource(R.string.warn_catch_up), strong = true,
-                ) { close(); fixes.catchUp() }
+                is GroupWarning.Behind -> Column {
+                    WarningItem(
+                        AppIcons.Warning, pluralStringResource(R.plurals.status_short, w.lessons, w.lessons),
+                        pluralStringResource(R.plurals.warn_behind, w.pages, w.pages, plan.pace.plain()),
+                        stringResource(R.string.warn_catch_up), strong = true,
+                    ) { close(); fixes.catchUp() }
+                    if (report.custom != null) TertiaryButton(
+                        stringResource(R.string.warnings_repace_to_fit), { close(); fixes.repaceToFit() },
+                        Modifier.fillMaxWidth(), color = Pacer.colors.accentText,
+                    )
+                }
                 is GroupWarning.BookBehind -> WarningItem(
                     AppIcons.Book,
                     pluralStringResource(R.plurals.warnings_book_behind, w.lessons, plan.books.firstOrNull { it.id == w.lag.bookId }?.name.orEmpty(), w.lessons),

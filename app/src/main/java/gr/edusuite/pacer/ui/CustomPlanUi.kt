@@ -11,8 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -28,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -68,7 +65,6 @@ import gr.edusuite.pacer.engine.coreBooks
 import gr.edusuite.pacer.engine.lessonPages
 import gr.edusuite.pacer.engine.remainingPages
 import gr.edusuite.pacer.model.CustomPlan
-import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.Pacer
@@ -104,7 +100,10 @@ fun PlanSourceBar(custom: CustomPlan, showingMine: Boolean, onShow: (Boolean) ->
     val motion = animationsEnabled()
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
         SegmentedToggle(
-            listOf(stringResource(R.string.custom_mine), stringResource(R.string.custom_proposed)),
+            listOf(
+                if (custom.active) stringResource(R.string.plan_in_use, stringResource(R.string.custom_mine)) else stringResource(R.string.custom_mine),
+                if (!custom.active) stringResource(R.string.plan_in_use, stringResource(R.string.custom_proposed)) else stringResource(R.string.custom_proposed),
+            ),
             if (showingMine) 0 else 1, { onShow(it == 0) },
         )
         val preview = showingMine != custom.active
@@ -121,28 +120,6 @@ fun PlanSourceBar(custom: CustomPlan, showingMine: Boolean, onShow: (Boolean) ->
                 TertiaryButton(stringResource(R.string.custom_use_this), onUse)
             }
         }
-        if (!preview) Tag(stringResource(if (custom.active) R.string.custom_now_mine else R.string.custom_now_proposed))
-    }
-}
-
-/**
- * What the custom plan offers as a whole, under the switch: re-pace its untouched lessons, copy it to another group of
- * the class, or delete it. Its coverage problems and their fixes are in the Warnings sheet.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun PlanOptions(others: List<Group>, onRepace: () -> Unit, onCopy: (Group) -> Unit, onDelete: () -> Unit, modifier: Modifier = Modifier, onCatchUp: (() -> Unit)? = null) {
-    var copying by remember { mutableStateOf(false) }
-    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-        TertiaryButton(stringResource(R.string.custom_repace_all), onRepace)
-        if (onCatchUp != null) TertiaryButton(stringResource(R.string.custom_adjust_catch_up), onCatchUp)
-        if (others.isNotEmpty()) Box {
-            TertiaryButton(stringResource(R.string.custom_copy_to), { copying = true })
-            PacerDropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
-                others.forEach { o -> DropdownMenuItem(text = { Text(o.name) }, onClick = { copying = false; onCopy(o) }) }
-            }
-        }
-        TertiaryButton(stringResource(R.string.custom_delete), onDelete, color = Pacer.colors.warn)
     }
 }
 

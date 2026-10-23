@@ -3,6 +3,7 @@ package gr.edusuite.pacer.ui
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -31,8 +32,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.Alignment
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Source
@@ -40,6 +44,7 @@ import gr.edusuite.pacer.engine.bookLags
 import gr.edusuite.pacer.engine.closedDates
 import gr.edusuite.pacer.engine.collapse
 import gr.edusuite.pacer.engine.catchUp
+import gr.edusuite.pacer.engine.shortfallCoverage
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.fmt
 import gr.edusuite.pacer.engine.fmtShort
@@ -50,9 +55,12 @@ import gr.edusuite.pacer.engine.plannedPages
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.engine.supplementaryBooks
 import gr.edusuite.pacer.engine.unplacedPages
+import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Space
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.LocalDate
 import kotlinx.coroutines.delay
 
@@ -62,7 +70,7 @@ private const val TAB_STATS = 1
 private const val REVEAL_MS = 1000L
 
 /** The sheets the group's ⋮ menu opens on the screen itself. */
-enum class GroupSheet { TERM_WEEKS, TIPS, EXTRA }
+enum class GroupSheet { TERM_WEEKS, TIPS, EXTRA, OWN_PACE, CATCH_UP }
 
 /**
  * A group (design decision 8). Plan opens on today's lesson, with the done lessons above it and the lessons to come
@@ -82,6 +90,7 @@ fun GroupScreen(
     onSheetClose: () -> Unit = {},
     /** The show-once hints already seen (Settings.seenTips). */
     seenTips: Set<String> = emptySet(),
+    grouping: PlanGrouping = PlanGrouping.WEEKS,
 ) {
     val context = LocalContext.current
     fun changed(didChange: Boolean, message: String) {
@@ -110,7 +119,7 @@ fun GroupScreen(
     var catchingUp by rememberSaveable(g.id) { mutableStateOf(false) }
     var folding by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     // An active custom plan that fits every page into the term already answers the warnings.
-    val handled = remember(report) { report.custom != null && report.coverage()?.ok == true }
+    val handled = remember(report) { report.custom != null && report.coverage()?.ok == true && (report.shortfallCoverage()?.complete != false) }
     val lags = remember(report, handled) { if (handled) emptyList() else report.bookLags(plan.lead, plan.lagLessons.toDouble()) }
     val lessons = remember(viewed, compare) { lessonsOf(viewed, compare) }
     val today = remember { LocalDate.now() }
@@ -152,25 +161,41 @@ fun GroupScreen(
             deleteExtra = { l -> l.extraId?.let { changed(vm.removeExtra(g.id, it), context.getString(R.string.extra_deleted)) } },
         )
     }
-    // Today's box holds the next lesson. Done lessons, and days off before it, sit above it; the rest follow it.
-    val next = lessons.firstOrNull { !it.done }
-    val ledger = remember(lessons, plan, g) {
+    // Filter the calendar view before partitioning so headers and the initial list index agree.
+    val next = lessons.firstOrNull { !it.done && !it.date.isBefore(today) }
+    var monthText by rememberSaveable(g.id) { mutableStateOf(YearMonth.from(next?.date ?: today).toString()) }
+    val selectedMonth = YearMonth.parse(monthText)
+    var pickMonth by remember { mutableStateOf(false) }
+    var earlierOpen by rememberSaveable(g.id) { mutableStateOf(false) }
+    val ledger = remember(lessons, plan, g, grouping, selectedMonth) {
         val entries = (lessons.filter { it.date != next?.date }.map { Entry.Item(it) } + plan.daysOff(g, lessons.mapTo(HashSet()) { it.date }))
             .sortedBy { it.date }
-        val (above, below) = entries.partition { e ->
+        val filtered = if (grouping == PlanGrouping.MONTHS) {
+            val earlier = entries.filter { e -> when (e) {
+                is Entry.Item -> e.lesson.done || e.date.isBefore(today)
+                is Entry.DayOff -> e.date.isBefore(next?.date ?: today)
+            } }
+            val upcoming = entries.filterNot { it in earlier }
+            (earlier + filterMonth(upcoming, selectedMonth) { it.date }).sortedBy { it.date }
+        } else entries
+        filtered.partition { e ->
             when (e) {
-                is Entry.Item -> e.lesson.done
-                is Entry.DayOff -> next == null || e.date.isBefore(next.date)
+                is Entry.Item -> e.lesson.done || e.date.isBefore(today)
+                is Entry.DayOff -> e.date.isBefore(next?.date ?: today)
             }
         }
-        weekSections(above, today) { it.date } to weekSections(below, today) { it.date }
     }
-    // The list opens on today's box, with what was taught a scroll up.
-    val todayIndex = ledger.first.sumOf { it.items.size + 1 }
+    val earlierCount = earlierSummary(ledger.first.filterIsInstance<Entry.Item>().filter { !it.lesson.blocked }, today, { it.date }, { it.lesson.done })
+    val earlierWeeks = weekSections(ledger.first, today) { it.date }
+    val laterWeeks = if (grouping == PlanGrouping.WEEKS) weekSections(ledger.second, today) { it.date }
+        else monthSections(ledger.second, today) { it.date }.map { WeekSection(it.month.atDay(1), it.month.atEndOfMonth(), WeekLabel.DATES, it.items) }
+    val showHero = grouping == PlanGrouping.WEEKS || next == null || YearMonth.from(next.date) == selectedMonth
+    val todayIndex = if (earlierCount > 0) 1 else 0
 
     // Plan is the main view; the figures wait one tap away on Stats. The plan keeps its scroll position across switches.
     var tab by rememberSaveable(g.id) { mutableIntStateOf(TAB_PLAN) }
     val planList = rememberLazyListState(initialFirstVisibleItemIndex = todayIndex)
+    LaunchedEffect(g.id, grouping, selectedMonth) { planList.scrollToItem(todayIndex) }
     val largeText = rememberLargeText()
     val motion = animationsEnabled()
     Column(Modifier.fillMaxSize().imePadding()) {
@@ -178,17 +203,42 @@ fun GroupScreen(
             listOf(stringResource(R.string.group_tab_plan), stringResource(R.string.group_tab_stats)), tab, { tab = it },
             Modifier.padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.s),
         )
+        if (tab == TAB_PLAN) {
+            Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                SegmentedToggle(listOf(stringResource(R.string.plan_weeks), stringResource(R.string.plan_months)), grouping.ordinal, { vm.setPlanGrouping(PlanGrouping.entries[it]) })
+                if (grouping == PlanGrouping.MONTHS) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    PillIconButton(stringResource(R.string.plan_previous_month), { monthText = selectedMonth.minusMonths(1).toString() }) { AppIcon(AppIcons.ChevronRight, modifier = Modifier.rotate(180f)) }
+                    Box(Modifier.weight(1f)) {
+                        TertiaryButton(selectedMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH)), { pickMonth = true })
+                        PacerDropdownMenu(pickMonth, { pickMonth = false }) {
+                            val first = YearMonth.from(plan.start ?: today)
+                            val last = YearMonth.from(plan.end ?: today)
+                            var month = first
+                            while (month <= last) {
+                                val option = month
+                                DropdownMenuItem(text = { Text(option.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH))) }, onClick = { monthText = option.toString(); pickMonth = false })
+                                month = month.plusMonths(1)
+                            }
+                        }
+                    }
+                    PillIconButton(stringResource(R.string.plan_next_month), { monthText = selectedMonth.plusMonths(1).toString() }) { AppIcon(AppIcons.ChevronRight) }
+                }
+            }
+        }
         AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { sideways(targetState > initialState, motion) }) { view ->
-            if (view == TAB_STATS) GroupStats(report, vm, padding, seenTips) else LazyColumn(
+            if (view == TAB_STATS) GroupStats(report, vm, padding, seenTips, onOwnPaceApplied = { changed(it, context.getString(R.string.custom_created)) }) else LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = planList,
                 contentPadding = PaddingValues(top = Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
             ) {
-                ledgerWeeks("a", ledger.first, actions)
-                item(key = "today") {
+                if (earlierCount > 0) item(key = "earlier") {
+                    TertiaryButton(if (earlierOpen) stringResource(R.string.plan_hide_earlier) else pluralStringResource(R.plurals.plan_earlier_lessons, earlierCount, earlierCount), { earlierOpen = !earlierOpen }, Modifier.padding(horizontal = Space.l))
+                }
+                if (earlierOpen) ledgerWeeks("a", earlierWeeks, actions)
+                if (showHero) item(key = "today") {
                     TodayBox(
                         next, today, actions,
-                        onDone = { toggleHaptic(true); vm.markNextLessonDone(g.id); undoToast(context.getString(R.string.group_lesson_done)) },
+                        onDone = { next?.let { toggleHaptic(true); vm.toggleLesson(g.id, it.date); undoToast(context.getString(R.string.group_lesson_done)) } },
                         onPagesTaught = { editingDate = next?.date?.toString() },
                         modifier = Modifier.padding(horizontal = Space.l),
                     )
@@ -206,13 +256,6 @@ fun GroupScreen(
                             })
                         } else {
                             PlanSourceBar(custom, showMine, { showMine = it }, { vm.setCustomActive(g.id, showMine) })
-                            if (showMine) PlanOptions(
-                                plan.groups.filter { it.id != g.id },
-                                onRepace = { changed(vm.repaceFrom(g.id, 0), context.getString(R.string.custom_repaced)) },
-                                onCopy = { o -> changed(vm.copyCustomPlan(g.id, o.id), context.getString(R.string.custom_copied, o.name)) },
-                                onDelete = { changed(vm.deleteCustomPlan(g.id), context.getString(R.string.custom_deleted)) },
-                                onCatchUp = if (report.catchUp(1) != null) ({ catchingUp = true }) else null,
-                            )
                         }
                         // Quiet, not a warning: what each supplementary book still has to place.
                         plan.supplementaryBooks.forEach { b ->
@@ -227,8 +270,15 @@ fun GroupScreen(
                 }
                 if (lessons.isEmpty()) {
                     item(key = "empty") { Box(Modifier.padding(Space.l)) { Hint(stringResource(R.string.group_no_range)) } }
-                } else ledger.second.forEach { section ->
-                    item(key = "wb${section.start}", contentType = "week") { WeekHeader(section, Modifier.animateItem()) }
+                } else laterWeeks.forEach { section ->
+                    item(key = "wb${section.start}", contentType = "week") {
+                        if (grouping == PlanGrouping.WEEKS) WeekHeader(section, Modifier.animateItem())
+                        else {
+                            val month = YearMonth.from(section.start)
+                            val name = month.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH))
+                            Text(if (month == YearMonth.from(today)) stringResource(R.string.plan_this_month, name) else name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(Space.l))
+                        }
+                    }
                     items(section.items, key = { e -> e.key() }, contentType = { e -> if (e is Entry.Item && !e.lesson.blocked) "lesson" else "slim" }) { e ->
                         val ls = (e as? Entry.Item)?.lesson
                         val id = ls?.lessonId
@@ -282,6 +332,8 @@ fun GroupScreen(
             Hint(stringResource(R.string.group_tick_hint))
             if (custom != null) Hint(stringResource(R.string.custom_hint))
         }
+        GroupSheet.OWN_PACE -> OwnPaceSheet(report, { rate -> changed(vm.applyOwnPace(g.id, rate), context.getString(R.string.custom_created)) }, onSheetClose)
+        GroupSheet.CATCH_UP -> CatchUpSheet(report, { boost -> changed(vm.applyCatchUp(g.id, boost), context.getString(R.string.warn_caught_up)) }, onSheetClose)
         GroupSheet.EXTRA, null -> Unit
     }
 
@@ -338,6 +390,7 @@ fun GroupScreen(
             catchUp = { catchingUp = true },
             fold = { folding = it.bookId },
             repace = { changed(vm.repaceFrom(g.id, 0), context.getString(R.string.custom_repaced)) },
+            repaceToFit = { changed(vm.repaceCustomPlanToFit(g.id), context.getString(R.string.custom_repaced)) },
             fit = { changed(vm.fitCustomPlanToTerm(g.id), context.getString(R.string.custom_fitted)) },
             tidy = { changed(vm.tidyCustomPlan(g.id), context.getString(R.string.custom_tidied)) },
             extra = { extraDate = it.toString() },

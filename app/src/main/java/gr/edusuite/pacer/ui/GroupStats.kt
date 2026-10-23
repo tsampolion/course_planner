@@ -2,6 +2,9 @@ package gr.edusuite.pacer.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -40,11 +43,17 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
+import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.shortfallCoverage
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.fixed2
 import gr.edusuite.pacer.engine.fmtShort
@@ -75,18 +84,25 @@ import java.util.Locale
 private val SPOKEN_MONTH: DateTimeFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
 
 @Composable
-fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, seenTips: Set<String> = emptySet()) {
+fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, seenTips: Set<String> = emptySet(), onOwnPaceApplied: (Boolean) -> Unit = {}) {
     val plan = report.plan
+    var showingMine by rememberSaveable(report.group.id) { mutableStateOf(report.custom != null) }
+    val shown = remember(report, showingMine) { GroupReport(plan, report.group, if (showingMine) Source.CUSTOM else Source.PROPOSED) }
+    var ownPace by rememberSaveable(report.group.id) { mutableStateOf(false) }
     var bookId by rememberSaveable(report.group.id) { mutableStateOf<String?>(null) }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
             .padding(start = Space.l, end = Space.l, top = Space.l, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Space.l),
     ) {
-        VerdictHeading(report)
-        FigureStrip(report)
+        VerdictHeading(shown)
+        if (report.group.custom != null) SegmentedToggle(
+            listOf(stringResource(R.string.stats_my_plan), stringResource(R.string.stats_proposed)),
+            if (showingMine) 0 else 1, { showingMine = it == 0 },
+        )
+        FigureStrip(shown) { ownPace = true }
         if (plan.books.isNotEmpty()) {
-            PaceTrack(report) { bookId = it }
+            PaceTrack(shown) { bookId = it }
             if (plan.leadBook() != null) ShowOnceHint(Hints.PACE_TRACK, seenTips, stringResource(R.string.hint_pace_track), vm::markHintSeen)
         }
         // Large text: the months and details wait behind one link.
@@ -97,10 +113,11 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
             Modifier.fillMaxWidth(), color = Pacer.colors.accentText,
         )
         if (!large || more) {
-            if (report.lessonsByMonth.isNotEmpty()) MonthColumns(report)
-            Details(report)
+            if (statsMonths(shown).isNotEmpty()) MonthColumns(shown)
+            Details(shown)
         }
     }
+    if (ownPace) OwnPaceSheet(shown, { rate -> onOwnPaceApplied(vm.applyOwnPace(report.group.id, rate)); showingMine = true; ownPace = false }, { ownPace = false })
     val book = plan.books.firstOrNull { it.id == bookId }
     if (book != null) {
         SheetFrame(stringResource(R.string.group_position, book.name), stringResource(R.string.group_done), true, {}, { bookId = null }) {
@@ -120,6 +137,9 @@ private fun VerdictHeading(report: GroupReport) {
             is Verdict.Short -> {
                 val short = report.lessonsShort() ?: 0
                 Text(pluralStringResource(R.plurals.status_short, short, short), style = MaterialTheme.typography.headlineSmall, color = c.warn, modifier = Modifier.semantics { heading() })
+                report.shortfallCoverage()?.let { coverage ->
+                    Text(pluralStringResource(R.plurals.stats_covered_short, coverage.short, coverage.covered, coverage.short), style = MaterialTheme.typography.bodyMedium)
+                }
                 val more = verdict.pagesMore()
                 Text(
                     stringResource(R.string.stats_fix_short, pluralStringResource(R.plurals.stats_more_pages, more, more), pluralStringResource(R.plurals.stats_pages, verdict.cutPages, verdict.cutPages)),
@@ -142,19 +162,22 @@ private fun VerdictHeading(report: GroupReport) {
 }
 
 /** Lessons left, Pages left and Pace needed in one divided strip. Pace keeps two decimals, and only here. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun FigureStrip(report: GroupReport) {
+private fun FigureStrip(report: GroupReport, onOwnPace: () -> Unit) {
+    val stats = statsFigures(report)
+    val ownLabel = stringResource(R.string.stats_own_pace)
     val figures = listOf(
-        Triple(stringResource(R.string.group_lessons_left), "${report.lessons.size}", null),
+        Triple(stringResource(if (stats.custom) R.string.stats_lessons_planned else R.string.group_lessons_left), "${stats.lessons}", null),
         Triple(stringResource(R.string.group_pages_left), "${report.pages}", null),
-        Triple(stringResource(R.string.group_pace_needed), if (report.teaching > 0) report.rate.fixed2() else "—", stringResource(R.string.stats_a_lesson)),
+        Triple(stringResource(if (stats.custom) R.string.stats_plan_rate else R.string.group_pace_needed), if (stats.lessons > 0) stats.rate.fixed2() else "—", stringResource(R.string.stats_a_lesson)),
     )
     val large = rememberLargeText()
     Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = Pacer.colors.surface) {
         BoxWithConstraints {
             val stacked = large || maxWidth < 280.dp
             val cell = @Composable { f: Triple<String, String, String?>, m: Modifier ->
-                Column(m.padding(Space.m).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(m.then(if (f == figures.last()) Modifier.combinedClickable(onClick = onOwnPace, onLongClickLabel = ownLabel, onLongClick = onOwnPace).semantics { customActions = listOf(CustomAccessibilityAction(ownLabel) { onOwnPace(); true }) } else Modifier).padding(Space.m).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(f.first, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
                     AnimatedFigure(f.second, style = MaterialTheme.typography.headlineSmall.merge(Figures))
                     f.third?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted) }
@@ -225,11 +248,19 @@ private fun PaceTrack(report: GroupReport, onOpen: (String) -> Unit) {
                 if (st.crammed) { if (d.isBefore(report.group.from ?: plan.start ?: LocalDate.now())) stringResource(R.string.group_due_passed) else stringResource(R.string.group_no_before_due) }
                 else stringResource(R.string.group_due, d.fmtShort())
             }
+            val planned = planLinePosition(report, i, LocalDate.now())
+            val planFraction = if (planned != null && all.isNotEmpty()) all.count { it < planned }.toFloat() / all.size else null
+            val planDescription = if (planFraction != null) stringResource(R.string.stats_plan_position, planned ?: pos, pos) else null
             TrackRow(
                 b.name, if (b.id == plan.lead) stringResource(R.string.stats_lead_book) else null,
                 stringResource(R.string.stats_page_of, pos.coerceAtMost(b.last), b.last), through, tick,
                 if (late != null) c.warn else c.accent, listOfNotNull(under, due).joinToString(" · "), if (late != null || st.crammed) c.warn else c.muted,
-                Modifier.clickable(onClickLabel = openLabel) { onOpen(b.id) },
+                Modifier.clickable(onClickLabel = openLabel) { onOpen(b.id) }.then(
+                    if (planDescription != null) Modifier.clearAndSetSemantics {
+                        contentDescription = "${b.name}. $planDescription. $under"
+                        onClick(openLabel) { onOpen(b.id); true }
+                    } else Modifier
+                ), planFraction,
             )
         }
     }
@@ -237,7 +268,7 @@ private fun PaceTrack(report: GroupReport, onOpen: (String) -> Unit) {
 
 /** One book on the pace track: its name and tag, where it is, the bar with an optional tick, and a line under it. */
 @Composable
-private fun TrackRow(name: String, tag: String?, where: String, fraction: Float, tick: Float?, fill: Color, under: String, underColor: Color, modifier: Modifier = Modifier) {
+private fun TrackRow(name: String, tag: String?, where: String, fraction: Float, tick: Float?, fill: Color, under: String, underColor: Color, modifier: Modifier = Modifier, planFraction: Float? = null) {
     val c = Pacer.colors
     Column(modifier.fillMaxWidth().semantics(mergeDescendants = true) {}.padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -252,6 +283,7 @@ private fun TrackRow(name: String, tag: String?, where: String, fraction: Float,
             }
             if (tick != null) Box(Modifier.offset(x = maxWidth * tick.coerceIn(0f, 1f) - 1.5.dp).width(3.dp).fillMaxHeight().background(c.ink, CircleShape))
         }
+        if (planFraction != null) Box(Modifier.fillMaxWidth(planFraction.coerceIn(0f, 1f)).height(4.dp).border(1.dp, c.ink, CircleShape).clearAndSetSemantics {})
         Text(under, style = MaterialTheme.typography.bodySmall.merge(Figures), color = underColor)
     }
 }
@@ -259,7 +291,7 @@ private fun TrackRow(name: String, tag: String?, where: String, fraction: Float,
 /** Lessons by month as columns, this month in the accent. */
 @Composable
 private fun MonthColumns(report: GroupReport) {
-    val months = report.lessonsByMonth
+    val months = statsMonths(report)
     val max = months.maxOf { it.second }.coerceAtLeast(1)
     val now = remember { LocalDate.now().withDayOfMonth(1) }
     val c = Pacer.colors
@@ -283,9 +315,14 @@ private fun MonthColumns(report: GroupReport) {
 @Composable
 private fun Details(report: GroupReport) {
     val plan = report.plan
+    val stats = statsFigures(report)
     StatsPart(stringResource(R.string.group_details_title)) {
+        if (stats.custom) {
+            DetailRow(stringResource(R.string.stats_plan_end), stats.end?.fmtShort() ?: stringResource(if ((report.coverage()?.overflow ?: 0) > 0) R.string.stats_beyond_term else R.string.stats_no_end))
+            DetailRow(stringResource(R.string.stats_term_end), plan.end?.fmtShort() ?: stringResource(R.string.stats_no_end))
+        }
         DetailRow(stringResource(R.string.group_peak), pluralStringResource(R.plurals.stats_pages, report.peak, report.peak))
-        DetailRow(stringResource(R.string.group_hours), String.format(Locale.US, "%.1f", report.lessons.size * plan.mins / 60.0))
+        DetailRow(stringResource(R.string.group_hours), String.format(Locale.US, "%.1f", stats.lessons * plan.mins / 60.0))
         DetailRow(stringResource(R.string.group_banked), pluralStringResource(R.plurals.stats_pages, report.banked, report.banked))
         DetailRow(stringResource(R.string.group_blocked_lessons), "${report.blocked}")
         if (report.blocked > 0) Hint(

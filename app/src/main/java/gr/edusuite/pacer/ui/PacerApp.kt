@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalNavigationDrawer
@@ -71,6 +72,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import gr.edusuite.pacer.engine.catchUp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.asTsv
 import gr.edusuite.pacer.model.AppData
@@ -185,6 +187,13 @@ fun PacerApp(vm: PacerViewModel) {
     val groupMenu = groupReport?.let { report ->
         GroupMenu(
             hasRows = report.rows.isNotEmpty(),
+            hasCustom = report.group.custom != null,
+            large = large,
+            others = report.plan.groups.filter { it.id != report.group.id }.map { it.id to it.name },
+            repace = { if (vm.repaceFrom(report.group.id, 0)) undoToast(context.getString(R.string.custom_repaced)) else toast(context.getString(R.string.toast_nothing_changed)) },
+            copyPlan = { id, name -> if (vm.copyCustomPlan(report.group.id, id)) undoToast(context.getString(R.string.custom_copied, name)) else toast(context.getString(R.string.toast_nothing_changed)) },
+            deletePlan = { if (vm.deleteCustomPlan(report.group.id)) undoToast(context.getString(R.string.custom_deleted)) },
+            catchUp = report.group.custom != null && report.catchUp(1) != null,
             copy = {
                 copy(context, report.asTsv())
                 // Android 13+ shows its own copy confirmation.
@@ -378,6 +387,7 @@ private fun ScreenContent(
                 sheet = groupSheet,
                 onSheetClose = onGroupSheetClose,
                 seenTips = settings.seenTips,
+                grouping = settings.planGrouping,
             )
         }
     }
@@ -392,6 +402,8 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
 
 /** What a group's ⋮ menu does: Copy and Share the schedule, Print it starting with this group, or open a sheet. */
 private class GroupMenu(
+    val hasCustom: Boolean, val large: Boolean, val others: List<Pair<String, String>>,
+    val repace: () -> Unit, val copyPlan: (String, String) -> Unit, val deletePlan: () -> Unit, val catchUp: Boolean,
     val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit,
     /** Large text: "Make a custom plan", which the Plan tab's line offers otherwise. Null when there is nothing to offer. */
     val customPlan: (() -> Unit)? = null,
@@ -401,9 +413,20 @@ private class GroupMenu(
 @Composable
 private fun GroupMenuButton(menu: GroupMenu) {
     var open by remember { mutableStateOf(false) }
+    var copying by remember { mutableStateOf(false) }
+    val available = groupMenuItems(menu.hasRows, menu.hasCustom, menu.others.size, menu.large)
     Box {
         PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
         PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            if (GroupMenuItem.MY_PLAN in available) {
+                Text(stringResource(R.string.plan_menu_heading), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.s))
+                DropdownMenuItem(text = { Text(stringResource(R.string.custom_repace_all)) }, onClick = { open = false; menu.repace() })
+                if (menu.catchUp) DropdownMenuItem(text = { Text(stringResource(R.string.custom_adjust_catch_up)) }, onClick = { open = false; menu.open(GroupSheet.CATCH_UP) })
+                if (GroupMenuItem.COPY_PLAN in available) DropdownMenuItem(text = { Text(stringResource(R.string.custom_copy_to)) }, onClick = { open = false; copying = true })
+                DropdownMenuItem(text = { Text(stringResource(R.string.custom_delete), color = Pacer.colors.warn) }, onClick = { open = false; menu.deletePlan() })
+                HorizontalDivider()
+            }
+            if (GroupMenuItem.OWN_PACE in available) DropdownMenuItem(text = { Text(stringResource(R.string.plan_own_pace)) }, onClick = { open = false; menu.open(GroupSheet.OWN_PACE) })
             menu.customPlan?.let { make ->
                 DropdownMenuItem(text = { Text(stringResource(R.string.group_make_custom_plan)) }, leadingIcon = { AppIcon(AppIcons.Edit) }, onClick = { open = false; make() })
             }
@@ -413,6 +436,9 @@ private fun GroupMenuButton(menu: GroupMenu) {
             DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_term_weeks)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.TERM_WEEKS) })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_tips)) }, leadingIcon = { AppIcon(AppIcons.Info) }, onClick = { open = false; menu.open(GroupSheet.TIPS) })
+        }
+        PacerDropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
+            menu.others.forEach { (id, name) -> DropdownMenuItem(text = { Text(name) }, onClick = { copying = false; menu.copyPlan(id, name) }) }
         }
     }
 }

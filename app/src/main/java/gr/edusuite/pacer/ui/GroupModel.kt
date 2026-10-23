@@ -120,3 +120,17 @@ fun GroupReport.inStepPages(): Map<String, Int> {
 
 /** How many more pages a lesson a short group has to teach to finish, rounded up like a lesson count (0.19 → 1). */
 fun Verdict.Short.pagesMore(): Int = wholeLessons(needRate - sustain)
+
+/** Calendar sections for the Plan tab. */
+data class MonthSection<T>(val month: java.time.YearMonth, val thisMonth: Boolean, val items: List<T>)
+fun <T> monthSections(items: List<T>, today: LocalDate, dateOf: (T) -> LocalDate): List<MonthSection<T>> =
+    items.sortedBy(dateOf).groupBy { java.time.YearMonth.from(dateOf(it)) }.map { (month, list) ->
+        MonthSection(month, month == java.time.YearMonth.from(today), list)
+    }
+
+fun <T> filterMonth(items: List<T>, month: java.time.YearMonth, dateOf: (T) -> LocalDate): List<T> =
+    items.filter { java.time.YearMonth.from(dateOf(it)) == month }
+
+/** Count taught lessons and untaught lessons before today, never days off. */
+fun <T> earlierSummary(items: List<T>, today: LocalDate, dateOf: (T) -> LocalDate, done: (T) -> Boolean): Int =
+    items.count { done(it) || dateOf(it).isBefore(today) }
