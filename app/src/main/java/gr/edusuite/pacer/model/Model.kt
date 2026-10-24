@@ -124,6 +124,10 @@ data class Assignment(
     val pages: Map<String, List<Int>> = emptyMap(),
     val note: String = "",
     val takesLesson: Boolean = false,
+    /** Homework can refer to a worksheet or test; null means ordinary pages/notes. */
+    val contentType: AssignmentType? = null,
+    /** The paired homework/class assignment, within the same group. */
+    val linkedId: String? = null,
 )
 
 data class Homework(

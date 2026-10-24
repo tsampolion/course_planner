@@ -30,6 +30,8 @@ Each one records why a feature was built. The code and `CLAUDE.md` describe the 
 
 ## In progress
 
+- [HOMEWORK_BRIEF.md](HOMEWORK_BRIEF.md): Part B lesson homework actions, row details,
+  optional class/homework pairing and date-based banking (4.0.0, schema 13).
 - [ASSIGNMENTS_BRIEF.md](ASSIGNMENTS_BRIEF.md): Part C group-owned assignments, migration, Work and group home (3.11.0, schema 12); device verification pending.
 
 ## Not yet approved

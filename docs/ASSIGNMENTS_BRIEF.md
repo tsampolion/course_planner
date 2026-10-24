@@ -1,7 +1,7 @@
 # Group assignments (Part C)
 
 Status: implemented for 3.11.0, schema 12; automated checks pass, device QA pending.
-Parts B (homework in lesson flow) and A (book units) follow in separate PRs.
+Part B is specified in HOMEWORK_BRIEF.md; Part A (book units) follows separately.
 
 ## Behaviour
 
@@ -32,9 +32,9 @@ schema 11 remain intact. Editors show the group's effective books and preserve
 saved pages for deselected optional books; selecting the book again makes its
 pages editable.
 
-Non-homework work blocks a lesson only when takesLesson is true. Homework pages
-leave the pool immediately, preserving the old rule; due-date timing changes
-belong to Part B. The engine keeps a TestEvent projection for existing lesson
+Non-homework work blocks a lesson only when takesLesson is true. In 3.11.0 homework
+pages left the pool immediately; Part B (4.0.0) changes that to due/set-on timing.
+The engine keeps a TestEvent projection for existing lesson
 labels, exports and legacy in-memory fixtures. No new TestEvent is persisted.
 The parity test normalises only the obsolete class-wide targeting metadata;
 dates, names, blocked rows, pages, figures and custom-plan contents must agree.
