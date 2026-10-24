@@ -95,6 +95,7 @@ private fun Screen.title(d: AppData, context: Context): String = when (this) {
     Screen.Class -> d.schoolClass?.name?.ifBlank { null } ?: context.getString(R.string.app_class)
     // "FCE · Tests & worksheets", as the locked mock-ups have it.
     Screen.Tests -> classTitle(d, context, context.getString(R.string.app_tests))
+    Screen.Units -> context.getString(R.string.units_title)
     Screen.Homework -> classTitle(d, context, context.getString(R.string.app_homework_short))
     is Screen.GroupSettings -> context.getString(R.string.group_settings_title)
     is Screen.Group -> {
@@ -117,7 +118,7 @@ private fun classTitle(d: AppData, context: Context, what: String): String =
 private fun Screen.context(d: AppData, context: Context): String = when (this) {
     Screen.Home, Screen.Settings -> context.getString(R.string.app_name)
     Screen.YearSettings, Screen.Overview, Screen.Classes, Screen.Class -> d.year?.name.orEmpty()
-    Screen.Tests, Screen.Homework -> d.year?.name.orEmpty()
+    Screen.Tests, Screen.Homework, Screen.Units -> d.year?.name.orEmpty()
     is Screen.Group -> listOfNotNull(d.year?.name, d.schoolClass?.name).joinToString(" · ")
     is Screen.GroupSettings -> listOfNotNull(d.schoolClass?.name, d.schoolClass?.groups?.firstOrNull { it.id == id }?.name).joinToString(" · ")
 }
@@ -129,6 +130,7 @@ private fun Screen.key(): String = toString()
 @Composable
 fun PacerApp(vm: PacerViewModel) {
     val ui by vm.state.collectAsState()
+    val revisionTarget by vm.unitRevision.collectAsState()
     val settings by vm.settings.collectAsState()
     val setAside by vm.setAside.collectAsState()
     val screen = ui.screen
@@ -345,6 +347,12 @@ fun PacerApp(vm: PacerViewModel) {
     if (printing && year != null && groupReport != null) {
         PrintDialog(year, only = ui.data.activeClass to groupReport.group.id) { printing = false }
     }
+    revisionTarget?.let { target ->
+        val year = ui.data.year
+        val cls = year?.classes?.firstOrNull { it.id == target.classId }
+        val group = cls?.groups?.firstOrNull { it.id == target.groupId }
+        if (year != null && cls != null && group != null) androidx.compose.runtime.key(target) { UnitRevisionSheet(GroupReport(year.planFor(cls), group), target, vm, undoToast) }
+    }
     setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
 }
 
@@ -384,6 +392,7 @@ private fun ScreenContent(
         Screen.Overview -> OverviewScreen(year ?: return, vm, padding, selectedGroup)
         Screen.Classes -> ClassesScreen(year ?: return, vm, padding, order = settings.classOrder, undoToast = undoToast)
         Screen.Class -> ClassScreen(plan ?: return, vm, padding, undoToast)
+        Screen.Units -> UnitsSettingsScreen(plan ?: return, vm, padding)
         Screen.Tests -> MovedWorkScreen(plan ?: return, vm, padding)
         Screen.Homework -> MovedWorkScreen(plan ?: return, vm, padding)
         is Screen.GroupSettings -> {

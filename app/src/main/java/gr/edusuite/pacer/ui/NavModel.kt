@@ -1,5 +1,7 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.engine.UnitIssue
+import gr.edusuite.pacer.engine.unitIssues
 import gr.edusuite.pacer.engine.BookLag
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Source
@@ -63,6 +65,7 @@ fun searchGroups(year: SchoolYear, query: String): List<GroupHit> {
 
 /** One warning on a group and the fix the Warnings sheet offers for it. */
 sealed interface GroupWarning {
+    data class Units(val issue: UnitIssue) : GroupWarning
     data class ExtraUnavailable(val date: java.time.LocalDate) : GroupWarning
     /** Short of the term: Catch up. [pages] is how many pages more than the pace fits. */
     data class Behind(val lessons: Int, val pages: Int) : GroupWarning
@@ -88,6 +91,7 @@ fun groupWarnings(report: GroupReport): List<GroupWarning> {
     val handled = report.custom != null && report.coverage()?.ok == true &&
         (report.shortfallCoverage()?.complete != false)
     val out = ArrayList<GroupWarning>()
+    out += report.unitIssues().map { GroupWarning.Units(it) }
     val active = plan.activeExtras(report.group).mapTo(HashSet()) { it.id }
     report.group.extras.filter { e -> e.id !in active && report.group.done.none { it.date == e.date } }
         .forEach { out += GroupWarning.ExtraUnavailable(it.date) }

@@ -8,6 +8,11 @@ import gr.edusuite.pacer.data.JsonCodec
 import gr.edusuite.pacer.data.PlanStore
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
+import gr.edusuite.pacer.engine.pendingUnitRevisions
+import gr.edusuite.pacer.engine.withUnitRevision
+import gr.edusuite.pacer.engine.withoutUnitRevision
+import gr.edusuite.pacer.model.UnitRevision
+import gr.edusuite.pacer.model.RevisionKind
 import gr.edusuite.pacer.engine.withExtra
 import gr.edusuite.pacer.engine.withAssignment
 import gr.edusuite.pacer.engine.withLinkedAssignment
@@ -119,6 +124,47 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     private var historyStep = 0L
 
     private val data get() = _state.value.data
+
+    private val revisionPrompts = UnitRevisionPrompts()
+    private val _unitRevision = MutableStateFlow<UnitRevisionTarget?>(null)
+    val unitRevision: StateFlow<UnitRevisionTarget?> = _unitRevision.asStateFlow()
+
+    fun dismissUnitRevision(target: UnitRevisionTarget) {
+        revisionPrompts.dismiss(target)
+        _unitRevision.value = revisionPrompts.current
+    }
+    fun openUnitRevision(groupId: String, unitIndex: Int) {
+        revisionPrompts.open(UnitRevisionTarget(data.activeClass, groupId, unitIndex))
+        _unitRevision.value = revisionPrompts.current
+    }
+    private fun offerUnitRevision(classId: String, groupId: String, before: Group) {
+        val y = data.year ?: return
+        val c = y.classes.firstOrNull { it.id == classId } ?: return
+        val g = c.groups.firstOrNull { it.id == groupId } ?: return
+        val p = y.planFor(c)
+        val old = pendingUnitRevisions(p, before).toSet()
+        revisionPrompts.offer(pendingUnitRevisions(p, g).filter { it !in old }.map { UnitRevisionTarget(classId, groupId, it) })
+        _unitRevision.value = revisionPrompts.current
+    }
+    fun saveUnitRevision(target: UnitRevisionTarget, kind: RevisionKind, date: LocalDate?, pages: Map<String, List<Int>>, title: String): Boolean {
+        val y = data.year ?: return false
+        val c = y.classes.firstOrNull { it.id == target.classId } ?: return false
+        val g = c.groups.firstOrNull { it.id == target.groupId } ?: return false
+        val report = GroupReport(y.planFor(c), g)
+        if (kind != RevisionKind.NONE && date != null && date !in revisionDates(report, target.unitIndex, LocalDate.now())) return false
+        if (kind == RevisionKind.PAGES && (pages.isEmpty() || pages.values.all { it.isEmpty() } || pages.keys.any { id -> report.plan.books.none { it.id == id && it.supplementary } })) return false
+        if (pages.any { (id, ps) -> report.plan.books.firstOrNull { it.id == id }?.let { assignmentPages(ps.joinToString(","), it) == null } != false }) return false
+        val old = g.unitRevisions.firstOrNull { it.unitIndex == target.unitIndex }?.assignmentId?.let { id -> g.assignments.firstOrNull { it.id == id } }
+        val assignment = revisionAssignment(old, kind, date, pages, title)
+        val changed = editYear { year -> year.withUnitRevision(target, UnitRevision(target.unitIndex, kind, pages = pages), assignment) }
+        dismissUnitRevision(target)
+        return changed
+    }
+    fun removeUnitRevision(target: UnitRevisionTarget): Boolean {
+        val changed = editYear { y -> y.copy(classes = y.classes.map { c -> if (c.id != target.classId) c else c.copy(groups = c.groups.map { g -> if (g.id == target.groupId) g.withoutUnitRevision(target.unitIndex) else g }) }) }
+        dismissUnitRevision(target)
+        return changed
+    }
 
     // ---- plumbing ----------------------------------------------------------
 
@@ -386,11 +432,11 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     // ---- classes -----------------------------------------------------------
 
     /** Adds a class with one group and the lesson length and pace from Settings, and opens it. */
-    fun newClass(name: String) {
+    fun newClass(name: String, unitsEnabled: Boolean = false) {
         val y = data.year ?: return
         val s = _settings.value
         val group = Group(newId(), "Group A", setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), y.start)
-        val c = SchoolClass(newId(), name.ifBlank { "Class ${y.classes.size + 1}" }, s.lessonMins, s.pace, listOf(group), emptyList(), emptyList(), emptyList())
+        val c = SchoolClass(newId(), name.ifBlank { "Class ${y.classes.size + 1}" }, s.lessonMins, s.pace, listOf(group), emptyList(), emptyList(), emptyList(), unitsEnabled = unitsEnabled)
         edit { d -> d.copy(years = d.years.map { if (it.id == y.id) it.copy(classes = it.classes + c) else it }, activeClass = c.id) }
         open(Screen.Class)
     }
@@ -428,6 +474,18 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     /** Ignores a pace the file can't store (infinite or not a number). */
     fun setPace(v: Double) {
         if (v.isFinite() && v >= 0) editClass("class:pace") { it.copy(pace = v) }
+    }
+
+    fun setUnitsEnabled(value: Boolean) = editClass { it.copy(unitsEnabled = value) }
+
+    fun setGroupUnitsOverride(groupId: String, value: Boolean?) = editGroup(groupId) { it.copy(unitsOverride = value) }
+
+    fun setBookLinks(links: List<Set<String>>) = editClass { it.copy(bookLinks = links) }
+
+    fun saveUnitStarts(bookId: String, rows: List<String>): Boolean {
+        val book = data.schoolClass?.books?.firstOrNull { it.id == bookId && !it.supplementary } ?: return false
+        val starts = validateUnitStarts(book.first, book.last, rows) ?: return false
+        return editBook(bookId) { it.copy(units = starts.joinToString(", ")) }
     }
 
     // ---- groups ------------------------------------------------------------
@@ -497,7 +555,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         val plan = data.plan ?: return false
         val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
         val next = change(GroupReport(plan, g), g)
-        return editGroup(groupId) { next }
+        val changed = editGroup(groupId) { next }
+        if (changed && next.done != g.done) offerUnitRevision(data.activeClass, groupId, g)
+        return changed
     }
 
     /** Ticks or unticks the lesson on [date] on its own. */
@@ -629,7 +689,12 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     }
 
     /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */
-    fun markNextLessonDoneIn(classId: String, groupId: String) = editYear { it.markNextLessonDone(classId, groupId) }
+    fun markNextLessonDoneIn(classId: String, groupId: String): Boolean {
+        val before = data.year?.classes?.firstOrNull { it.id == classId }?.groups?.firstOrNull { it.id == groupId } ?: return false
+        val changed = editYear { it.markNextLessonDone(classId, groupId) }
+        if (changed) offerUnitRevision(classId, groupId, before)
+        return changed
+    }
 
     // ---- assignments -------------------------------------------------------
 

@@ -313,6 +313,7 @@ class WarningFixes(
     val tidy: () -> Unit,
     val extra: (java.time.LocalDate) -> Unit = {},
     val repaceToFit: () -> Unit = repace,
+    val units: (gr.edusuite.pacer.engine.UnitIssue) -> Unit = {},
 )
 
 /**
@@ -328,6 +329,10 @@ fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: Warn
         warnings.forEachIndexed { i, w ->
             if (i > 0) HorizontalDivider(color = Pacer.colors.line)
             when (w) {
+                is GroupWarning.Units -> WarningItem(AppIcons.Book, stringResource(R.string.units_title),
+                    w.issue.message, stringResource(if (w.issue.kind == gr.edusuite.pacer.engine.UnitIssueKind.REVISION_UNSCHEDULED) R.string.class_edit else R.string.units_title)) {
+                    close(); fixes.units(w.issue)
+                }
                 is GroupWarning.ExtraUnavailable -> WarningItem(
                     AppIcons.Warning, stringResource(R.string.extra_unavailable, w.date.fmt()),
                     stringResource(R.string.extra_unavailable_hint), stringResource(R.string.extra_edit),

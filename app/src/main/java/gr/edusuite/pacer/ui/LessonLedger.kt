@@ -121,6 +121,9 @@ internal data class Lesson(
     val inLesson: Set<String> = emptySet(),
     val extraId: String? = null,
     val assignments: List<Assignment> = emptyList(),
+    val unitIndex: Int? = null,
+    val unitLesson: Int = 0,
+    val unitLessons: Int = 0,
 )
 
 /**
@@ -427,6 +430,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         Text(corePages(next, actions.shortNames, actions.supplementary), style = MaterialTheme.typography.bodyLarge.merge(Figures))
                         suppPages(next, actions).forEach { (_, text) -> Text(stringResource(R.string.ledger_supp, text), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
                     }
+                    next.unitIndex?.let { Text(stringResource(R.string.units_lesson_position, it + 1, next.unitLesson, next.unitLessons), style = MaterialTheme.typography.bodySmall) }
                     HomeworkLines(next, actions)
                 }
             }
@@ -505,6 +509,7 @@ internal fun WeekHeader(section: WeekSection<*>, modifier: Modifier = Modifier) 
 @Composable
 private fun spokenLesson(l: Lesson, actions: LessonActions): String {
     val parts = buildList {
+        l.unitIndex?.let { add(stringResource(R.string.units_lesson_position, it + 1, l.unitLesson, l.unitLessons)) }
         if (l.events.isNotEmpty()) add(l.events.joinToString(", ") { it.name })
         if (l.note.isNotEmpty()) add(l.note)
         if (!l.blocked) l.cells.forEachIndexed { i, cell ->
@@ -569,6 +574,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
     val ink = if (l.done) c.muted else c.ink
     val large = rememberLargeText()
     val subtitle = buildList {
+        l.unitIndex?.let { add(stringResource(R.string.units_lesson_position, it + 1, l.unitLesson, l.unitLessons)) }
         if (l.events.isNotEmpty()) add(l.events.joinToString(" · ") { it.name })
         if (l.extraId != null) add(stringResource(R.string.extra_label))
         if (l.free) add(stringResource(R.string.custom_free))

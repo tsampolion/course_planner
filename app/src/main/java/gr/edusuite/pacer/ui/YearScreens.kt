@@ -299,8 +299,11 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
 
     if (adding) {
         var name by rememberSaveable { mutableStateOf("") }
-        SheetFrame(stringResource(R.string.year_new_class), stringResource(R.string.year_add), true, { vm.newClass(name.trim()) }, { adding = false }) {
+        var unitsEnabled by rememberSaveable { mutableStateOf(false) }
+        SheetFrame(stringResource(R.string.year_new_class), stringResource(R.string.year_add), true, { vm.newClass(name.trim(), unitsEnabled) }, { adding = false }) {
             CommitField(name, { name = it }, stringResource(R.string.year_name), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_class_example))
+            SwitchRow(stringResource(R.string.units_enable), unitsEnabled) { unitsEnabled = it }
+            Hint(stringResource(R.string.units_creation_hint))
         }
     }
 }
