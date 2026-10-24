@@ -36,7 +36,7 @@ git pull origin claude/dreamy-carson-ms25q9
 - **No reflection.** `app/proguard-rules.pro` stays empty, and `./gradlew assembleRelease` must pass.
 - **Engine untouched:** no file under `<main>/engine/` or `<main>/data/JsonCodec.kt` changes, and `JsonCodec.VERSION` stays where it is (settings are not in `plans.json`).
 - **Never change** `applicationId`, `minSdk 26`, the signing config, the `keyAlias`, or CI secret and variable names.
-- **Version:** `versionName = "3.12.0"`, `versionCode = 48`, plus a `CHANGELOG.md` section `## [3.12.0] - <today's date, YYYY-MM-DD>` with a compare link `[3.12.0]: https://github.com/tsampolion/course_planner/compare/v3.11.0...v3.12.0`. (`main` is at 3.11.0 / 47 after group assignments. If `main` has moved again by the time you finish, take the next MINOR above it.)
+- **Version:** `versionName = "4.1.0"`, `versionCode = 49`, plus a `CHANGELOG.md` section `## [4.1.0] - <today's date, YYYY-MM-DD>` with a compare link `[4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0`. (`main` is at 4.0.0 / 48 after lesson homework. If `main` has moved again by the time you finish, take the next MINOR above it.)
 - **Test style:** JUnit 4 (`org.junit.Test`, `org.junit.Assert.*`), camelCase test names, no backtick names, as in `<test>/ui/SettingsTest.kt`.
 - **Commits:** one per task, with conventional prefixes (`feat:`, `test:`, `docs:`). End every commit message with a trailer naming the agent, for example `Co-Authored-By: Codex <noreply@openai.com>`. Do not put model identifiers anywhere in code, docs or PR text.
 - **The validation gate after every task** is `./gradlew testDebugUnitTest` → `BUILD SUCCESSFUL`. Tasks 5 and 7 also run `./gradlew assembleRelease` → `BUILD SUCCESSFUL`.
@@ -554,7 +554,7 @@ git commit -m "feat: update checker flow with a pluggable release source"
 - [ ] **Step 1: Add the permission.** In `AndroidManifest.xml`, directly inside `<manifest …>` and before the comment above `<application>`:
 
 ```xml
-    <!-- Only for the once-a-day update check against this app's GitHub releases (3.12.0). -->
+    <!-- Only for the once-a-day update check against this app's GitHub releases (4.1.0). -->
     <uses-permission android:name="android.permission.INTERNET" />
 ```
 
@@ -659,7 +659,7 @@ git commit -m "feat: check GitHub releases once a day on launch"
 - [ ] **Step 1: Add the strings** (exact copy):
 
 ```xml
-    <!-- Updates (3.12.0) -->
+    <!-- Updates (4.1.0) -->
     <string name="nav_menu_update">Menu, update available</string>
     <string name="nav_update">Update</string>
     <string name="nav_update_description">Update available</string>
@@ -774,10 +774,10 @@ git commit -m "feat: quiet update notice on the menu and in Settings"
 
 No code, unless a step fails. In that case, fix it in the file that owns the behaviour, re-run Task 5 Step 8, and commit as `fix: …`.
 
-- [ ] **Step 1:** In `app/build.gradle.kts`, temporarily set `versionName = "3.9.0"` (**do not commit this**). The latest published release is 3.11.0 at the time of writing (check the Releases page), so 3.9.0 sees an update.
+- [ ] **Step 1:** In `app/build.gradle.kts`, temporarily set `versionName = "3.9.0"` (**do not commit this**). The latest published release is 4.0.0 at the time of writing (check the Releases page), so 3.9.0 sees an update.
 - [ ] **Step 2:** `./gradlew assembleRelease`, then `adb install -r app/build/outputs/apk/release/app-release.apk` on an emulator or phone **without** a store-signed Course Pacer (a local build can't install over a release). Expected: the install succeeds.
-- [ ] **Step 3:** Launch with the network on. Expected, within about 10 s: a dot on ☰; in the menu, Settings shows an "Update" tag; Settings → Updates reads "Version 3.11.0 is available" (or whichever release is latest) followed by notes. Check with TalkBack on: ☰ reads "Menu, update available".
-- [ ] **Step 4:** Tap **Download**. Expected: the browser starts downloading `course-pacer-3.11.0.apk`. (The install will fail here because the signatures differ. That is expected, and it's the debug-build caveat the docs describe.)
+- [ ] **Step 3:** Launch with the network on. Expected, within about 10 s: a dot on ☰; in the menu, Settings shows an "Update" tag; Settings → Updates reads "Version 4.0.0 is available" (or whichever release is latest) followed by notes. Check with TalkBack on: ☰ reads "Menu, update available".
+- [ ] **Step 4:** Tap **Download**. Expected: the browser starts downloading `course-pacer-4.0.0.apk`. (The install will fail here because the signatures differ. That is expected, and it's the debug-build caveat the docs describe.)
 - [ ] **Step 5:** Turn on airplane mode, then tap **Check now**. Expected: "Checking…", then "Couldn't check for updates. Check your connection and try again." The badge stays.
 - [ ] **Step 6:** Kill and relaunch the app (still offline). Expected: the badge still shows, with no network needed.
 - [ ] **Step 7:** Restore the committed `versionName` (`git checkout app/build.gradle.kts`) and rebuild. Turn airplane mode off and tap **Check now**. Expected: "Course Pacer is up to date." and no badge.
@@ -793,7 +793,7 @@ No code, unless a step fails. In that case, fix it in the file that owns the beh
 - Modify: `.github/workflows/release.yml` (at the `cp "$f" "course-pacer-$VERSION.apk"` line)
 - Modify: `README.md`, `CLAUDE.md`, `docs/README.md`, `CHANGELOG.md`, `app/build.gradle.kts`
 
-- [ ] **Step 1: Write `docs/UPDATES_BRIEF.md`.** Start it with the banner line `Built in 3.12.0. Spec: superpowers/specs/2026-10-23-in-app-update-check-design.md.` Sections:
+- [ ] **Step 1: Write `docs/UPDATES_BRIEF.md`.** Start it with the banner line `Built in 4.1.0. Spec: superpowers/specs/2026-10-23-in-app-update-check-design.md.` Sections:
   - **Why**: not on the Play Store; the owner sets up a few colleagues' phones once, and after that they update themselves.
   - **What the app relies on** (a contract with every installed copy): the public repo `tsampolion/course_planner`; `releases/latest`; the tag `vX.Y.Z`; exactly one asset `course-pacer-X.Y.Z.apk` signed with the permanent key; the release body is the changelog section. Renaming the asset, changing the tag format or making the repo private silently stops in-app updates for everyone.
   - **Behaviour**: once a day on launch while the switch is on; Check now; the ☰ dot, the drawer tag and Settings → Updates; Download opens the browser; nothing to dismiss; debug builds never check.
@@ -812,14 +812,14 @@ No code, unless a step fails. In that case, fix it in the file that owns the beh
   - After the paragraph that starts "School years and settings are saved on the device", add: `The app's only network use is the update check: one request to api.github.com, once a day while automatic checks are on or when you tap Check now. It sends no data about you or your school years.`
   - Add a section `## Installing on a phone` before `## Getting started`, with the colleague setup steps from the brief (numbered, 5 steps at most) and a link to `docs/UPDATES_BRIEF.md`.
 - [ ] **Step 4: Update `CLAUDE.md`**
-  - In **Architecture**, add a bullet after `engine/`: `` - `update/`: the in-app update check (3.12.0, `docs/UPDATES_BRIEF.md`). `UpdateModel.kt` and `UpdateChecker.kt` are plain Kotlin and unit-tested (version parsing, release validation against this repo's release URLs, the once-a-day throttle, note trimming, folding a result into `Settings`); `GitHubReleases.kt` is the only network code (`HttpURLConnection`, `org.json`, one GET to `releases/latest`). `PacerViewModel` checks on launch and on Check now; `Settings` holds `autoUpdateCheck`, `lastUpdateCheck` and `availableUpdate`. Debuggable builds never check. The ☰ dot is `MenuButton` (`NavUi.kt`); Settings → Updates is `UpdatesSection` (`UpdatesUi.kt`). ``
-  - In **Rules**, add: `` - **The release is a contract with installed apps** (3.12.0). Installed copies look for tag `vX.Y.Z` and the asset `course-pacer-X.Y.Z.apk` on `releases/latest` of this public repository. Don't rename the asset, change the tag format or make the repository private without planning how installed apps will update. The app's only permission is `INTERNET`, used only for that check. ``
-- [ ] **Step 5: Update `docs/README.md`.** Under **Decision records**, after the `BACKUP_BRIEF.md` line: `` - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases, its release contract and colleague setup (3.12.0). ``
-- [ ] **Step 6: Bump the version.** In `app/build.gradle.kts`, set `versionCode = 48` and `versionName = "3.12.0"`.
+  - In **Architecture**, add a bullet after `engine/`: `` - `update/`: the in-app update check (4.1.0, `docs/UPDATES_BRIEF.md`). `UpdateModel.kt` and `UpdateChecker.kt` are plain Kotlin and unit-tested (version parsing, release validation against this repo's release URLs, the once-a-day throttle, note trimming, folding a result into `Settings`); `GitHubReleases.kt` is the only network code (`HttpURLConnection`, `org.json`, one GET to `releases/latest`). `PacerViewModel` checks on launch and on Check now; `Settings` holds `autoUpdateCheck`, `lastUpdateCheck` and `availableUpdate`. Debuggable builds never check. The ☰ dot is `MenuButton` (`NavUi.kt`); Settings → Updates is `UpdatesSection` (`UpdatesUi.kt`). ``
+  - In **Rules**, add: `` - **The release is a contract with installed apps** (4.1.0). Installed copies look for tag `vX.Y.Z` and the asset `course-pacer-X.Y.Z.apk` on `releases/latest` of this public repository. Don't rename the asset, change the tag format or make the repository private without planning how installed apps will update. The app's only permission is `INTERNET`, used only for that check. ``
+- [ ] **Step 5: Update `docs/README.md`.** Under **Decision records**, after the `BACKUP_BRIEF.md` line: `` - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases, its release contract and colleague setup (4.1.0). ``
+- [ ] **Step 6: Bump the version.** In `app/build.gradle.kts`, set `versionCode = 49` and `versionName = "4.1.0"`.
 - [ ] **Step 7: Add the changelog entry.** In `CHANGELOG.md`, insert the section directly under `## [Unreleased]`, leaving one blank line after that heading:
 
 ```markdown
-## [3.12.0] - YYYY-MM-DD
+## [4.1.0] - YYYY-MM-DD
 
 ### Added
 
@@ -830,23 +830,23 @@ No code, unless a step fails. In that case, fix it in the file that owns the beh
 - The app now has the `INTERNET` permission, used only for the update check. It sends nothing but the request itself.
 ```
 
-  Replace `YYYY-MM-DD` with today's date. At the bottom, above the `[3.11.0]: …` line, add `[3.12.0]: https://github.com/tsampolion/course_planner/compare/v3.11.0...v3.12.0`.
+  Replace `YYYY-MM-DD` with today's date. At the bottom, above the `[4.0.0]: …` line, add `[4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0`.
 - [ ] **Step 8: Run the final verification**
 
 Run: `./gradlew testDebugUnitTest && ./gradlew assembleRelease`
 Expected: `BUILD SUCCESSFUL` for both.
 
 Run: `grep -n 'versionName\|versionCode' app/build.gradle.kts`
-Expected: `versionCode = 48` and `versionName = "3.12.0"`.
+Expected: `versionCode = 49` and `versionName = "4.1.0"`.
 
-Run: `grep -n '^## \[3.12.0\]\|^\[3.12.0\]:' CHANGELOG.md`
+Run: `grep -n '^## \[4.1.0\]\|^\[4.1.0\]:' CHANGELOG.md`
 Expected: two matching lines.
 
 - [ ] **Step 9: Commit and push**
 
 ```bash
 git add docs/UPDATES_BRIEF.md .github/workflows/release.yml README.md CLAUDE.md docs/README.md CHANGELOG.md app/build.gradle.kts
-git commit -m "docs: update check brief, release contract and 3.12.0"
+git commit -m "docs: update check brief, release contract and 4.1.0"
 git push origin claude/dreamy-carson-ms25q9
 ```
 
