@@ -551,19 +551,19 @@ git commit -m "feat: update checker flow with a pluggable release source"
   val updates: UpdateChecker
   ```
 
-- [ ] **Step 1: Add the permission.** In `AndroidManifest.xml`, directly inside `<manifest …>` and before the comment above `<application>`:
+- [x] **Step 1: Add the permission.** In `AndroidManifest.xml`, directly inside `<manifest …>` and before the comment above `<application>`:
 
 ```xml
     <!-- Only for the once-a-day update check against this app's GitHub releases (4.1.0). -->
     <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-- [ ] **Step 2: Implement `GitHubReleases.kt`**
+- [x] **Step 2: Implement `GitHubReleases.kt`**
 - `latest()`: open `URL(RELEASES_API).openConnection() as HttpURLConnection`. Set `connectTimeout = 5000`, `readTimeout = 10000`, `requestMethod = "GET"`, `instanceFollowRedirects = true`, and the headers `Accept: application/vnd.github+json` and `User-Agent: CoursePacer/$installed`. If `responseCode != 200`, return `null`. Read `inputStream` as UTF-8 with a cap of 512 KiB (stop and return `null` past it), then `readRelease(text)`. Wrap the whole thing in `try { … } catch (e: Exception) { null } finally { disconnect() }`.
 - `readRelease(json)`: `JSONObject(json)`. Use `optString` with a `null` fallback for `tag_name`, `body` and `html_url` (treat `JSONObject.NULL` and empty strings as `null`). `optJSONArray("assets")` maps each object to `name` paired with `browser_download_url`, skipping entries missing either. The whole function goes inside `runCatching { … }.getOrNull()`.
 - This file is not unit-tested, because `org.json` is stubbed on the JVM. Keep it free of any decision that Task 1 or Task 3 owns.
 
-- [ ] **Step 3: Build the checker in `PacerApplication`**
+- [x] **Step 3: Build the checker in `PacerApplication`**
 
 ```kotlin
 val updates: UpdateChecker by lazy {
@@ -573,9 +573,9 @@ val updates: UpdateChecker by lazy {
 }
 ```
 
-- [ ] **Step 4: Wire `MainActivity`.** `PacerViewModel.Factory(app.store, app.settings, app.updates)`.
+- [x] **Step 4: Wire `MainActivity`.** `PacerViewModel.Factory(app.store, app.settings, app.updates)`.
 
-- [ ] **Step 5: Change `PacerViewModel`**
+- [x] **Step 5: Change `PacerViewModel`**
 - Constructor: `class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore, private val updates: UpdateChecker)`. Update `Factory` to match.
 - Initialise `_settings` with `MutableStateFlow(updates.atLaunch(settingsStore.load()))`. If `atLaunch` returned a different instance, call `settingsStore.save(...)` once.
 - `val update: StateFlow<Update?> = settings.map(updates::pending).stateIn(viewModelScope, SharingStarted.Eagerly, updates.pending(_settings.value))`. Declare it **after** `_settings` and `settings`.
@@ -616,12 +616,12 @@ init {
 - Add the imports you need: `kotlinx.coroutines.flow.map`, `kotlinx.coroutines.flow.stateIn`, `kotlinx.coroutines.flow.SharingStarted`, `kotlinx.coroutines.withContext`, `gr.edusuite.pacer.update.*`. `Dispatchers` and `launch` are already imported.
 - `PacerViewModel.kt` is excluded from `NoHardcodedTextTest`. Still, add no user-visible copy here.
 
-- [ ] **Step 6: Compile and run the whole suite**
+- [x] **Step 6: Compile and run the whole suite**
 
 Run: `./gradlew testDebugUnitTest`
 Expected: `BUILD SUCCESSFUL`. No test constructs `PacerViewModel` today. If one does, pass `UpdateChecker({ null }, "0.0.0", enabled = false)`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/src/main/AndroidManifest.xml app/src/main/java/gr/edusuite/pacer/update/GitHubReleases.kt app/src/main/java/gr/edusuite/pacer/PacerApplication.kt app/src/main/java/gr/edusuite/pacer/MainActivity.kt app/src/main/java/gr/edusuite/pacer/ui/PacerViewModel.kt

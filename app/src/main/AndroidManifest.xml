@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Only for the once-a-day update check against this app's GitHub releases (4.1.0). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Predictive back: in-app back still goes through BackHandler; at Home the system animates back to the launcher. -->
     <application
         android:name=".PacerApplication"

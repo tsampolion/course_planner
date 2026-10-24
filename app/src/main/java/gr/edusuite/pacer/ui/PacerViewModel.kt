@@ -1,5 +1,10 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.update.*
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.withContext
 import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -83,6 +88,9 @@ data class UiState(val data: AppData, val undoDepth: Int, val stack: List<Screen
     val screen: Screen get() = stack.last()
 }
 
+/** Session-only feedback from an explicit update check. */
+enum class UpdateCheckState { IDLE, CHECKING, UP_TO_DATE, FAILED }
+
 /** What undo restores: every year, and which year and class were open. */
 private data class Snapshot(val years: List<SchoolYear>, val activeYear: String, val activeClass: String)
 
@@ -92,7 +100,7 @@ private data class Snapshot(val years: List<SchoolYear>, val activeYear: String,
  * so typing a page number is one step, not six. Moving between screens is not an edit,
  * and opening another school year starts a fresh history.
  */
-class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore) : ViewModel() {
+class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore, private val updates: UpdateChecker) : ViewModel() {
     private val loaded = store.load()
     private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.fromView(d.view), 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -114,8 +122,16 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         return Nav.recent(recent, GroupRef(ui.data.activeClass, id))
     }
 
-    private val _settings = MutableStateFlow(settingsStore.load())
+    private val _settings = MutableStateFlow(settingsStore.load().let { before ->
+        updates.atLaunch(before).also { after -> if (after !== before) settingsStore.save(after) }
+    })
     val settings: StateFlow<Settings> = _settings.asStateFlow()
+    val update: StateFlow<Update?> = settings.map(updates::pending)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, updates.pending(_settings.value))
+    private val _updateCheck = MutableStateFlow(UpdateCheckState.IDLE)
+    val updateCheck: StateFlow<UpdateCheckState> = _updateCheck.asStateFlow()
+    val updatesEnabled: Boolean = updates.enabled
+    val installedVersion: String = updates.installed
 
     private val undoStack = ArrayDeque<Snapshot>()
     private var lastTag: String? = null
@@ -164,6 +180,13 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         val changed = editYear { y -> y.copy(classes = y.classes.map { c -> if (c.id != target.classId) c else c.copy(groups = c.groups.map { g -> if (g.id == target.groupId) g.withoutUnitRevision(target.unitIndex) else g }) }) }
         dismissUnitRevision(target)
         return changed
+    }
+
+    init {
+        if (updates.shouldAutoCheck(_settings.value)) viewModelScope.launch {
+            val fetched = withContext(Dispatchers.IO) { updates.fetch() }
+            editSettings { updates.applied(it, fetched) }
+        }
     }
 
     // ---- plumbing ----------------------------------------------------------
@@ -342,6 +365,23 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         if (next == _settings.value) return
         _settings.value = next
         settingsStore.save(next)
+    }
+
+    fun setAutoUpdateCheck(on: Boolean) = editSettings { it.copy(autoUpdateCheck = on) }
+
+    /** Settings → Check now ignores the daily throttle and switch. */
+    fun checkForUpdates() {
+        if (!updates.enabled || _updateCheck.value == UpdateCheckState.CHECKING) return
+        _updateCheck.value = UpdateCheckState.CHECKING
+        viewModelScope.launch {
+            val fetched = withContext(Dispatchers.IO) { updates.fetch() }
+            editSettings { updates.applied(it, fetched) }
+            _updateCheck.value = when (fetched) {
+                is Fetched.Found -> UpdateCheckState.IDLE
+                Fetched.UpToDate -> UpdateCheckState.UP_TO_DATE
+                Fetched.Failed -> UpdateCheckState.FAILED
+            }
+        }
     }
 
     fun setClassOrder(v: ClassOrder) = editSettings { it.copy(classOrder = v) }
@@ -769,9 +809,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     /** Makes book [id] the class's lead book, or with null lets every book keep its own pace. */
     fun setLead(id: String?) = editClass { it.copy(lead = id?.takeIf { b -> it.books.any { book -> book.id == b && !book.supplementary } }) }
 
-    class Factory(private val store: PlanStore, private val settings: SettingsStore) : ViewModelProvider.Factory {
+    class Factory(private val store: PlanStore, private val settings: SettingsStore, private val updates: UpdateChecker) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = PacerViewModel(store, settings) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = PacerViewModel(store, settings, updates) as T
     }
 
     private companion object {
