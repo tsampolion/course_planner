@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -122,6 +123,9 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
                 TertiaryButton(stringResource(R.string.class_edit), { settings = true })
             }
         }
+        item(key = "units") {
+            LedgerRow(stringResource(R.string.units_title), detail = stringResource(if (plan.unitsEnabled) R.string.units_on else R.string.units_off), onClick = { vm.open(Screen.Units) }) { Chevron() }
+        }
         when (hide) {
             NO_BOOKS -> item(key = "guide") {
                 GuideCard(
@@ -197,6 +201,8 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
         CommitField(plan.name, vm::renameClass, stringResource(R.string.class_name), Modifier.fillMaxWidth())
         IntField(plan.mins, vm::setMins, stringResource(R.string.class_lesson_length_min), Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
         PaceField(plan.pace, vm::setPace, Modifier.fillMaxWidth())
+        SwitchRow(stringResource(R.string.units_enable), plan.unitsEnabled, vm::setUnitsEnabled)
+        TertiaryButton(stringResource(R.string.units_title), { settings = false; vm.open(Screen.Units) })
         Hint(stringResource(R.string.class_pages_per_lesson_is_the_benchmark_the_verdict_measures_again))
         if (plan.books.size > 1) {
             IntField(plan.lagLessons, vm::setLagLessons, stringResource(R.string.class_lag_lessons), Modifier.fillMaxWidth(), min = 1, max = MAX_LAG_LESSONS)
@@ -315,6 +321,7 @@ private fun BookRow(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (Str
 
 @Composable
 private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> Unit) {
+    val ui by vm.state.collectAsState()
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommitField(b.name, { vm.renameBook(b.id, it) }, stringResource(R.string.class_title), Modifier.weight(1f))
 
@@ -335,8 +342,12 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
         CommitField(b.skip, { vm.setSkip(b.id, it) }, stringResource(R.string.class_skip_pages), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_8_24_27))
         DateField(b.due, { vm.setDue(b.id, it) }, stringResource(R.string.class_finish_by), Modifier.fillMaxWidth(), clearable = true)
         if (b.due != null) Hint(stringResource(R.string.class_only_this_book_re_paces_the_others_keep_their_own_rate))
-        CommitField(b.units, { vm.setUnits(b.id, it) }, stringResource(R.string.class_units), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_units_placeholder))
-        Hint(stringResource(R.string.class_units_hint))
+        if (ui.data.plan?.unitsEnabled == true) {
+            TertiaryButton(stringResource(R.string.units_title), { vm.open(Screen.Units) })
+        } else {
+            CommitField(b.units, { vm.setUnits(b.id, it) }, stringResource(R.string.class_units), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_units_placeholder))
+            Hint(stringResource(R.string.class_units_hint))
+        }
         TertiaryButton(stringResource(R.string.class_remove_book), onRemove, color = Pacer.colors.warn)
     }
     val skipN = remember(b.skip, b.first, b.last) { parseRanges(b.skip).count { it in b.first..b.last } }
@@ -369,7 +380,7 @@ private fun IncludeField(value: String, onCommit: (String) -> Unit) {
 
 /** A labelled switch with the shared toggle haptic and the ✓/✕ thumb (§5). */
 @Composable
-private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     val toggleHaptic = rememberToggleHaptic()
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)

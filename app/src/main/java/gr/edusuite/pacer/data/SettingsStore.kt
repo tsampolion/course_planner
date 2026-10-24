@@ -1,6 +1,7 @@
 package gr.edusuite.pacer.data
 
 import android.content.Context
+import gr.edusuite.pacer.update.storedUpdate
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.ClassOrder
@@ -12,6 +13,14 @@ class SettingsStore(context: Context) {
     private val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
     fun load(): Settings = Settings(
+        autoUpdateCheck = runCatching { prefs.getBoolean(AUTO_UPDATE, true) }.getOrDefault(true),
+        lastUpdateCheck = runCatching { prefs.getLong(LAST_UPDATE_CHECK, 0L) }.getOrDefault(0L),
+        availableUpdate = storedUpdate(
+            runCatching { prefs.getString(UPDATE_VERSION, null) }.getOrNull(),
+            runCatching { prefs.getString(UPDATE_NOTES, null) }.getOrNull(),
+            runCatching { prefs.getString(UPDATE_APK, null) }.getOrNull(),
+            runCatching { prefs.getString(UPDATE_PAGE, null) }.getOrNull(),
+        ),
         classOrder = ClassOrder.parse(runCatching { prefs.getString(CLASS_ORDER, null) }.getOrNull()),
         planGrouping = PlanGrouping.parse(runCatching { prefs.getString(GROUPING, null) }.getOrNull()),
         theme = ThemeMode.parse(prefs.getString(THEME, null)),
@@ -27,6 +36,17 @@ class SettingsStore(context: Context) {
 
     fun save(s: Settings) {
         prefs.edit()
+            .putBoolean(AUTO_UPDATE, s.autoUpdateCheck)
+            .putLong(LAST_UPDATE_CHECK, s.lastUpdateCheck)
+            .apply {
+                val u = s.availableUpdate
+                if (u == null) {
+                    remove(UPDATE_VERSION); remove(UPDATE_NOTES); remove(UPDATE_APK); remove(UPDATE_PAGE)
+                } else {
+                    putString(UPDATE_VERSION, u.version); putString(UPDATE_NOTES, u.notes)
+                    putString(UPDATE_APK, u.apkUrl); putString(UPDATE_PAGE, u.pageUrl)
+                }
+            }
             .putString(THEME, s.theme.name)
             .putString(CLASS_ORDER, s.classOrder.name)
             .putString(GROUPING, s.planGrouping.name)
@@ -44,6 +64,18 @@ class SettingsStore(context: Context) {
     private companion object {
         /** Backed up by name in data_extraction_rules.xml. */
         const val FILE = "settings"
+        /** Whether launch checks are enabled. */
+        const val AUTO_UPDATE = "autoUpdateCheck"
+        /** Last successful check, in epoch millis. */
+        const val LAST_UPDATE_CHECK = "lastUpdateCheck"
+        /** Cached release version. */
+        const val UPDATE_VERSION = "updateVersion"
+        /** Cached plain-text notes. */
+        const val UPDATE_NOTES = "updateNotes"
+        /** Cached trusted APK link. */
+        const val UPDATE_APK = "updateApk"
+        /** Cached trusted release page. */
+        const val UPDATE_PAGE = "updatePage"
         const val CLASS_ORDER = "classOrder"
         const val GROUPING = "planGrouping"
         const val THEME = "theme"

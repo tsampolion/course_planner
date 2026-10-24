@@ -117,6 +117,20 @@ fun GroupSettingsScreen(
                 }
             }
         }
+        item(key = "units") {
+            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                SectionHead(stringResource(R.string.units_title))
+                Picker(stringResource(R.string.units_group_setting), listOf(
+                    "inherit" to stringResource(R.string.units_follow_class),
+                    "on" to stringResource(R.string.units_on), "off" to stringResource(R.string.units_off)),
+                    group.unitsOverride?.let { if (it) "on" else "off" } ?: "inherit",
+                    { vm.setGroupUnitsOverride(group.id, when (it) { "on" -> true; "off" -> false; else -> null }) }, Modifier.fillMaxWidth())
+                if (!plan.unitsEnabled) Hint(stringResource(R.string.units_class_off))
+                else if (group.unitsOverride != null && group.unitsOverride != plan.unitsEnabled)
+                    Hint(stringResource(R.string.units_override_warning), color = Pacer.colors.warn)
+                TertiaryButton(stringResource(R.string.units_title), { vm.open(Screen.Units) })
+            }
+        }
         item(key = 5) {
             FootActions(null, stringResource(R.string.group_settings_delete) to {
                 val name = group.name.ifBlank { context.getString(R.string.class_group) }

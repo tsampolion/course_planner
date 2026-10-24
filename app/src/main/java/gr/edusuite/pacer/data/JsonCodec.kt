@@ -2,6 +2,8 @@ package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.engine.collapse
 import gr.edusuite.pacer.engine.parseRanges
+import gr.edusuite.pacer.model.UnitRevision
+import gr.edusuite.pacer.model.RevisionKind
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.AppData
@@ -40,7 +42,7 @@ import org.json.JSONObject
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 13
+    const val VERSION = 14
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -101,6 +103,8 @@ object JsonCodec {
         .put("classes", JSONArray(y.classes.map { c ->
             JSONObject().put("id", c.id).put("name", c.name).put("mins", c.mins).put("pace", c.pace)
                 .put("groups", groups(c.groups)).put("books", books(c.books))
+                .put("unitsEnabled", c.unitsEnabled)
+                .put("bookLinks", JSONArray(c.bookLinks.map { JSONArray(it.sorted()) }))
                 .also { o -> c.lead?.let { o.put("lead", it) } }
                 .also { o -> if (c.lagLessons != DEFAULT_LAG_LESSONS) o.put("lagLessons", c.lagLessons) }
         }))
@@ -126,6 +130,8 @@ object JsonCodec {
                 events = events(c.optJSONArray("events")),
                 lead = c.optString("lead", "").ifBlank { null },
                 lagLessons = c.optInt("lagLessons", DEFAULT_LAG_LESSONS),
+                unitsEnabled = c.optBoolean("unitsEnabled", false),
+                bookLinks = c.optJSONArray("bookLinks").let { a -> if (a == null) emptyList() else (0 until a.length()).mapNotNull { i -> runCatching { a.optJSONArray(i).strings().toSet() }.getOrNull() } },
             )
         },
     )
@@ -153,6 +159,10 @@ object JsonCodec {
             .put("skip", JSONObject(g.skip as Map<*, *>))
             .put("extraBooks", JSONArray(g.extraBooks.sorted()))
             .put("pos", JSONObject(g.pos as Map<*, *>))
+            .apply { g.unitsOverride?.let { put("unitsOverride", it) } }
+            .put("unitRevisions", JSONArray(g.unitRevisions.map { r -> JSONObject()
+                .put("unitIndex", r.unitIndex).put("kind", r.kind.name)
+                .put("assignmentId", r.assignmentId ?: "").put("pages", pages(r.pages)) }))
             .put("done", JSONArray(g.done.map { l ->
                 JSONObject().put("date", l.date.toString())
                     .put("pages", pages(l.pages))
@@ -198,6 +208,12 @@ object JsonCodec {
         val pos = g.optJSONObject("pos")
         Group(
             id = g.id(),
+            unitsOverride = if (g.has("unitsOverride") && !g.isNull("unitsOverride")) g.opt("unitsOverride") as? Boolean else null,
+            unitRevisions = g.optJSONArray("unitRevisions").rows { r ->
+                val kind = runCatching { RevisionKind.valueOf(r.optString("kind", "")) }.getOrNull() ?: return@rows null
+                val index = r.optInt("unitIndex", -1).takeIf { it >= 0 } ?: return@rows null
+                UnitRevision(index, kind, r.text("assignmentId"), pages(r.optJSONObject("pages")))
+            },
             name = g.optString("name", "Group"),
             days = g.optJSONArray("days").ints().map { DayOfWeek.of(if (it == 0) 7 else it) }.toSet(),
             from = g.date("from"),

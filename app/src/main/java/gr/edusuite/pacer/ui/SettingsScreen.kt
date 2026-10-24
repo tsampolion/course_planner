@@ -79,6 +79,7 @@ fun SettingsScreen(
         contentPadding = PaddingValues(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Space.l),
     ) {
+        if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, Modifier.animateItem()) }
         item(key = "name") {
             Section(stringResource(R.string.settings_you), modifier = Modifier.animateItem()) {
                 CommitField(
@@ -121,7 +122,7 @@ fun SettingsScreen(
         item(key = "about") {
             Section(stringResource(R.string.settings_about), modifier = Modifier.animateItem()) {
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.bodyLarge)
-                Text(version, style = MaterialTheme.typography.bodyMedium.merge(Figures))
+                if (!vm.updatesEnabled) Text(version, style = MaterialTheme.typography.bodyMedium.merge(Figures))
                 Hint(stringResource(R.string.settings_local_storage))
                 Hint(stringResource(R.string.settings_suite))
                 Hint(stringResource(R.string.settings_credits))

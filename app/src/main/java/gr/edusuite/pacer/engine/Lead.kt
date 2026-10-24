@@ -2,6 +2,7 @@ package gr.edusuite.pacer.engine
 
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Plan
+import java.time.LocalDate
 
 /** The plan's lead book, or null when it names none of its books. */
 fun Plan.leadBook(): Book? = lead?.let { id -> books.firstOrNull { it.id == id && !it.supplementary } }
@@ -18,9 +19,12 @@ fun Book.unitStarts(): List<Int> = parseRanges(units).sorted()
  * pages after lesson i. When both books list the same number of units, the lead's place inside its unit
  * maps to the same fraction of the follower's unit instead. [pool] is each book's pages to place: its remaining
  * pages for the proposed plan, or what re-pacing a custom plan has left to spread.
+ * Virtual progress slices use [calendarUnits] false: they are fractions of a book, not calendar lessons.
  */
 internal fun GroupReport.followLead(
     alloc: List<MutableList<List<Int>>>,
+    dates: List<LocalDate> = teachingDates,
+    calendarUnits: Boolean = true,
     pool: (Book) -> List<Int> = { plan.remainingPages(group, it) },
 ): List<MutableList<List<Int>>> {
     // A supplementary book never leads; none follows either, as it has no pages to pace.
@@ -29,7 +33,7 @@ internal fun GroupReport.followLead(
     val lead = plan.books[li]
     val leadAlloc = alloc[li]
     val nL = leadAlloc.sumOf { it.size }
-    if (nL == 0) return alloc
+    if (nL == 0) return if (calendarUnits) followUnits(alloc, dates, pool = pool) else alloc
     val cum = leadAlloc.runningFold(0) { acc, l -> acc + l.size }.drop(1)
     val leadUnits = lead.unitStarts()
     return alloc.mapIndexed { bi, a ->
@@ -46,7 +50,7 @@ internal fun GroupReport.followLead(
         }
         var prev = 0
         ends.mapTo(ArrayList()) { e -> val end = maxOf(prev, e); rem.subList(prev, end).also { prev = end } }
-    }
+    }.let { if (calendarUnits) followUnits(it, dates, pool = pool) else it }
 }
 
 /** Where a follower's lessons end when its units are linked to the lead's: see [followLead]. */

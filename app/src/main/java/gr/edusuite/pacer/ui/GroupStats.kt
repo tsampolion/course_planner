@@ -54,6 +54,8 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
+import gr.edusuite.pacer.engine.validUnitStarts
+import gr.edusuite.pacer.engine.unitsActive
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Source
@@ -104,6 +106,7 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
             listOf(stringResource(R.string.stats_my_plan), stringResource(R.string.stats_proposed)),
             if (showingMine) 0 else 1, { showingMine = it == 0 },
         )
+        UnitProgressStrip(shown)
         FigureStrip(shown) { ownPace = true }
         if (plan.books.isNotEmpty()) {
             PaceTrack(shown) { bookId = it }
@@ -265,7 +268,7 @@ internal fun PaceTrack(report: GroupReport, compact: Boolean = false, onOpen: (S
                         contentDescription = "${b.name}. $planDescription. $under"
                         onClick(openLabel) { onOpen(b.id); true }
                     } else Modifier
-                ), planFraction,
+                ), planFraction, if (plan.unitsActive(report.group)) b.validUnitStarts().orEmpty().drop(1).map { start -> all.count { it < start }.toFloat() / all.size.coerceAtLeast(1) } else emptyList(),
             )
         }
     }
@@ -273,7 +276,7 @@ internal fun PaceTrack(report: GroupReport, compact: Boolean = false, onOpen: (S
 
 /** One book on the pace track: its name and tag, where it is, the bar with an optional tick, and a line under it. */
 @Composable
-private fun TrackRow(name: String, tag: String?, where: String, fraction: Float, tick: Float?, fill: Color, under: String, underColor: Color, modifier: Modifier = Modifier, planFraction: Float? = null) {
+private fun TrackRow(name: String, tag: String?, where: String, fraction: Float, tick: Float?, fill: Color, under: String, underColor: Color, modifier: Modifier = Modifier, planFraction: Float? = null, unitTicks: List<Float> = emptyList()) {
     val c = Pacer.colors
     val motion = animationsEnabled()
     val progress by animateFloatAsState(fraction, if (motion) Motion.work(MotionSpec.Step.PACE) else snap())
@@ -288,6 +291,7 @@ private fun TrackRow(name: String, tag: String?, where: String, fraction: Float,
             Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(c.surfaceContainer)) {
                 Box(Modifier.fillMaxHeight().fillMaxWidth(progress.coerceIn(0f, 1f)).clip(CircleShape).background(fill))
             }
+            unitTicks.forEach { boundary -> Box(Modifier.offset(x = maxWidth * boundary).width(1.dp).fillMaxHeight().background(c.ink)) }
             if (tick != null) Box(Modifier.offset(x = maxWidth * tick.coerceIn(0f, 1f) - 1.5.dp).width(3.dp).fillMaxHeight().background(c.ink, CircleShape))
         }
         if (planFraction != null) Box(Modifier.fillMaxWidth(planFraction.coerceIn(0f, 1f)).height(4.dp).border(1.dp, c.ink, CircleShape).clearAndSetSemantics {})

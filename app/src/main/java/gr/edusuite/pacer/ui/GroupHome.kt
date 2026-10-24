@@ -14,6 +14,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.unitProgress
 import gr.edusuite.pacer.engine.coreBooks
 import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.model.AssignmentType
@@ -42,7 +43,8 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
                 SectionHead(stringResource(R.string.work_progress))
                 VerdictHeading(report)
                 AnimatedFigure(pluralStringResource(R.plurals.class_lessons_left, report.lessons.size, report.lessons.size), style = MaterialTheme.typography.bodyMedium)
-                PaceTrack(report, compact = true) { onOpen(GroupPage.STATS) }
+                if (unitProgress(report.plan, report.group).isNotEmpty()) UnitProgressStrip(report)
+                else PaceTrack(report, compact = true) { onOpen(GroupPage.STATS) }
             }
         }
         item {

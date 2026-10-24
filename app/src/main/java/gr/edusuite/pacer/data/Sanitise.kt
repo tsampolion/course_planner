@@ -33,11 +33,15 @@ fun sanitiseYears(years: List<SchoolYear>): List<SchoolYear> =
     }
 
 private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
+    bookLinks = c.bookLinks.map { link -> link.filterTo(linkedSetOf()) { id -> c.books.any { it.id == id && !it.supplementary } } }.filter { it.size >= 2 }.distinct(),
     pace = c.pace.takeIf { it.isFinite() && it >= 0 } ?: 0.0,
     groups = unique(c.groups, { it.id }) { g, id -> g.copy(id = id) }.map { g ->
         val books = c.books.mapTo(HashSet()) { it.id }
         val supp = c.books.filter { it.supplementary }.mapTo(HashSet()) { it.id }
         g.copy(
+            unitRevisions = g.unitRevisions.filter { it.unitIndex >= 0 }.distinctBy { it.unitIndex }.map { r ->
+                r.copy(pages = r.pages.filterKeys { it in books }.mapValues { (_, ps) -> ps.map(::page).distinct().sorted() }.filterValues { it.isNotEmpty() })
+            },
             skip = g.skip.filterKeys { it in books },
             extraBooks = g.extraBooks.filterTo(linkedSetOf()) { id -> c.books.any { it.id == id && it.groupOnly } },
             done = g.done.distinctBy { it.date },

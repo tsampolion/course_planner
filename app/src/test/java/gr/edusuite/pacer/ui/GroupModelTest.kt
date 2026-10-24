@@ -153,4 +153,14 @@ class GroupModelTest {
         assertEquals(true, Hints.seen(seen, Hints.LESSON_MENU))
         assertEquals(false, Hints.seen(seen, Hints.PACE_TRACK))
     }
+    @Test fun inStepWithEnabledLinkedUnitsUsesWholeBookReferenceAcrossManyDates() {
+        val books = listOf(Book("sb", "Student's Book", 1, 100, units = "1, 51"),
+            Book("wb", "Workbook", 1, 60, units = "1, 21"))
+        val p = plan(books, "sb", mapOf("sb" to 51)).copy(unitsEnabled = true,
+            bookLinks = listOf(setOf("sb", "wb")))
+        val report = GroupReport(p, p.groups.first())
+        assertTrue(report.rows.size > 2)
+        assertEquals(mapOf("wb" to 21), report.inStepPages())
+    }
+
 }

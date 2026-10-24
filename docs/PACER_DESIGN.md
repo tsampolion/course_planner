@@ -171,3 +171,26 @@ set it as homework. A lesson picker names eligible dates; class scheduling
 explicitly says it reserves a whole lesson. Skip, outside tap and Back retain the
 original save. Linking uses a separate undo step. No new visual system or motion;
 the current assignment editor and native dialog behavior apply.
+
+## Book units and quiet updates (4.1.0)
+
+Book units extend the native Operate surfaces. Class settings and creation expose
+the optional master switch. The class Units screen has three steps: lead book,
+numbered starts with a count stepper/Space evenly/end-page notes, then an optional
+link checklist with compatibility status and a Don’t link escape. Group settings
+offers Follow class/On/Off and explains stored overrides while class units are off.
+
+Group home shows fractional unit segments in place of the pace summary when
+units are available. Stats keeps linked book progress together and retains pace
+tracks with unit-boundary ticks. Lesson rows name unit/lesson position, including
+actual taught dates so ticking Done does not reset the count. Unit-end rows offer
+revision Add/Edit/Remove. A native revision sheet offers Test/Worksheet/Pages/No
+revision, future lesson selection and unscheduled feedback; changes have Undo.
+The revision diamond pulses once for 800ms, snapping with reduced motion.
+
+Updates are quiet: the shared menu button's dot and accessible description, the
+drawer Settings tag, and the first Settings section. The section has notes,
+Download/See all changes, automatic-check switch, Check now feedback and one
+installed-version line. Debug builds retain About's version and hide Updates.
+Use the existing Material components, Outfit, Bone/Saffron roles and large-text
+layout. Native runtime/screenshot checks remain pending without a device.

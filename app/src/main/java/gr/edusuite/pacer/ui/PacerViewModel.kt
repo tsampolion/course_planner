@@ -1,5 +1,10 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.update.*
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.withContext
 import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -8,6 +13,11 @@ import gr.edusuite.pacer.data.JsonCodec
 import gr.edusuite.pacer.data.PlanStore
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
+import gr.edusuite.pacer.engine.pendingUnitRevisions
+import gr.edusuite.pacer.engine.withUnitRevision
+import gr.edusuite.pacer.engine.withoutUnitRevision
+import gr.edusuite.pacer.model.UnitRevision
+import gr.edusuite.pacer.model.RevisionKind
 import gr.edusuite.pacer.engine.withExtra
 import gr.edusuite.pacer.engine.withAssignment
 import gr.edusuite.pacer.engine.withLinkedAssignment
@@ -78,6 +88,9 @@ data class UiState(val data: AppData, val undoDepth: Int, val stack: List<Screen
     val screen: Screen get() = stack.last()
 }
 
+/** Session-only feedback from an explicit update check. */
+enum class UpdateCheckState { IDLE, CHECKING, UP_TO_DATE, FAILED }
+
 /** What undo restores: every year, and which year and class were open. */
 private data class Snapshot(val years: List<SchoolYear>, val activeYear: String, val activeClass: String)
 
@@ -87,7 +100,7 @@ private data class Snapshot(val years: List<SchoolYear>, val activeYear: String,
  * so typing a page number is one step, not six. Moving between screens is not an edit,
  * and opening another school year starts a fresh history.
  */
-class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore) : ViewModel() {
+class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore, private val updates: UpdateChecker) : ViewModel() {
     private val loaded = store.load()
     private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.fromView(d.view), 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -109,8 +122,16 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         return Nav.recent(recent, GroupRef(ui.data.activeClass, id))
     }
 
-    private val _settings = MutableStateFlow(settingsStore.load())
+    private val _settings = MutableStateFlow(settingsStore.load().let { before ->
+        updates.atLaunch(before).also { after -> if (after !== before) settingsStore.save(after) }
+    })
     val settings: StateFlow<Settings> = _settings.asStateFlow()
+    val update: StateFlow<Update?> = settings.map(updates::pending)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, updates.pending(_settings.value))
+    private val _updateCheck = MutableStateFlow(UpdateCheckState.IDLE)
+    val updateCheck: StateFlow<UpdateCheckState> = _updateCheck.asStateFlow()
+    val updatesEnabled: Boolean = updates.enabled
+    val installedVersion: String = updates.installed
 
     private val undoStack = ArrayDeque<Snapshot>()
     private var lastTag: String? = null
@@ -119,6 +140,54 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     private var historyStep = 0L
 
     private val data get() = _state.value.data
+
+    private val revisionPrompts = UnitRevisionPrompts()
+    private val _unitRevision = MutableStateFlow<UnitRevisionTarget?>(null)
+    val unitRevision: StateFlow<UnitRevisionTarget?> = _unitRevision.asStateFlow()
+
+    fun dismissUnitRevision(target: UnitRevisionTarget) {
+        revisionPrompts.dismiss(target)
+        _unitRevision.value = revisionPrompts.current
+    }
+    fun openUnitRevision(groupId: String, unitIndex: Int) {
+        revisionPrompts.open(UnitRevisionTarget(data.activeClass, groupId, unitIndex))
+        _unitRevision.value = revisionPrompts.current
+    }
+    private fun offerUnitRevision(classId: String, groupId: String, before: Group) {
+        val y = data.year ?: return
+        val c = y.classes.firstOrNull { it.id == classId } ?: return
+        val g = c.groups.firstOrNull { it.id == groupId } ?: return
+        val p = y.planFor(c)
+        val old = pendingUnitRevisions(p, before).toSet()
+        revisionPrompts.offer(pendingUnitRevisions(p, g).filter { it !in old }.map { UnitRevisionTarget(classId, groupId, it) })
+        _unitRevision.value = revisionPrompts.current
+    }
+    fun saveUnitRevision(target: UnitRevisionTarget, kind: RevisionKind, date: LocalDate?, pages: Map<String, List<Int>>, title: String): Boolean {
+        val y = data.year ?: return false
+        val c = y.classes.firstOrNull { it.id == target.classId } ?: return false
+        val g = c.groups.firstOrNull { it.id == target.groupId } ?: return false
+        val report = GroupReport(y.planFor(c), g)
+        if (kind != RevisionKind.NONE && date != null && date !in revisionDates(report, target.unitIndex, LocalDate.now())) return false
+        if (kind == RevisionKind.PAGES && !validRevisionPages(report.plan, pages)) return false
+        if (pages.any { (id, ps) -> report.plan.books.firstOrNull { it.id == id }?.let { assignmentPages(ps.joinToString(","), it) == null } != false }) return false
+        val old = g.unitRevisions.firstOrNull { it.unitIndex == target.unitIndex }?.assignmentId?.let { id -> g.assignments.firstOrNull { it.id == id } }
+        val assignment = revisionAssignment(old, kind, date, pages, title)
+        val changed = editYear { year -> year.withUnitRevision(target, UnitRevision(target.unitIndex, kind, pages = pages), assignment) }
+        dismissUnitRevision(target)
+        return changed
+    }
+    fun removeUnitRevision(target: UnitRevisionTarget): Boolean {
+        val changed = editYear { y -> y.copy(classes = y.classes.map { c -> if (c.id != target.classId) c else c.copy(groups = c.groups.map { g -> if (g.id == target.groupId) g.withoutUnitRevision(target.unitIndex) else g }) }) }
+        dismissUnitRevision(target)
+        return changed
+    }
+
+    init {
+        if (updates.shouldAutoCheck(_settings.value)) viewModelScope.launch {
+            val fetched = withContext(Dispatchers.IO) { updates.fetch() }
+            editSettings { updates.applied(it, fetched) }
+        }
+    }
 
     // ---- plumbing ----------------------------------------------------------
 
@@ -298,6 +367,23 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         settingsStore.save(next)
     }
 
+    fun setAutoUpdateCheck(on: Boolean) = editSettings { it.copy(autoUpdateCheck = on) }
+
+    /** Settings → Check now ignores the daily throttle and switch. */
+    fun checkForUpdates() {
+        if (!updates.enabled || _updateCheck.value == UpdateCheckState.CHECKING) return
+        _updateCheck.value = UpdateCheckState.CHECKING
+        viewModelScope.launch {
+            val fetched = withContext(Dispatchers.IO) { updates.fetch() }
+            editSettings { updates.applied(it, fetched) }
+            _updateCheck.value = when (fetched) {
+                is Fetched.Found -> UpdateCheckState.IDLE
+                Fetched.UpToDate -> UpdateCheckState.UP_TO_DATE
+                Fetched.Failed -> UpdateCheckState.FAILED
+            }
+        }
+    }
+
     fun setClassOrder(v: ClassOrder) = editSettings { it.copy(classOrder = v) }
 
     fun setPlanGrouping(v: PlanGrouping) = editSettings { it.copy(planGrouping = v) }
@@ -386,11 +472,11 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     // ---- classes -----------------------------------------------------------
 
     /** Adds a class with one group and the lesson length and pace from Settings, and opens it. */
-    fun newClass(name: String) {
+    fun newClass(name: String, unitsEnabled: Boolean = false) {
         val y = data.year ?: return
         val s = _settings.value
         val group = Group(newId(), "Group A", setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), y.start)
-        val c = SchoolClass(newId(), name.ifBlank { "Class ${y.classes.size + 1}" }, s.lessonMins, s.pace, listOf(group), emptyList(), emptyList(), emptyList())
+        val c = SchoolClass(newId(), name.ifBlank { "Class ${y.classes.size + 1}" }, s.lessonMins, s.pace, listOf(group), emptyList(), emptyList(), emptyList(), unitsEnabled = unitsEnabled)
         edit { d -> d.copy(years = d.years.map { if (it.id == y.id) it.copy(classes = it.classes + c) else it }, activeClass = c.id) }
         open(Screen.Class)
     }
@@ -428,6 +514,18 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     /** Ignores a pace the file can't store (infinite or not a number). */
     fun setPace(v: Double) {
         if (v.isFinite() && v >= 0) editClass("class:pace") { it.copy(pace = v) }
+    }
+
+    fun setUnitsEnabled(value: Boolean) = editClass { it.copy(unitsEnabled = value) }
+
+    fun setGroupUnitsOverride(groupId: String, value: Boolean?) = editGroup(groupId) { it.copy(unitsOverride = value) }
+
+    fun setBookLinks(links: List<Set<String>>) = editClass { it.copy(bookLinks = links) }
+
+    fun saveUnitStarts(bookId: String, rows: List<String>): Boolean {
+        val book = data.schoolClass?.books?.firstOrNull { it.id == bookId && !it.supplementary } ?: return false
+        val starts = validateUnitStarts(book.first, book.last, rows) ?: return false
+        return editBook(bookId) { it.copy(units = starts.joinToString(", ")) }
     }
 
     // ---- groups ------------------------------------------------------------
@@ -497,7 +595,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         val plan = data.plan ?: return false
         val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
         val next = change(GroupReport(plan, g), g)
-        return editGroup(groupId) { next }
+        val changed = editGroup(groupId) { next }
+        if (changed && next.done != g.done) offerUnitRevision(data.activeClass, groupId, g)
+        return changed
     }
 
     /** Ticks or unticks the lesson on [date] on its own. */
@@ -629,7 +729,12 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     }
 
     /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */
-    fun markNextLessonDoneIn(classId: String, groupId: String) = editYear { it.markNextLessonDone(classId, groupId) }
+    fun markNextLessonDoneIn(classId: String, groupId: String): Boolean {
+        val before = data.year?.classes?.firstOrNull { it.id == classId }?.groups?.firstOrNull { it.id == groupId } ?: return false
+        val changed = editYear { it.markNextLessonDone(classId, groupId) }
+        if (changed) offerUnitRevision(classId, groupId, before)
+        return changed
+    }
 
     // ---- assignments -------------------------------------------------------
 
@@ -704,9 +809,9 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     /** Makes book [id] the class's lead book, or with null lets every book keep its own pace. */
     fun setLead(id: String?) = editClass { it.copy(lead = id?.takeIf { b -> it.books.any { book -> book.id == b && !book.supplementary } }) }
 
-    class Factory(private val store: PlanStore, private val settings: SettingsStore) : ViewModelProvider.Factory {
+    class Factory(private val store: PlanStore, private val settings: SettingsStore, private val updates: UpdateChecker) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = PacerViewModel(store, settings) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = PacerViewModel(store, settings, updates) as T
     }
 
     private companion object {

@@ -34,8 +34,27 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 - **Large text and tablets**: from font scale 1.5 the screens show less, with the rest one tap away (groups on pace, more stats), and buttons go full width under their text. On a tablet, Pacing overview and the open group sit side by side, and from 840dp the menu stays open.
 - **Undo**: up to 60 steps within the open school year. Notifications show a countdown from when they appear; repeating a fix that changes nothing says "Already up to date".
 - **Settings**: your name for Home's greeting, theme, defaults for new classes, "Show tips again", and back up and restore. Export saves every school year to a file you choose. Import reads that file, or the web page's export, and adds its years beside yours or replaces them.
+- **Updates**: Course Pacer checks GitHub for a new version once a day and marks ☰ and Settings when one is out. Settings → Updates shows what changed; **Download** fetches it in your browser and Android updates the app, keeping your school years. Turn the daily check off, or check now, in Settings.
+- **Book units**: optionally set a lead book, numbered unit starts and linked books
+  that finish each unit together. Groups can follow or override the class choice.
+  Home, Plan and Stats show progress and lesson positions; unit-end revisions can
+  be tests, worksheets or book pages. Done offers a revision, with No revision
+  available. Invalid boundaries and unscheduled content have visible fixes.
 
 School years and settings are saved on the device and included in Android backup and device-to-device transfer. Uninstalling deletes them, so export first.
+
+The app's only network use is the update check: one request to api.github.com, once a day while automatic checks are on or when you tap Check now. It sends no data about you or your school years.
+
+## Installing on a phone
+
+1. Open [Releases](https://github.com/tsampolion/course_planner/releases/latest) in the phone's browser.
+2. Download the latest `course-pacer-X.Y.Z.apk`.
+3. Allow installs from the browser if Android asks.
+4. Install the APK and open Course Pacer.
+
+After this first installation, Settings → Updates shows new versions. Download
+and install them to keep your school years while updating. See
+[In-app updates](docs/UPDATES_BRIEF.md) for setup and the locally built copy caveat.
 
 ## Getting started
 

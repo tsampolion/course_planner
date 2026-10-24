@@ -1,5 +1,8 @@
 package gr.edusuite.pacer.model
 
+import gr.edusuite.pacer.update.Update
+import gr.edusuite.pacer.update.storedUpdate
+
 enum class ClassOrder {
     YOUR_ORDER, NAME, MOST_BEHIND;
     companion object {
@@ -49,12 +52,20 @@ data class Settings(
     val palette: PaletteChoice = PaletteChoice.BONE,
     val planGrouping: PlanGrouping = PlanGrouping.WEEKS,
     val classOrder: ClassOrder = ClassOrder.YOUR_ORDER,
+    /** Check GitHub for a newer release once a day on launch. */
+    val autoUpdateCheck: Boolean = true,
+    /** Epoch millis of the last successful update check; 0 for never. */
+    val lastUpdateCheck: Long = 0L,
+    /** The newest release found and not yet installed, or null. */
+    val availableUpdate: Update? = null,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(
         lessonMins = lessonMins.takeIf { it in 1..MAX_MINS } ?: DEFAULT_MINS,
         pace = pace.takeIf { it.isFinite() && it >= 0 } ?: DEFAULT_PACE,
         name = cleanName(name),
+        lastUpdateCheck = lastUpdateCheck.coerceAtLeast(0),
+        availableUpdate = availableUpdate?.let { storedUpdate(it.version, it.notes, it.apkUrl, it.pageUrl) },
         seenTips = seenTips.filterTo(mutableSetOf()) { it.isNotBlank() },
     )
 

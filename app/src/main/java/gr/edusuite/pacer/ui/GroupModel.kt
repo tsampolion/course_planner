@@ -108,7 +108,8 @@ fun GroupReport.inStepPages(): Map<String, Int> {
     val alloc = plan.books.mapIndexed { i, _ ->
         if (i == li) mutableListOf(done, rest) else mutableListOf<List<Int>>(emptyList(), emptyList())
     }
-    val followed = followLead(alloc) { it.allPages() }
+    // These are taught/rest reference slices, not dates in the remaining teaching calendar.
+    val followed = followLead(alloc, calendarUnits = false) { it.allPages() }
     return plan.books.withIndex().mapNotNull { (i, b) ->
         if (i == li || b.supplementary || b.due != null) return@mapNotNull null
         val all = b.allPages()

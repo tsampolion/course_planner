@@ -85,13 +85,14 @@ object PrintSheet {
                         .append(row.date.monthShort()).append(' ').append(row.date.year).append("</td></tr>")
                 }
                 val names = esc(row.events.joinToString(" · ") { it.name })
+                val hasPages = row.pages.any { it.isNotEmpty() }
                 append(if (row.blocked) "<tr class=ev>" else "<tr>")
                 append("<td class=n>").append(row.n).append("</td><td>").append(row.date.fmt()).append(' ')
                     .append(row.date.dayOfWeek.short())
                 if (row.extraId != null) append(" <b>[Extra]</b>")
-                if (!row.blocked && names.isNotEmpty()) append(" <b>[").append(names).append("]</b>")
+                if ((!row.blocked || hasPages) && names.isNotEmpty()) append(" <b>[").append(names).append("]</b>")
                 append("</td>")
-                if (row.blocked) {
+                if (row.blocked && !hasPages) {
                     append("<td colspan=").append(cols.size).append("><b>").append(names).append("</b></td>")
                 } else {
                     cols.forEach { append("<td class=pg>").append(row.cells[it]).append("</td>") }

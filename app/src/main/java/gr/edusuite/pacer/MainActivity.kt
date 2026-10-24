@@ -19,7 +19,7 @@ import gr.edusuite.pacer.ui.theme.PacerTheme
 class MainActivity : ComponentActivity() {
     private val vm: PacerViewModel by viewModels {
         val app = application as PacerApplication
-        PacerViewModel.Factory(app.store, app.settings)
+        PacerViewModel.Factory(app.store, app.settings, app.updates)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

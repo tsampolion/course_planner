@@ -22,6 +22,8 @@ sealed interface Screen {
     data object Class : Screen
     data object Tests : Screen
     data object Homework : Screen
+    /** Lead book, unit boundaries and optional links for the open class. */
+    data object Units : Screen
     /** A group of the open class. */
     data class Group(val id: String, val page: GroupPage = GroupPage.HOME) : Screen
     /** Calendar and book overrides for one group. */
@@ -40,7 +42,7 @@ val Screen.needsYear: Boolean get() = this != Screen.Home && this != Screen.Sett
 
 /** Shown only while a class is open. */
 val Screen.needsClass: Boolean
-    get() = this == Screen.Class || this == Screen.Tests || this == Screen.Homework || this is Screen.Group || this is Screen.GroupSettings
+    get() = this == Screen.Class || this == Screen.Tests || this == Screen.Homework || this == Screen.Units || this is Screen.Group || this is Screen.GroupSettings
 
 /**
  * Screens that change school-year data show Undo in their top bar (design decision 18). Settings, Pacing overview and
@@ -48,7 +50,7 @@ val Screen.needsClass: Boolean
  */
 val Screen.showsUndo: Boolean
     get() = this == Screen.Class || this == Screen.Classes || this == Screen.YearSettings ||
-        this == Screen.Tests || this == Screen.Homework || this is Screen.Group || this is Screen.GroupSettings
+        this == Screen.Tests || this == Screen.Homework || this == Screen.Units || this is Screen.Group || this is Screen.GroupSettings
 
 /** The two panes of a tablet window: the [list] screen, and the open [detail] group beside it if there is one. */
 data class Panes(val list: Screen, val detail: Screen?)

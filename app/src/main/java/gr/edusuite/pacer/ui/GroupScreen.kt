@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.Alignment
 import gr.edusuite.pacer.R
+import gr.edusuite.pacer.engine.unitPlan
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Source
 import gr.edusuite.pacer.engine.bookLags
@@ -125,7 +126,14 @@ fun GroupScreen(
     // An active custom plan that fits every page into the term already answers the warnings.
     val handled = remember(report) { report.custom != null && report.coverage()?.ok == true && (report.shortfallCoverage()?.complete != false) }
     val lags = remember(report, handled) { if (handled) emptyList() else report.bookLags(plan.lead, plan.lagLessons.toDouble()) }
-    val lessons = remember(viewed, compare) { lessonsOf(viewed, compare) }
+    val unitWindows = remember(shown) { unitPlan(shown.plan, shown.group)?.windows.orEmpty() }
+    val lessons = remember(viewed, compare) {
+        val positions = unitLessonPositions(viewed)
+        lessonsOf(viewed, compare).map { lesson ->
+            val position = positions[lesson.date]
+            if (position == null) lesson else lesson.copy(unitIndex = position.unitIndex, unitLesson = position.lesson, unitLessons = position.total)
+        }
+    }
     val today = remember { LocalDate.now() }
     var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.firstOrNull() ?: today).toString()) }
     var extraDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
@@ -256,7 +264,9 @@ fun GroupScreen(
                 if (earlierCount > 0) item(key = "earlier") {
                     TertiaryButton(if (earlierOpen) stringResource(R.string.plan_hide_earlier) else pluralStringResource(R.plurals.plan_earlier_lessons, earlierCount, earlierCount), { earlierOpen = !earlierOpen }, Modifier.padding(horizontal = Space.l))
                 }
-                if (earlierOpen) ledgerWeeks("a", earlierWeeks, actions)
+                if (earlierOpen) ledgerWeeks("a", earlierWeeks, actions) { e ->
+                    unitWindows.filter { it.end == e.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
+                }
                 if (showHero) item(key = "today") {
                     TodayBox(
                         next, today, actions,
@@ -264,6 +274,7 @@ fun GroupScreen(
                         onPagesTaught = { editingDate = next?.date?.toString() },
                         modifier = Modifier.padding(horizontal = Space.l),
                     )
+                    unitWindows.filter { it.end == next?.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                 }
                 item(key = "custom") {
                     Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m), verticalArrangement = Arrangement.spacedBy(Space.m)) {
@@ -322,6 +333,7 @@ fun GroupScreen(
                         } else {
                             Box(Modifier.animateItem()) { EntryRow(e, actions) }
                         }
+                        unitWindows.filter { it.end == e.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                     }
                 }
             }
@@ -416,6 +428,10 @@ fun GroupScreen(
     if (warningsOpen) {
         val warnings = remember(report) { groupWarnings(report) }
         WarningsSheet(report, warnings, WarningFixes(
+            units = { issue ->
+                if (issue.kind == gr.edusuite.pacer.engine.UnitIssueKind.REVISION_UNSCHEDULED && issue.unitIndex != null) vm.openUnitRevision(g.id, issue.unitIndex)
+                else vm.open(Screen.Units)
+            },
             catchUp = { catchingUp = true },
             fold = { folding = it.bookId },
             repace = { changed(vm.repaceFrom(g.id, 0), context.getString(R.string.custom_repaced)) },
@@ -455,10 +471,10 @@ private fun EntryRow(e: Entry, actions: LessonActions) {
 }
 
 /** Week sections of lines that don't move: a header, then a row per line. [tag] keeps keys apart above and below today. */
-private fun LazyListScope.ledgerWeeks(tag: String, weeks: List<WeekSection<Entry>>, actions: LessonActions) {
+private fun LazyListScope.ledgerWeeks(tag: String, weeks: List<WeekSection<Entry>>, actions: LessonActions, after: @Composable (Entry) -> Unit = {}) {
     weeks.forEach { section ->
         item(key = "w$tag${section.start}", contentType = "week") { WeekHeader(section) }
-        items(section.items, key = { e -> e.key() }) { e -> EntryRow(e, actions) }
+        items(section.items, key = { e -> e.key() }) { e -> EntryRow(e, actions); after(e) }
     }
 }
 

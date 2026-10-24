@@ -18,9 +18,9 @@ data class NextLesson(
     val className: String,
     val groupName: String,
     val date: LocalDate,
-    /** A test takes the whole lesson, so [what] names the tests rather than pages. */
+    /** A whole-lesson assignment reserves the slot, including a revision with selected pages. */
     val blocked: Boolean,
-    /** Pages per book ("Student's Book 12-15 · Workbook 8-9"), or the tests on a blocked lesson. */
+    /** Pages per book ("Student's Book 12-15 · Workbook 8-9"), plus the work reserving a blocked lesson. */
     val what: String,
     /** The date has passed and the lesson is still not marked done. */
     val overdue: Boolean,
@@ -42,7 +42,9 @@ fun nextLesson(year: SchoolYear, today: LocalDate): NextLesson? {
             val groupPlan = report.plan
             if (best != null && !row.date.isBefore(best.date)) continue
             val what = if (row.blocked) {
-                row.events.joinToString(" · ") { it.name }
+                (row.events.map { it.name } + groupPlan.books.indices
+                    .filter { i -> row.pages[i].isNotEmpty() }
+                    .map { i -> "${groupPlan.books[i].name} ${row.cells[i]}" }).joinToString(" · ")
             } else {
                 // A supplementary book shows only where the lesson has its pages.
                 groupPlan.books.indices.filter { i -> row.cells[i].isNotEmpty() && (!groupPlan.books[i].supplementary || row.pages[i].isNotEmpty()) }
