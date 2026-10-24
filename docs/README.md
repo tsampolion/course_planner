@@ -23,6 +23,8 @@ Each one records why a feature was built. The code and `CLAUDE.md` describe the 
 - [SIGNING_BRIEF.md](SIGNING_BRIEF.md): the permanent release signing key (built in 1.5.3; secrets limited to `main` since 1.7.3).
 - [BACKUP_BRIEF.md](BACKUP_BRIEF.md): export and import of school years (1.6.0).
 - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases, its release contract and colleague setup (4.1.0).
+- [UNITS_BRIEF.md](UNITS_BRIEF.md): optional linked book units, group overrides,
+  revisions and schema 14, delivered with update checks (4.1.0).
 - [EXTRA_LESSONS_BRIEF.md](EXTRA_LESSONS_BRIEF.md): date-pinned core-book extra lessons, editing, re-pacing and schema 10 (3.7.0).
 - [CUSTOM_PLANS_BRIEF.md](CUSTOM_PLANS_BRIEF.md): custom plans, a lead book and pace warnings (built in 2.6.0 to 2.9.0; menu and Undo fixes in 3.6.1).
 - [CATCH_UP_REPACE_BRIEF.md](CATCH_UP_REPACE_BRIEF.md): preserving the chosen catch-up pace when re-pacing and adjusting it directly (3.6.2, schema 9).

@@ -202,7 +202,7 @@ data class Row(
     val n: Int,
     val date: LocalDate,
     val events: List<TestEvent>,
-    /** A test takes the whole lesson, so no pages are taught. */
+    /** Reserved whole lesson: ordinary teaching is blocked; a pages revision may carry its own pages. */
     val blocked: Boolean,
     /** Pages per book, in the plan's book order. */
     val pages: List<List<Int>>,
@@ -213,7 +213,7 @@ data class Row(
     val extraId: String? = null,
     val assignments: List<Assignment> = emptyList(),
 ) {
-    val cells: List<String> get() = if (blocked) pages.map { "" } else pages.map(::collapse)
+    val cells: List<String> get() = if (blocked && pages.all { it.isEmpty() }) pages.map { "" } else pages.map(::collapse)
 }
 
 /** Which plan a [GroupReport] lays out. */
@@ -264,7 +264,7 @@ class GroupReport(base: Plan, val group: Group, val source: Source = Source.ACTI
             val blocked = blockedByLesson[i]
             val extra = extrasByDate[date]
             val pages = when {
-                blocked -> plan.books.map { emptyList() }
+                blocked -> revisionPages(date)
                 extra != null -> plan.books.map { b -> if (b.supplementary) emptyList() else extra.pages[b.id].orEmpty() }
                 else -> alloc.map { it.getOrElse(k) { emptyList() } }
             }
@@ -281,7 +281,7 @@ class GroupReport(base: Plan, val group: Group, val source: Source = Source.ACTI
             allocatePages(plan.remainingPages(group, b), m).toMutableList().apply {
                 while (size < dates.size) add(emptyList())
             }
-        }.let { followLead(it) }
+        }.let { followLead(it, dates) }
 
     /** Most pages, summed over books, any single lesson carries. */
     val peak: Int by lazy {

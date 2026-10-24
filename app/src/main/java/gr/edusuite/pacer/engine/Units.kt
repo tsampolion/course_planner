@@ -45,6 +45,7 @@ fun unitPlan(plan: Plan, g: Group): UnitPlan? {
     val units = buildUnitPlan(p, g, dates) { p.remainingPages(g, it) }
     return units.copy(windows = units.windows.map { w ->
         if (w.pages.values.any { it.isNotEmpty() }) w else w.copy(dates = g.done.filter { d ->
+            g.unitRevisions.none { r -> r.assignmentId != null && g.assignments.any { it.id == r.assignmentId && it.due == d.date } } &&
             p.books.any { b -> b.id in units.linkedBookIds && b.validUnitStarts()?.let { starts ->
                 d.pages[b.id].orEmpty().any { page -> starts.indexOfLast { it <= page } == w.index }
             } == true }
@@ -74,19 +75,33 @@ private fun buildUnitPlan(p: Plan, g: Group, dates: List<LocalDate>, pool: (Book
     val total = weights.values.sum().coerceAtLeast(1)
     var cursor = 0
     var cumulative = 0
+    var blockedByEarlierUnit = false
     val windows = starts.indices.map { u ->
         val pages = unitPages[u]
         val remainingUnits = active.count { it > u }
-        val n = if (u !in active || cursor >= dates.size) 0 else {
+        // A chosen revision is a calendar boundary even when its unit is already complete.
+        val previousRevision = g.unitRevisions.filter { it.unitIndex < u && it.kind != RevisionKind.NONE }
+            .mapNotNull { r -> g.assignments.firstOrNull { it.id == r.assignmentId }?.due }.maxOrNull()
+        while (cursor < dates.size && previousRevision != null && dates[cursor] <= previousRevision) cursor++
+        val revision = g.unitRevisions.firstOrNull { it.unitIndex == u && it.kind != RevisionKind.NONE }
+            ?.let { r -> g.assignments.firstOrNull { it.id == r.assignmentId }?.due }
+        val n = if (blockedByEarlierUnit || u !in active || cursor >= dates.size) 0 else {
             cumulative += weights.getValue(u)
             val idealEnd = ((2L * cumulative * dates.size + total) / (2L * total)).toInt()
-            val maxEnd = (dates.size - remainingUnits).coerceAtLeast(cursor + 1).coerceAtMost(dates.size)
-            (idealEnd.coerceIn(cursor + 1, maxEnd) - cursor).coerceAtLeast(1)
+            if (revision != null) {
+                dates.drop(cursor).takeWhile { it < revision }.size
+            } else {
+                val maxEnd = (dates.size - remainingUnits).coerceAtLeast(cursor + 1).coerceAtMost(dates.size)
+                (idealEnd.coerceIn(cursor + 1, maxEnd) - cursor).coerceAtLeast(1)
+            }
         }
         val ds = dates.subList(cursor, (cursor + n).coerceAtMost(dates.size)).toList()
         cursor += ds.size
-        if (u in active && ds.isEmpty()) issues += UnitIssue(UnitIssueKind.INSUFFICIENT_WINDOW,
-            "Unit ${u + 1}: no lesson window is available; ${pages.values.sumOf { it.size }} pages remain unscheduled. Add lessons or extend the term.", u)
+        if (u in active && ds.isEmpty()) {
+            blockedByEarlierUnit = true
+            issues += UnitIssue(UnitIssueKind.INSUFFICIENT_WINDOW,
+                "Unit ${u + 1}: no lesson window is available; ${pages.values.sumOf { it.size }} pages remain unscheduled. Adjust revision dates, add lessons or extend the term.", u)
+        }
         for (b in valid) if (pages[b.id].orEmpty().isNotEmpty() && b.due != null && (ds.lastOrNull() == null || ds.last() > b.due))
             issues += UnitIssue(UnitIssueKind.DEADLINE, "${b.name}: unit ${u + 1} cannot finish before its finish-by date while linked unit boundaries are kept.", u, b.id)
         UnitWindow(u, ds, pages)
@@ -101,11 +116,15 @@ private fun buildUnitPlan(p: Plan, g: Group, dates: List<LocalDate>, pool: (Book
 }
 
 /** Apply unit windows after the legacy allocation; unlinked columns remain byte-for-byte unchanged. */
-internal fun GroupReport.followUnits(alloc: List<MutableList<List<Int>>>, pool: (Book) -> List<Int>): List<MutableList<List<Int>>> {
+internal fun GroupReport.followUnits(
+    alloc: List<MutableList<List<Int>>>,
+    dates: List<LocalDate> = teachingDates,
+    weights: List<Long> = List(dates.size) { 1L },
+    weightedBookId: String? = null,
+    pool: (Book) -> List<Int>,
+): List<MutableList<List<Int>>> {
     if (!plan.unitsActive(group)) return alloc
     val size = alloc.maxOfOrNull { it.size } ?: 0
-    // Relative slots suffice here; actual calendar deadlines are reported by unitPlan.
-    val dates = List(size) { LocalDate.of(2000, 1, 1).plusDays(it.toLong()) }
     val units = buildUnitPlan(plan, group, dates, pool)
     val out = alloc.map { it.toMutableList() }.toMutableList()
     for (b in plan.unitBooks()) {
@@ -116,19 +135,24 @@ internal fun GroupReport.followUnits(alloc: List<MutableList<List<Int>>>, pool: 
         if (b.id !in units.linkedBookIds) continue
         for (window in units.windows) {
             val slots = window.dates.map { dates.indexOf(it) }
-            allocatePages(window.pages[b.id].orEmpty(), slots.size).forEachIndexed { j, ps -> out[i][slots[j]] = ps }
+            allocateWeighted(window.pages[b.id].orEmpty(), slots.map { if (weightedBookId == null || weightedBookId == b.id) weights[it] else 1L }).forEachIndexed { j, ps -> out[i][slots[j]] = ps }
         }
     }
     return out
 }
 
 /** Repace generated custom content through the same linked windows without touching manual material. */
-internal fun GroupReport.constrainUnitLessons(out: MutableList<PlannedLesson>, targets: List<Int>) {
+internal fun GroupReport.constrainUnitLessons(
+    out: MutableList<PlannedLesson>,
+    targets: List<Int>,
+    weights: List<Long> = List(targets.size) { 1L },
+    weightedBookId: String? = null,
+) {
     if (!plan.unitsActive(group) || targets.isEmpty()) return
     val pools = plan.books.associate { b -> b.id to targets.flatMap { out[it].pages[b.id].orEmpty() }.distinct().sorted() }
     val alloc = plan.books.map { b -> targets.mapTo(arrayListOf()) { out[it].pages[b.id].orEmpty() } }
     val linked = plan.unitBooks().mapTo(hashSetOf()) { it.id }
-    val constrained = followUnits(alloc) { pools.getValue(it.id) }
+    val constrained = followUnits(alloc, targets.map { teachingDates[it] }, weights, weightedBookId) { pools.getValue(it.id) }
     for ((bi, b) in plan.books.withIndex()) if (b.id in linked) for ((j, t) in targets.withIndex()) {
         out[t] = out[t].copy(pages = (out[t].pages - b.id) + constrained[bi][j].takeIf { it.isNotEmpty() }.let { if (it == null) emptyMap() else mapOf(b.id to it) })
     }
@@ -173,7 +197,19 @@ fun GroupReport.unitIssues(): List<UnitIssue> {
     val required = books.associate { b -> b.id to (plan.remainingPages(group, b) + plan.activeExtras(group).flatMap { it.pages[b.id].orEmpty() }).toSet() }
     val seen = books.associate { it.id to hashSetOf<Int>() }
     val flagged = hashSetOf<Int>()
+    val revisionConflicts = hashSetOf<Int>()
     for (row in rows) {
+        // Revision pages can revisit any unit; they are not new unit teaching.
+        if (group.unitRevisions.any { r -> group.assignments.any { it.id == r.assignmentId && it.due == row.date } }) continue
+        val taughtUnits = books.flatMap { b ->
+            row.pages[plan.books.indexOfFirst { it.id == b.id }].map { page -> b.validUnitStarts()!!.indexOfLast { it <= page } }
+        }
+        for (r in group.unitRevisions.filter { it.kind != RevisionKind.NONE }) {
+            val date = group.assignments.firstOrNull { it.id == r.assignmentId }?.due ?: continue
+            val conflicts = taughtUnits.any { (it == r.unitIndex && row.date >= date) || (it > r.unitIndex && row.date <= date) }
+            if (conflicts && revisionConflicts.add(r.unitIndex)) issues += UnitIssue(UnitIssueKind.BOUNDARY_VIOLATION,
+                "Unit ${r.unitIndex + 1}: teaching on ${row.date} conflicts with its revision on $date. Manual lessons are preserved; adjust lesson pages or the revision date.", r.unitIndex)
+        }
         val highest = books.maxOfOrNull { b ->
             val bi = plan.books.indexOfFirst { it.id == b.id }
             row.pages[bi].maxOfOrNull { page -> b.validUnitStarts()!!.indexOfLast { it <= page } } ?: -1
@@ -194,4 +230,12 @@ fun GroupReport.unitIssues(): List<UnitIssue> {
             "Unit ${w.index + 1}: ${missing.keys.mapNotNull { id -> books.firstOrNull { it.id == id }?.name }.joinToString()} holds the next unit back.", w.index)
     }
     return issues.distinct()
+}
+
+/** Revision pages occupy the reserved lesson without consuming a custom teaching slot. */
+internal fun GroupReport.revisionPages(date: LocalDate): List<List<Int>> {
+    val pages = group.unitRevisions.filter { it.kind == RevisionKind.PAGES }.mapNotNull { r ->
+        group.assignments.firstOrNull { it.id == r.assignmentId && it.due == date && it.takesLesson && it.type != AssignmentType.HOMEWORK }
+    }.flatMap { it.pages.entries }.groupBy({ it.key }, { it.value }).mapValues { (_, lists) -> lists.flatten().distinct().sorted() }
+    return plan.books.map { pages[it.id].orEmpty() }
 }

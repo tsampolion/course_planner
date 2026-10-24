@@ -32,7 +32,7 @@ fun GroupReport.asTsv(): String {
     lines += (listOf("#", "Date", "Day") + books.map { it.name } + if (notes) listOf("Note") else emptyList()).joinToString("\t")
     for (r in rows) {
         val names = r.events.joinToString(" / ") { it.name }
-        val cells = if (r.blocked) {
+        val cells = if (r.blocked && r.pages.all { it.isEmpty() }) {
             listOf(names) + books.drop(1).map { "" }
         } else {
             cols.map { r.cells[it] }.mapIndexed { i, c -> if (i == 0 && names.isNotEmpty()) "$c  [$names]" else c }

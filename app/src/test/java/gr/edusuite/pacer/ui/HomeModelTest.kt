@@ -2,6 +2,11 @@ package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.markDone
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
+import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.RevisionKind
+import gr.edusuite.pacer.model.UnitRevision
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.model.seedYear
@@ -137,4 +142,17 @@ class HomeModelTest {
         assertEquals(3, large.onPace)
         assertEquals(0, emptyList<BoardRow>().behindOnly().onPace)
     }
+    @Test fun homeNamesPagesOnAWholeLessonRevision() {
+        val day = LocalDate.of(2026, 10, 26)
+        val book = Book("core", "Core", 1, 8)
+        val a = Assignment("revision", AssignmentType.WORKSHEET, "Unit revision", due = day, takesLesson = true, pages = mapOf(book.id to listOf(2, 3)))
+        val g = sample.groups.first().copy(from = day, days = java.time.DayOfWeek.entries.toSet(),
+            assignments = listOf(a), unitRevisions = listOf(UnitRevision(0, RevisionKind.PAGES, assignmentId = a.id, pages = a.pages)))
+        val cls = sample.copy(books = listOf(book), groups = listOf(g))
+        val year = seed.copy(start = day, end = day.plusDays(3), closures = emptyList(), classes = listOf(cls))
+        val next = nextLesson(year, day)!!
+        assertTrue(next.blocked)
+        assertEquals("Unit revision · Core 2–3", next.what)
+    }
+
 }

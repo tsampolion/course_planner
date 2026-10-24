@@ -35,6 +35,11 @@ Release history is in [CHANGELOG.md](CHANGELOG.md).
 - **Undo**: up to 60 steps within the open school year. Notifications show a countdown from when they appear; repeating a fix that changes nothing says "Already up to date".
 - **Settings**: your name for Home's greeting, theme, defaults for new classes, "Show tips again", and back up and restore. Export saves every school year to a file you choose. Import reads that file, or the web page's export, and adds its years beside yours or replaces them.
 - **Updates**: Course Pacer checks GitHub for a new version once a day and marks ☰ and Settings when one is out. Settings → Updates shows what changed; **Download** fetches it in your browser and Android updates the app, keeping your school years. Turn the daily check off, or check now, in Settings.
+- **Book units**: optionally set a lead book, numbered unit starts and linked books
+  that finish each unit together. Groups can follow or override the class choice.
+  Home, Plan and Stats show progress and lesson positions; unit-end revisions can
+  be tests, worksheets or book pages. Done offers a revision, with No revision
+  available. Invalid boundaries and unscheduled content have visible fixes.
 
 School years and settings are saved on the device and included in Android backup and device-to-device transfer. Uninstalling deletes them, so export first.
 

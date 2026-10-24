@@ -18,7 +18,7 @@ internal fun GroupReport.customRows(c: CustomPlan): List<Row> {
     var k = 0
     return lessons.mapIndexed { i, date ->
         if (blockedByLesson[i]) {
-            Row(i + 1, date, eventsByLesson[i], true, plan.books.map { emptyList() }, assignments = assignmentsOn(group, date))
+            Row(i + 1, date, eventsByLesson[i], true, revisionPages(date), assignments = assignmentsOn(group, date))
         } else if (date in extrasByDate) {
             val extra = extrasByDate.getValue(date)
             Row(i + 1, date, eventsByLesson[i], false, plan.books.map { b -> if (b.supplementary) emptyList() else extra.pages[b.id].orEmpty() }, extraId = extra.id, assignments = assignmentsOn(group, date))
@@ -137,7 +137,7 @@ fun GroupReport.customAtRate(pagesPerLesson: Double): CustomPlan {
                 while (this.size < targets.size) add(emptyList())
             }
         }
-        followLead(alloc) { pools.getValue(it.id) }.forEachIndexed { bi, allocation ->
+        followLead(alloc, targets.map { teachingDates.getOrNull(it) ?: (plan.end ?: LocalDate.of(2000, 1, 1)).plusDays(it - teaching + 1L) }) { pools.getValue(it.id) }.forEachIndexed { bi, allocation ->
             allocation.forEachIndexed { j, ps -> if (ps.isNotEmpty()) {
                 val t = targets[j]
                 out[t] = out[t].copy(pages = out[t].pages + (plan.books[bi].id to ps))
@@ -216,7 +216,7 @@ fun GroupReport.repaceFrom(from: Int): CustomPlan? {
         allocatePages(pool, m).toMutableList().apply { while (size < targets.size) add(emptyList()) }
     }
     // With a lead book the others keep step with it here too, as in the proposed plan.
-    followLead(alloc) { pools.getValue(it.id) }.forEachIndexed { bi, a ->
+    followLead(alloc, targets.map { days[it] }) { pools.getValue(it.id) }.forEachIndexed { bi, a ->
         val b = plan.books[bi]
         a.forEachIndexed { j, pages ->
             if (pages.isNotEmpty()) out[targets[j]] = out[targets[j]].let { it.copy(pages = it.pages + (b.id to pages)) }

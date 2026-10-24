@@ -1,6 +1,8 @@
 # Book units
 
-Approved engine extension from Part A of the owner's handoff, delivered with the separately approved update checker in PR50.
+Approved engine extension from Part A of the owner's handoff, delivered together
+with the separately approved update checker in one combined PR. The original
+update-spec PR50 was closed unmerged; its closure is preserved.
 
 Book units are optional. The class master switch defaults off. A group can disable units or follow the class; a stored group choice to enable units is inert while the class switch is off. Unit metadata remains saved when units are disabled, and the old allocator, lead following, custom plans and catch-up retain their behavior.
 
@@ -8,10 +10,15 @@ When enabled, units require a lead book. Starts are strict: ascending distinct i
 
 Each linked unit has a separate lesson window. All its remaining pages finish before a later unit begins anywhere in that chain. Pools respect group book membership, skips, positions, taught pages, active pinned extras and homework. A unit with no remaining pages needs no new lesson. If there are fewer available lessons than nonempty units, the engine preserves boundaries and retains the unscheduled pages in its unit windows, with an explicit warning and page count. Deadlines that cannot coexist with the shared windows warn instead of silently breaking the unit rule.
 
-Revisions belong to each group. Completing a unit offers an optional Test, Worksheet, Pages of a book, or No revision. No revision records a decision, so the prompt does not recur. The first three create an ordinary whole-lesson group assignment; Pages uses a worksheet assignment carrying the selected pages. Taught history is never rewritten. No suitable future date leaves the revision visibly unscheduled. Removing or replacing a revision only removes its owned assignment and clears any paired homework reference. Editing the same owned assignment preserves its homework pair; editors copy the existing assignment so teacher-entered fields survive.
+Revisions belong to each group. Completing a unit offers an optional Test, Worksheet, Pages of a book, or No revision. No revision records a decision, so the prompt does not recur. The first three create an ordinary whole-lesson group assignment; Pages supports ordinary and supplementary books, using a worksheet assignment carrying the selected pages. Its reserved lesson displays those pages in Home, Plan, spoken summaries, copy/export and print, and records them when marked Done; repeated revision pages do not extend the original unit's lesson count. Chosen revision dates bound the preceding and following teaching windows. A conflicting date leaves an actionable warning and unscheduled pages rather than starting a later unit across unfinished work. Taught history is never rewritten. No suitable future date leaves the revision visibly unscheduled. Removing or replacing a revision only removes its owned assignment and clears any paired homework reference. Editing the same owned assignment preserves its homework pair; editors copy the existing assignment so teacher-entered fields survive.
 
-Manual custom lessons, touched content, supplementary placements and pinned extras remain teacher-owned. Automatic re-pacing and catch-up apply shared windows to generated content, preserve those manual choices and expose boundary violations as warnings. Progress and revision prompts are derived from remaining pages, not from invented historical allocations.
+Manual custom lessons, touched content, supplementary placements and pinned extras remain teacher-owned. Automatic re-pacing and catch-up apply shared windows to generated content, preserve those manual choices and expose boundary violations as warnings. Catch-up and Fold backlog keep their chosen weights within each unit window; folding changes only the selected book's weights. Progress and revision prompts are derived from remaining pages, not from invented historical allocations.
 
 Persistence is schema 14. Missing metadata defaults to units off, no links, no override and no revisions. Malformed revision records are isolated. Unknown linked books are removed on sanitising, and invalid starts stay visible for correction instead of being silently sorted.
 
 Validation includes units-off rows/custom/catch-up parity, linked boundaries, count mismatch, strict starts, zero-page units, group master-switch precedence, per-group revisions, homework and optional membership, impossible windows and deadlines, touched custom plans, catch-up, and platform JSON round-trip/default/malformed-record checks. Device execution remains separate from JVM verification.
+
+Final integrated verification: 380 JVM tests pass; lint zero errors (71 warnings,
+one hint); release and Android test APKs build. Signature/package checks pass.
+Platform execution and native QA remain pending. See
+[combined verification](work/units-and-updates/verification.md) and its ledger.

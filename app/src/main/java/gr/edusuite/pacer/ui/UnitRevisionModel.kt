@@ -7,16 +7,29 @@ import java.time.LocalDate
 /** Prompt identity includes the class: Home may tick a group outside the selected class. */
 data class UnitRevisionTarget(val classId: String, val groupId: String, val unitIndex: Int)
 
+internal fun revisionBooks(plan: Plan): List<Book> = plan.books
+
+internal fun validRevisionPages(plan: Plan, pages: Map<String, List<Int>>): Boolean =
+    pages.isNotEmpty() && pages.values.any { it.isNotEmpty() } &&
+        pages.all { (id, ps) -> revisionBooks(plan).firstOrNull { it.id == id }?.let { assignmentPages(ps.joinToString(","), it) != null } == true }
+
 internal fun revisionDates(report: GroupReport, unitIndex: Int, today: LocalDate): List<LocalDate> {
-    // Remove only this revision while proposing an edit, so its own reserved date stays eligible.
     val group = report.group.withoutUnitRevision(unitIndex)
     val candidate = GroupReport(report.plan, group)
     val end = unitPlan(candidate.plan, group)?.windows?.firstOrNull { it.index == unitIndex }?.end
-    val owned = candidate.custom?.lessons?.associateBy { it.id }.orEmpty()
-    return candidate.rows.filter { row -> row.date > today && (end == null || row.date > end) &&
-        group.done.none { it.date == row.date } && !row.blocked &&
-        row.extraId == null &&
-        owned[row.lessonId]?.let { !it.touched && it.inLesson.isEmpty() && it.note.isBlank() } != false
+    val originalEnd = unitPlan(report.plan, report.group)?.windows?.firstOrNull { it.index == unitIndex }?.end
+    val assignmentId = report.group.unitRevisions.firstOrNull { it.unitIndex == unitIndex }?.assignmentId
+    val reserved = report.group.assignments.firstOrNull { it.id == assignmentId }?.due
+    val originalRows = report.rows.associateBy { it.date }
+    val owned = report.custom?.lessons?.associateBy { it.id }.orEmpty()
+    // Removing the reservation shifts custom slots. Check ownership on the existing calendar,
+    // so the following manual lesson neither claims the reservation nor loses its own date.
+    return candidate.rows.filter { row ->
+        val boundary = if (row.date == reserved) originalEnd else end
+        val original = originalRows[row.date]
+        row.date > today && (boundary == null || row.date > boundary) &&
+            group.done.none { it.date == row.date } && !row.blocked && row.extraId == null &&
+            owned[original?.lessonId]?.let { !it.touched && it.inLesson.isEmpty() && it.note.isBlank() } != false
     }.map { it.date }.distinct()
 }
 
@@ -56,9 +69,12 @@ data class UnitLessonPosition(val unitIndex: Int, val lesson: Int, val total: In
 internal fun unitLessonPositions(report: GroupReport): Map<LocalDate, UnitLessonPosition> {
     val units = unitPlan(report.plan, report.group) ?: return emptyMap()
     val books = report.plan.books.filter { it.id in units.linkedBookIds }
+    val revisionDates = report.group.unitRevisions.mapNotNull { revision ->
+        report.group.assignments.firstOrNull { it.id == revision.assignmentId }?.due
+    }.toSet()
     val out = linkedMapOf<LocalDate, UnitLessonPosition>()
     units.windows.forEach { window ->
-        val taught = report.group.done.filter { done -> books.any { book ->
+        val taught = report.group.done.filter { done -> done.date !in revisionDates && books.any { book ->
             val starts = book.validUnitStarts().orEmpty()
             done.pages[book.id].orEmpty().any { page -> starts.indexOfLast { it <= page } == window.index }
         } }.map { it.date }

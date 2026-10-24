@@ -844,8 +844,8 @@
     <string name="units_revision_none">No revision</string>
     <string name="units_revision_lesson">Future lesson</string>
     <string name="units_revision_book">Supplementary book</string>
-    <string name="units_revision_no_books">Add a supplementary book in Class settings to use its pages.</string>
-    <string name="units_revision_pages_error">Enter pages included in the supplementary book.</string>
+    <string name="units_revision_no_books">Add a book in Class settings to use its pages.</string>
+    <string name="units_revision_pages_error">Enter pages included in the book.</string>
     <string name="units_revision_unscheduled">No future lesson is available. Your revision choice will be saved unscheduled; add a lesson or extend the term.</string>
     <string name="units_revision_remove">Remove revision</string>
     <string name="units_revision_add">Add a revision</string>

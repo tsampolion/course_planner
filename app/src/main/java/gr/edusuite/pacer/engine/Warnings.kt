@@ -94,7 +94,7 @@ fun GroupReport.catchUpPlan(boost: Int, id: () -> String = ::newId, from: Int = 
             if (pages.isNotEmpty()) out[ts[j]] = out[ts[j]].let { it.copy(pages = it.pages + (b.id to pages)) }
         }
     }
-    constrainUnitLessons(out, targets)
+    constrainUnitLessons(out, targets, targets.map { weightOf.getValue(it) })
     return (group.custom ?: CustomPlan(true, out)).copy(active = true, lessons = out, catchUpBoost = cu.boost)
 }
 
@@ -159,9 +159,10 @@ fun GroupReport.foldBacklog(bookId: String, over: Int, id: () -> String = ::newI
     val covered = out.flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
     val pool = plan.remainingPages(group, b).filter { it !in covered }
     val ts = bookTargets(b.due, targets)
-    allocateWeighted(pool, ts.indices.map { j -> if (j < k) rate100 + extra else rate100 }).forEachIndexed { j, pages ->
+    val weights = ts.mapIndexed { j, t -> t to if (j < k) rate100 + extra else rate100 }.toMap()
+    allocateWeighted(pool, ts.map { weights.getValue(it) }).forEachIndexed { j, pages ->
         if (pages.isNotEmpty()) out[ts[j]] = out[ts[j]].let { it.copy(pages = it.pages + (b.id to pages)) }
     }
-    constrainUnitLessons(out, targets)
+    constrainUnitLessons(out, targets, targets.map { weights[it] ?: 0L }, bookId)
     return (group.custom ?: CustomPlan(true, out)).copy(active = true, lessons = out)
 }

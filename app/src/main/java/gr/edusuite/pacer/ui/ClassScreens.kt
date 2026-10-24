@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -320,6 +321,7 @@ private fun BookRow(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (Str
 
 @Composable
 private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> Unit) {
+    val ui by vm.state.collectAsState()
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommitField(b.name, { vm.renameBook(b.id, it) }, stringResource(R.string.class_title), Modifier.weight(1f))
 
@@ -340,7 +342,7 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
         CommitField(b.skip, { vm.setSkip(b.id, it) }, stringResource(R.string.class_skip_pages), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_8_24_27))
         DateField(b.due, { vm.setDue(b.id, it) }, stringResource(R.string.class_finish_by), Modifier.fillMaxWidth(), clearable = true)
         if (b.due != null) Hint(stringResource(R.string.class_only_this_book_re_paces_the_others_keep_their_own_rate))
-        if (vm.state.value.data.plan?.unitsEnabled == true) {
+        if (ui.data.plan?.unitsEnabled == true) {
             TertiaryButton(stringResource(R.string.units_title), { vm.open(Screen.Units) })
         } else {
             CommitField(b.units, { vm.setUnits(b.id, it) }, stringResource(R.string.class_units), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_units_placeholder))

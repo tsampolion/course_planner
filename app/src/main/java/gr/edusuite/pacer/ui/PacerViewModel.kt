@@ -168,7 +168,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         val g = c.groups.firstOrNull { it.id == target.groupId } ?: return false
         val report = GroupReport(y.planFor(c), g)
         if (kind != RevisionKind.NONE && date != null && date !in revisionDates(report, target.unitIndex, LocalDate.now())) return false
-        if (kind == RevisionKind.PAGES && (pages.isEmpty() || pages.values.all { it.isEmpty() } || pages.keys.any { id -> report.plan.books.none { it.id == id && it.supplementary } })) return false
+        if (kind == RevisionKind.PAGES && !validRevisionPages(report.plan, pages)) return false
         if (pages.any { (id, ps) -> report.plan.books.firstOrNull { it.id == id }?.let { assignmentPages(ps.joinToString(","), it) == null } != false }) return false
         val old = g.unitRevisions.firstOrNull { it.unitIndex == target.unitIndex }?.assignmentId?.let { id -> g.assignments.firstOrNull { it.id == id } }
         val assignment = revisionAssignment(old, kind, date, pages, title)

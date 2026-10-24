@@ -135,8 +135,11 @@ internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<
     val g = report.group
     val done = g.done.map { d ->
         val events = plan.eventsOn(g, d.date)
-        val blocked = d.pages.isEmpty() && events.any { it.consumes }
-        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, extraId = g.extras.firstOrNull { it.date == d.date }?.id, assignments = assignmentsOn(g, d.date))
+        val revision = g.unitRevisions.any { revision ->
+            g.assignments.any { it.id == revision.assignmentId && it.due == d.date && it.takesLesson }
+        }
+        val blocked = revision || (d.pages.isEmpty() && events.any { it.consumes })
+        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked && d.pages.isEmpty()) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, extraId = g.extras.firstOrNull { it.date == d.date }?.id, assignments = assignmentsOn(g, d.date))
     }
     val custom = report.custom
     val places = custom?.lessons?.withIndex()?.associate { (i, l) -> l.id to (i to l.touched) }.orEmpty()
@@ -364,12 +367,12 @@ private val TickW = 48.dp
 
 /** A book's pages as a row shows them, "SB 38–40 · WB 20–21", with supplementary books left for the line under it. */
 private fun corePages(l: Lesson, names: List<String>, supplementary: List<Boolean>): String =
-    l.cells.withIndex().filter { (i, _) -> !supplementary.getOrElse(i) { false } }
+    l.cells.withIndex().filter { (i, cell) -> !supplementary.getOrElse(i) { false } && (!l.blocked || (cell.isNotBlank() && cell != collapse(emptyList()))) }
         .joinToString(" · ") { (i, cell) -> names.getOrElse(i) { (i + 1).toString() } + " " + cell }
 
 /** The supplementary pages a lesson places, by full name: "Reader 5–8". */
 private fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String>> =
-    l.cells.withIndex().filter { (i, cell) -> actions.supplementary.getOrElse(i) { false } && cell != collapse(emptyList()) }
+    l.cells.withIndex().filter { (i, cell) -> actions.supplementary.getOrElse(i) { false } && cell.isNotBlank() && cell != collapse(emptyList()) }
         .map { (i, cell) -> i to actions.bookNames.getOrElse(i) { "" } + " " + cell }
 
 @Composable
@@ -426,8 +429,10 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                     Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall.merge(Figures))
                     if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
                     if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
-                    if (!next.blocked) {
-                        Text(corePages(next, actions.shortNames, actions.supplementary), style = MaterialTheme.typography.bodyLarge.merge(Figures))
+                    if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) {
+                        corePages(next, actions.shortNames, actions.supplementary).takeIf { it.isNotBlank() }?.let {
+                            Text(it, style = MaterialTheme.typography.bodyLarge.merge(Figures))
+                        }
                         suppPages(next, actions).forEach { (_, text) -> Text(stringResource(R.string.ledger_supp, text), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
                     }
                     next.unitIndex?.let { Text(stringResource(R.string.units_lesson_position, it + 1, next.unitLesson, next.unitLessons), style = MaterialTheme.typography.bodySmall) }
@@ -470,8 +475,8 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).clearAndSetSemantics {}) {
-                        if (!next.blocked) Text(
-                            (listOf(corePages(next, actions.shortNames, actions.supplementary)) + suppPages(next, actions).map { it.second }).joinToString(" · "),
+                        if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) Text(
+                            (listOf(corePages(next, actions.shortNames, actions.supplementary)) + suppPages(next, actions).map { it.second }).filter { it.isNotBlank() }.joinToString(" · "),
                             style = MaterialTheme.typography.bodyLarge.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
                         val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
@@ -512,7 +517,8 @@ private fun spokenLesson(l: Lesson, actions: LessonActions): String {
         l.unitIndex?.let { add(stringResource(R.string.units_lesson_position, it + 1, l.unitLesson, l.unitLessons)) }
         if (l.events.isNotEmpty()) add(l.events.joinToString(", ") { it.name })
         if (l.note.isNotEmpty()) add(l.note)
-        if (!l.blocked) l.cells.forEachIndexed { i, cell ->
+        l.cells.forEachIndexed { i, cell ->
+            if (l.blocked && (cell.isBlank() || cell == collapse(emptyList()))) return@forEachIndexed
             val supp = actions.supplementary.getOrElse(i) { false }
             if (supp && cell == collapse(emptyList())) return@forEachIndexed
             add(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell))
@@ -640,8 +646,16 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
             stringResource(R.string.work_worksheet_lesson, entry.lesson.events.joinToString(" · ") { it.name })
         else stringResource(R.string.ledger_test, entry.lesson.events.joinToString(" · ") { it.name })
     }
+    val pageSummary = lesson?.let { l -> l.cells.withIndex()
+        .filter { (_, cell) -> cell.isNotBlank() && cell != collapse(emptyList()) }
+        .joinToString(" · ") { (i, cell) ->
+            val name = actions.bookNames.getOrElse(i) { "" }
+            "$name $cell"
+        }
+    }.orEmpty()
+    val summary = listOf(text, pageSummary).filter { it.isNotBlank() }.joinToString(" · ")
     val homework = lesson?.let { homeworkSummaries(it, actions) }.orEmpty()
-    val spoken = (listOf("${entry.date.format(SPOKEN_DATE)}. $text") + homework).joinToString(". ")
+    val spoken = (listOf("${entry.date.format(SPOKEN_DATE)}. $summary") + homework).joinToString(". ")
     Box {
         Column {
             Row(
@@ -661,12 +675,12 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
                 val date = "${entry.date.dayOfWeek.short()} ${entry.date.fmtShort()}"
                 if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = Space.s, bottom = Space.s)) {
                     Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
-                    Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                    Text(summary, style = MaterialTheme.typography.bodySmall, color = c.muted)
                     if (lesson != null) HomeworkLines(lesson, actions)
                 } else {
                     Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted, modifier = Modifier.width(DateW).padding(start = Space.m))
                     Column(Modifier.weight(1f).padding(vertical = Space.s)) {
-                        Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                        Text(summary, style = MaterialTheme.typography.bodySmall, color = c.muted)
                         if (lesson != null) HomeworkLines(lesson, actions)
                     }
                 }
