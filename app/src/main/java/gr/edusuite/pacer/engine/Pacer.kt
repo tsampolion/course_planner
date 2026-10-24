@@ -418,6 +418,7 @@ fun Plan.problems(): List<String> {
     if (books.isEmpty()) msgs += "Add at least one book."
     val reports by lazy { groups.map { GroupReport(this, it) } }
     msgs += leadProblems()
+    for (g in groups) if (unitsActive(g)) msgs += GroupReport(this, g).unitIssues().map { "${g.name}: ${it.message}" }
     books.forEachIndexed { i, b ->
         if (b.supplementary) {
             if (parseInclude(b.include).isNullOrEmpty()) msgs += "${b.name}: list the pages you'll use."

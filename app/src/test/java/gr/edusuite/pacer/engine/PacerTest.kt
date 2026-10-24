@@ -19,6 +19,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PacerTest {
+    @Test fun disabledUnitMetadataPreservesTheOriginalAllocator() {
+        val p = seedPlan()
+        val metadata = p.copy(unitsEnabled = false, bookLinks = listOf(p.books.map { it.id }.toSet()))
+        p.groups.forEach { g -> assertEquals(GroupReport(p, g).rows, GroupReport(metadata, g).rows) }
+    }
+
     private fun d(s: String) = LocalDate.parse(s)
 
     /** Mondays and Wednesdays in March 2027: 1,3,8,10,15,17,22,24,29,31 = 10 lessons. */

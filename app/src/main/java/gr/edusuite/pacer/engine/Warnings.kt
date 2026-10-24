@@ -94,6 +94,7 @@ fun GroupReport.catchUpPlan(boost: Int, id: () -> String = ::newId, from: Int = 
             if (pages.isNotEmpty()) out[ts[j]] = out[ts[j]].let { it.copy(pages = it.pages + (b.id to pages)) }
         }
     }
+    constrainUnitLessons(out, targets)
     return (group.custom ?: CustomPlan(true, out)).copy(active = true, lessons = out, catchUpBoost = cu.boost)
 }
 
@@ -161,5 +162,6 @@ fun GroupReport.foldBacklog(bookId: String, over: Int, id: () -> String = ::newI
     allocateWeighted(pool, ts.indices.map { j -> if (j < k) rate100 + extra else rate100 }).forEachIndexed { j, pages ->
         if (pages.isNotEmpty()) out[ts[j]] = out[ts[j]].let { it.copy(pages = it.pages + (b.id to pages)) }
     }
+    constrainUnitLessons(out, targets)
     return (group.custom ?: CustomPlan(true, out)).copy(active = true, lessons = out)
 }

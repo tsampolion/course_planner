@@ -29,7 +29,7 @@ internal fun GroupReport.followLead(
     val lead = plan.books[li]
     val leadAlloc = alloc[li]
     val nL = leadAlloc.sumOf { it.size }
-    if (nL == 0) return alloc
+    if (nL == 0) return followUnits(alloc, pool)
     val cum = leadAlloc.runningFold(0) { acc, l -> acc + l.size }.drop(1)
     val leadUnits = lead.unitStarts()
     return alloc.mapIndexed { bi, a ->
@@ -46,7 +46,7 @@ internal fun GroupReport.followLead(
         }
         var prev = 0
         ends.mapTo(ArrayList()) { e -> val end = maxOf(prev, e); rem.subList(prev, end).also { prev = end } }
-    }
+    }.let { followUnits(it, pool) }
 }
 
 /** Where a follower's lessons end when its units are linked to the lead's: see [followLead]. */
