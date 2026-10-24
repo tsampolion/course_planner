@@ -626,7 +626,7 @@ fun SwipeRow(what: String, onRemove: () -> Unit, content: @Composable () -> Unit
         state = state,
         enableDismissFromStartToEnd = false,
         backgroundContent = {
-            val scale by animateFloatAsState(if (state.progress > .5f) 1.2f else 1f, if (motion) Motion.bouncy() else snap(), label = "swipe action")
+            val scale by animateFloatAsState(if (state.progress > .5f) 1.2f else 1f, if (motion) Motion.work(gr.edusuite.pacer.ui.theme.MotionSpec.Step.PRESS) else snap(), label = "swipe action")
             Box(
                 Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(Pacer.colors.warnSoft).padding(horizontal = Space.l),
                 contentAlignment = Alignment.CenterEnd,

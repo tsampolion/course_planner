@@ -1,5 +1,7 @@
 package gr.edusuite.pacer.data
 
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.seedYear
 import java.time.LocalDate
@@ -30,6 +32,20 @@ class BackupTest {
         assertNotEquals(seed.id, copy.id)
         assertEquals("${seed.name} (imported)", copy.name)
         assertEquals(seed.copy(id = copy.id, name = copy.name), copy)
+    }
+
+    @Test fun importingAClashingYearKeepsEachGroupsAssignments() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val work = Assignment("work", AssignmentType.WORKSHEET, "Revision",
+            due = LocalDate.of(2026, 10, 23), note = "Bring notes")
+        val incoming = y.copy(classes = listOf(c.copy(groups = listOf(
+            c.groups.first().copy(assignments = listOf(work))
+        ))))
+        val out = addYears(listOf(y), listOf(incoming))
+        assertEquals(y, out.first())
+        assertNotEquals(y.id, out.last().id)
+        assertEquals(listOf(work), out.last().classes.single().groups.single().assignments)
     }
 
     @Test fun aClashingNameAloneKeepsTheId() {

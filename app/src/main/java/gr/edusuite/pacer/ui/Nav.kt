@@ -6,6 +6,8 @@ import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
 
+enum class GroupPage { HOME, PLAN, WORK, STATS }
+
 /** Every destination in the app. Plain Kotlin, so the back stack rules are unit-testable. */
 sealed interface Screen {
     /** The open school year's dashboard: the next lesson, a tile for each part of the year, and the year picker. */
@@ -21,7 +23,7 @@ sealed interface Screen {
     data object Tests : Screen
     data object Homework : Screen
     /** A group of the open class. */
-    data class Group(val id: String) : Screen
+    data class Group(val id: String, val page: GroupPage = GroupPage.HOME) : Screen
     /** Calendar and book overrides for one group. */
     data class GroupSettings(val id: String) : Screen
 }
@@ -66,6 +68,10 @@ data class Problem(val text: String, val fix: Screen?, val classId: String? = nu
 object Nav {
     val root: List<Screen> = listOf(Screen.Home)
 
+    /** Rendering a tablet home as Plan must not change the logical screen used for toolbar sheets. */
+    fun groupPage(screen: Screen.Group, layout: WindowLayout): GroupPage =
+        if (layout != WindowLayout.COMPACT && screen.page == GroupPage.HOME) GroupPage.PLAN else screen.page
+
     /** The stack to start with for a saved [AppData.view]. A group reopens under its class, as if opened from Home's Classes tile. */
     fun fromView(view: String): List<Screen> =
         if (view == AppData.VIEW_SETUP || view.isBlank()) root
@@ -79,9 +85,8 @@ object Nav {
     fun push(stack: List<Screen>, screen: Screen): List<Screen> = when {
         screen == Screen.Home -> root
         stack.last() == screen -> stack
-        screen is Screen.Group && stack.last() is Screen.GroupSettings ->
-            stack.dropLastWhile { it is Screen.Group || it is Screen.GroupSettings } + screen
-        screen is Screen.Group && stack.last() is Screen.Group -> stack.dropLast(1) + screen
+        screen is Screen.Group && stack.last().groupId != null && stack.last().groupId != screen.id ->
+            stack.filterNot { it.groupId != null } + screen
         else -> stack + screen
     }
 

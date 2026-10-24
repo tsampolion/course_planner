@@ -36,6 +36,8 @@ data class Group(
     val skip: Map<String, String> = emptyMap(),
     /** Optional books from the class catalogue enabled for this group. */
     val extraBooks: Set<String> = emptySet(),
+    /** Work owned by this group; legacy class work migrates on load/import/save. */
+    val assignments: List<Assignment> = emptyList(),
 )
 
 /** A saved extra lesson keeps its date and pages until the teacher edits it. */
@@ -108,6 +110,20 @@ data class Book(
     val countInLesson: Boolean = false,
     /** Optional catalogue entry: only groups selecting this book use it. */
     val groupOnly: Boolean = false,
+)
+
+enum class AssignmentType { HOMEWORK, TEST, WORKSHEET }
+
+/** Group-owned work. A test or worksheet is scheduled on [due]; homework can also have a set-on date. */
+data class Assignment(
+    val id: String,
+    val type: AssignmentType,
+    val title: String,
+    val setOn: LocalDate? = null,
+    val due: LocalDate? = null,
+    val pages: Map<String, List<Int>> = emptyMap(),
+    val note: String = "",
+    val takesLesson: Boolean = false,
 )
 
 data class Homework(

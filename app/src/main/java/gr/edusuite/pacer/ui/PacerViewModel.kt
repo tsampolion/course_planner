@@ -41,7 +41,7 @@ import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Group
-import gr.edusuite.pacer.model.Homework
+import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
@@ -54,7 +54,6 @@ import gr.edusuite.pacer.model.withoutCollection
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Settings
-import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.model.newId
 import java.io.File
@@ -629,13 +628,17 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */
     fun markNextLessonDoneIn(classId: String, groupId: String) = editYear { it.markNextLessonDone(classId, groupId) }
 
-    // ---- tests -------------------------------------------------------------
+    // ---- assignments -------------------------------------------------------
 
-    fun addEvent(name: String, date: LocalDate, who: String, consumes: Boolean) = editClass { c ->
-        c.copy(events = c.events + TestEvent(newId(), name.ifBlank { "Test" }, date, who, consumes))
+    fun saveAssignment(groupId: String, assignment: Assignment): Boolean = editGroup(groupId) { g ->
+        if (g.assignments.any { it.id == assignment.id })
+            g.copy(assignments = g.assignments.map { if (it.id == assignment.id) assignment else it })
+        else g.copy(assignments = g.assignments + assignment)
     }
 
-    fun removeEvent(id: String) = editClass { c -> c.copy(events = c.events.filter { it.id != id }) }
+    fun removeAssignment(groupId: String, id: String): Boolean = editGroup(groupId) { g ->
+        g.copy(assignments = g.assignments.filterNot { it.id == id })
+    }
 
     // ---- books -------------------------------------------------------------
 
@@ -671,6 +674,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
                     extraBooks = g.extraBooks - id,
                     done = g.done.map { it.copy(pages = it.pages - id) },
                     extras = g.extras.map { it.copy(pages = it.pages - id) },
+                    assignments = g.assignments.map { it.copy(pages = it.pages - id) },
                     custom = g.custom?.let { p ->
                         p.copy(lessons = p.lessons.map { l ->
                             // The lesson keeps the core pages the teacher chose; with nothing left counting in it, its base goes.
@@ -694,16 +698,6 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     /** Makes book [id] the class's lead book, or with null lets every book keep its own pace. */
     fun setLead(id: String?) = editClass { it.copy(lead = id?.takeIf { b -> it.books.any { book -> book.id == b && !book.supplementary } }) }
-
-    // ---- homework ----------------------------------------------------------
-
-    fun addHomework(groupId: String, bookId: String, from: Int, to: Int, setOn: LocalDate?) = editClass { c ->
-        // Supplementary books take no homework in this version.
-        if (c.books.any { it.id == bookId && it.supplementary }) return@editClass c
-        c.copy(homework = c.homework + Homework(newId(), groupId, bookId, minOf(from, to).coerceAtMost(MAX_PAGE), maxOf(from, to).coerceAtMost(MAX_PAGE), setOn))
-    }
-
-    fun removeHomework(id: String) = editClass { c -> c.copy(homework = c.homework.filter { it.id != id }) }
 
     class Factory(private val store: PlanStore, private val settings: SettingsStore) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

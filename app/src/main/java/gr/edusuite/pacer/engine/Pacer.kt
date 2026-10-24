@@ -7,6 +7,8 @@ import gr.edusuite.pacer.model.DoneLesson
 import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.TestEvent
 import java.time.LocalDate
 
@@ -96,7 +98,8 @@ fun allocatePages(pages: List<Int>, lessons: Int): List<List<Int>> {
 }
 
 fun Plan.homeworkPages(groupId: String, bookId: String): Set<Int> {
-    val out = HashSet<Int>()
+    val out = groups.firstOrNull { it.id == groupId }?.assignments.orEmpty()
+        .filter { it.type == AssignmentType.HOMEWORK }.flatMapTo(HashSet()) { it.pages[bookId].orEmpty() }
     for (h in homework) {
         if (h.groupId != groupId || h.bookId != bookId) continue
         val lo = minOf(h.from, h.to)
@@ -174,7 +177,13 @@ fun Plan.activeExtras(g: Group): List<ExtraLesson> {
 }
 
 fun Plan.eventsOn(g: Group, date: LocalDate): List<TestEvent> =
-    events.filter { it.date == date && (it.who == ALL_GROUPS || it.who == g.id) }
+    events.filter { it.date == date && (it.who == ALL_GROUPS || it.who == g.id) } +
+        g.assignments.filter { it.type != AssignmentType.HOMEWORK && it.due == date }
+            .map { TestEvent(it.id, it.title, date, g.id, it.takesLesson) }
+
+/** Work set on or due on this lesson, once when both dates coincide. */
+fun assignmentsOn(g: Group, date: LocalDate): List<Assignment> =
+    g.assignments.filter { it.setOn == date || it.due == date }
 
 /** How many teaching lessons a book gets. A finish-by date keeps only those on or before it. */
 fun bookLessons(b: Book, teaching: List<LocalDate>): Int {
@@ -201,6 +210,7 @@ data class Row(
     /** The custom plan's lesson on this day, or null (the proposed plan, a test, or a day the custom plan leaves free). */
     val lessonId: String? = null,
     val extraId: String? = null,
+    val assignments: List<Assignment> = emptyList(),
 ) {
     val cells: List<String> get() = if (blocked) pages.map { "" } else pages.map(::collapse)
 }
@@ -258,7 +268,7 @@ class GroupReport(base: Plan, val group: Group, val source: Source = Source.ACTI
                 else -> alloc.map { it.getOrElse(k) { emptyList() } }
             }
             if (!blocked && extra == null) k++
-            Row(i + 1, date, eventsByLesson[i], blocked, pages, extraId = extra?.id)
+            Row(i + 1, date, eventsByLesson[i], blocked, pages, extraId = extra?.id, assignments = assignmentsOn(group, date))
         }
     }
 

@@ -12,6 +12,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
 import gr.edusuite.pacer.R
+import gr.edusuite.pacer.ui.theme.MotionSpec
 import gr.edusuite.pacer.ui.theme.Motion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,7 +83,7 @@ fun SegmentedToggle(options: List<String>, selected: Int, onSelect: (Int) -> Uni
     var height by remember { mutableIntStateOf(0) }
     BoxWithConstraints(modifier.fillMaxWidth().background(Pacer.colors.surfaceContainer, CircleShape)) {
         val width = maxWidth / options.size.coerceAtLeast(1)
-        val offset by animateDpAsState(width * selected.coerceIn(0, options.lastIndex.coerceAtLeast(0)), if (motion) Motion.settle() else snap(), label = "segment")
+        val offset by animateDpAsState(width * selected.coerceIn(0, options.lastIndex.coerceAtLeast(0)), if (motion) Motion.work(MotionSpec.Step.SEGMENT) else snap(), label = "segment")
         val measured = with(LocalDensity.current) { height.toDp() }
         // The ink side sits inset in the track; the tabs under it fill the whole 48dp height.
         Box(Modifier.offset { IntOffset(offset.roundToPx(), 0) }.width(width).height(measured).padding(Space.xs).background(Pacer.colors.ink, CircleShape))
