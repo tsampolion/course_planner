@@ -790,12 +790,14 @@ No code, unless a step fails. In that case, fix it in the file that owns the beh
 
 ### Task 7: Docs, release contract and version
 
+**Local implementation complete.** Push, PR #50 description and combined review belong to the parent integration agent; this isolated worktree is not pushed.
+
 **Files:**
 - Create: `docs/UPDATES_BRIEF.md`
 - Modify: `.github/workflows/release.yml` (at the `cp "$f" "course-pacer-$VERSION.apk"` line)
 - Modify: `README.md`, `CLAUDE.md`, `docs/README.md`, `CHANGELOG.md`, `app/build.gradle.kts`
 
-- [ ] **Step 1: Write `docs/UPDATES_BRIEF.md`.** Start it with the banner line `Built in 4.1.0. Spec: superpowers/specs/2026-10-23-in-app-update-check-design.md.` Sections:
+- [x] **Step 1: Write `docs/UPDATES_BRIEF.md`.** Start it with the banner line `Built in 4.1.0. Spec: superpowers/specs/2026-10-23-in-app-update-check-design.md.` Sections:
   - **Why**: not on the Play Store; the owner sets up a few colleagues' phones once, and after that they update themselves.
   - **What the app relies on** (a contract with every installed copy): the public repo `tsampolion/course_planner`; `releases/latest`; the tag `vX.Y.Z`; exactly one asset `course-pacer-X.Y.Z.apk` signed with the permanent key; the release body is the changelog section. Renaming the asset, changing the tag format or making the repo private silently stops in-app updates for everyone.
   - **Behaviour**: once a day on launch while the switch is on; Check now; the ☰ dot, the drawer tag and Settings → Updates; Download opens the browser; nothing to dismiss; debug builds never check.
@@ -803,22 +805,22 @@ No code, unless a step fails. In that case, fix it in the file that owns the beh
   - **Setting up a colleague's phone** (numbered steps): open the Releases page in the phone's browser, download the latest `course-pacer-X.Y.Z.apk`, allow installs from the browser when asked, install, and open Course Pacer. After that, updates show up in Settings.
   - **A phone running a locally built copy**: "App not installed" means it is debug-signed. Export the school years (Settings → Back up), uninstall, install the release, then import.
   - **Not built**: in-app download and install, notifications, background checks, pre-release channels, skipping a version.
-- [ ] **Step 2: Add the contract comment to `release.yml`.** Directly above the `cp "$f" "course-pacer-$VERSION.apk"` line, keeping its indentation:
+- [x] **Step 2: Add the contract comment to `release.yml`.** Directly above the `cp "$f" "course-pacer-$VERSION.apk"` line, keeping its indentation:
 
 ```yaml
             # Installed apps look for exactly this asset name on the vX.Y.Z release (docs/UPDATES_BRIEF.md); don't rename it.
 ```
 
-- [ ] **Step 3: Update `README.md`**
+- [x] **Step 3: Update `README.md`**
   - Under **Features**, after the **Settings** bullet: `- **Updates**: Course Pacer checks GitHub for a new version once a day and marks ☰ and Settings when one is out. Settings → Updates shows what changed; **Download** fetches it in your browser and Android updates the app, keeping your school years. Turn the daily check off, or check now, in Settings.`
   - After the paragraph that starts "School years and settings are saved on the device", add: `The app's only network use is the update check: one request to api.github.com, once a day while automatic checks are on or when you tap Check now. It sends no data about you or your school years.`
   - Add a section `## Installing on a phone` before `## Getting started`, with the colleague setup steps from the brief (numbered, 5 steps at most) and a link to `docs/UPDATES_BRIEF.md`.
-- [ ] **Step 4: Update `CLAUDE.md`**
+- [x] **Step 4: Update `CLAUDE.md`**
   - In **Architecture**, add a bullet after `engine/`: `` - `update/`: the in-app update check (4.1.0, `docs/UPDATES_BRIEF.md`). `UpdateModel.kt` and `UpdateChecker.kt` are plain Kotlin and unit-tested (version parsing, release validation against this repo's release URLs, the once-a-day throttle, note trimming, folding a result into `Settings`); `GitHubReleases.kt` is the only network code (`HttpURLConnection`, `org.json`, one GET to `releases/latest`). `PacerViewModel` checks on launch and on Check now; `Settings` holds `autoUpdateCheck`, `lastUpdateCheck` and `availableUpdate`. Debuggable builds never check. The ☰ dot is `MenuButton` (`NavUi.kt`); Settings → Updates is `UpdatesSection` (`UpdatesUi.kt`). ``
   - In **Rules**, add: `` - **The release is a contract with installed apps** (4.1.0). Installed copies look for tag `vX.Y.Z` and the asset `course-pacer-X.Y.Z.apk` on `releases/latest` of this public repository. Don't rename the asset, change the tag format or make the repository private without planning how installed apps will update. The app's only permission is `INTERNET`, used only for that check. ``
-- [ ] **Step 5: Update `docs/README.md`.** Under **Decision records**, after the `BACKUP_BRIEF.md` line: `` - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases, its release contract and colleague setup (4.1.0). ``
-- [ ] **Step 6: Bump the version.** In `app/build.gradle.kts`, set `versionCode = 49` and `versionName = "4.1.0"`.
-- [ ] **Step 7: Add the changelog entry.** In `CHANGELOG.md`, insert the section directly under `## [Unreleased]`, leaving one blank line after that heading:
+- [x] **Step 5: Update `docs/README.md`.** Under **Decision records**, after the `BACKUP_BRIEF.md` line: `` - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases, its release contract and colleague setup (4.1.0). ``
+- [x] **Step 6: Bump the version.** In `app/build.gradle.kts`, set `versionCode = 49` and `versionName = "4.1.0"`.
+- [x] **Step 7: Add the changelog entry.** In `CHANGELOG.md`, insert the section directly under `## [Unreleased]`, leaving one blank line after that heading:
 
 ```markdown
 ## [4.1.0] - YYYY-MM-DD
@@ -833,7 +835,7 @@ No code, unless a step fails. In that case, fix it in the file that owns the beh
 ```
 
   Replace `YYYY-MM-DD` with today's date. At the bottom, above the `[4.0.0]: …` line, add `[4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0`.
-- [ ] **Step 8: Run the final verification**
+- [x] **Step 8: Run the final verification**
 
 Run: `./gradlew testDebugUnitTest && ./gradlew assembleRelease`
 Expected: `BUILD SUCCESSFUL` for both.
@@ -844,7 +846,7 @@ Expected: `versionCode = 49` and `versionName = "4.1.0"`.
 Run: `grep -n '^## \[4.1.0\]\|^\[4.1.0\]:' CHANGELOG.md`
 Expected: two matching lines.
 
-- [ ] **Step 9: Commit and push**
+- [x] **Step 9: Commit and push**
 
 ```bash
 git add docs/UPDATES_BRIEF.md .github/workflows/release.yml README.md CLAUDE.md docs/README.md CHANGELOG.md app/build.gradle.kts

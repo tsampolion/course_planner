@@ -22,6 +22,16 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-10-24
+
+### Added
+
+- Update check: once a day, Course Pacer asks GitHub for the latest release. When a newer one is out, ☰ shows a dot, Settings in the menu shows an "Update" tag, and Settings → Updates shows the version and what changed. **Download** fetches the APK in your browser and Android updates the app in place, keeping your school years. Turn the daily check off, or check now, in Settings. Debug builds never check.
+
+### Changed
+
+- The app now has the `INTERNET` permission, used only for the update check. It sends nothing but the request itself.
+
 ## [4.0.0] - 2026-10-24
 
 ### Added
@@ -708,6 +718,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v4.0.0...HEAD
+[4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/tsampolion/course_planner/compare/v3.11.0...v4.0.0
 [3.11.0]: https://github.com/tsampolion/course_planner/compare/v3.10.0...v3.11.0
 [3.10.0]: https://github.com/tsampolion/course_planner/compare/v3.9.0...v3.10.0
