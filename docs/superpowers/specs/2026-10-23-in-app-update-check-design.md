@@ -2,7 +2,7 @@
 
 Agreed with the owner on 2026-10-23 in a brainstorming session. It is classed as **architectural**: the app's first
 network access, a new permission, and a dependency on the shape of `release.yml`'s output. No engine change. The
-target version is **3.11.0**. Implementation is handed to another agent, so this spec names files and existing helpers.
+target version is **3.12.0** (3.11.0 shipped group assignments). Implementation is handed to another agent, so this spec names files and existing helpers.
 
 ## Context
 
@@ -173,8 +173,8 @@ Existing gates must pass: `./gradlew testDebugUnitTest` (includes `NoHardcodedTe
 emulator or a phone without Course Pacer. Build with `versionName` temporarily set below the latest release (do not
 commit that), install it, launch, and confirm the ☰ dot, the drawer's "Update" tag and Settings → Updates appear with
 the real latest release; tap Download and confirm the browser downloads `course-pacer-X.Y.Z.apk`; turn on airplane
-mode and confirm Check now shows the failure line. Restore `versionName = "3.11.0"`. The full upgrade
-(3.11.0 → the next release) gets its first real run after 3.11.0 ships.
+mode and confirm Check now shows the failure line. Restore the committed `versionName`. The full upgrade
+(3.12.0 → the next release) gets its first real run after 3.12.0 ships.
 
 ## Docs and version
 
@@ -189,7 +189,7 @@ mode and confirm Check now shows the failure line. Restore `versionName = "3.11.
 - `CLAUDE.md`: an architecture line for `update/`, the `INTERNET` permission and the new `Settings` fields; a rule
   that the release asset name and tag format are now a contract with installed apps.
 - `docs/README.md`: index entry for `UPDATES_BRIEF.md`.
-- Version: `versionName = "3.11.0"`, `versionCode = 47`, `CHANGELOG.md` `## [3.11.0] - <date>` with its compare link.
+- Version: `versionName = "3.12.0"`, `versionCode = 48`, `CHANGELOG.md` `## [3.12.0] - <date>` with its compare link.
 
 ## Out of scope
 
