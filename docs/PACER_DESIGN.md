@@ -152,3 +152,22 @@ class work routes show those links for one release. See ASSIGNMENTS_BRIEF.md for
 migration and pacing parity. The older boards above are historical; current
 palette tokens take precedence. Device screenshots and motion inspection are
 still required before treating this change as visually verified.
+
+## Homework in the lesson flow (4.0.0)
+
+Every lesson menu and its TalkBack custom actions offer Add homework; each item
+set on or due that lesson has its own named Edit/Delete actions. This includes
+taught, whole-lesson test and preview rows. Actions edit group work independently
+of the selected plan. The existing assignment sheet starts on the chosen lesson.
+Homework has a Pages or notes / Worksheet / Test content picker.
+
+Ordinary, slim and hero rows show a wrapping `HW:` line below their content,
+naming the title, worksheet/test content, effective book pages and due date.
+TalkBack includes that same information. The group hero avoids repeating today's
+homework in its footer when its lesson already shows the line.
+
+After saving, a native Material dialog may offer Schedule it in class or Also
+set it as homework. A lesson picker names eligible dates; class scheduling
+explicitly says it reserves a whole lesson. Skip, outside tap and Back retain the
+original save. Linking uses a separate undo step. No new visual system or motion;
+the current assignment editor and native dialog behavior apply.

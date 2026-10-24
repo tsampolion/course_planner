@@ -22,6 +22,25 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-10-24
+
+### Added
+
+- Lesson and TalkBack actions to add homework or edit/delete each item set on or
+  due that lesson. Homework details wrap beneath ordinary, slim and hero rows.
+- Worksheet/test content for homework, with optional prompts to schedule it in
+  class or set class work as homework. Skip keeps the original save; accepting
+  links both items in one additional undo step.
+- Schema 13 stores optional homework content and pair links, keeps old defaults,
+  and clears invalid links on import, deletion and incompatible type changes.
+
+### Changed
+
+- Homework pages leave the pacing pool on their due date, falling back to set-on,
+  inclusive of today. Future homework remains paced until then. Undated homework
+  keeps immediate banking. This intentional scheduling change requires a major
+  version; existing manually planned lesson content remains intact.
+
 ## [3.11.0] - 2026-10-24
 
 ### Added
@@ -688,7 +707,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.11.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/tsampolion/course_planner/compare/v3.11.0...v4.0.0
 [3.11.0]: https://github.com/tsampolion/course_planner/compare/v3.10.0...v3.11.0
 [3.10.0]: https://github.com/tsampolion/course_planner/compare/v3.9.0...v3.10.0
 [3.9.0]: https://github.com/tsampolion/course_planner/compare/v3.8.1...v3.9.0
