@@ -129,3 +129,26 @@ Stats follows the selected My plan or Proposed source. Custom figures show plann
 The book pace track retains its lead-book tick and adds a thin outlined proposed-position bar when the group is behind the calendar schedule. One accessible description names both positions; the outline carries the distinction beyond colour.
 
 The Plan hero is two compact rows: label/date with Done, then pages with Pages taught. Preview actions reserve the same space. Large text reflows actions below the lesson. The source switch labels the plan in use; re-pace, copy, delete and catch-up adjustment live in the group menu. Weeks or Months is remembered, month navigation stays above the list, and earlier/done lessons across months expand from one count. Calendar filtering precedes partitioning so list positioning stays aligned.
+
+## Group assignments and group home (3.11.0)
+
+The group opens on a home rather than a Plan | Stats toggle. Its order is the
+compact lesson hero (including Homework due today and Set today), Progress with
+the existing verdict and book position bars, a dated Due soon ledger, then
+Plan › / Work › / Stats › entry rows. Plan retains the compact hero, source and
+calendar controls. Tablets keep Plan in the detail pane, with Work and Stats one
+tap away. Group pages use the normal back stack; only group identity persists.
+
+Work uses one horizontally scrolling filter row (All, Homework, Tests,
+Worksheets), This week/Later/No date/Earlier sections and the existing ledger
+geometry. Every row names its type; existing edgeHand/edgeTest/edgeSupp tokens
+supply its edge. Swipe removes with five-second Undo; the visible menu offers
+Edit and Remove. The empty state has one Add action; populated lists have an
+extended Add button. The sheet has type, title, set-on/due dates, pages by book,
+a note and an optional whole-lesson switch. Invalid dates/pages cannot save.
+
+The class's old editors are replaced by links to each group's Work. Deprecated
+class work routes show those links for one release. See ASSIGNMENTS_BRIEF.md for
+migration and pacing parity. The older boards above are historical; current
+palette tokens take precedence. Device screenshots and motion inspection are
+still required before treating this change as visually verified.

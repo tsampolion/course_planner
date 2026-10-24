@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui.theme
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -33,8 +34,12 @@ object Space {
     val xxl = 32.dp
 }
 
-/** The shared motion specs (§5). Nothing loops, and nothing runs longer than 300 ms. */
+/** Shared motion specs (§5); work uses explicit timings with a finished reduced-motion state. */
 object Motion {
+    private val WorkEase = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
+    fun <T> work(step: MotionSpec.Step, enabled: Boolean = true) =
+        tween<T>(MotionSpec.duration(step, if (enabled) 1f else 0f), easing = WorkEase)
+
     fun <T> bouncy() = spring<T>(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium)
     fun <T> settle() = spring<T>(dampingRatio = 1f, stiffness = Spring.StiffnessMediumLow)
     fun <T> quick() = tween<T>(150, easing = FastOutSlowInEasing)

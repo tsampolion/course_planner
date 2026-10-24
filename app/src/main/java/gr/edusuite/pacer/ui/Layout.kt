@@ -33,3 +33,9 @@ fun rememberWindowLayout(): WindowLayout {
     val density = LocalDensity.current
     return windowLayout((LocalWindowInfo.current.containerSize.width / density.density).toInt())
 }
+
+/** The group frame owns the top inset; child pages retain only the bottom inset. */
+data class GroupInsets(val top: androidx.compose.ui.unit.Dp, val body: androidx.compose.foundation.layout.PaddingValues)
+fun groupInsets(padding: androidx.compose.foundation.layout.PaddingValues): GroupInsets = GroupInsets(
+    padding.calculateTopPadding(), androidx.compose.foundation.layout.PaddingValues(bottom = padding.calculateBottomPadding()),
+)

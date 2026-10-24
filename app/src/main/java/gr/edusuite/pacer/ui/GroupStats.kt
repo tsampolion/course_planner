@@ -1,5 +1,9 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import gr.edusuite.pacer.ui.theme.Motion
+import gr.edusuite.pacer.ui.theme.MotionSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -129,7 +133,7 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
 
 /** "Short by 2 lessons" in warn, or "On pace", with one sentence on what to do about it. */
 @Composable
-private fun VerdictHeading(report: GroupReport) {
+internal fun VerdictHeading(report: GroupReport) {
     val c = Pacer.colors
     val verdict = remember(report) { report.verdict() }
     Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
@@ -214,13 +218,13 @@ private fun StatsPart(title: String, content: @Composable ColumnScope.() -> Unit
  * pages. Tapping a core book opens its position.
  */
 @Composable
-private fun PaceTrack(report: GroupReport, onOpen: (String) -> Unit) {
+internal fun PaceTrack(report: GroupReport, compact: Boolean = false, onOpen: (String) -> Unit) {
     val plan = report.plan
     val c = Pacer.colors
     val inStep = remember(report) { report.inStepPages() }
     // The books behind are the Warnings sheet's, so both say the same.
     val behind = remember(report) { groupWarnings(report).filterIsInstance<GroupWarning.BookBehind>().associate { it.lag.bookId to it.lessons } }
-    val openLabel = stringResource(R.string.stats_set_position)
+    val openLabel = stringResource(if (compact) R.string.work_open_stats else R.string.stats_set_position)
     StatsPart(stringResource(R.string.stats_pace_track)) {
         plan.books.forEachIndexed { i, b ->
             if (i > 0) HorizontalDivider(color = c.line)
@@ -242,6 +246,7 @@ private fun PaceTrack(report: GroupReport, onOpen: (String) -> Unit) {
             val under = when {
                 late != null && target != null -> pluralStringResource(R.plurals.stats_behind_lead, late, late, target)
                 late != null -> pluralStringResource(R.plurals.stats_behind_others, late, late)
+                compact -> pluralStringResource(R.plurals.work_book_left, st.pages, b.name, st.pages)
                 else -> pluralStringResource(R.plurals.stats_left_rate, st.pages, st.pages, if (st.lessons > 0) st.rate.fixed2() else "—")
             }
             val due = b.due?.let { d ->
@@ -270,6 +275,8 @@ private fun PaceTrack(report: GroupReport, onOpen: (String) -> Unit) {
 @Composable
 private fun TrackRow(name: String, tag: String?, where: String, fraction: Float, tick: Float?, fill: Color, under: String, underColor: Color, modifier: Modifier = Modifier, planFraction: Float? = null) {
     val c = Pacer.colors
+    val motion = animationsEnabled()
+    val progress by animateFloatAsState(fraction, if (motion) Motion.work(MotionSpec.Step.PACE) else snap())
     Column(modifier.fillMaxWidth().semantics(mergeDescendants = true) {}.padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(name, style = MaterialTheme.typography.titleSmall)
@@ -279,7 +286,7 @@ private fun TrackRow(name: String, tag: String?, where: String, fraction: Float,
         }
         BoxWithConstraints(Modifier.fillMaxWidth().height(16.dp).clearAndSetSemantics {}, contentAlignment = Alignment.CenterStart) {
             Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(c.surfaceContainer)) {
-                Box(Modifier.fillMaxHeight().fillMaxWidth(fraction.coerceIn(0f, 1f)).clip(CircleShape).background(fill))
+                Box(Modifier.fillMaxHeight().fillMaxWidth(progress.coerceIn(0f, 1f)).clip(CircleShape).background(fill))
             }
             if (tick != null) Box(Modifier.offset(x = maxWidth * tick.coerceIn(0f, 1f) - 1.5.dp).width(3.dp).fillMaxHeight().background(c.ink, CircleShape))
         }

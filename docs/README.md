@@ -28,6 +28,10 @@ Each one records why a feature was built. The code and `CLAUDE.md` describe the 
 - [SUPPLEMENTARY_BOOKS_BRIEF.md](SUPPLEMENTARY_BOOKS_BRIEF.md): supplementary books placed by hand in chosen lessons (2.10.0).
 - [superpowers/](superpowers/): brainstorming specs and plans for Course Pacer only.
 
+## In progress
+
+- [ASSIGNMENTS_BRIEF.md](ASSIGNMENTS_BRIEF.md): Part C group-owned assignments, migration, Work and group home (3.11.0, schema 12); device verification pending.
+
 ## Not yet approved
 
 - [PLANNED_FEATURES.md](PLANNED_FEATURES.md): specified features that wait for the owner's go-ahead.

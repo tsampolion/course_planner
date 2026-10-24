@@ -18,13 +18,13 @@ internal fun GroupReport.customRows(c: CustomPlan): List<Row> {
     var k = 0
     return lessons.mapIndexed { i, date ->
         if (blockedByLesson[i]) {
-            Row(i + 1, date, eventsByLesson[i], true, plan.books.map { emptyList() })
+            Row(i + 1, date, eventsByLesson[i], true, plan.books.map { emptyList() }, assignments = assignmentsOn(group, date))
         } else if (date in extrasByDate) {
             val extra = extrasByDate.getValue(date)
-            Row(i + 1, date, eventsByLesson[i], false, plan.books.map { b -> if (b.supplementary) emptyList() else extra.pages[b.id].orEmpty() }, extraId = extra.id)
+            Row(i + 1, date, eventsByLesson[i], false, plan.books.map { b -> if (b.supplementary) emptyList() else extra.pages[b.id].orEmpty() }, extraId = extra.id, assignments = assignmentsOn(group, date))
         } else {
             val l = c.lessons.getOrNull(k++)
-            Row(i + 1, date, eventsByLesson[i], false, plan.books.map { l?.pages?.get(it.id).orEmpty() }, l?.note.orEmpty(), l?.id)
+            Row(i + 1, date, eventsByLesson[i], false, plan.books.map { l?.pages?.get(it.id).orEmpty() }, l?.note.orEmpty(), l?.id, assignments = assignmentsOn(group, date))
         }
     }
 }

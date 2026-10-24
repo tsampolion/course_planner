@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import gr.edusuite.pacer.ui.theme.Figures
+import gr.edusuite.pacer.ui.theme.MotionSpec
 import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.Space
 
@@ -70,7 +71,7 @@ fun sideways(forward: Boolean, enabled: Boolean): ContentTransform {
 fun Modifier.pressFeedback(interactionSource: MutableInteractionSource): Modifier = composed {
     val pressed by interactionSource.collectIsPressedAsState()
     val enabled = animationsEnabled()
-    val scale by animateFloatAsState(if (pressed && enabled) .96f else 1f, if (enabled) Motion.bouncy() else snap(), label = "press")
+    val scale by animateFloatAsState(if (pressed && enabled) .96f else 1f, if (enabled) Motion.work(MotionSpec.Step.PRESS) else snap(), label = "press")
     graphicsLayer { scaleX = scale; scaleY = scale }
 }
 
@@ -107,4 +108,18 @@ fun rememberToggleHaptic(): (Boolean) -> Unit {
 fun rememberSegmentHaptic(): () -> Unit {
     val haptic = LocalHapticFeedback.current
     return remember(haptic) { { haptic.performHapticFeedback(HapticFeedbackType.SegmentTick) } }
+}
+
+/** A visible row rises once per Work opening; revisiting a composed row does not replay it. */
+fun Modifier.workReveal(id: String, index: Int, seen: MutableSet<String>): Modifier = composed {
+    val enabled = animationsEnabled()
+    val progress = remember(id) { Animatable(if (!enabled || id in seen) 1f else 0f) }
+    LaunchedEffect(id, enabled) {
+        if (!enabled || id in seen) progress.snapTo(1f) else {
+            kotlinx.coroutines.delay(MotionSpec.entranceDelay(index, false, 1f))
+            progress.animateTo(1f, Motion.work(MotionSpec.Step.ROW))
+        }
+        seen.add(id)
+    }
+    graphicsLayer { alpha = if (enabled) progress.value else 1f; translationY = if (enabled) MotionSpec.ROW_RISE_PX * (1f - progress.value) else 0f }
 }

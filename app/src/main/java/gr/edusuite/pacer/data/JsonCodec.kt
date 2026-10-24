@@ -2,6 +2,8 @@ package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.engine.collapse
 import gr.edusuite.pacer.engine.parseRanges
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.ClassCollection
@@ -34,18 +36,18 @@ import org.json.JSONObject
  * lessons a book may fall behind before a warning (missing reads as the default); version 8 adds supplementary books
  * (`supplementary`, `include`, `countInLesson`) and, on a custom plan's lessons, the books that count in the lesson
  * (`inLesson`) and the core pages to restore (`replacementBase`); version 9 adds the chosen catch-up boost
- * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`); version 11 adds group end/skip/optional books and class collections. Missing reads as none. Version 1
+ * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`); version 11 adds group end/skip/optional books and class collections. Version 12 adds group assignments. Missing reads as none. Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 11
+    const val VERSION = 12
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
         .put("activeYear", data.activeYear)
         .put("activeClass", data.activeClass)
         .put("view", data.view)
-        .put("years", JSONArray(data.years.map(::year)))
+        .put("years", JSONArray(prepareYears(data.years).map(::year)))
         .toString()
 
     /** Every file read goes through [sanitiseYears], so a hand-edited or damaged one can't freeze or crash the app. */
@@ -57,10 +59,10 @@ object JsonCodec {
             val plans = o.getJSONArray("plans").rows(::plan)
             require(plans.isNotEmpty())
             val d = migratePlans(plans, o.optString("activePlan", plans.first().id), view)
-            return d.copy(years = sanitiseYears(d.years))
+            return d.copy(years = prepareYears(d.years))
         }
         return AppData(
-            years = sanitiseYears(years.rows(::year)),
+            years = prepareYears(years.rows(::year)),
             activeYear = o.optString("activeYear", ""),
             activeClass = o.optString("activeClass", ""),
             view = view,
@@ -86,6 +88,11 @@ object JsonCodec {
         ImportResult.Unreadable
     }
 
+    /** Sanitise legacy endpoints before expanding ranges, then clean the new page maps. */
+    private fun prepareYears(years: List<SchoolYear>): List<SchoolYear> = sanitiseYears(
+        sanitiseYears(years).map { y -> y.copy(classes = y.classes.map(::migrateAssignments)) }
+    )
+
     private fun year(y: SchoolYear) = JSONObject()
         .put("id", y.id).put("name", y.name)
         .put("start", y.start?.toString() ?: "").put("end", y.end?.toString() ?: "")
@@ -94,7 +101,6 @@ object JsonCodec {
         .put("classes", JSONArray(y.classes.map { c ->
             JSONObject().put("id", c.id).put("name", c.name).put("mins", c.mins).put("pace", c.pace)
                 .put("groups", groups(c.groups)).put("books", books(c.books))
-                .put("homework", homework(c.homework)).put("events", events(c.events))
                 .also { o -> c.lead?.let { o.put("lead", it) } }
                 .also { o -> if (c.lagLessons != DEFAULT_LAG_LESSONS) o.put("lagLessons", c.lagLessons) }
         }))
@@ -155,6 +161,11 @@ object JsonCodec {
             .put("extras", JSONArray(g.extras.map { e ->
                 JSONObject().put("id", e.id).put("date", e.date.toString()).put("pages", pages(e.pages))
             }))
+            .put("assignments", JSONArray(g.assignments.map { a ->
+                JSONObject().put("id", a.id).put("type", a.type.name).put("title", a.title)
+                    .put("setOn", a.setOn?.toString() ?: "").put("due", a.due?.toString() ?: "")
+                    .put("pages", pages(a.pages)).put("note", a.note).put("takesLesson", a.takesLesson)
+            }))
             .apply { g.custom?.let { put("custom", custom(it)) } }
     })
 
@@ -202,6 +213,12 @@ object JsonCodec {
                 ExtraLesson(e.id(), date, pages(e.optJSONObject("pages")))
             }.sortedBy { it.date },
             custom = runCatching { custom(g.optJSONObject("custom")) }.getOrNull(),
+            assignments = g.optJSONArray("assignments").rows { a ->
+                val type = runCatching { AssignmentType.valueOf(a.optString("type", "")) }.getOrNull()
+                    ?: return@rows null
+                Assignment(a.id(), type, a.optString("title", ""), a.date("setOn"), a.date("due"),
+                    pages(a.optJSONObject("pages")), a.optString("note", ""), a.optBoolean("takesLesson", false))
+            },
         )
     }
 
@@ -231,22 +248,11 @@ object JsonCodec {
             countInLesson = b.optBoolean("countInLesson", false), groupOnly = b.optBoolean("groupOnly", false))
     }
 
-    private fun homework(list: List<Homework>) = JSONArray(list.map { h ->
-        JSONObject().put("id", h.id).put("groupId", h.groupId).put("bookId", h.bookId)
-            .put("from", h.from).put("to", h.to).put("when", h.setOn?.toString() ?: "")
-    })
-
-    /** Homework names its group and book; without either it means nothing, so it is left out. */
     private fun homework(a: JSONArray?): List<Homework> = a.rows { h ->
         val group = h.text("groupId") ?: return@rows null
         val book = h.text("bookId") ?: return@rows null
         Homework(h.id(), group, book, h.optInt("from"), h.optInt("to"), h.date("when"))
     }
-
-    private fun events(list: List<TestEvent>) = JSONArray(list.map { e ->
-        JSONObject().put("id", e.id).put("name", e.name).put("date", e.date.toString())
-            .put("who", e.who).put("consumes", e.consumes)
-    })
 
     private fun events(a: JSONArray?): List<TestEvent> = a.rows { e ->
         val date = e.date("date") ?: return@rows null

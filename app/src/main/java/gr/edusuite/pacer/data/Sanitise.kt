@@ -40,6 +40,13 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
             skip = g.skip.filterKeys { it in books },
             extraBooks = g.extraBooks.filterTo(linkedSetOf()) { id -> c.books.any { it.id == id && it.groupOnly } },
             done = g.done.distinctBy { it.date },
+            assignments = unique(g.assignments.map { a ->
+                if (a.id.isBlank()) a.copy(id = newId()) else a
+            }, { it.id }) { a, id -> a.copy(id = id) }.map { a ->
+                a.copy(pages = a.pages.filterKeys { it in books }.mapValues { (_, ps) ->
+                    ps.map(::page).distinct().sorted()
+                }.filterValues { it.isNotEmpty() })
+            },
             extras = unique(g.extras.distinctBy { it.date }, { it.id }) { e, id -> e.copy(id = id) }.map { e ->
                 e.copy(pages = e.pages.filterKeys { it in books && it !in supp }
                     .mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE }.distinct().sorted() }.filterValues { it.isNotEmpty() })
