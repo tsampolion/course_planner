@@ -404,7 +404,7 @@ git commit -m "feat: store the update check's settings"
   - `fetch`: if not enabled, `Failed`. Otherwise call `runCatching { source.latest() }.getOrNull()`. A null result is `Failed`. If `toUpdate(release)` is non-null and newer than `installed`, `Found`. Anything else (older, equal, no matching APK, unparseable tag) is `UpToDate`.
   - `applied`: `Found` gives `settings.copy(availableUpdate = update, lastUpdateCheck = now())`. `UpToDate` gives `settings.copy(availableUpdate = null, lastUpdateCheck = now())`. `Failed` returns `settings` unchanged.
 
-- [ ] **Step 1: Write the failing tests** in `<test>/update/UpdateCheckerTest.kt`
+- [x] **Step 1: Write the failing tests** in `<test>/update/UpdateCheckerTest.kt`
 
 ```kotlin
 package gr.edusuite.pacer.update
@@ -493,24 +493,24 @@ class UpdateCheckerTest {
 }
 ```
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `./gradlew testDebugUnitTest --tests 'gr.edusuite.pacer.update.UpdateCheckerTest'`
 Expected: compilation FAILS with `Unresolved reference: UpdateChecker`.
 
-- [ ] **Step 3: Implement `<main>/update/UpdateChecker.kt`** as specified in Interfaces. No Android imports. A one-line KDoc on each public declaration.
+- [x] **Step 3: Implement `<main>/update/UpdateChecker.kt`** as specified in Interfaces. No Android imports. A one-line KDoc on each public declaration.
 
-- [ ] **Step 4: Run the tests to see them pass**
+- [x] **Step 4: Run the tests to see them pass**
 
 Run: `./gradlew testDebugUnitTest --tests 'gr.edusuite.pacer.update.UpdateCheckerTest'`
 Expected: `BUILD SUCCESSFUL`, 13 tests passed.
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `./gradlew testDebugUnitTest`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/src/main/java/gr/edusuite/pacer/update/UpdateChecker.kt app/src/test/java/gr/edusuite/pacer/update/UpdateCheckerTest.kt
