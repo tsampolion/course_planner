@@ -132,6 +132,7 @@ fun PacerApp(vm: PacerViewModel) {
     val ui by vm.state.collectAsState()
     val revisionTarget by vm.unitRevision.collectAsState()
     val settings by vm.settings.collectAsState()
+    val update by vm.update.collectAsState()
     val setAside by vm.setAside.collectAsState()
     val screen = ui.screen
     val context = LocalContext.current
@@ -249,6 +250,7 @@ fun PacerApp(vm: PacerViewModel) {
                 else -> warnings.size
             },
             showMenu = !permanent,
+            menuBadge = update != null,
             titled = titled,
             onMenu = openMenu,
             onSwitch = { switching = true },
@@ -264,6 +266,7 @@ fun PacerApp(vm: PacerViewModel) {
                 onMenu = openMenu.takeIf { !permanent }, warningsOpen = warningsOpen && s == screen, onWarningsClose = { warningsOpen = false },
                 groupSheet = groupSheet.takeIf { s == screen }, onGroupSheetClose = { groupSheet = null },
                 selectedGroup = panes?.detail?.groupId,
+                menuBadge = update != null,
             )
         }
     }
@@ -325,10 +328,10 @@ fun PacerApp(vm: PacerViewModel) {
         }
     }
     if (permanent) Row(Modifier.fillMaxSize()) {
-        AppDrawer(ui.data, screen, vm, onClose = {}, permanent = true)
+        AppDrawer(ui.data, screen, vm, onClose = {}, permanent = true, updateBadge = update != null)
         Box(Modifier.weight(1f)) { body() }
     } else ModalNavigationDrawer(
-        drawerContent = { AppDrawer(ui.data, screen, vm, onClose = { scope.launch { drawer.close() } }) },
+        drawerContent = { AppDrawer(ui.data, screen, vm, onClose = { scope.launch { drawer.close() } }, updateBadge = update != null) },
         drawerState = drawer,
         // Swiping only closes it, so an edge swipe never fights the month pager or the system Back gesture.
         gesturesEnabled = drawer.isOpen,
@@ -375,6 +378,7 @@ private fun ScreenContent(
     onGroupSheetClose: () -> Unit,
     /** The group open in the detail pane of a tablet, highlighted in the list beside it. */
     selectedGroup: String? = null,
+    menuBadge: Boolean = false,
 ) {
     // Each is null for a moment while the screen of something just deleted fades out.
     val year = data.year
@@ -386,6 +390,7 @@ private fun ScreenContent(
             welcome = canWelcome && !settings.welcomeSeen && data.years.isEmpty(),
             undoToast = undoToast,
             onMenu = onMenu,
+            menuBadge = menuBadge,
         )
         Screen.Settings -> SettingsScreen(settings, data.years.size, vm, padding, toast, undoToast)
         Screen.YearSettings -> YearSettingsScreen(data.years, year ?: return, vm, padding, toast, undoToast, onDeleted = { undoToast(context.getString(R.string.app_deleted, it)) })
@@ -487,6 +492,7 @@ private fun ScreenBar(
     warnings: Int,
     /** False where the menu is always open (a tablet 840dp wide or more). */
     showMenu: Boolean,
+    menuBadge: Boolean,
     /** False for the empty detail pane of a tablet: its bar holds the actions but no title. */
     titled: Boolean,
     onMenu: () -> Unit,
@@ -499,7 +505,7 @@ private fun ScreenBar(
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         navigationIcon = {
-            if (showMenu) PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
+            if (showMenu) MenuButton(onMenu, menuBadge)
         },
         title = {
             if (!titled) return@TopAppBar

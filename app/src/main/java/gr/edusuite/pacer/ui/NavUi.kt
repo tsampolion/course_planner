@@ -117,7 +117,7 @@ private fun groupLabel(className: String, groupName: String): String = stringRes
  * With [permanent] (a tablet 840dp wide or more) it is the always-open drawer beside the screens.
  */
 @Composable
-fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> Unit, permanent: Boolean = false) {
+fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> Unit, permanent: Boolean = false, updateBadge: Boolean = false) {
     val c = Pacer.colors
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -160,7 +160,12 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
                             year?.name?.ifBlank { null }?.let { stringResource(R.string.nav_year_named, it) } ?: stringResource(R.string.nav_year),
                             AppIcons.Calendar, screen == s, { go { vm.goTo(s) } },
                         )
-                        Screen.Settings -> DrawerRow(stringResource(R.string.app_settings), AppIcons.Settings, screen == s, { go { vm.goTo(s) } })
+                        Screen.Settings -> {
+                            val description = stringResource(R.string.nav_update_description)
+                            DrawerRow(stringResource(R.string.app_settings), AppIcons.Settings, screen == s, { go { vm.goTo(s) } }) {
+                                if (updateBadge) Tag(stringResource(R.string.nav_update), Modifier.semantics { contentDescription = description })
+                            }
+                        }
                         else -> Unit
                     }
                 }
@@ -289,6 +294,18 @@ fun GroupSwitcherSheet(year: SchoolYear, classId: String, groupId: String, recen
                 }
             }
         }
+    }
+}
+
+/** ☰, with a small accent dot while an update is available. TalkBack reads "Menu, update available". */
+@Composable
+fun MenuButton(onMenu: () -> Unit, badge: Boolean) {
+    val c = Pacer.colors
+    PillIconButton(stringResource(if (badge) R.string.nav_menu_update else R.string.nav_menu), onMenu) {
+        BadgedBox(
+            badge = { if (badge) Badge(containerColor = c.accent) },
+            modifier = Modifier.clearAndSetSemantics {},
+        ) { AppIcon(AppIcons.Menu) }
     }
 }
 

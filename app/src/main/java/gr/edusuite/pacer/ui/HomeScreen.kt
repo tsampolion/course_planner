@@ -106,6 +106,7 @@ fun HomeScreen(
     welcome: Boolean,
     undoToast: (String) -> Unit = {},
     onMenu: (() -> Unit)? = null,
+    menuBadge: Boolean = false,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     val today = remember { LocalDate.now() }
@@ -128,7 +129,7 @@ fun HomeScreen(
     ) {
         // A readable width on a wide screen.
         Column(Modifier.widthIn(max = 640.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.l)) {
-            Header(name, year, today, onMenu)
+            Header(name, year, today, onMenu, menuBadge)
             if (year == null) {
                 EmptyState(
                     AppIcons.Add,
@@ -156,12 +157,12 @@ fun HomeScreen(
 
 /** D3: ☰ for the menu (which holds Settings), the logo, "Hello, name" and, under it, today's date and the open year. */
 @Composable
-private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: (() -> Unit)?) {
+private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: (() -> Unit)?, menuBadge: Boolean) {
     val context = LocalContext.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         // On a tablet with the menu always open there is no ☰.
         if (onMenu != null) {
-            PillIconButton(stringResource(R.string.nav_menu), onMenu) { AppIcon(AppIcons.Menu) }
+            MenuButton(onMenu, menuBadge)
             Spacer(Modifier.width(Space.s))
         }
         Logo(48.dp)

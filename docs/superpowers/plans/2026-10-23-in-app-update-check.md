@@ -656,7 +656,7 @@ git commit -m "feat: check GitHub releases once a day on launch"
   menuBadge: Boolean = false
   ```
 
-- [ ] **Step 1: Add the strings** (exact copy):
+- [x] **Step 1: Add the strings** (exact copy):
 
 ```xml
     <!-- Updates (4.1.0) -->
@@ -679,7 +679,7 @@ git commit -m "feat: check GitHub releases once a day on launch"
     <string name="updates_link_label">Course Pacer download link</string>
 ```
 
-- [ ] **Step 2: Add `MenuButton` to `NavUi.kt`**, next to `WarningButton`, following its pattern:
+- [x] **Step 2: Add `MenuButton` to `NavUi.kt`**, next to `WarningButton`, following its pattern:
 
 ```kotlin
 /** ☰, with a small accent dot while an update is available. TalkBack reads "Menu, update available". */
@@ -697,12 +697,12 @@ fun MenuButton(onMenu: () -> Unit, badge: Boolean) {
 
   `Pacer.colors.accent` is a `Color` (`ui/theme/Color.kt`). The dot is a fill, which D13 allows on every palette. Don't add a token.
 
-- [ ] **Step 3: Replace both ☰ buttons with `MenuButton`**
+- [x] **Step 3: Replace both ☰ buttons with `MenuButton`**
   - `PacerApp.kt` `ScreenBar`: `if (showMenu) MenuButton(onMenu, menuBadge)`. Add `menuBadge: Boolean` to `ScreenBar`'s parameters, and pass it from the `bar` lambda.
   - `HomeScreen.kt` `Header`: `MenuButton(onMenu, menuBadge)`. Thread `menuBadge` from `HomeScreen`'s new parameter into `Header`.
   - `PacerApp.kt`: after `val settings by vm.settings.collectAsState()`, add `val update by vm.update.collectAsState()`. Pass `menuBadge = update != null` to `ScreenBar` and, through `ScreenContent` (add a `menuBadge: Boolean = false` parameter), to `HomeScreen`. Pass `updateBadge = update != null` to both `AppDrawer(...)` calls.
 
-- [ ] **Step 4: Add the drawer tag.** In `AppDrawer`, the `Screen.Settings ->` branch becomes:
+- [x] **Step 4: Add the drawer tag.** In `AppDrawer`, the `Screen.Settings ->` branch becomes:
 
 ```kotlin
 Screen.Settings -> {
@@ -713,9 +713,9 @@ Screen.Settings -> {
 }
 ```
 
-- [ ] **Step 5: Make `SwitchRow` reusable.** In `ClassScreens.kt`, change `private fun SwitchRow` to `internal fun SwitchRow`. Nothing else changes.
+- [x] **Step 5: Make `SwitchRow` reusable.** In `ClassScreens.kt`, change `private fun SwitchRow` to `internal fun SwitchRow`. Nothing else changes.
 
-- [ ] **Step 6: Create `UpdatesUi.kt`.** It holds no string literals with letters, so everything goes through `stringResource` or `context.getString`. Layout, top to bottom, inside the existing `Section(title, modifier) { … }` helper from `Components.kt`, titled `R.string.settings_updates`:
+- [x] **Step 6: Create `UpdatesUi.kt`.** It holds no string literals with letters, so everything goes through `stringResource` or `context.getString`. Layout, top to bottom, inside the existing `Section(title, modifier) { … }` helper from `Components.kt`, titled `R.string.settings_updates`:
   1. If `vm.update` is non-null:
      - `Text(stringResource(R.string.updates_available, u.version), style = MaterialTheme.typography.titleMedium)`
      - if `u.notes` is not blank: `Text(u.notes, style = MaterialTheme.typography.bodyMedium)`
@@ -742,7 +742,7 @@ Screen.Settings -> {
 
   Large text: `PrimaryButton` and `SecondaryButton` already reflow. Don't add `largeText` branches.
 
-- [ ] **Step 7: Put the section in `SettingsScreen.kt`**
+- [x] **Step 7: Put the section in `SettingsScreen.kt`**
   - As the first item of the `LazyColumn`, before `item(key = "name")`:
     ```kotlin
     if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, Modifier.animateItem()) }
@@ -750,7 +750,7 @@ Screen.Settings -> {
   - In the `about` item, show the version line only when updates are off (debug builds), because otherwise it now lives in Updates: `if (!vm.updatesEnabled) Text(version, …)`.
   - In `NoHardcodedTextTest.kt`, add `"updates"` to the `"SettingsScreen.kt"` set in `dataStrings`.
 
-- [ ] **Step 8: Run the whole suite and the release build**
+- [x] **Step 8: Run the whole suite and the release build**
 
 Run: `./gradlew testDebugUnitTest`
 Expected: `BUILD SUCCESSFUL` (this includes `NoHardcodedTextTest` and `ContrastTest`).
@@ -761,7 +761,7 @@ Expected: `BUILD SUCCESSFUL`. The APK is debug-signed locally, which is expected
 Run: `./gradlew lint`
 Expected: no new errors. A new warning about `HttpURLConnection` on the main thread must not appear; if it does, the call path is wrong, so fix it.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add app/src/main/res/values/strings.xml app/src/main/java/gr/edusuite/pacer/ui/ app/src/test/java/gr/edusuite/pacer/ui/NoHardcodedTextTest.kt
@@ -771,6 +771,8 @@ git commit -m "feat: quiet update notice on the menu and in Settings"
 ---
 
 ### Task 6: Manual check on a device or emulator
+
+**Status: NOT RUN.** This environment has no connected adb device, no installed emulator, and no `/dev/kvm`. The owner checklist below remains pending before merge. No temporary version change was made.
 
 No code, unless a step fails. In that case, fix it in the file that owns the behaviour, re-run Task 5 Step 8, and commit as `fix: …`.
 

@@ -860,4 +860,22 @@
     <string name="units_revision_removed">Revision removed</string>
     <string name="units_revision_mark">◇</string>
     <string name="units_revision_mark_done">◆</string>
+    <!-- Updates (4.1.0) -->
+    <string name="nav_menu_update">Menu, update available</string>
+    <string name="nav_update">Update</string>
+    <string name="nav_update_description">Update available</string>
+    <string name="settings_updates">Updates</string>
+    <string name="updates_available">Version %1$s is available</string>
+    <string name="updates_download">Download</string>
+    <string name="updates_first_time">The first time, Android may ask you to allow installs from your browser.</string>
+    <string name="updates_see_changes">See all changes</string>
+    <string name="updates_auto">Check for updates automatically</string>
+    <string name="updates_auto_hint">Once a day, Course Pacer asks GitHub for the latest version. Nothing about you or your school years is sent.</string>
+    <string name="updates_check_now">Check now</string>
+    <string name="updates_checking">Checking…</string>
+    <string name="updates_up_to_date">Course Pacer is up to date.</string>
+    <string name="updates_failed">Couldn\'t check for updates. Check your connection and try again.</string>
+    <string name="updates_installed">Installed version %1$s</string>
+    <string name="updates_no_browser">No browser found. The download link was copied.</string>
+    <string name="updates_link_label">Course Pacer download link</string>
 </resources>
