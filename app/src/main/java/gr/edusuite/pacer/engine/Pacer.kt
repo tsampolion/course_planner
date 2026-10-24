@@ -97,9 +97,10 @@ fun allocatePages(pages: List<Int>, lessons: Int): List<List<Int>> {
     return out
 }
 
-fun Plan.homeworkPages(groupId: String, bookId: String): Set<Int> {
+fun Plan.homeworkPages(groupId: String, bookId: String, today: LocalDate = LocalDate.now()): Set<Int> {
     val out = groups.firstOrNull { it.id == groupId }?.assignments.orEmpty()
-        .filter { it.type == AssignmentType.HOMEWORK }.flatMapTo(HashSet()) { it.pages[bookId].orEmpty() }
+        .filter { it.type == AssignmentType.HOMEWORK && (it.due ?: it.setOn)?.isAfter(today) != true }
+        .flatMapTo(HashSet()) { it.pages[bookId].orEmpty() }
     for (h in homework) {
         if (h.groupId != groupId || h.bookId != bookId) continue
         val lo = minOf(h.from, h.to)

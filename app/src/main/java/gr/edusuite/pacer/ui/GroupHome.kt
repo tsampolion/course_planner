@@ -31,8 +31,8 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
         verticalArrangement = Arrangement.spacedBy(Space.m)) {
         item {
             TodayBox(next, today, actions, onDone, onPagesTaught) {
-                val due = report.group.assignments.filter { it.type == AssignmentType.HOMEWORK && it.due == today }
-                val set = report.group.assignments.filter { it.setOn == today }
+                val due = report.group.assignments.filter { it.type == AssignmentType.HOMEWORK && it.due == today && next?.date != today }
+                val set = report.group.assignments.filter { it.setOn == today && (it.type != AssignmentType.HOMEWORK || next?.date != today) }
                 if (due.isNotEmpty()) Text(stringResource(R.string.work_due_today, due.map { assignmentTitle(it) }.joinToString()), style = MaterialTheme.typography.bodySmall)
                 if (set.isNotEmpty()) Text(stringResource(R.string.work_set_today, set.map { assignmentTitle(it) }.joinToString()), style = MaterialTheme.typography.bodySmall)
             }

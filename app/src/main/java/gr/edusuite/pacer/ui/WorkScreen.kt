@@ -118,24 +118,25 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
     }
     val assignment = report.group.assignments.firstOrNull { it.id == editing }
     if (adding || assignment != null) key(editing) {
-        AssignmentSheet(report, assignment, defaultType = types[filter] ?: AssignmentType.HOMEWORK, onSave = {
-            if (vm.saveAssignment(report.group.id, it)) undoToast(context.getString(R.string.work_saved))
-        }, onDismiss = { adding = false; editing = null })
+        AssignmentEditor(report, vm, assignment, defaultType = types[filter] ?: AssignmentType.HOMEWORK,
+            undoToast = undoToast, onDismiss = { adding = false; editing = null })
     }
 }
 
 @Composable
-fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: AssignmentType = AssignmentType.HOMEWORK, onSave: (Assignment) -> Unit, onDismiss: () -> Unit) {
+fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: AssignmentType = AssignmentType.HOMEWORK,
+    defaultSetOn: LocalDate? = null, onSave: (Assignment) -> Unit, onDismiss: () -> Unit) {
     val typeOptions = listOf(AssignmentType.HOMEWORK, AssignmentType.WORKSHEET, AssignmentType.TEST)
     val typeLabels = typeOptions.map { assignmentTypeName(it) }
     val defaultTitle = assignmentTypeName(initial?.type ?: defaultType)
     val id = rememberSaveable { initial?.id ?: newId() }
     var type by rememberSaveable { mutableStateOf(initial?.type ?: defaultType) }
     var title by rememberSaveable { mutableStateOf(initial?.title?.takeIf { it.isNotBlank() } ?: defaultTitle) }
-    var setText by rememberSaveable { mutableStateOf(initial?.setOn?.toString()) }
+    var setText by rememberSaveable { mutableStateOf((initial?.setOn ?: if (initial == null) defaultSetOn else null)?.toString()) }
     var dueText by rememberSaveable { mutableStateOf(initial?.due?.toString()) }
     var note by rememberSaveable { mutableStateOf(initial?.note.orEmpty()) }
     var takesLesson by rememberSaveable { mutableStateOf(initial?.takesLesson ?: false) }
+    var contentType by rememberSaveable { mutableStateOf(initial?.contentType) }
     val books = report.plan.books
     val texts = rememberSaveable(saver = listSaver(save = { it.toList() }, restore = { it.toMutableStateList() })) {
         mutableStateListOf(*books.map { b -> collapse(initial?.pages?.get(b.id).orEmpty()).takeUnless { initial?.pages?.get(b.id).isNullOrEmpty() }.orEmpty() }.toTypedArray())
@@ -150,12 +151,18 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
     WorkSheetFrame(stringResource(if (initial == null) R.string.work_add else R.string.work_edit), stringResource(R.string.component_save), valid, {
         onSave(Assignment(id, type, title.trim(), setOn, due,
             assignmentEditedPages(initial?.pages.orEmpty(), books.mapIndexed { i, b -> b.id to pages[i].orEmpty() }.toMap()),
-            note.trim(), type != AssignmentType.HOMEWORK && takesLesson))
+            note.trim(), type != AssignmentType.HOMEWORK && takesLesson,
+            contentType.takeIf { type == AssignmentType.HOMEWORK }, initial?.linkedId))
     }, onDismiss) {
         SegmentedToggle(typeLabels, typeOptions.indexOf(type), { selected ->
             if (title == typeLabels[typeOptions.indexOf(type)]) title = typeLabels[selected]
             type = typeOptions[selected]
         })
+        if (type == AssignmentType.HOMEWORK) Picker(stringResource(R.string.homework_content), listOf(
+            "" to stringResource(R.string.homework_pages_notes),
+            AssignmentType.WORKSHEET.name to assignmentTypeName(AssignmentType.WORKSHEET),
+            AssignmentType.TEST.name to assignmentTypeName(AssignmentType.TEST)), contentType?.name.orEmpty(),
+            { value -> contentType = AssignmentType.entries.firstOrNull { it.name == value } })
         OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text(stringResource(R.string.class_title)) },
             colors = paletteFieldColors(), singleLine = true, modifier = Modifier.fillMaxWidth())
         DateField(setOn, { setText = it?.toString() }, stringResource(R.string.work_set_on), Modifier.fillMaxWidth(), clearable = true)

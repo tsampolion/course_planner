@@ -196,6 +196,9 @@ internal class LessonActions(
     val addExtra: (LocalDate) -> Unit = {},
     val editExtra: (Lesson) -> Unit = {},
     val deleteExtra: (Lesson) -> Unit = {},
+    val addHomework: (Lesson) -> Unit = {},
+    val editHomework: (Assignment) -> Unit = {},
+    val deleteHomework: (Assignment) -> Unit = {},
 )
 
 /** What a lesson of a custom plan offers. [last] is the plan's last place. */
@@ -231,10 +234,20 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     val edit = stringResource(R.string.group_edit_pages_menu)
     val upTo = stringResource(R.string.group_done_up_to)
     val notFrom = stringResource(R.string.group_not_done_from)
+    val addHomework = stringResource(R.string.homework_add)
+    val work = homeworkForLesson(l)
+    val workNames = homeworkActionNames(work, actions.bookIds, actions.shortNames).mapIndexed { i, text ->
+        text.ifBlank { "${i + 1}. ${assignmentTitle(work[i])}" }
+    }
+    val editHomework = workNames.map { stringResource(R.string.homework_edit_named, it) }
+    val deleteHomework = workNames.map { stringResource(R.string.homework_delete_named, it) }
     val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(LocalDate.now()), hasCustomPlan = ca != null, canTick = actions.canTick)
     return buildList {
         kinds.forEach { kind ->
             when (kind) {
+                MenuItemKind.ADD_HOMEWORK -> add(MenuItem(addHomework) { actions.addHomework(l) })
+                MenuItemKind.EDIT_HOMEWORK -> work.forEachIndexed { i, a -> add(MenuItem(editHomework[i]) { actions.editHomework(a) }) }
+                MenuItemKind.DELETE_HOMEWORK -> work.forEachIndexed { i, a -> add(MenuItem(deleteHomework[i]) { actions.deleteHomework(a) }) }
                 MenuItemKind.EDIT_EXTRA -> add(MenuItem(editExtra) { actions.editExtra(l) })
                 MenuItemKind.DELETE_EXTRA -> add(MenuItem(deleteExtra) { actions.deleteExtra(l) })
                 MenuItemKind.ADD_SUPPLEMENTARY -> if (addSupp != null) suppLabels.forEach { label -> add(MenuItem(label) { addSupp(l) }) }
@@ -356,6 +369,19 @@ private fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String>
     l.cells.withIndex().filter { (i, cell) -> actions.supplementary.getOrElse(i) { false } && cell != collapse(emptyList()) }
         .map { (i, cell) -> i to actions.bookNames.getOrElse(i) { "" } + " " + cell }
 
+@Composable
+private fun homeworkSummaries(l: Lesson, actions: LessonActions): List<String> = homeworkForLesson(l).map { a ->
+    val content = homeworkTextParts(a, actions.bookIds, actions.shortNames) +
+        listOfNotNull(a.contentType?.let { assignmentTypeName(it) }) + listOfNotNull(
+            a.due?.let { stringResource(R.string.homework_due_short, "${it.dayOfWeek.short()} ${it.fmtShort()}") })
+    stringResource(R.string.homework_row, content.joinToString(" · ").ifBlank { a.note.ifBlank { assignmentTypeName(a.type) } })
+}
+
+@Composable
+private fun HomeworkLines(l: Lesson, actions: LessonActions) {
+    homeworkSummaries(l, actions).forEach { Text(it, style = MaterialTheme.typography.bodySmall.merge(Figures), color = Pacer.colors.muted) }
+}
+
 /**
  * Today's lesson, first on the Plan tab (decision 8): its date and pages, with Done and Pages taught. A long-press
  * opens the lesson's menu, and TalkBack reads it with the books' full names. [next] null means none is left.
@@ -401,6 +427,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         Text(corePages(next, actions.shortNames, actions.supplementary), style = MaterialTheme.typography.bodyLarge.merge(Figures))
                         suppPages(next, actions).forEach { (_, text) -> Text(stringResource(R.string.ledger_supp, text), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
                     }
+                    HomeworkLines(next, actions)
                 }
             }
             // Large text: the buttons go full width under the lesson instead of beside it.
@@ -445,6 +472,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         )
                         val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
                         if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        HomeworkLines(next, actions)
                     }
                     TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}), enabled = actions.canTick && !completing, color = c.accentText)
                 }
@@ -488,6 +516,7 @@ private fun spokenLesson(l: Lesson, actions: LessonActions): String {
         if (l.free) add(stringResource(R.string.custom_free))
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
         if (l.edited) add(stringResource(R.string.group_edited))
+        addAll(homeworkSummaries(l, actions))
         l.proposed?.let { add(stringResource(R.string.custom_proposed_line, it)) }
     }
     return stringResource(R.string.ledger_lesson_spoken, l.n, l.date.format(SPOKEN_DATE), parts.joinToString(". "))
@@ -566,6 +595,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
                     Text(main, style = MaterialTheme.typography.bodyLarge.merge(Figures), color = ink)
                     if (main != l.note && l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = c.muted)
                     if (subtitle.isNotEmpty()) Text(subtitle.joinToString(" · "), style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
+                    HomeworkLines(l, actions)
                     l.proposed?.let { Text(stringResource(R.string.custom_proposed_line, it), style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted) }
                 }
                 // Large text: the date sits over the pages, so neither is squeezed into a column.
@@ -604,7 +634,8 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
             stringResource(R.string.work_worksheet_lesson, entry.lesson.events.joinToString(" · ") { it.name })
         else stringResource(R.string.ledger_test, entry.lesson.events.joinToString(" · ") { it.name })
     }
-    val spoken = "${entry.date.format(SPOKEN_DATE)}. $text"
+    val homework = lesson?.let { homeworkSummaries(it, actions) }.orEmpty()
+    val spoken = (listOf("${entry.date.format(SPOKEN_DATE)}. $text") + homework).joinToString(". ")
     Box {
         Column {
             Row(
@@ -625,9 +656,13 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
                 if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = Space.s, bottom = Space.s)) {
                     Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
                     Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                    if (lesson != null) HomeworkLines(lesson, actions)
                 } else {
                     Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted, modifier = Modifier.width(DateW).padding(start = Space.m))
-                    Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted, modifier = Modifier.weight(1f).padding(vertical = Space.s))
+                    Column(Modifier.weight(1f).padding(vertical = Space.s)) {
+                        Text(text, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                        if (lesson != null) HomeworkLines(lesson, actions)
+                    }
                 }
                 if (lesson != null) RoundTick(lesson.done, actions.canTick) { actions.toggle(lesson.date) }
             }

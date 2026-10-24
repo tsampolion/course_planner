@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -129,6 +130,8 @@ fun GroupScreen(
     var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.firstOrNull() ?: today).toString()) }
     var extraDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    var homeworkDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    var homeworkId by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     val editing = lessons.firstOrNull { it.date.toString() == editingDate }
     val customActions = remember(shown, g.id) {
         val c = shown.custom ?: return@remember null
@@ -162,6 +165,9 @@ fun GroupScreen(
             addExtra = { extraDate = it.toString() },
             editExtra = { extraDate = it.date.toString() },
             deleteExtra = { l -> l.extraId?.let { changed(vm.removeExtra(g.id, it), context.getString(R.string.extra_deleted)) } },
+            addHomework = { homeworkDate = it.date.toString(); homeworkId = null },
+            editHomework = { homeworkId = it.id; homeworkDate = null },
+            deleteHomework = { changed(vm.removeAssignment(g.id, it.id), context.getString(R.string.work_deleted)) },
         )
     }
     // Filter the calendar view before partitioning so headers and the initial list index agree.
@@ -352,6 +358,12 @@ fun GroupScreen(
         GroupSheet.OWN_PACE -> OwnPaceSheet(report, { rate -> changed(vm.applyOwnPace(g.id, rate), context.getString(R.string.custom_created)) }, onSheetClose)
         GroupSheet.CATCH_UP -> CatchUpSheet(report, { boost -> changed(vm.applyCatchUp(g.id, boost), context.getString(R.string.warn_caught_up)) }, onSheetClose)
         GroupSheet.EXTRA, null -> Unit
+    }
+
+    if (homeworkDate != null || homeworkId != null) key(homeworkDate, homeworkId) {
+        AssignmentEditor(report, vm, g.assignments.firstOrNull { it.id == homeworkId },
+            defaultSetOn = homeworkDate?.let(LocalDate::parse), undoToast = undoToast,
+            onDismiss = { homeworkDate = null; homeworkId = null })
     }
 
     if (sheet == GroupSheet.EXTRA || extraDate != null) {

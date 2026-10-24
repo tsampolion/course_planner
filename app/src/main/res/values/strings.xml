@@ -792,4 +792,21 @@
     <string name="work_worksheet_lesson">Worksheet · %1$s</string>
     <string name="work_open_stats">Open book stats</string>
     <string name="work_unselected_books">Pages from books no longer selected for this group are kept. Choose the book in Group settings to edit them.</string>
+    <string name="homework_add">Add homework…</string>
+    <string name="homework_edit_named">Edit homework: %1$s…</string>
+    <string name="homework_delete_named">Delete homework: %1$s</string>
+    <string name="homework_content">Homework content</string>
+    <string name="homework_pages_notes">Pages or notes</string>
+    <string name="homework_row">HW: %1$s</string>
+    <string name="homework_due_short">due %1$s</string>
+    <string name="homework_schedule_title">Schedule it in class?</string>
+    <string name="homework_also_title">Also set it as homework?</string>
+    <string name="homework_schedule_hint">Choose a lesson for %1$s. The homework is already saved.</string>
+    <string name="homework_also_hint">Set %1$s before its class lesson. The class assignment is already saved.</string>
+    <string name="homework_reserves_lesson">This reserves the whole lesson for the test or worksheet.</string>
+    <string name="homework_lesson">Lesson</string>
+    <string name="homework_schedule">Schedule in class</string>
+    <string name="homework_set">Set as homework</string>
+    <string name="homework_skip">Skip</string>
+    <string name="homework_linked">Class work and homework linked</string>
 </resources>

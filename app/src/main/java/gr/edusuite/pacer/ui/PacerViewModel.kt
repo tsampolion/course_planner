@@ -9,6 +9,9 @@ import gr.edusuite.pacer.data.PlanStore
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
 import gr.edusuite.pacer.engine.withExtra
+import gr.edusuite.pacer.engine.withAssignment
+import gr.edusuite.pacer.engine.withLinkedAssignment
+import gr.edusuite.pacer.engine.withoutAssignment
 import gr.edusuite.pacer.engine.withoutExtra
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.LessonSave
@@ -631,13 +634,15 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     // ---- assignments -------------------------------------------------------
 
     fun saveAssignment(groupId: String, assignment: Assignment): Boolean = editGroup(groupId) { g ->
-        if (g.assignments.any { it.id == assignment.id })
-            g.copy(assignments = g.assignments.map { if (it.id == assignment.id) assignment else it })
-        else g.copy(assignments = g.assignments + assignment)
+        g.withAssignment(assignment)
+    }
+
+    fun saveAssignmentPair(groupId: String, originalId: String, companion: Assignment): Boolean = editGroup(groupId) {
+        it.withLinkedAssignment(originalId, companion)
     }
 
     fun removeAssignment(groupId: String, id: String): Boolean = editGroup(groupId) { g ->
-        g.copy(assignments = g.assignments.filterNot { it.id == id })
+        g.withoutAssignment(id)
     }
 
     // ---- books -------------------------------------------------------------

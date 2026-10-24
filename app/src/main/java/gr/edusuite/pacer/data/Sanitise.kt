@@ -1,6 +1,7 @@
 package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.engine.parseInclude
+import gr.edusuite.pacer.engine.normaliseAssignmentMetadata
 import gr.edusuite.pacer.engine.settleNextLesson
 import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
@@ -46,7 +47,7 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
                 a.copy(pages = a.pages.filterKeys { it in books }.mapValues { (_, ps) ->
                     ps.map(::page).distinct().sorted()
                 }.filterValues { it.isNotEmpty() })
-            },
+            }.let(::normaliseAssignmentMetadata),
             extras = unique(g.extras.distinctBy { it.date }, { it.id }) { e, id -> e.copy(id = id) }.map { e ->
                 e.copy(pages = e.pages.filterKeys { it in books && it !in supp }
                     .mapValues { (_, ps) -> ps.filter { it in 0..MAX_PAGE }.distinct().sorted() }.filterValues { it.isNotEmpty() })
