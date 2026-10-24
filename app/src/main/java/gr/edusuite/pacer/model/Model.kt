@@ -38,6 +38,8 @@ data class Group(
     val extraBooks: Set<String> = emptySet(),
     /** Work owned by this group; legacy class work migrates on load/import/save. */
     val assignments: List<Assignment> = emptyList(),
+    val unitsOverride: Boolean? = null,
+    val unitRevisions: List<UnitRevision> = emptyList(),
 )
 
 /** A saved extra lesson keeps its date and pages until the teacher edits it. */
@@ -112,6 +114,15 @@ data class Book(
     val groupOnly: Boolean = false,
 )
 
+/** Unit indices are zero-based. NONE records an explicit decision to skip revision. */
+enum class RevisionKind { TEST, WORKSHEET, PAGES, NONE }
+data class UnitRevision(
+    val unitIndex: Int,
+    val kind: RevisionKind,
+    val assignmentId: String? = null,
+    val pages: Map<String, List<Int>> = emptyMap(),
+)
+
 enum class AssignmentType { HOMEWORK, TEST, WORKSHEET }
 
 /** Group-owned work. A test or worksheet is scheduled on [due]; homework can also have a set-on date. */
@@ -167,6 +178,8 @@ data class Plan(
     val lead: String? = null,
     /** How many lessons a book may fall behind the others before the group screen warns about it. */
     val lagLessons: Int = DEFAULT_LAG_LESSONS,
+    val unitsEnabled: Boolean = false,
+    val bookLinks: List<Set<String>> = emptyList(),
 )
 
 /** A class: books taught to one or more groups, each with its own days and positions. */
@@ -184,6 +197,8 @@ data class SchoolClass(
     val lead: String? = null,
     /** How many lessons a book may fall behind the others before the group screen warns about it. */
     val lagLessons: Int = DEFAULT_LAG_LESSONS,
+    val unitsEnabled: Boolean = false,
+    val bookLinks: List<Set<String>> = emptyList(),
 )
 
 /** A named section on Classes. A class belongs to at most one collection. */
@@ -215,7 +230,7 @@ data class SchoolYear(
                 else -> null
             }
         }
-        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events, c.lead, c.lagLessons)
+        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events, c.lead, c.lagLessons, c.unitsEnabled, c.bookLinks)
     }
 }
 

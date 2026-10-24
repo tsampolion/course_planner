@@ -17,6 +17,7 @@ class ExtraLessonCodecTest : Instrumentation() {
 
     override fun onStart() {
         val checks = listOf(
+            "unitsRoundTripOldDefaultsAndMalformedRecords" to ::testUnitsRoundTripOldDefaultsAndMalformedRecords,
             "homeworkLinksRoundTripAndSchemaTwelveDefaults" to ::testHomeworkLinksRoundTripAndSchemaTwelveDefaults,
             "groupOverridesAndCollectionsRoundTrip" to ::testGroupOverridesAndCollectionsRoundTrip,
             "versionTenDefaultsRemainUnchanged" to ::testVersionTenDefaultsRemainUnchanged,
@@ -81,6 +82,25 @@ class ExtraLessonCodecTest : Instrumentation() {
         rows.getJSONObject(0).put("contentType", "UNKNOWN").put("linkedId", "missing")
         assertEquals(null, JsonCodec.decode(old.toString()).years.single().classes.single().groups.single().assignments.first().contentType)
     }
+    fun testUnitsRoundTripOldDefaultsAndMalformedRecords() {
+        val original = data()
+        val y = original.years.single()
+        val c = y.classes.single()
+        val linked = c.copy(unitsEnabled = true, books = c.books + Book("wb", "Workbook", 1, 20),
+            bookLinks = listOf(setOf("b", "wb")), groups = c.groups.map { g -> g.copy(unitsOverride = false,
+                unitRevisions = listOf(UnitRevision(0, RevisionKind.NONE), UnitRevision(1, RevisionKind.PAGES, pages = mapOf("b" to listOf(3, 4))))) })
+        val input = original.copy(years = listOf(y.copy(classes = listOf(linked))))
+        assertEquals(input, JsonCodec.decode(JsonCodec.encode(input)))
+        val old = JSONObject(JsonCodec.encode(original)).put("version", 13)
+        val cl = old.getJSONArray("years").getJSONObject(0).getJSONArray("classes").getJSONObject(0)
+        cl.remove("unitsEnabled"); cl.remove("bookLinks")
+        val group = cl.getJSONArray("groups").getJSONObject(0)
+        group.remove("unitsOverride"); group.remove("unitRevisions")
+        assertEquals(original, JsonCodec.decode(old.toString()))
+        group.put("unitRevisions", org.json.JSONArray("[{\"unitIndex\":0,\"kind\":\"NONE\"},{\"unitIndex\":1,\"kind\":\"UNKNOWN\"},{\"unitIndex\":-1,\"kind\":\"TEST\"}]"))
+        assertEquals(listOf(UnitRevision(0, RevisionKind.NONE)), JsonCodec.decode(old.toString()).years.single().classes.single().groups.single().unitRevisions)
+    }
+
     private fun data(): AppData {
         val g = Group("g", "G", setOf(MONDAY), date, extras = listOf(ExtraLesson("e", date, mapOf("b" to listOf(1, 2, 4)))))
         val c = SchoolClass("c", "C", 60, 2.0, listOf(g), listOf(Book("b", "Book", 1, 20)), emptyList(), emptyList())

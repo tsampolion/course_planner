@@ -16,6 +16,20 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class SanitiseTest {
+    @Test fun unitsMetadataKeepsOverridesAndCleansUnknownLinks() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val id = c.books.first().id
+        val revised = c.copy(unitsEnabled = true, bookLinks = listOf(setOf(id, "missing")),
+            groups = c.groups.map { it.copy(unitsOverride = false,
+                unitRevisions = listOf(gr.edusuite.pacer.model.UnitRevision(0, gr.edusuite.pacer.model.RevisionKind.NONE))) })
+        val out = sanitiseYears(listOf(y.copy(classes = listOf(revised)))).single().classes.single()
+        assertEquals(false, out.groups.first().unitsOverride)
+        assertEquals(1, out.groups.first().unitRevisions.size)
+        assertEquals(emptyList<Set<String>>(), out.bookLinks)
+        assertEquals(true, y.planFor(revised).unitsEnabled)
+    }
+
     @Test fun savedCatchUpChoicesSurviveAndInvalidChoicesAreIgnored() {
         val y = seedYear()
         val c = y.classes.first()
