@@ -1,5 +1,18 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import gr.edusuite.pacer.ui.theme.Motion
+import gr.edusuite.pacer.ui.theme.MotionSpec
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
@@ -64,6 +77,9 @@ import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
+import gr.edusuite.pacer.engine.assignmentsOn
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
@@ -104,6 +120,7 @@ internal data class Lesson(
     /** The supplementary books that count in this planned lesson. */
     val inLesson: Set<String> = emptySet(),
     val extraId: String? = null,
+    val assignments: List<Assignment> = emptyList(),
 )
 
 /**
@@ -116,7 +133,7 @@ internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<
     val done = g.done.map { d ->
         val events = plan.eventsOn(g, d.date)
         val blocked = d.pages.isEmpty() && events.any { it.consumes }
-        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, extraId = g.extras.firstOrNull { it.date == d.date }?.id)
+        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, extraId = g.extras.firstOrNull { it.date == d.date }?.id, assignments = assignmentsOn(g, d.date))
     }
     val custom = report.custom
     val places = custom?.lessons?.withIndex()?.associate { (i, l) -> l.id to (i to l.touched) }.orEmpty()
@@ -131,7 +148,7 @@ internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<
             0, r.date, r.events, r.blocked, r.cells, done = false, note = r.note, lessonId = r.lessonId,
             index = place?.first ?: -1, touched = place?.second ?: false,
             free = custom != null && r.lessonId == null && r.extraId == null && !r.blocked, proposed = proposed,
-            slot = if (r.blocked || r.extraId != null) -1 else slot++, inLesson = r.lessonId?.let(counting::get).orEmpty(), extraId = r.extraId,
+            slot = if (r.blocked || r.extraId != null) -1 else slot++, inLesson = r.lessonId?.let(counting::get).orEmpty(), extraId = r.extraId, assignments = r.assignments,
         )
     }
     return (done + upcoming).sortedBy { it.date }.mapIndexed { i, l -> l.copy(n = i + 1) }
@@ -257,8 +274,32 @@ private fun Modifier.lessonNode(description: String, done: Boolean, onToggle: ((
     val hasMenu = items.isNotEmpty()
     // A reused row gets another lesson's menu, so the gesture always calls the latest one.
     val longPress by rememberUpdatedState(onLongPress)
+    val motion = animationsEnabled()
+    val ring = remember { Animatable(0f) }
+    var point by remember { mutableStateOf(Offset.Zero) }
+    val ringColor = Pacer.colors.accentText
     return this
-        .pointerInput(hasMenu) { detectTapGestures(onLongPress = { if (hasMenu) longPress() }) }
+        .pointerInput(hasMenu, motion) {
+            detectTapGestures(onLongPress = { if (hasMenu) longPress() }, onPress = { position ->
+                point = position
+                coroutineScope {
+                    val drawing = launch {
+                        if (hasMenu && motion) { ring.snapTo(0f); ring.animateTo(1f, Motion.work(MotionSpec.Step.LONG_PRESS)) }
+                    }
+                    tryAwaitRelease()
+                    drawing.cancel()
+                    ring.snapTo(0f)
+                }
+            })
+        }
+        .drawWithContent {
+            drawContent()
+            if (motion && ring.value > 0f) {
+                val radius = Space.l.toPx() * ring.value
+                drawArc(ringColor, -90f, 360f * ring.value, false,
+                    topLeft = point - Offset(radius, radius), size = Size(radius * 2, radius * 2), style = Stroke(2.dp.toPx()))
+            }
+        }
         .clearAndSetSemantics {
             contentDescription = description
             if (onToggle != null) {
@@ -275,10 +316,12 @@ private fun Modifier.lessonNode(description: String, done: Boolean, onToggle: ((
 private val SPOKEN_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.ENGLISH)
 
 /** The kinds a row's edge tells apart (D8). One edge per row; the row's words still say the kind. */
-internal enum class LessonKind { PLAIN, TEST, DAY_OFF, EDITED, HAND, FREE, SUPP }
+internal enum class LessonKind { PLAIN, TEST, WORKSHEET, DAY_OFF, EDITED, HAND, FREE, SUPP }
 
 /** The one kind a lesson's edge shows: a test first, then a free lesson, pages taught as edited, by hand, supplementary. */
 internal fun Lesson.kind(supplementary: List<Boolean>): LessonKind = when {
+    events.isNotEmpty() && assignments.any { it.type == AssignmentType.WORKSHEET && it.due == date } &&
+        assignments.none { it.type == AssignmentType.TEST && it.due == date } -> LessonKind.WORKSHEET
     events.isNotEmpty() -> LessonKind.TEST
     free -> LessonKind.FREE
     edited -> LessonKind.EDITED
@@ -291,6 +334,7 @@ internal fun Lesson.kind(supplementary: List<Boolean>): LessonKind = when {
 private fun LessonKind.edge(): Color = when (this) {
     LessonKind.PLAIN -> Color.Transparent
     LessonKind.TEST -> Pacer.colors.edgeTest
+    LessonKind.WORKSHEET -> Pacer.colors.edgeSupp
     LessonKind.DAY_OFF -> Pacer.colors.edgeDayOff
     LessonKind.EDITED -> Pacer.colors.edgeEdited
     LessonKind.HAND -> Pacer.colors.edgeHand
@@ -317,11 +361,22 @@ private fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String>
  * opens the lesson's menu, and TalkBack reads it with the books' full names. [next] null means none is left.
  */
 @Composable
-internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, onDone: () -> Unit, onPagesTaught: () -> Unit, modifier: Modifier = Modifier) {
+internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, onDone: () -> Unit, onPagesTaught: () -> Unit, modifier: Modifier = Modifier, footer: @Composable (() -> Unit)? = null) {
     val c = Pacer.colors
+    val motion = animationsEnabled()
+    var tickPulse by remember { mutableIntStateOf(0) }
+    var completing by remember { mutableStateOf(false) }
+    LaunchedEffect(tickPulse, motion) {
+        if (tickPulse > 0 && motion) kotlinx.coroutines.delay(MotionSpec.duration(MotionSpec.Step.TICK, 1f).toLong())
+        completing = false
+    }
+    val complete = { if (!completing) { completing = true; tickPulse++; onDone() } }
     if (next == null) {
         Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.surfaceContainer, contentColor = c.ink) {
-            Text(stringResource(R.string.group_no_term_lessons), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(Space.l))
+            Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                Text(stringResource(R.string.group_no_term_lessons), style = MaterialTheme.typography.titleMedium)
+                footer?.invoke()
+            }
         }
         return
     }
@@ -352,31 +407,32 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
             val buttons = @Composable { m: Modifier, end: Alignment.Horizontal ->
                 Column(m, horizontalAlignment = end, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     Button(
-                        onClick = onDone,
-                        enabled = actions.canTick,
+                        onClick = complete,
+                        enabled = actions.canTick && !completing,
                         shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink),
                         modifier = Modifier.heightIn(min = 48.dp).then(if (large) Modifier.fillMaxWidth() else Modifier),
                     ) {
-                        Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        DrawingCheck(tickPulse, c.ink, Modifier.size(18.dp))
                         Spacer(Modifier.width(Space.xs))
                         Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
                     }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, enabled = actions.canTick, color = c.accentText)
+                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, enabled = actions.canTick && !completing, color = c.accentText)
                 }
             }
             if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                 info(Modifier.fillMaxWidth())
                 if (actions.canTick) buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally)
                 else Box(Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) { buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally) }
+                footer?.invoke()
             } else Column(Modifier.padding(horizontal = Space.l, vertical = Space.s)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).lessonNode("$label. $description", next.done, null, items) { menu = true }) {
                         Text(if (next.extraId != null) "$label · ${stringResource(R.string.extra_label)}" else label, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.titleMedium.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    Button(enabled = actions.canTick, onClick = onDone, shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink), modifier = Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {})) {
-                        Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Button(enabled = actions.canTick && !completing, onClick = complete, shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink), modifier = Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {})) {
+                        DrawingCheck(tickPulse, c.ink, Modifier.size(18.dp))
                         Spacer(Modifier.width(Space.xs))
                         Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
                     }
@@ -390,8 +446,9 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
                         if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}), enabled = actions.canTick, color = c.accentText)
+                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}), enabled = actions.canTick && !completing, color = c.accentText)
                 }
+                footer?.invoke()
             }
         }
         LessonMenu(menu, items) { menu = false }
@@ -436,6 +493,20 @@ private fun spokenLesson(l: Lesson, actions: LessonActions): String {
     return stringResource(R.string.ledger_lesson_spoken, l.n, l.date.format(SPOKEN_DATE), parts.joinToString(". "))
 }
 
+/** Reveals the approved check glyph, once per completion pulse, with a finished reduced-motion state. */
+@Composable
+private fun DrawingCheck(pulse: Int, tint: Color, modifier: Modifier) {
+    val motion = animationsEnabled()
+    val progress = remember { Animatable(1f) }
+    LaunchedEffect(pulse, motion) {
+        if (pulse > 0 && motion) { progress.snapTo(0f); progress.animateTo(1f, Motion.work(MotionSpec.Step.TICK)) }
+        else progress.snapTo(1f)
+    }
+    Icon(AppIcons.Check, contentDescription = null, tint = tint, modifier = modifier.drawWithContent {
+        clipRect(right = size.width * if (motion) progress.value else 1f) { this@drawWithContent.drawContent() }
+    })
+}
+
 /** The round tick at a row's end: a 48dp target holding a 24dp ring, filled with a check once the lesson is done. */
 @Composable
 private fun RoundTick(done: Boolean, enabled: Boolean, onToggle: () -> Unit) {
@@ -450,7 +521,7 @@ private fun RoundTick(done: Boolean, enabled: Boolean, onToggle: () -> Unit) {
                 .background(if (done) c.accent else Color.Transparent, CircleShape)
                 .border(2.dp, if (done) c.accent else if (enabled) c.outline else c.line, CircleShape),
             contentAlignment = Alignment.Center,
-        ) { if (done) Icon(AppIcons.Check, contentDescription = null, tint = c.onAccent, modifier = Modifier.size(18.dp)) }
+        ) { if (done) DrawingCheck(1, c.onAccent, Modifier.size(18.dp)) }
     }
 }
 
@@ -529,7 +600,9 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
     val items = if (lesson != null) lessonMenu(lesson, actions) else listOf(MenuItem(addLabel) { actions.addExtra(entry.date) })
     val text = when (entry) {
         is Entry.DayOff -> stringResource(R.string.ledger_day_off, entry.label)
-        is Entry.Item -> stringResource(R.string.ledger_test, entry.lesson.events.joinToString(" · ") { it.name })
+        is Entry.Item -> if (entry.lesson.kind(actions.supplementary) == LessonKind.WORKSHEET)
+            stringResource(R.string.work_worksheet_lesson, entry.lesson.events.joinToString(" · ") { it.name })
+        else stringResource(R.string.ledger_test, entry.lesson.events.joinToString(" · ") { it.name })
     }
     val spoken = "${entry.date.format(SPOKEN_DATE)}. $text"
     Box {
@@ -547,7 +620,7 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
                 ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.width(EdgeW).fillMaxHeight().padding(vertical = Space.xs).background(if (lesson != null) c.edgeTest else c.edgeDayOff))
+                Box(Modifier.width(EdgeW).fillMaxHeight().padding(vertical = Space.xs).background(lesson?.kind(actions.supplementary)?.edge() ?: c.edgeDayOff))
                 val date = "${entry.date.dayOfWeek.short()} ${entry.date.fmtShort()}"
                 if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = Space.s, bottom = Space.s)) {
                     Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)

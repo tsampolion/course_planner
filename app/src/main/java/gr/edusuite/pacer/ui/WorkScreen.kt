@@ -1,0 +1,185 @@
+package gr.edusuite.pacer.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import gr.edusuite.pacer.R
+import gr.edusuite.pacer.engine.*
+import gr.edusuite.pacer.model.*
+import gr.edusuite.pacer.ui.theme.Motion
+import gr.edusuite.pacer.ui.theme.MotionSpec
+import gr.edusuite.pacer.ui.theme.Figures
+import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Space
+import java.time.LocalDate
+
+@Composable
+internal fun assignmentTypeName(type: AssignmentType): String = stringResource(when (type) {
+    AssignmentType.HOMEWORK -> R.string.work_homework
+    AssignmentType.TEST -> R.string.work_test
+    AssignmentType.WORKSHEET -> R.string.work_worksheet
+})
+
+@Composable
+internal fun assignmentTitle(a: Assignment): String = a.title.ifBlank { assignmentTypeName(a.type) }
+
+@Composable
+internal fun assignmentEdge(type: AssignmentType) = when (type) {
+    AssignmentType.HOMEWORK -> Pacer.colors.edgeHand
+    AssignmentType.TEST -> Pacer.colors.edgeTest
+    AssignmentType.WORKSHEET -> Pacer.colors.edgeSupp
+}
+
+@Composable
+internal fun AssignmentRow(a: Assignment, report: GroupReport, onOpen: () -> Unit, trailing: (@Composable RowScope.() -> Unit)? = null) {
+    val pages = report.plan.books.mapNotNull { b -> a.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { "${b.name} ${collapse(it)}" } }
+    val details = listOf(assignmentTypeName(a.type)) + pages + listOfNotNull(
+        a.setOn?.let { stringResource(R.string.work_set_date, it.fmtShort()) },
+        a.due?.let { stringResource(R.string.work_due_date, it.fmtShort()) },
+        if (a.takesLesson && a.type != AssignmentType.HOMEWORK) stringResource(R.string.class_takes_lesson) else null,
+        a.note.takeIf { it.isNotBlank() },
+    )
+    LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface), detail = details.joinToString(" · "),
+        date = a.workDate()?.fmtShort(), edge = assignmentEdge(a.type), onClick = onOpen, trailing = trailing)
+}
+
+/** Every assignment belongs to this group; edits and deletes each use one undo step. */
+@Composable
+fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, undoToast: (String) -> Unit) {
+    val context = LocalContext.current
+    var filter by rememberSaveable(report.group.id) { mutableIntStateOf(0) }
+    var adding by rememberSaveable(report.group.id) { mutableStateOf(false) }
+    var editing by rememberSaveable(report.group.id) { mutableStateOf<String?>(null) }
+    val types = listOf(null, AssignmentType.HOMEWORK, AssignmentType.TEST, AssignmentType.WORKSHEET)
+    val labels = listOf(stringResource(R.string.work_all), stringResource(R.string.work_homework), stringResource(R.string.work_tests), stringResource(R.string.work_worksheets))
+    val today = LocalDate.now()
+    val motion = animationsEnabled()
+    val revealed = remember(report.group.id) { mutableSetOf<String>() }
+    val sections = workSections(report.group.assignments, today, types[filter])
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(contentPadding = PaddingValues(top = padding.calculateTopPadding() + Space.m,
+            bottom = padding.calculateBottomPadding() + Space.xxl * 3)) {
+            item {
+                LazyRow(contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+                    items(labels.indices.toList()) { index -> FilterChip(selected = filter == index, onClick = { filter = index }, label = { Text(labels[index]) }) }
+                }
+            }
+            if (sections.isEmpty()) item {
+                Column(Modifier.padding(Space.l)) {
+                    EmptyState(AppIcons.Homework, stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint), stringResource(R.string.work_add)) { adding = true }
+                }
+            }
+            sections.forEach { section ->
+                item { SectionHead(stringResource(when (section.period) {
+                    WorkPeriod.THIS_WEEK -> R.string.work_this_week
+                    WorkPeriod.LATER -> R.string.work_later
+                    WorkPeriod.UNDATED -> R.string.work_undated
+                    WorkPeriod.EARLIER -> R.string.work_earlier
+                }), Modifier.padding(horizontal = Space.l)) }
+                itemsIndexed(section.assignments, key = { _, a -> a.id }) { index, a ->
+                    var menu by remember { mutableStateOf(false) }
+                    val title = assignmentTitle(a)
+                    val remove = { if (vm.removeAssignment(report.group.id, a.id)) undoToast(context.getString(R.string.work_deleted)) }
+                    Box(Modifier.padding(horizontal = Space.l).workReveal(a.id, index, revealed).animateItem(
+                        fadeInSpec = if (motion) Motion.work(MotionSpec.Step.ROW) else null,
+                        placementSpec = if (motion) Motion.work(MotionSpec.Step.ROW) else null,
+                        fadeOutSpec = if (motion) Motion.work(MotionSpec.Step.MENU) else null)) {
+                        SwipeRow(title, remove) {
+                            AssignmentRow(a, report, { editing = a.id }) {
+                                Box {
+                                    PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) }
+                                    PacerDropdownMenu(menu, { menu = false }) {
+                                        DropdownMenuItem(text = { Text(stringResource(R.string.work_edit)) }, onClick = { menu = false; editing = a.id })
+                                        DropdownMenuItem(text = { Text(stringResource(R.string.component_remove), color = Pacer.colors.warn) }, onClick = { menu = false; remove() })
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (sections.isNotEmpty()) ExtendedFloatingActionButton(
+            onClick = { adding = true }, icon = { AppIcon(AppIcons.Add) }, text = { Text(stringResource(R.string.work_add)) },
+            containerColor = Pacer.colors.accent, contentColor = Pacer.colors.onAccent,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = Space.l, bottom = padding.calculateBottomPadding() + Space.l),
+        )
+    }
+    val assignment = report.group.assignments.firstOrNull { it.id == editing }
+    if (adding || assignment != null) key(editing) {
+        AssignmentSheet(report, assignment, defaultType = types[filter] ?: AssignmentType.HOMEWORK, onSave = {
+            if (vm.saveAssignment(report.group.id, it)) undoToast(context.getString(R.string.work_saved))
+        }, onDismiss = { adding = false; editing = null })
+    }
+}
+
+@Composable
+fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: AssignmentType = AssignmentType.HOMEWORK, onSave: (Assignment) -> Unit, onDismiss: () -> Unit) {
+    val typeOptions = listOf(AssignmentType.HOMEWORK, AssignmentType.WORKSHEET, AssignmentType.TEST)
+    val typeLabels = typeOptions.map { assignmentTypeName(it) }
+    val defaultTitle = assignmentTypeName(initial?.type ?: defaultType)
+    val id = rememberSaveable { initial?.id ?: newId() }
+    var type by rememberSaveable { mutableStateOf(initial?.type ?: defaultType) }
+    var title by rememberSaveable { mutableStateOf(initial?.title?.takeIf { it.isNotBlank() } ?: defaultTitle) }
+    var setText by rememberSaveable { mutableStateOf(initial?.setOn?.toString()) }
+    var dueText by rememberSaveable { mutableStateOf(initial?.due?.toString()) }
+    var note by rememberSaveable { mutableStateOf(initial?.note.orEmpty()) }
+    var takesLesson by rememberSaveable { mutableStateOf(initial?.takesLesson ?: false) }
+    val books = report.plan.books
+    val texts = rememberSaveable(saver = listSaver(save = { it.toList() }, restore = { it.toMutableStateList() })) {
+        mutableStateListOf(*books.map { b -> collapse(initial?.pages?.get(b.id).orEmpty()).takeUnless { initial?.pages?.get(b.id).isNullOrEmpty() }.orEmpty() }.toTypedArray())
+    }
+    val pages = books.mapIndexed { i, b -> assignmentPages(texts[i], b) }
+    val setOn = setText?.let(LocalDate::parse)
+    val due = dueText?.let(LocalDate::parse)
+    val datesValid = due == null || setOn == null || due >= setOn
+    val datedLesson = type == AssignmentType.HOMEWORK || !takesLesson || due != null
+    val valid = title.isNotBlank() && assignmentDatesValid(Assignment(id, type, title, setOn, due, takesLesson = takesLesson)) && pages.all { it != null }
+    val haptic = rememberToggleHaptic()
+    WorkSheetFrame(stringResource(if (initial == null) R.string.work_add else R.string.work_edit), stringResource(R.string.component_save), valid, {
+        onSave(Assignment(id, type, title.trim(), setOn, due,
+            assignmentEditedPages(initial?.pages.orEmpty(), books.mapIndexed { i, b -> b.id to pages[i].orEmpty() }.toMap()),
+            note.trim(), type != AssignmentType.HOMEWORK && takesLesson))
+    }, onDismiss) {
+        SegmentedToggle(typeLabels, typeOptions.indexOf(type), { selected ->
+            if (title == typeLabels[typeOptions.indexOf(type)]) title = typeLabels[selected]
+            type = typeOptions[selected]
+        })
+        OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text(stringResource(R.string.class_title)) },
+            colors = paletteFieldColors(), singleLine = true, modifier = Modifier.fillMaxWidth())
+        DateField(setOn, { setText = it?.toString() }, stringResource(R.string.work_set_on), Modifier.fillMaxWidth(), clearable = true)
+        DateField(due, { dueText = it?.toString() }, stringResource(R.string.work_due), Modifier.fillMaxWidth(), clearable = true)
+        if (!datesValid) Hint(stringResource(R.string.work_date_error))
+        if (!datedLesson) Hint(stringResource(R.string.work_needs_date))
+        val lessonDates = report.lessons.toSet() + report.group.done.map { it.date }
+        if ((setOn != null && setOn !in lessonDates) || (due != null && due !in lessonDates)) Hint(stringResource(R.string.work_not_lesson))
+        books.forEachIndexed { i, b ->
+            val bad = pages[i] == null
+            OutlinedTextField(value = texts[i], onValueChange = { texts[i] = it }, label = { Text(b.name) }, singleLine = true,
+                colors = paletteFieldColors(), isError = bad, textStyle = MaterialTheme.typography.bodyLarge.merge(Figures),
+                supportingText = if (bad) ({ Text(stringResource(if (b.supplementary) R.string.supp_page_error else R.string.group_page_error, b.first, b.last)) }) else null,
+                modifier = Modifier.fillMaxWidth().fieldFeedback(bad))
+        }
+        if (initial?.pages?.keys.orEmpty().any { bookId -> books.none { it.id == bookId } }) {
+            Hint(stringResource(R.string.work_unselected_books))
+        }
+        OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text(stringResource(R.string.custom_note)) },
+            colors = paletteFieldColors(), minLines = 2, modifier = Modifier.fillMaxWidth())
+        if (type != AssignmentType.HOMEWORK) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.class_takes_lesson), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Switch(checked = takesLesson, onCheckedChange = { haptic(it); takesLesson = it },
+                colors = SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper))
+        }
+    }
+}

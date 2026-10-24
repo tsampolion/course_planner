@@ -1,6 +1,8 @@
 package gr.edusuite.pacer.ui
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.*
+import gr.edusuite.pacer.ui.theme.Motion
+import gr.edusuite.pacer.ui.theme.MotionSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -64,8 +66,6 @@ import java.time.format.DateTimeFormatter
 import java.time.LocalDate
 import kotlinx.coroutines.delay
 
-private const val TAB_PLAN = 0
-private const val TAB_STATS = 1
 /** How long a new custom plan's lessons take to lift in, one after another. */
 private const val REVEAL_MS = 1000L
 
@@ -91,8 +91,11 @@ fun GroupScreen(
     /** The show-once hints already seen (Settings.seenTips). */
     seenTips: Set<String> = emptySet(),
     grouping: PlanGrouping = PlanGrouping.WEEKS,
+    page: GroupPage = GroupPage.HOME,
 ) {
     val context = LocalContext.current
+    val insets = groupInsets(padding)
+    val bodyPadding = insets.body
     fun changed(didChange: Boolean, message: String) {
         if (didChange) undoToast(message) else toast(context.getString(R.string.toast_nothing_changed))
     }
@@ -102,8 +105,8 @@ fun GroupScreen(
     val custom = g.custom
     // With a custom plan the schedule shows either plan; ticking works on the one in use.
     var showMine by rememberSaveable(g.id) { mutableStateOf(true) }
-    val shown = remember(report, showMine) { if (custom == null) report else GroupReport(plan, g, if (showMine) Source.CUSTOM else Source.PROPOSED) }
-    val compare = remember(report, showMine) { if (custom != null && showMine) GroupReport(plan, g, Source.PROPOSED) else null }
+    val shown = remember(report, showMine, page) { groupPageReport(report, page, showMine) }
+    val compare = remember(report, showMine, page) { if (page == GroupPage.PLAN && custom != null && showMine) GroupReport(plan, g, Source.PROPOSED) else null }
     // While a lesson is dragged, the others are laid out as if it had landed where it would land now.
     var dragId by remember { mutableStateOf<String?>(null) }
     var dragTo by remember { mutableIntStateOf(0) }
@@ -114,7 +117,7 @@ fun GroupScreen(
     }
     var reveal by remember { mutableIntStateOf(0) }
     LaunchedEffect(reveal) { if (reveal > 0) { delay(REVEAL_MS); reveal = 0 } }
-    val canTick = custom == null || showMine == custom.active
+    val canTick = groupPageCanTick(report, page, showMine)
     var planning by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var catchingUp by rememberSaveable(g.id) { mutableStateOf(false) }
     var folding by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
@@ -167,7 +170,7 @@ fun GroupScreen(
     val selectedMonth = YearMonth.parse(monthText)
     var pickMonth by remember { mutableStateOf(false) }
     var earlierOpen by rememberSaveable(g.id) { mutableStateOf(false) }
-    val ledger = remember(lessons, plan, g, grouping, selectedMonth) {
+    fun makeLedger(grouping: PlanGrouping, selectedMonth: YearMonth): Pair<List<Entry>, List<Entry>> {
         val entries = (lessons.filter { it.date != next?.date }.map { Entry.Item(it) } + plan.daysOff(g, lessons.mapTo(HashSet()) { it.date }))
             .sortedBy { it.date }
         val filtered = if (grouping == PlanGrouping.MONTHS) {
@@ -178,32 +181,18 @@ fun GroupScreen(
             val upcoming = entries.filterNot { it in earlier }
             (earlier + filterMonth(upcoming, selectedMonth) { it.date }).sortedBy { it.date }
         } else entries
-        filtered.partition { e ->
+        return filtered.partition { e ->
             when (e) {
                 is Entry.Item -> e.lesson.done || e.date.isBefore(today)
                 is Entry.DayOff -> e.date.isBefore(next?.date ?: today)
             }
         }
     }
-    val earlierCount = earlierSummary(ledger.first.filterIsInstance<Entry.Item>().filter { !it.lesson.blocked }, today, { it.date }, { it.lesson.done })
-    val earlierWeeks = weekSections(ledger.first, today) { it.date }
-    val laterWeeks = if (grouping == PlanGrouping.WEEKS) weekSections(ledger.second, today) { it.date }
-        else monthSections(ledger.second, today) { it.date }.map { WeekSection(it.month.atDay(1), it.month.atEndOfMonth(), WeekLabel.DATES, it.items) }
-    val showHero = grouping == PlanGrouping.WEEKS || next == null || YearMonth.from(next.date) == selectedMonth
-    val todayIndex = if (earlierCount > 0) 1 else 0
-
-    // Plan is the main view; the figures wait one tap away on Stats. The plan keeps its scroll position across switches.
-    var tab by rememberSaveable(g.id) { mutableIntStateOf(TAB_PLAN) }
-    val planList = rememberLazyListState(initialFirstVisibleItemIndex = todayIndex)
-    LaunchedEffect(g.id, grouping, selectedMonth) { planList.scrollToItem(todayIndex) }
-    val largeText = rememberLargeText()
+    val tablet = rememberWindowLayout() != WindowLayout.COMPACT
     val motion = animationsEnabled()
-    Column(Modifier.fillMaxSize().imePadding()) {
-        SegmentedToggle(
-            listOf(stringResource(R.string.group_tab_plan), stringResource(R.string.group_tab_stats)), tab, { tab = it },
-            Modifier.padding(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.s),
-        )
-        if (tab == TAB_PLAN) {
+    val largeText = rememberLargeText()
+    Column(Modifier.fillMaxSize().imePadding().padding(top = insets.top)) {
+        if (page == GroupPage.PLAN) {
             Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 SegmentedToggle(listOf(stringResource(R.string.plan_weeks), stringResource(R.string.plan_months)), grouping.ordinal, { vm.setPlanGrouping(PlanGrouping.entries[it]) })
                 if (grouping == PlanGrouping.MONTHS) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -225,12 +214,39 @@ fun GroupScreen(
                 }
             }
         }
-        AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { sideways(targetState > initialState, motion) }) { view ->
-            if (view == TAB_STATS) GroupStats(report, vm, padding, seenTips, onOwnPaceApplied = { changed(it, context.getString(R.string.custom_created)) }) else LazyColumn(
+        when (page) {
+            GroupPage.HOME -> GroupHome(report, next, today, actions, bodyPadding,
+                onDone = { next?.let { toggleHaptic(true); vm.toggleLesson(g.id, it.date); undoToast(context.getString(R.string.group_lesson_done)) } },
+                onPagesTaught = { editingDate = next?.date?.toString() },
+                onOpen = { vm.goTo(Screen.Group(g.id, it)) })
+            GroupPage.WORK -> WorkScreen(report, vm, bodyPadding, undoToast)
+            GroupPage.STATS -> GroupStats(report, vm, bodyPadding, seenTips, onOwnPaceApplied = { changed(it, context.getString(R.string.custom_created)) })
+            GroupPage.PLAN -> AnimatedContent(targetState = grouping to selectedMonth,
+                modifier = Modifier.weight(1f), transitionSpec = {
+                    if (!motion) EnterTransition.None togetherWith ExitTransition.None else {
+                        val direction = if (targetState.second >= initialState.second) 1 else -1
+                        (slideInHorizontally(Motion.work(MotionSpec.Step.CALENDAR)) { MotionSpec.CALENDAR_SHIFT_PX * direction } + fadeIn(Motion.work(MotionSpec.Step.CALENDAR))) togetherWith
+                            (slideOutHorizontally(Motion.work(MotionSpec.Step.CALENDAR)) { -MotionSpec.CALENDAR_SHIFT_PX * direction } + fadeOut(Motion.work(MotionSpec.Step.CALENDAR)))
+                    }
+                }) { (grouping, selectedMonth) ->
+                val ledger = remember(lessons, plan, g, grouping, selectedMonth) { makeLedger(grouping, selectedMonth) }
+                val earlierCount = earlierSummary(ledger.first.filterIsInstance<Entry.Item>().filter { !it.lesson.blocked }, today, { it.date }, { it.lesson.done })
+                val earlierWeeks = weekSections(ledger.first, today) { it.date }
+                val laterWeeks = if (grouping == PlanGrouping.WEEKS) weekSections(ledger.second, today) { it.date }
+                else monthSections(ledger.second, today) { it.date }.map { WeekSection(it.month.atDay(1), it.month.atEndOfMonth(), WeekLabel.DATES, it.items) }
+                val showHero = grouping == PlanGrouping.WEEKS || next == null || YearMonth.from(next.date) == selectedMonth
+                val todayIndex = (if (earlierCount > 0) 1 else 0) + (if (tablet) 1 else 0)
+
+                val planList = rememberLazyListState(initialFirstVisibleItemIndex = todayIndex)
+                LaunchedEffect(g.id, grouping, selectedMonth) { planList.scrollToItem(todayIndex) }
+                LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = planList,
                 contentPadding = PaddingValues(top = Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
             ) {
+                if (tablet) item {
+                    GroupHomeLinks(showPlan = false) { vm.goTo(Screen.Group(g.id, it)) }
+                }
                 if (earlierCount > 0) item(key = "earlier") {
                     TertiaryButton(if (earlierOpen) stringResource(R.string.plan_hide_earlier) else pluralStringResource(R.plurals.plan_earlier_lessons, earlierCount, earlierCount), { earlierOpen = !earlierOpen }, Modifier.padding(horizontal = Space.l))
                 }
@@ -302,6 +318,7 @@ fun GroupScreen(
                         }
                     }
                 }
+            }
             }
         }
     }

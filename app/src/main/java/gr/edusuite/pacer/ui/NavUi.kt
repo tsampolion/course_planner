@@ -140,7 +140,7 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
                 if (hits.isEmpty()) Hint(stringResource(R.string.nav_no_match, query.trim()), Modifier.padding(Space.m))
                 hits.forEach { h ->
                     DrawerRow(
-                        groupLabel(h.className, h.groupName), null, screen == Screen.Group(h.groupId) && data.activeClass == h.classId,
+                        groupLabel(h.className, h.groupName), null, (screen as? Screen.Group)?.id == h.groupId && data.activeClass == h.classId,
                         { go { vm.goToGroup(h.classId, h.groupId) } },
                     ) { StatusLabel(status[h.groupId]) }
                 }

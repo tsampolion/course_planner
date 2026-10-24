@@ -84,7 +84,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** How long a delete's Undo stays on show before accessibility adjustments (style guide §14). */
-private const val UNDO_MILLIS = 5_000L
+private const val UNDO_MILLIS = gr.edusuite.pacer.ui.theme.MotionSpec.UNDO_MILLIS
 
 private fun Screen.title(d: AppData, context: Context): String = when (this) {
     Screen.Home -> context.getString(R.string.app_name)
@@ -97,7 +97,16 @@ private fun Screen.title(d: AppData, context: Context): String = when (this) {
     Screen.Tests -> classTitle(d, context, context.getString(R.string.app_tests))
     Screen.Homework -> classTitle(d, context, context.getString(R.string.app_homework_short))
     is Screen.GroupSettings -> context.getString(R.string.group_settings_title)
-    is Screen.Group -> d.schoolClass?.groups?.firstOrNull { it.id == id }?.name?.ifBlank { null } ?: context.getString(R.string.app_group)
+    is Screen.Group -> {
+        val name = d.schoolClass?.groups?.firstOrNull { it.id == id }?.name?.ifBlank { null } ?: context.getString(R.string.app_group)
+        val part = when (page) {
+            GroupPage.HOME -> null
+            GroupPage.PLAN -> R.string.group_tab_plan
+            GroupPage.WORK -> R.string.work_title
+            GroupPage.STATS -> R.string.group_tab_stats
+        }
+        if (part == null) name else context.getString(R.string.nav_class_group, name, context.getString(part))
+    }
 }
 
 /** [what] after the open class's name. */
@@ -375,8 +384,8 @@ private fun ScreenContent(
         Screen.Overview -> OverviewScreen(year ?: return, vm, padding, selectedGroup)
         Screen.Classes -> ClassesScreen(year ?: return, vm, padding, order = settings.classOrder, undoToast = undoToast)
         Screen.Class -> ClassScreen(plan ?: return, vm, padding, undoToast)
-        Screen.Tests -> TestsScreen(plan ?: return, vm, padding, undoToast)
-        Screen.Homework -> HomeworkScreen(plan ?: return, vm, padding, undoToast)
+        Screen.Tests -> MovedWorkScreen(plan ?: return, vm, padding)
+        Screen.Homework -> MovedWorkScreen(plan ?: return, vm, padding)
         is Screen.GroupSettings -> {
             if (plan == null || year == null) return
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return
@@ -396,6 +405,7 @@ private fun ScreenContent(
                 onSheetClose = onGroupSheetClose,
                 seenTips = settings.seenTips,
                 grouping = settings.planGrouping,
+                page = Nav.groupPage(s, rememberWindowLayout()),
             )
         }
     }

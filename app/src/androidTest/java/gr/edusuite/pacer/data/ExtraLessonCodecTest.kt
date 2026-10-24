@@ -20,6 +20,10 @@ class ExtraLessonCodecTest : Instrumentation() {
             "groupOverridesAndCollectionsRoundTrip" to ::testGroupOverridesAndCollectionsRoundTrip,
             "versionTenDefaultsRemainUnchanged" to ::testVersionTenDefaultsRemainUnchanged,
             "extraRoundTripAndBackup" to ::testExtraRoundTripAndBackup,
+            "assignmentRoundTripAndBackup" to ::testAssignmentRoundTripAndBackup,
+            "legacyAssignmentsMigrateAndAreNotWrittenAgain" to ::testLegacyAssignmentsMigrateAndAreNotWrittenAgain,
+            "schemaElevenKeepsOverridesAndMigratesWork" to ::testSchemaElevenKeepsOverridesAndMigratesWork,
+            "malformedAssignmentIsSkippedIndividually" to ::testMalformedAssignmentIsSkippedIndividually,
             "paletteRoundTripsThroughStore" to ::testPaletteRoundTripsThroughStore,
             "planGroupingRoundTripsThroughStore" to ::testPlanGroupingRoundTripsThroughStore,
             "classOrderRoundTripsThroughStore" to ::testClassOrderRoundTripsThroughStore,
@@ -90,6 +94,79 @@ class ExtraLessonCodecTest : Instrumentation() {
         val read = JsonCodec.decode(JsonCodec.encode(data))
         assertEquals(data, read)
         assertEquals(data.years.single().classes, addYears(data.years, read.years).last().classes)
+    }
+    fun testAssignmentRoundTripAndBackup() {
+        val base = data()
+        val c = base.years.single().classes.single()
+        val work = AssignmentType.entries.map { type ->
+            Assignment(type.name, type, "Read", date, date.plusDays(7),
+                mapOf("b" to listOf(2, 3, 5)), "Bring notes", type != AssignmentType.HOMEWORK)
+        }
+        val incoming = base.copy(years = listOf(base.years.single().copy(classes = listOf(
+            c.copy(groups = listOf(c.groups.single().copy(assignments = work)))
+        ))))
+        val read = JsonCodec.decode(JsonCodec.encode(incoming))
+        assertEquals(incoming, read)
+        assertEquals(incoming.years.single().classes, addYears(base.years, read.years).last().classes)
+    }
+    fun testLegacyAssignmentsMigrateAndAreNotWrittenAgain() {
+        val o = JSONObject(JsonCodec.encode(data())).put("version", 10)
+        val c = o.getJSONArray("years").getJSONObject(0).getJSONArray("classes").getJSONObject(0)
+        c.getJSONArray("groups").getJSONObject(0).remove("assignments")
+        c.put("homework", org.json.JSONArray().put(JSONObject().put("id", "h").put("groupId", "g")
+            .put("bookId", "b").put("from", 3).put("to", 5).put("when", date.toString())))
+        c.put("events", org.json.JSONArray().put(JSONObject().put("id", "t").put("name", "Test")
+            .put("date", date.toString()).put("who", ALL_GROUPS).put("consumes", true)))
+        val read = JsonCodec.decode(o.toString())
+        val cls = read.years.single().classes.single()
+        assertEquals(emptyList<Homework>(), cls.homework)
+        assertEquals(emptyList<TestEvent>(), cls.events)
+        assertEquals(2, cls.groups.single().assignments.size)
+        assertEquals(date, cls.groups.single().assignments.first().setOn)
+        val written = JSONObject(JsonCodec.encode(read)).getJSONArray("years").getJSONObject(0)
+            .getJSONArray("classes").getJSONObject(0)
+        assertEquals(false, written.has("homework"))
+        assertEquals(false, written.has("events"))
+        assertEquals(read, JsonCodec.decode(JsonCodec.encode(read)))
+        val store = PlanStore(java.io.File(context.cacheDir, "assignment-codec-test").apply { mkdirs() })
+        store.save(read)
+        assertEquals(read, store.load().data)
+    }
+    fun testSchemaElevenKeepsOverridesAndMigratesWork() {
+        val base = data()
+        val y = base.years.single()
+        val c = y.classes.single()
+        val group = c.groups.single().copy(end = date.plusDays(10), skip = mapOf("b" to "2"), extraBooks = setOf("optional"))
+        val original = base.copy(years = listOf(y.copy(
+            collections = listOf(ClassCollection("collection", "Classes", setOf(c.id))),
+            classes = listOf(c.copy(groups = listOf(group), books = c.books + Book("optional", "Optional", 1, 8, groupOnly = true)))
+        )))
+        val o = JSONObject(JsonCodec.encode(original)).put("version", 11)
+        val cls = o.getJSONArray("years").getJSONObject(0).getJSONArray("classes").getJSONObject(0)
+        cls.getJSONArray("groups").getJSONObject(0).remove("assignments")
+        cls.put("homework", org.json.JSONArray().put(JSONObject().put("id", "h").put("groupId", "g")
+            .put("bookId", "b").put("from", 1).put("to", 3).put("when", date.toString())))
+        val read = JsonCodec.decode(o.toString())
+        val out = read.years.single().classes.single()
+        assertEquals(original.years.single().collections, read.years.single().collections)
+        assertEquals(group.end, out.groups.single().end)
+        assertEquals(group.skip, out.groups.single().skip)
+        assertEquals(group.extraBooks, out.groups.single().extraBooks)
+        assertEquals(true, out.books.last().groupOnly)
+        assertEquals(mapOf("b" to listOf(1, 2, 3)), out.groups.single().assignments.single().pages)
+        assertEquals(read, JsonCodec.decode(JsonCodec.encode(read)))
+    }
+    fun testMalformedAssignmentIsSkippedIndividually() {
+        val o = JSONObject(JsonCodec.encode(data()))
+        val group = o.getJSONArray("years").getJSONObject(0).getJSONArray("classes").getJSONObject(0)
+            .getJSONArray("groups").getJSONObject(0)
+        group.put("assignments", org.json.JSONArray()
+            .put(JSONObject().put("id", "bad").put("type", "UNKNOWN"))
+            .put(JSONObject().put("id", "ok").put("type", "WORKSHEET").put("title", "Read")
+                .put("due", "broken")))
+        val read = JsonCodec.decode(o.toString()).years.single().classes.single().groups.single()
+        assertEquals(listOf(Assignment("ok", AssignmentType.WORKSHEET, "Read")), read.assignments)
+        assertEquals(data().years.single().classes.single().groups.single().extras, read.extras)
     }
     fun testVersionEightWithoutExtrasReadsUnchanged() {
         val data = data()

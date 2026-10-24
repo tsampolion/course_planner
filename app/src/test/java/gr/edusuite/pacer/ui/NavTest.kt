@@ -16,6 +16,28 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NavTest {
+    @Test fun tabletRendersPlanWithoutChangingTheLogicalGroupDestination() {
+        val home = Screen.Group("a")
+        val detail = Nav.panes(Nav.root + home, WindowLayout.MEDIUM)!!.detail as Screen.Group
+        assertEquals(home, detail)
+        assertEquals(GroupPage.PLAN, Nav.groupPage(detail, WindowLayout.MEDIUM))
+        assertEquals(GroupPage.HOME, Nav.groupPage(detail, WindowLayout.COMPACT))
+        assertEquals(GroupPage.WORK, Nav.groupPage(home.copy(page = GroupPage.WORK), WindowLayout.EXPANDED))
+    }
+
+    @Test fun groupPagesStackAndSwitchingGroupsDropsOldPages() {
+        val home = Screen.Group("a")
+        val work = Screen.Group("a", GroupPage.WORK)
+        val plan = Screen.Group("a", GroupPage.PLAN)
+        val stack = Nav.goTo(Nav.goTo(Nav.root, home), work)
+        assertEquals(home, Nav.pop(stack).last())
+        assertEquals(stack, Nav.goTo(stack + plan, work))
+        assertEquals(Nav.root + Screen.Group("b"), Nav.goTo(stack, Screen.Group("b")))
+        assertEquals("a", Nav.viewOf(stack))
+        assertEquals(plan, Nav.panes(Nav.root + plan, WindowLayout.MEDIUM)?.detail)
+        assertEquals(Nav.root, Nav.prune(stack, true, true, emptySet()))
+    }
+
     private val home = listOf(Screen.Home)
     private val classStack = listOf(Screen.Home, Screen.Classes, Screen.Class)
 

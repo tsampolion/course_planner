@@ -22,6 +22,25 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-10-24
+
+### Added
+
+- Group-owned Homework, Tests and Worksheets with type filters, dated sections,
+  pages from multiple books, notes, Add/Edit and swipe or menu removal with Undo.
+- Group home with the lesson hero, Progress, Due soon and Plan/Work/Stats pages;
+  tablets retain Plan in the detail pane.
+- Pure assignment validation, group-home ordering and reduced-motion timing tests.
+
+### Changed
+
+- Schema 12 migrates old homework and class-wide or targeted tests into their
+  groups. Old files remain readable; new files omit class-level work lists.
+- Class links to each group's Work page. Existing class work routes redirect
+  there for one release. Scheduling parity covers proposed and custom plans.
+- Work transitions, press feedback and segmented selection use motion tokens
+  with reduced-motion support.
+
 ## [3.10.0] - 2026-10-23
 
 ### Added
@@ -669,7 +688,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.10.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v3.11.0...HEAD
+[3.11.0]: https://github.com/tsampolion/course_planner/compare/v3.10.0...v3.11.0
 [3.10.0]: https://github.com/tsampolion/course_planner/compare/v3.9.0...v3.10.0
 [3.9.0]: https://github.com/tsampolion/course_planner/compare/v3.8.1...v3.9.0
 [3.8.1]: https://github.com/tsampolion/course_planner/compare/v3.8.0...v3.8.1
