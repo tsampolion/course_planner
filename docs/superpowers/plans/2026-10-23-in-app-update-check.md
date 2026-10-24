@@ -111,7 +111,7 @@ These are inputs and failure modes the spec implies but nothing else pins down. 
   ```
   `Update.version` is always the bare `X.Y.Z` with no `v`.
 
-- [ ] **Step 1: Write the failing tests** in `<test>/update/UpdateModelTest.kt`
+- [x] **Step 1: Write the failing tests** in `<test>/update/UpdateModelTest.kt`
 
 ```kotlin
 package gr.edusuite.pacer.update
@@ -237,12 +237,12 @@ class UpdateModelTest {
 }
 ```
 
-- [ ] **Step 2: Run the tests to see them fail**
+- [x] **Step 2: Run the tests to see them fail**
 
 Run: `./gradlew testDebugUnitTest --tests 'gr.edusuite.pacer.update.UpdateModelTest'`
 Expected: compilation FAILS with `Unresolved reference: parseVersion` (and others).
 
-- [ ] **Step 3: Implement `<main>/update/UpdateModel.kt`**
+- [x] **Step 3: Implement `<main>/update/UpdateModel.kt`**
 
 Rules the tests pin, with the choices they leave open made for you:
 - `parseVersion`: trim, then match `^v?(\d+)\.(\d+)\.(\d+)$` (lowercase `v` only). Each part goes through `toIntOrNull()`; any null gives `null`.
@@ -259,17 +259,17 @@ Rules the tests pin, with the choices they leave open made for you:
 
 Put a one-line KDoc on each public declaration, in the house style (see `<main>/ui/HomeModel.kt`).
 
-- [ ] **Step 4: Run the tests to see them pass**
+- [x] **Step 4: Run the tests to see them pass**
 
 Run: `./gradlew testDebugUnitTest --tests 'gr.edusuite.pacer.update.UpdateModelTest'`
 Expected: `BUILD SUCCESSFUL`, 14 tests passed.
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `./gradlew testDebugUnitTest`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/src/main/java/gr/edusuite/pacer/update/UpdateModel.kt app/src/test/java/gr/edusuite/pacer/update/UpdateModelTest.kt
@@ -298,7 +298,7 @@ git commit -m "feat: update model for the GitHub release check"
   ```
   `sanitised()` additionally does: `lastUpdateCheck = lastUpdateCheck.coerceAtLeast(0)` and `availableUpdate = availableUpdate?.let { storedUpdate(it.version, it.notes, it.apkUrl, it.pageUrl) }`.
 
-- [ ] **Step 1: Write the failing tests** (append inside `class SettingsTest` in `<test>/ui/SettingsTest.kt`, and add `import gr.edusuite.pacer.update.Update`)
+- [x] **Step 1: Write the failing tests** (append inside `class SettingsTest` in `<test>/ui/SettingsTest.kt`, and add `import gr.edusuite.pacer.update.Update`)
 
 ```kotlin
     @Test fun updateSettingsDefaults() {
@@ -317,14 +317,14 @@ git commit -m "feat: update model for the GitHub release check"
     }
 ```
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `./gradlew testDebugUnitTest --tests 'gr.edusuite.pacer.ui.SettingsTest'`
 Expected: compilation FAILS with `No parameter with name 'availableUpdate'`.
 
-- [ ] **Step 3: Add the three fields and the sanitising to `Settings`** as specified in Interfaces. `model` importing `gr.edusuite.pacer.update.Update` is intended (both are plain Kotlin).
+- [x] **Step 3: Add the three fields and the sanitising to `Settings`** as specified in Interfaces. `model` importing `gr.edusuite.pacer.update.Update` is intended (both are plain Kotlin).
 
-- [ ] **Step 4: Store them in `SettingsStore`**
+- [x] **Step 4: Store them in `SettingsStore`**
 
 Add these constants to the private companion, each with a short comment, as the existing ones have:
 ```kotlin
@@ -339,17 +339,17 @@ const val UPDATE_PAGE = "updatePage"
 - `save(s)`: `putBoolean(AUTO_UPDATE, …)` and `putLong(LAST_UPDATE_CHECK, …)`. If `s.availableUpdate` is non-null, `putString` all four keys; if it is null, `remove` all four.
 - `settings.xml` is already backed up whole by `data_extraction_rules.xml`, so don't change that file.
 
-- [ ] **Step 5: Run the tests to see them pass**
+- [x] **Step 5: Run the tests to see them pass**
 
 Run: `./gradlew testDebugUnitTest --tests 'gr.edusuite.pacer.ui.SettingsTest'`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 6: Run the whole suite**
+- [x] **Step 6: Run the whole suite**
 
 Run: `./gradlew testDebugUnitTest`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/src/main/java/gr/edusuite/pacer/model/Settings.kt app/src/main/java/gr/edusuite/pacer/data/SettingsStore.kt app/src/test/java/gr/edusuite/pacer/ui/SettingsTest.kt

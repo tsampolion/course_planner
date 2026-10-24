@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.update.Update
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.Settings
@@ -87,4 +88,18 @@ class SettingsTest {
         org.junit.Assert.assertEquals(gr.edusuite.pacer.model.ClassOrder.YOUR_ORDER, gr.edusuite.pacer.model.ClassOrder.parse(null))
     }
 
+    @Test fun updateSettingsDefaults() {
+        val s = Settings()
+        assertTrue(s.autoUpdateCheck)
+        assertEquals(0L, s.lastUpdateCheck)
+        assertNull(s.availableUpdate)
+    }
+
+    @Test fun sanitisedCleansUpdateFields() {
+        val good = Update("3.11.0", "n", "https://github.com/tsampolion/course_planner/releases/download/v3.11.0/course-pacer-3.11.0.apk", "https://github.com/tsampolion/course_planner/releases/tag/v3.11.0")
+        assertEquals(good, Settings(availableUpdate = good).sanitised().availableUpdate)
+        assertNull(Settings(availableUpdate = good.copy(apkUrl = "https://example.com/x.apk")).sanitised().availableUpdate)
+        assertNull(Settings(availableUpdate = good.copy(version = "3.11")).sanitised().availableUpdate)
+        assertEquals(0L, Settings(lastUpdateCheck = -5).sanitised().lastUpdateCheck)
+    }
 }
