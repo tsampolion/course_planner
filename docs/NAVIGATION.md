@@ -1,6 +1,6 @@
 # Navigation and interaction map
 
-Every control in Course Pacer: the gesture it takes, when it is there, and what happens next. 359 interactions over 13 screens and 50 sheets, menus, dialogs and panels, read from `app/src/main/java/gr/edusuite/pacer/ui/`. The back-stack rules themselves are in [ARCHITECTURE.md](ARCHITECTURE.md) (Navigation).
+Every control in Course Pacer: the gesture it takes, when it is there, and what happens next. 360 interactions over 13 screens and 50 sheets, menus, dialogs and panels, read from `app/src/main/java/gr/edusuite/pacer/ui/`. The back-stack rules themselves are in [ARCHITECTURE.md](ARCHITECTURE.md) (Navigation).
 
 Read it before changing any screen, and change it in the same pull request as the control (see `CLAUDE.md`). Labels are the app's English strings; *name* and *N* stand for values the app fills in.
 
@@ -932,8 +932,9 @@ flowchart LR
 | Short by N lessons: Re-pace to fit | Tap | Has a custom plan | Re-paces the custom plan to fit the term. Undo: “Plan re-paced” |
 | Book N lessons behind: Bring in step | Tap |  | ↑ Opens [Bring book back in step](#fold). Opens Bring book back in step. |
 | N pages left out: Re-pace | Tap |  | Re-paces the custom plan. Undo: “Plan re-paced” |
-| N lessons after the term ends: Fit to term | Tap |  | Squeezes the custom plan into the term. Undo: “Plan fitted to the term” |
-| Pages taught twice / already covered: Tidy | Tap |  | Removes the doubled or stale pages. Undo: “Plan tidied” |
+| N lessons after the term ends: Fit to term | Tap | Fit can move something; hidden otherwise | Re-spreads only the lessons you haven't edited into the term; edited lessons stay past it, and the hint says how many and why. Undo: “Plan fitted to the term” |
+| Pages taught twice / already covered: Tidy | Tap | Tidy can fix them | Removes the doubled or stale pages from lessons you haven't edited. Undo: “Plan tidied” |
+| Pages taught twice / already covered: Open lesson | Tap | The pages sit in a lesson you edited (“…so Tidy leaves it as it is”) | ↑ Opens [Lesson N · Fri 23 Oct / New lesson](#plan-lesson). Opens that lesson's sheet, showing your plan. |
 | Extra lesson unavailable: Edit extra lesson… | Tap |  | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet. |
 | Book units issue: Book units / Edit | Tap |  | ↑ Opens [Unit N revision](#unit-revision). Opens Book units, or the unit revision sheet for an unscheduled revision. |
 

@@ -29,7 +29,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 ### Added
 
-- `docs/NAVIGATION.md`: a map of every control in the app (359 interactions over 13 screens and 50 sheets, menus, dialogs and panels). For each it gives the gesture, when it shows, and what it opens or changes, with the message and Undo it leaves. It opens with a screen graph and the navigation findings.
+- `docs/NAVIGATION.md`: a map of every control in the app (360 interactions over 13 screens and 50 sheets, menus, dialogs and panels). For each it gives the gesture, when it shows, and what it opens or changes, with the message and Undo it leaves. It opens with a screen graph and the navigation findings.
 - `CLAUDE.md` and `docs/STREAMLINING_BRIEF.md` point UI and streamlining work at the map and ask for it to be kept current.
 - `docs/UI_AUDIT_BRIEF.md`: the map's findings join the audit as X16–X21 (unreachable routes, deletes with no confirmation, the two custom-plan outcomes, the revision sheet that opens by itself, silent Undo clearing, day-off long-press), each placed in a fix pull request.
 
