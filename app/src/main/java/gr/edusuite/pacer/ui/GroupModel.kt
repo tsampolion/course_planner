@@ -156,3 +156,10 @@ fun <T> filterMonth(items: List<T>, month: java.time.YearMonth, dateOf: (T) -> L
 /** Count taught lessons and untaught lessons before today, never days off. */
 fun <T> earlierSummary(items: List<T>, today: LocalDate, dateOf: (T) -> LocalDate, done: (T) -> Boolean): Int =
     items.count { done(it) || dateOf(it).isBefore(today) }
+
+/** What the hero lesson box offers for the next lesson. Tapping its pages edits what was taught. */
+data class HeroActions(val canDone: Boolean, val canEditPages: Boolean)
+
+/** No lesson left offers nothing; a test day can be ticked but has no pages to edit; a plan shown only for comparison offers nothing. */
+internal fun heroActions(next: Lesson?, canTick: Boolean): HeroActions =
+    HeroActions(canDone = next != null && canTick, canEditPages = next != null && canTick && !next.blocked)

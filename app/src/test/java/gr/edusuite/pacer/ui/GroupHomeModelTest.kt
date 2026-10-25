@@ -2,6 +2,8 @@ package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.assignmentsOn
+import gr.edusuite.pacer.engine.plannedPages
+import gr.edusuite.pacer.engine.recordLesson
 import gr.edusuite.pacer.model.*
 import java.time.LocalDate
 import org.junit.Assert.*
@@ -78,5 +80,30 @@ class GroupHomeModelTest {
         assertEquals(mapOf("optional" to listOf(2, 3), "core" to listOf(5)),
             assignmentEditedPages(old, mapOf("core" to listOf(5))))
         assertEquals(mapOf("optional" to listOf(2, 3)), assignmentEditedPages(old, mapOf("core" to emptyList())))
+    }
+
+    private fun lesson(blocked: Boolean = false) = Lesson(1, today, emptyList(), blocked, listOf("1-2"), false)
+
+    @Test fun noLessonHasNoActions() {
+        assertEquals(HeroActions(canDone = false, canEditPages = false), heroActions(null, true))
+    }
+    @Test fun blockedLessonCannotBeEdited() {
+        assertEquals(HeroActions(canDone = true, canEditPages = false), heroActions(lesson(blocked = true), true))
+        assertEquals(HeroActions(canDone = true, canEditPages = true), heroActions(lesson(), true))
+        assertEquals(HeroActions(canDone = false, canEditPages = false), heroActions(lesson(), false))
+    }
+    @Test fun savingTaughtPagesMarksDone() {
+        val r = report(emptyList())
+        val first = r.rows.first()
+        val book = r.plan.books.first().id
+        val g = r.recordLesson(first.date, mapOf(book to listOf(99)))!!
+        assertTrue(g.done.any { it.date == first.date && it.pages[book] == listOf(99) && it.edited })
+        assertTrue(GroupReport(r.plan, g).rows.none { it.date == first.date })
+    }
+    @Test fun identicalPagesStillMarkDone() {
+        val r = report(emptyList())
+        val first = r.rows.first()
+        val g = r.recordLesson(first.date, r.plannedPages(first.date)!!)!!
+        assertTrue(g.done.any { it.date == first.date && !it.edited })
     }
 }

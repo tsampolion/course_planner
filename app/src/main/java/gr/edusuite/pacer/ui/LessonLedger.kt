@@ -384,8 +384,8 @@ private fun homeworkSummaries(l: Lesson, actions: LessonActions): List<String> =
 }
 
 @Composable
-internal fun HomeworkLines(l: Lesson, actions: LessonActions) {
-    homeworkSummaries(l, actions).forEach { Text(it, style = MaterialTheme.typography.bodySmall.merge(Figures), color = Pacer.colors.muted) }
+internal fun HomeworkLines(l: Lesson, actions: LessonActions, color: Color = Pacer.colors.muted) {
+    homeworkSummaries(l, actions).forEach { Text(it, style = MaterialTheme.typography.bodySmall.merge(Figures), color = color) }
 }
 
 /** A week's heading: "This week" or "Next week" with its dates beside, or only the dates. */

@@ -89,7 +89,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * Today's lesson, first on the Plan tab (decision 8): its date and pages, with Done and Pages taught. A long-press
+ * Today's lesson, first on the Plan tab (decision 8): its date and pages, with Done; tapping the pages records what was taught. A long-press
  * opens the lesson's menu, and TalkBack reads it with the books' full names. [next] null means none is left.
  */
 @Composable
@@ -117,8 +117,12 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
     val description = spokenLesson(next, actions)
     val label = stringResource(if (next.date == today) R.string.today_label else R.string.today_next_label, next.n)
     val large = rememberLargeText()
+    // Tapping the pages records what was taught and ticks the lesson (the lesson menu keeps the same action for TalkBack).
+    val hero = heroActions(next, actions.canTick)
+    val editLabel = stringResource(R.string.today_pages_taught)
+    val editPages = if (hero.canEditPages && !completing) Modifier.heightIn(min = 48.dp).clickable(onClickLabel = editLabel, role = Role.Button, onClick = onPagesTaught) else Modifier
     Box(modifier) {
-        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.surfaceContainer, contentColor = c.ink) {
+        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.accent, contentColor = c.onAccent) {
             val info = @Composable { m: Modifier ->
                 Column(
                     m.lessonNode("$label. $description", next.done, null, items) { menu = true },
@@ -131,12 +135,12 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                     if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
                     if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) {
                         corePages(next, actions.shortNames, actions.supplementary).takeIf { it.isNotBlank() }?.let {
-                            Text(it, style = MaterialTheme.typography.bodyLarge.merge(Figures))
+                            Text(it, style = MaterialTheme.typography.bodyLarge.merge(Figures), modifier = editPages)
                         }
                         suppPages(next, actions).forEach { (_, text) -> Text(stringResource(R.string.ledger_supp, text), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
                     }
                     next.unitIndex?.let { Text(stringResource(R.string.units_lesson_position, it + 1, next.unitLesson, next.unitLessons), style = MaterialTheme.typography.bodySmall) }
-                    HomeworkLines(next, actions)
+                    HomeworkLines(next, actions, c.onAccent)
                 }
             }
             // Large text: the buttons go full width under the lesson instead of beside it.
@@ -153,7 +157,6 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         Spacer(Modifier.width(Space.xs))
                         Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
                     }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, enabled = actions.canTick && !completing, color = c.accentText)
                 }
             }
             if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
@@ -174,16 +177,15 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f).clearAndSetSemantics {}) {
+                    Column(Modifier.weight(1f).then(editPages).clearAndSetSemantics {}) {
                         if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) Text(
                             (listOf(corePages(next, actions.shortNames, actions.supplementary)) + suppPages(next, actions).map { it.second }).filter { it.isNotBlank() }.joinToString(" · "),
                             style = MaterialTheme.typography.bodyLarge.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
                         val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
                         if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        HomeworkLines(next, actions)
+                        HomeworkLines(next, actions, c.onAccent)
                     }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}), enabled = actions.canTick && !completing, color = c.accentText)
                 }
                 footer?.invoke()
             }
