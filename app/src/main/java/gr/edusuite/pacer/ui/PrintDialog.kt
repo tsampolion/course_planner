@@ -55,7 +55,7 @@ fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss:
             val plans = when {
                 scope == PrintScope.GROUP && onlyClass != null && onlyGroup != null -> listOf(year.planFor(onlyClass).copy(groups = listOf(onlyGroup)))
                 scope == PrintScope.CLASS && onlyClass != null -> listOf(year.planFor(onlyClass))
-                else -> year.classes.map(year::planFor)
+                else -> year.classes.map { year.planFor(it) }
             }
             PrintSheet.print(context, year.name, plans, margin)
         },

@@ -134,7 +134,7 @@ fun GroupScreen(
             if (position == null) lesson else lesson.copy(unitIndex = position.unitIndex, unitLesson = position.lesson, unitLessons = position.total)
         }
     }
-    val today = remember { LocalDate.now() }
+    val today = rememberToday()
     var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.firstOrNull() ?: today).toString()) }
     var extraDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
@@ -232,7 +232,7 @@ fun GroupScreen(
             GroupPage.HOME -> GroupHome(report, next, today, actions, bodyPadding,
                 onDone = { next?.let { toggleHaptic(true); vm.toggleLesson(g.id, it.date); undoToast(context.getString(R.string.group_lesson_done)) } },
                 onPagesTaught = { editingDate = next?.date?.toString() },
-                onOpen = { vm.goTo(Screen.Group(g.id, it)) })
+                onOpen = { vm.goTo(it.screen(g.id)) })
             GroupPage.WORK -> WorkScreen(report, vm, bodyPadding, undoToast)
             GroupPage.STATS -> GroupStats(report, vm, bodyPadding, seenTips, onOwnPaceApplied = { changed(it, context.getString(R.string.custom_created)) })
             GroupPage.PLAN -> AnimatedContent(targetState = grouping to selectedMonth,
@@ -259,7 +259,7 @@ fun GroupScreen(
                 contentPadding = PaddingValues(top = Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
             ) {
                 if (tablet) item {
-                    GroupHomeLinks(showPlan = false) { vm.goTo(Screen.Group(g.id, it)) }
+                    GroupHomeLinks { vm.goTo(it.screen(g.id)) }
                 }
                 if (earlierCount > 0) item(key = "earlier") {
                     TertiaryButton(if (earlierOpen) stringResource(R.string.plan_hide_earlier) else pluralStringResource(R.plurals.plan_earlier_lessons, earlierCount, earlierCount), { earlierOpen = !earlierOpen }, Modifier.padding(horizontal = Space.l))

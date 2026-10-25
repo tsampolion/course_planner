@@ -103,16 +103,18 @@ Stats follows the selected My plan or Proposed source. Custom figures show plann
 
 The book pace track retains its lead-book tick and adds a thin outlined proposed-position bar when the group is behind the calendar schedule. One accessible description names both positions; the outline carries the distinction beyond colour.
 
-The Plan hero is two compact rows: label/date with Done, then pages with Pages taught. Preview actions reserve the same space. Large text reflows actions below the lesson. The source switch labels the plan in use; re-pace, copy, delete and catch-up adjustment live in the group menu. Weeks or Months is remembered, month navigation stays above the list, and earlier/done lessons across months expand from one count. Calendar filtering precedes partitioning so list positioning stays aligned.
+The Plan hero is two compact rows: label/date with Done, then the pages, which open the taught-pages edit. Preview actions reserve the same space. Large text reflows actions below the lesson. The source switch labels the plan in use; re-pace, copy, delete and catch-up adjustment live in the group menu. Weeks or Months is remembered, month navigation stays above the list, and earlier/done lessons across months expand from one count. Calendar filtering precedes partitioning so list positioning stays aligned.
 
 ## Group assignments and group home (3.11.0)
 
 The group opens on a home rather than a Plan | Stats toggle. Its order is the
-compact lesson hero (including Homework due today and Set today), Progress with
-the existing verdict and book position bars, a dated Due soon ledger, then
-Plan › / Work › / Stats › entry rows. Plan retains the compact hero, source and
-calendar controls. Tablets keep Plan in the detail pane, with Work and Stats one
-tap away. Group pages use the normal back stack; only group identity persists.
+lesson hero (filled with the accent, including Homework due today and Set today),
+a Progress strip, the Pace track, a dated Due soon ledger, then Plan / Work /
+Stats / Settings pills. Progress, Pace track and Due soon sit in containers one
+`Space.l` apart. The strip is one line ("Lesson 14 of 40 · On pace") over a thin
+bar and opens Stats. Pills are 2 × 2 on phones, one row from 600dp and one column
+at large text. Plan retains the compact hero, source and calendar controls.
+Tablets keep Plan in the detail pane, with Work, Stats and Settings one tap away. Group pages use the normal back stack; only group identity persists.
 
 Work uses one horizontally scrolling filter row (All, Homework, Tests,
 Worksheets), This week/Later/No date/Earlier sections and the existing ledger

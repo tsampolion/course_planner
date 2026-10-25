@@ -33,6 +33,7 @@ import kotlinx.coroutines.withContext
 fun SetAsideDialog(file: File, toast: (String) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val today = rememberToday()
     val saveTo = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
@@ -58,7 +59,7 @@ fun SetAsideDialog(file: File, toast: (String) -> Unit, onDismiss: () -> Unit) {
         containerColor = Pacer.colors.surface,
         tonalElevation = 0.dp,
         confirmButton = {
-            PrimaryButton(stringResource(R.string.recovery_save), { openPicker(context, toast) { saveTo.launch("course-pacer-unreadable-${LocalDate.now()}.json") } })
+            PrimaryButton(stringResource(R.string.recovery_save), { openPicker(context, toast) { saveTo.launch("course-pacer-unreadable-$today.json") } })
         },
         dismissButton = { TertiaryButton(stringResource(R.string.recovery_close), onDismiss) },
     )

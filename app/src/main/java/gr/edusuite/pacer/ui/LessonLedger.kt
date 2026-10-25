@@ -247,7 +247,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     }
     val editHomework = workNames.map { stringResource(R.string.homework_edit_named, it) }
     val deleteHomework = workNames.map { stringResource(R.string.homework_delete_named, it) }
-    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(LocalDate.now()), hasCustomPlan = ca != null, canTick = actions.canTick)
+    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(rememberToday()), hasCustomPlan = ca != null, canTick = actions.canTick)
     return buildList {
         kinds.forEach { kind ->
             when (kind) {
@@ -287,7 +287,7 @@ internal fun LessonMenu(expanded: Boolean, items: List<MenuItem>, onDismiss: () 
  * offers every enabled [items] entry as a custom action. A long-press opens [onLongPress], the same menu.
  */
 @Composable
-private fun Modifier.lessonNode(description: String, done: Boolean, onToggle: (() -> Unit)?, items: List<MenuItem>, onLongPress: () -> Unit): Modifier {
+internal fun Modifier.lessonNode(description: String, done: Boolean, onToggle: (() -> Unit)?, items: List<MenuItem>, onLongPress: () -> Unit): Modifier {
     val toggleLabel = stringResource(if (done) R.string.ledger_mark_not_done else R.string.group_mark_done)
     val optionsLabel = stringResource(R.string.component_options)
     val hasMenu = items.isNotEmpty()
@@ -366,12 +366,12 @@ private val DateW = 96.dp
 private val TickW = 48.dp
 
 /** A book's pages as a row shows them, "SB 38–40 · WB 20–21", with supplementary books left for the line under it. */
-private fun corePages(l: Lesson, names: List<String>, supplementary: List<Boolean>): String =
+internal fun corePages(l: Lesson, names: List<String>, supplementary: List<Boolean>): String =
     l.cells.withIndex().filter { (i, cell) -> !supplementary.getOrElse(i) { false } && (!l.blocked || (cell.isNotBlank() && cell != collapse(emptyList()))) }
         .joinToString(" · ") { (i, cell) -> names.getOrElse(i) { (i + 1).toString() } + " " + cell }
 
 /** The supplementary pages a lesson places, by full name: "Reader 5–8". */
-private fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String>> =
+internal fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String>> =
     l.cells.withIndex().filter { (i, cell) -> actions.supplementary.getOrElse(i) { false } && cell.isNotBlank() && cell != collapse(emptyList()) }
         .map { (i, cell) -> i to actions.bookNames.getOrElse(i) { "" } + " " + cell }
 
@@ -384,112 +384,8 @@ private fun homeworkSummaries(l: Lesson, actions: LessonActions): List<String> =
 }
 
 @Composable
-private fun HomeworkLines(l: Lesson, actions: LessonActions) {
-    homeworkSummaries(l, actions).forEach { Text(it, style = MaterialTheme.typography.bodySmall.merge(Figures), color = Pacer.colors.muted) }
-}
-
-/**
- * Today's lesson, first on the Plan tab (decision 8): its date and pages, with Done and Pages taught. A long-press
- * opens the lesson's menu, and TalkBack reads it with the books' full names. [next] null means none is left.
- */
-@Composable
-internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, onDone: () -> Unit, onPagesTaught: () -> Unit, modifier: Modifier = Modifier, footer: @Composable (() -> Unit)? = null) {
-    val c = Pacer.colors
-    val motion = animationsEnabled()
-    var tickPulse by remember { mutableIntStateOf(0) }
-    var completing by remember { mutableStateOf(false) }
-    LaunchedEffect(tickPulse, motion) {
-        if (tickPulse > 0 && motion) kotlinx.coroutines.delay(MotionSpec.duration(MotionSpec.Step.TICK, 1f).toLong())
-        completing = false
-    }
-    val complete = { if (!completing) { completing = true; tickPulse++; onDone() } }
-    if (next == null) {
-        Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.surfaceContainer, contentColor = c.ink) {
-            Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                Text(stringResource(R.string.group_no_term_lessons), style = MaterialTheme.typography.titleMedium)
-                footer?.invoke()
-            }
-        }
-        return
-    }
-    var menu by rememberSaveable(next.date.toString()) { mutableStateOf(false) }
-    val items = lessonMenu(next, actions)
-    val description = spokenLesson(next, actions)
-    val label = stringResource(if (next.date == today) R.string.today_label else R.string.today_next_label, next.n)
-    val large = rememberLargeText()
-    Box(modifier) {
-        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.surfaceContainer, contentColor = c.ink) {
-            val info = @Composable { m: Modifier ->
-                Column(
-                    m.lessonNode("$label. $description", next.done, null, items) { menu = true },
-                    verticalArrangement = Arrangement.spacedBy(Space.xs),
-                ) {
-                    Text(label, style = MaterialTheme.typography.labelMedium)
-                    if (next.extraId != null) Text(stringResource(R.string.extra_label), style = MaterialTheme.typography.labelMedium)
-                    Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall.merge(Figures))
-                    if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
-                    if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
-                    if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) {
-                        corePages(next, actions.shortNames, actions.supplementary).takeIf { it.isNotBlank() }?.let {
-                            Text(it, style = MaterialTheme.typography.bodyLarge.merge(Figures))
-                        }
-                        suppPages(next, actions).forEach { (_, text) -> Text(stringResource(R.string.ledger_supp, text), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
-                    }
-                    next.unitIndex?.let { Text(stringResource(R.string.units_lesson_position, it + 1, next.unitLesson, next.unitLessons), style = MaterialTheme.typography.bodySmall) }
-                    HomeworkLines(next, actions)
-                }
-            }
-            // Large text: the buttons go full width under the lesson instead of beside it.
-            val buttons = @Composable { m: Modifier, end: Alignment.Horizontal ->
-                Column(m, horizontalAlignment = end, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
-                    Button(
-                        onClick = complete,
-                        enabled = actions.canTick && !completing,
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink),
-                        modifier = Modifier.heightIn(min = 48.dp).then(if (large) Modifier.fillMaxWidth() else Modifier),
-                    ) {
-                        DrawingCheck(tickPulse, c.ink, Modifier.size(18.dp))
-                        Spacer(Modifier.width(Space.xs))
-                        Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
-                    }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, if (large) Modifier.fillMaxWidth() else Modifier, enabled = actions.canTick && !completing, color = c.accentText)
-                }
-            }
-            if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
-                info(Modifier.fillMaxWidth())
-                if (actions.canTick) buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally)
-                else Box(Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) { buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally) }
-                footer?.invoke()
-            } else Column(Modifier.padding(horizontal = Space.l, vertical = Space.s)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f).lessonNode("$label. $description", next.done, null, items) { menu = true }) {
-                        Text(if (next.extraId != null) "$label · ${stringResource(R.string.extra_label)}" else label, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.titleMedium.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    Button(enabled = actions.canTick && !completing, onClick = complete, shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = c.surface, contentColor = c.ink), modifier = Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {})) {
-                        DrawingCheck(tickPulse, c.ink, Modifier.size(18.dp))
-                        Spacer(Modifier.width(Space.xs))
-                        Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f).clearAndSetSemantics {}) {
-                        if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) Text(
-                            (listOf(corePages(next, actions.shortNames, actions.supplementary)) + suppPages(next, actions).map { it.second }).filter { it.isNotBlank() }.joinToString(" · "),
-                            style = MaterialTheme.typography.bodyLarge.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        )
-                        val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
-                        if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        HomeworkLines(next, actions)
-                    }
-                    TertiaryButton(stringResource(R.string.today_pages_taught), onPagesTaught, Modifier.heightIn(min = 48.dp).then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}), enabled = actions.canTick && !completing, color = c.accentText)
-                }
-                footer?.invoke()
-            }
-        }
-        LessonMenu(menu, items) { menu = false }
-    }
+internal fun HomeworkLines(l: Lesson, actions: LessonActions, color: Color = Pacer.colors.muted) {
+    homeworkSummaries(l, actions).forEach { Text(it, style = MaterialTheme.typography.bodySmall.merge(Figures), color = color) }
 }
 
 /** A week's heading: "This week" or "Next week" with its dates beside, or only the dates. */
@@ -512,7 +408,7 @@ internal fun WeekHeader(section: WeekSection<*>, modifier: Modifier = Modifier) 
 
 /** What TalkBack reads for a lesson: its number, its date in full, and its pages with the books' full names. */
 @Composable
-private fun spokenLesson(l: Lesson, actions: LessonActions): String {
+internal fun spokenLesson(l: Lesson, actions: LessonActions): String {
     val parts = buildList {
         l.unitIndex?.let { add(stringResource(R.string.units_lesson_position, it + 1, l.unitLesson, l.unitLessons)) }
         if (l.events.isNotEmpty()) add(l.events.joinToString(", ") { it.name })
@@ -535,7 +431,7 @@ private fun spokenLesson(l: Lesson, actions: LessonActions): String {
 
 /** Reveals the approved check glyph, once per completion pulse, with a finished reduced-motion state. */
 @Composable
-private fun DrawingCheck(pulse: Int, tint: Color, modifier: Modifier) {
+internal fun DrawingCheck(pulse: Int, tint: Color, modifier: Modifier) {
     val motion = animationsEnabled()
     val progress = remember { Animatable(1f) }
     LaunchedEffect(pulse, motion) {

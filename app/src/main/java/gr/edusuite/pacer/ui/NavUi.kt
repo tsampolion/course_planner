@@ -273,6 +273,7 @@ fun GroupSwitcherSheet(year: SchoolYear, classId: String, groupId: String, recen
         }.take(Nav.RECENT - 1)
     }
     val open = year.classes.firstOrNull { it.id == classId }
+    val others = (switcherEntries(Screen.Group(groupId), open?.groups.orEmpty()) as SwitcherEntries.Groups).others
     HomeSheet(stringResource(R.string.switcher_title), onDismiss) { close ->
         val go = { h: GroupHit -> vm.goToGroup(h.classId, h.groupId); close() }
         SearchField(query, { query = it })
@@ -287,12 +288,19 @@ fun GroupSwitcherSheet(year: SchoolYear, classId: String, groupId: String, recen
         }
         if (open != null) {
             Eyebrow(open.name.ifBlank { stringResource(R.string.app_class) }, Modifier.padding(top = Space.s))
-            open.groups.forEach { g ->
-                val name = g.name.ifBlank { stringResource(R.string.app_group) }
-                GroupRow(if (g.id == groupId) stringResource(R.string.switcher_here, name) else name, status[g.id]) {
-                    if (g.id == groupId) close() else go(GroupHit(open.id, open.name, g.id, g.name))
-                }
+            others.forEach { g ->
+                GroupRow(g.name.ifBlank { stringResource(R.string.app_group) }, status[g.id]) { go(GroupHit(open.id, open.name, g.id, g.name)) }
             }
+        }
+    }
+}
+
+/** The switcher from one of a group's pages: that group's other pages. Picking one opens it. */
+@Composable
+fun PageSwitcherSheet(groupId: String, pages: List<GroupDestination>, vm: PacerViewModel, onDismiss: () -> Unit) {
+    HomeSheet(stringResource(R.string.switcher_pages_title), onDismiss) { close ->
+        pages.forEach { page ->
+            GroupRow(stringResource(page.titleRes()), null) { vm.goTo(page.screen(groupId)); close() }
         }
     }
 }

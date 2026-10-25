@@ -94,6 +94,7 @@ class PacerViewModelTest {
         val file = FakeFile()
         val dispatcher = ManualDispatcher()
         var time = 0L
+        var date = d("2026-10-24")
         val vm = PacerViewModel(
             PlanStore(file, { AppData(listOf(year), "y", "c") }, { "{}" }),
             FakeSettings(),
@@ -101,10 +102,20 @@ class PacerViewModelTest {
             CoroutineScope(SupervisorJob() + dispatcher),
             dispatcher,
             { time },
+            { date },
         )
         val group get() = vm.state.value.data.schoolClass!!.groups.single()
         val years get() = vm.state.value.data.years
         val undoDepth get() = vm.state.value.undoDepth
+    }
+
+    @Test fun todayFlowAdvancesWithClock() {
+        val r = Rig()
+        assertEquals(d("2026-10-24"), r.vm.today.value)
+        r.date = d("2026-10-25")
+        assertEquals(d("2026-10-24"), r.vm.today.value)
+        r.vm.refreshToday()
+        assertEquals(d("2026-10-25"), r.vm.today.value)
     }
 
     @Test fun editPushesOneUndoStep() {

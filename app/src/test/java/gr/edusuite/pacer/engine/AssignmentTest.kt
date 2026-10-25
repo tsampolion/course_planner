@@ -48,7 +48,7 @@ class AssignmentTest {
         assertTrue(report.rows.first { it.date == date.plusDays(2) }.blocked)
         assertEquals(listOf("hw"), report.rows.first().assignments.map { it.id })
         assertEquals(listOf("Practice"), report.rows.first { it.blocked }.events.map { it.name })
-        assertEquals(setOf(1, 2), report.plan.homeworkPages(g.id, p.books.first().id))
+        assertEquals(setOf(1, 2), report.plan.homeworkPages(g.id, p.books.first().id, report.plan.today))
     }
     @Test fun migrationKeepsOptionalBooksAndGroupCalendarOverrides() {
         val y = seedYear()

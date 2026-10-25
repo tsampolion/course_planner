@@ -92,4 +92,22 @@ class NavModelTest {
         assertTrue(lag.lessons >= 1)
         assertEquals(wholeLessons(lag.lag.lessonsBehind), lag.lessons)
     }
+
+    @Test fun homeListsOtherGroups() {
+        val groups = listOf(group("a", "A"), group("b", "B"), group("c", "C"))
+        val entries = switcherEntries(Screen.Group("b"), groups) as SwitcherEntries.Groups
+        assertEquals(listOf("a", "c"), entries.others.map { it.id })
+    }
+    @Test fun nestedListsOtherThreePages() {
+        val groups = listOf(group("a", "A"), group("b", "B"))
+        val plan = switcherEntries(Screen.Group("a", GroupPage.PLAN), groups) as SwitcherEntries.Pages
+        assertEquals("a", plan.groupId)
+        assertEquals(listOf(GroupDestination.WORK, GroupDestination.STATS, GroupDestination.SETTINGS), plan.pages)
+        val settings = switcherEntries(Screen.GroupSettings("a"), groups) as SwitcherEntries.Pages
+        assertEquals(listOf(GroupDestination.PLAN, GroupDestination.WORK, GroupDestination.STATS), settings.pages)
+    }
+    @Test fun singleGroupHasNoOtherGroups() {
+        val entries = switcherEntries(Screen.Group("a"), listOf(group("a", "A"))) as SwitcherEntries.Groups
+        assertTrue(entries.others.isEmpty())
+    }
 }

@@ -130,7 +130,7 @@ fun DateBadge(date: LocalDate, modifier: Modifier = Modifier) {
 
 /** Seven accessible day pills per term week, paged horizontally. Dots distinguish today and lessons. */
 @Composable
-fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates: Set<LocalDate>, onSelect: (LocalDate) -> Unit, modifier: Modifier = Modifier, today: LocalDate = LocalDate.now()) {
+fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates: Set<LocalDate>, onSelect: (LocalDate) -> Unit, modifier: Modifier = Modifier, today: LocalDate = rememberToday()) {
     val first = start.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
     val weeks = (ChronoUnit.WEEKS.between(first, end.coerceAtLeast(start)) + 1).toInt().coerceAtLeast(1)
     val initial = if (today in start..end) ChronoUnit.WEEKS.between(first, today).toInt().coerceIn(0, weeks - 1) else 0

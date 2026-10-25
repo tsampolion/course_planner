@@ -192,6 +192,9 @@
     <string name="group_tab_plan">Plan</string>
     <string name="group_tab_stats">Stats</string>
     <string name="group_tips">Tips</string>
+    <string name="menu_share_print">Share &amp; print</string>
+    <string name="menu_lessons">Lessons</string>
+    <string name="menu_help">Help</string>
     <string name="group_details_title">Details</string>
     <string name="group_by_month_title">Lessons by month</string>
     <string name="group_pages_title">Pages taught on %1$s %2$s</string>
@@ -583,7 +586,7 @@
     <string name="switcher_title">Go to a group</string>
     <string name="switcher_open">Switch group</string>
     <string name="switcher_recent">Recent</string>
-    <string name="switcher_here">%1$s · you are here</string>
+    <string name="switcher_pages_title">Go to a page</string>
     <string name="status_on_pace">On pace</string>
     <plurals name="status_short">
         <item quantity="one">Short by %d lesson</item>
@@ -789,6 +792,7 @@
     <string name="work_saved">Assignment saved</string>
     <string name="work_deleted">Assignment removed</string>
     <string name="work_progress">Progress</string>
+    <string name="progress_strip">Lesson %1$d of %2$d · %3$s</string>
     <string name="work_due_soon">Due soon</string>
     <string name="work_no_due">No dated assignments coming up.</string>
     <string name="work_due_today">Homework due today: %1$s</string>

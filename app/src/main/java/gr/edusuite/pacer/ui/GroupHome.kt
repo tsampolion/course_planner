@@ -5,6 +5,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import gr.edusuite.pacer.ui.theme.Figures
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,10 +39,10 @@ import java.time.LocalDate
 
 @Composable
 internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, actions: LessonActions,
-    padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onOpen: (GroupPage) -> Unit) {
+    padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onOpen: (GroupDestination) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(start = Space.l, end = Space.l,
         top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
-        verticalArrangement = Arrangement.spacedBy(Space.m)) {
+        verticalArrangement = Arrangement.spacedBy(Space.l)) {
         item {
             TodayBox(next, today, actions, onDone, onPagesTaught) {
                 val due = report.group.assignments.filter { it.type == AssignmentType.HOMEWORK && it.due == today && next?.date != today }
@@ -39,33 +52,99 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
             }
         }
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
-                SectionHead(stringResource(R.string.work_progress))
-                VerdictHeading(report)
-                AnimatedFigure(pluralStringResource(R.plurals.class_lessons_left, report.lessons.size, report.lessons.size), style = MaterialTheme.typography.bodyMedium)
-                if (unitProgress(report.plan, report.group).isNotEmpty()) UnitProgressStrip(report)
-                else PaceTrack(report, compact = true) { onOpen(GroupPage.STATS) }
+            RowGroup {
+                Column(Modifier.padding(Space.m), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                    ProgressStrip(report) { onOpen(GroupDestination.STATS) }
+                    if (unitProgress(report.plan, report.group).isNotEmpty()) UnitProgressStrip(report)
+                }
             }
+        }
+        if (report.plan.books.isNotEmpty() && unitProgress(report.plan, report.group).isEmpty()) item {
+            RowGroup { Column(Modifier.padding(horizontal = Space.l, vertical = Space.m)) { PaceTrack(report, compact = true) { onOpen(GroupDestination.STATS) } } }
         }
         item {
-            Column {
-                SectionHead(stringResource(R.string.work_due_soon))
-                val due = dueSoon(report, today)
-                if (due.isEmpty()) Hint(stringResource(R.string.work_no_due))
-                else RowGroup { due.forEachIndexed { i, a ->
-                    if (i > 0) RowDivider()
-                    AssignmentRow(a, report, { onOpen(GroupPage.WORK) }) { Chevron() }
-                } }
+            RowGroup {
+                Column {
+                    SectionHead(stringResource(R.string.work_due_soon), Modifier.padding(horizontal = Space.l))
+                    val due = dueSoon(report, today)
+                    if (due.isEmpty()) Hint(stringResource(R.string.work_no_due), Modifier.padding(start = Space.l, end = Space.l, bottom = Space.m))
+                    else due.forEachIndexed { i, a ->
+                        if (i > 0) RowDivider()
+                        AssignmentRow(a, report, { onOpen(GroupDestination.WORK) }) { Chevron() }
+                    }
+                }
             }
         }
-        item { GroupHomeLinks(onOpen = onOpen) }
+        item { GroupHomePills(onOpen = onOpen) }
+    }
+}
+
+/** One line of progress, "Lesson 14 of 40 · On pace", over a thin bar. Tapping it opens Stats for the details. */
+@Composable
+internal fun ProgressStrip(report: GroupReport, onOpen: () -> Unit) {
+    val line = remember(report) { progressLine(report) }
+    val c = Pacer.colors
+    val fill = c.accent
+    val motion = animationsEnabled()
+    val fraction by animateFloatAsState(line.fraction, if (motion) Motion.work(MotionSpec.Step.PACE) else snap())
+    val verdict = when (line.status) {
+        ProgressStatus.ON_PACE -> stringResource(R.string.status_on_pace)
+        ProgressStatus.SHORT -> pluralStringResource(R.plurals.status_short, line.shortBy, line.shortBy)
+        ProgressStatus.UNMEASURED -> null
+    }
+    val text = when {
+        line.total == 0 -> stringResource(R.string.group_no_term_lessons)
+        verdict == null -> stringResource(R.string.progress_strip, line.lesson, line.total, "").trimEnd(' ', '·')
+        else -> stringResource(R.string.progress_strip, line.lesson, line.total, verdict)
+    }
+    val heading = stringResource(R.string.work_progress)
+    val open = stringResource(R.string.work_open_stats)
+    Column(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClickLabel = open, role = Role.Button, onClick = onOpen)
+            .semantics(mergeDescendants = true) { contentDescription = "$heading. $text" },
+        verticalArrangement = Arrangement.spacedBy(Space.s),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text, style = MaterialTheme.typography.titleSmall.merge(Figures), color = if (line.status == ProgressStatus.SHORT) c.warn else c.ink, modifier = Modifier.weight(1f))
+            Chevron()
+        }
+        LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
+    }
+}
+
+/** The four page pills: Plan, Work, Stats, Settings. 2×2 on phones, one row on tablets, one column at large text. */
+@Composable
+internal fun GroupHomePills(showPlan: Boolean = true, onOpen: (GroupDestination) -> Unit) {
+    val pills = listOf(
+        GroupDestination.PLAN to R.string.group_tab_plan, GroupDestination.WORK to R.string.work_title,
+        GroupDestination.STATS to R.string.group_tab_stats, GroupDestination.SETTINGS to R.string.group_settings_title,
+    ).filter { showPlan || it.first != GroupDestination.PLAN }
+    val layout = rememberHomePills()
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        pills.chunked(layout.perLine()).forEach { line ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+                line.forEach { (page, title) -> HomePill(stringResource(title), { onOpen(page) }, Modifier.weight(1f)) }
+                repeat(layout.perLine() - line.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
     }
 }
 
 @Composable
-internal fun GroupHomeLinks(showPlan: Boolean = true, onOpen: (GroupPage) -> Unit) {
+private fun HomePill(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val interaction = remember { MutableInteractionSource() }
+    Button(
+        onClick = onClick, interactionSource = interaction, shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink),
+        modifier = modifier.heightIn(min = 48.dp).pressFeedback(interaction),
+    ) { Text(text, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center) }
+}
+
+/** The tablet detail pane's links, below the Plan: Work, Stats and Settings. */
+@Composable
+internal fun GroupHomeLinks(onOpen: (GroupDestination) -> Unit) {
     RowGroup {
-        listOf(GroupPage.PLAN to R.string.group_tab_plan, GroupPage.WORK to R.string.work_title, GroupPage.STATS to R.string.group_tab_stats).filter { showPlan || it.first != GroupPage.PLAN }.forEachIndexed { i, (page, title) ->
+        listOf(GroupDestination.WORK to R.string.work_title, GroupDestination.STATS to R.string.group_tab_stats, GroupDestination.SETTINGS to R.string.group_settings_title).forEachIndexed { i, (page, title) ->
             if (i > 0) RowDivider()
             LedgerRow(stringResource(title), onClick = { onOpen(page) }) { Chevron() }
         }

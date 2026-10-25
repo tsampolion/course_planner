@@ -108,3 +108,29 @@ fun groupWarnings(report: GroupReport): List<GroupWarning> {
     }
     return out
 }
+
+/** What the group switcher lists: from group home the other groups, from any of its pages the group's other pages. */
+sealed interface SwitcherEntries {
+    data class Groups(val others: List<gr.edusuite.pacer.model.Group>) : SwitcherEntries
+    data class Pages(val groupId: String, val pages: List<GroupDestination>) : SwitcherEntries
+}
+
+/** The destination [screen] is, or null on group home and anywhere that isn't one of the group's pages. */
+fun Screen.destination(): GroupDestination? = when (this) {
+    is Screen.Group -> when (page) {
+        GroupPage.HOME -> null
+        GroupPage.PLAN -> GroupDestination.PLAN
+        GroupPage.WORK -> GroupDestination.WORK
+        GroupPage.STATS -> GroupDestination.STATS
+    }
+    is Screen.GroupSettings -> GroupDestination.SETTINGS
+    else -> null
+}
+
+/** Picking a group always opens its home; the pages list leaves out the page the teacher is on. [groups] are the open class's. */
+fun switcherEntries(current: Screen, groups: List<gr.edusuite.pacer.model.Group>): SwitcherEntries {
+    val here = current.destination()
+    val id = current.groupId
+    return if (here == null || id == null) SwitcherEntries.Groups(groups.filter { it.id != id })
+    else SwitcherEntries.Pages(id, GroupDestination.entries.filter { it != here })
+}

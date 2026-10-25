@@ -217,7 +217,6 @@ fun PacerApp(vm: PacerViewModel) {
             share = { share(context, "${report.plan.name} — ${report.group.name}", report.asTsv()) },
             print = { printing = true },
             open = { groupSheet = it },
-            settings = { vm.open(Screen.GroupSettings(report.group.id)) },
             customPlan = if (large && report.group.custom == null && report.rows.isNotEmpty()) ({
                 vm.createCustomPlan(report.group.id)
                 toast(context.getString(R.string.custom_created))
@@ -338,8 +337,11 @@ fun PacerApp(vm: PacerViewModel) {
         gesturesEnabled = drawer.isOpen,
     ) { body() }
     val year = ui.data.year
-    if (switching && screen is Screen.Group && year != null) {
-        GroupSwitcherSheet(year, ui.data.activeClass, screen.id, recent, vm) { switching = false }
+    if (switching && screen.groupId != null && year != null) {
+        when (val entries = switcherEntries(screen, ui.data.schoolClass?.groups.orEmpty())) {
+            is SwitcherEntries.Groups -> GroupSwitcherSheet(year, ui.data.activeClass, screen.groupId!!, recent, vm) { switching = false }
+            is SwitcherEntries.Pages -> PageSwitcherSheet(entries.groupId, entries.pages, vm) { switching = false }
+        }
     }
     if (problemsOpen && screen == Screen.Overview && year != null) {
         YearProblemsSheet(year, vm) { problemsOpen = false }
@@ -440,51 +442,6 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
     PillIconButton(label, vm::undo, enabled = depth > 0) { AppIcon(AppIcons.Undo) }
 }
 
-/** What a group's ⋮ menu does: Copy and Share the schedule, Print it starting with this group, or open a sheet. */
-private class GroupMenu(
-    val hasCustom: Boolean, val large: Boolean, val others: List<Pair<String, String>>,
-    val repace: () -> Unit, val copyPlan: (String, String) -> Unit, val deletePlan: () -> Unit, val catchUp: Boolean,
-    val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit,
-    val settings: () -> Unit,
-    /** Large text: "Make a custom plan", which the Plan tab's line offers otherwise. Null when there is nothing to offer. */
-    val customPlan: (() -> Unit)? = null,
-)
-
-/** The group's ⋮: Copy, Share, Print, Term weeks and Tips. */
-@Composable
-private fun GroupMenuButton(menu: GroupMenu) {
-    var open by remember { mutableStateOf(false) }
-    var copying by remember { mutableStateOf(false) }
-    val available = groupMenuItems(menu.hasRows, menu.hasCustom, menu.others.size, menu.large)
-    Box {
-        PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
-        PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_settings_title)) }, leadingIcon = { AppIcon(AppIcons.Settings) }, onClick = { open = false; menu.settings() })
-            if (GroupMenuItem.MY_PLAN in available) {
-                Text(stringResource(R.string.plan_menu_heading), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.s))
-                DropdownMenuItem(text = { Text(stringResource(R.string.custom_repace_all)) }, onClick = { open = false; menu.repace() })
-                if (menu.catchUp) DropdownMenuItem(text = { Text(stringResource(R.string.custom_adjust_catch_up)) }, onClick = { open = false; menu.open(GroupSheet.CATCH_UP) })
-                if (GroupMenuItem.COPY_PLAN in available) DropdownMenuItem(text = { Text(stringResource(R.string.custom_copy_to)) }, onClick = { open = false; copying = true })
-                DropdownMenuItem(text = { Text(stringResource(R.string.custom_delete), color = Pacer.colors.warn) }, onClick = { open = false; menu.deletePlan() })
-                HorizontalDivider()
-            }
-            if (GroupMenuItem.OWN_PACE in available) DropdownMenuItem(text = { Text(stringResource(R.string.plan_own_pace)) }, onClick = { open = false; menu.open(GroupSheet.OWN_PACE) })
-            menu.customPlan?.let { make ->
-                DropdownMenuItem(text = { Text(stringResource(R.string.group_make_custom_plan)) }, leadingIcon = { AppIcon(AppIcons.Edit) }, onClick = { open = false; make() })
-            }
-            DropdownMenuItem(text = { Text(stringResource(R.string.extra_add)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.EXTRA) })
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_copy)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.ContentCopy) }, onClick = { open = false; menu.copy() })
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_share)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.Share) }, onClick = { open = false; menu.share() })
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_term_weeks)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.TERM_WEEKS) })
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_tips)) }, leadingIcon = { AppIcon(AppIcons.Info) }, onClick = { open = false; menu.open(GroupSheet.TIPS) })
-        }
-        PacerDropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
-            menu.others.forEach { (id, name) -> DropdownMenuItem(text = { Text(name) }, onClick = { copying = false; menu.copyPlan(id, name) }) }
-        }
-    }
-}
-
 /**
  * Every other screen's bar: ☰ for the menu, where the screen sits over its title, and Undo where school-year data
  * changes ([undoDepth] null hides it). On a group, the title opens the group switcher and a warning button with the
@@ -509,7 +466,7 @@ private fun ScreenBar(
     groupMenu: GroupMenu?,
 ) {
     val context = LocalContext.current
-    val switchable = screen is Screen.Group && data.year != null
+    val switchable = screen.groupId != null && data.year != null
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         navigationIcon = {

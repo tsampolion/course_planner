@@ -63,7 +63,7 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
     var editing by rememberSaveable(report.group.id) { mutableStateOf<String?>(null) }
     val types = listOf(null, AssignmentType.HOMEWORK, AssignmentType.TEST, AssignmentType.WORKSHEET)
     val labels = listOf(stringResource(R.string.work_all), stringResource(R.string.work_homework), stringResource(R.string.work_tests), stringResource(R.string.work_worksheets))
-    val today = LocalDate.now()
+    val today = rememberToday()
     val motion = animationsEnabled()
     val revealed = remember(report.group.id) { mutableSetOf<String>() }
     val sections = workSections(report.group.assignments, today, types[filter])
