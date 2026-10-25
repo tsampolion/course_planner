@@ -15,8 +15,8 @@ class AssignmentTest {
         val c = base.copy(homework = listOf(Homework("h", "ga", base.books.first().id, 12, 15, date)),
             events = listOf(TestEvent("all", "Test", date, ALL_GROUPS, true),
                 TestEvent("one", "Alongside", date.plusDays(2), "ga", false)))
-        val old = year.planFor(c)
-        val migrated = year.planFor(migrateAssignments(c))
+        val old = year.planFor(c, TEST_TODAY)
+        val migrated = year.planFor(migrateAssignments(c), TEST_TODAY)
         for (g in old.groups) {
             val before = GroupReport(old, g)
             val after = GroupReport(migrated, migrated.groups.first { it.id == g.id })
@@ -58,9 +58,9 @@ class AssignmentTest {
         val c = base.copy(books = listOf(optional) + base.books, groups = listOf(g),
             homework = listOf(Homework("h", g.id, optional.id, 1, 2, date)),
             events = listOf(TestEvent("t", "Test", date.plusDays(2), ALL_GROUPS, true)))
-        val before = GroupReport(y.planFor(c), g)
+        val before = GroupReport(y.planFor(c, TEST_TODAY), g)
         val migrated = migrateAssignments(c)
-        val after = GroupReport(y.planFor(migrated), migrated.groups.single())
+        val after = GroupReport(y.planFor(migrated, TEST_TODAY), migrated.groups.single())
         fun comparable(rows: List<Row>) = rows.map { row -> row.copy(events = row.events.map { it.copy(who = g.id) }, assignments = emptyList()) }
         assertEquals(comparable(before.rows), comparable(after.rows))
         assertEquals(before.plan.books, after.plan.books)
@@ -70,7 +70,7 @@ class AssignmentTest {
         assertEquals(g.skip, after.group.skip)
         assertEquals(g.extraBooks, after.group.extraBooks)
         val unselected = after.group.copy(extraBooks = emptySet())
-        val without = GroupReport(y.planFor(migrated), unselected)
+        val without = GroupReport(y.planFor(migrated, TEST_TODAY), unselected)
         assertFalse(without.plan.books.any { it.id == optional.id })
         assertTrue(without.rows.all { it.pages.size == base.books.size })
     }

@@ -9,7 +9,7 @@ import org.junit.Test
 class ExtraLessonTest {
     private val start = LocalDate.of(2027, 3, 1)
     private val p = Plan("p", "P", start, start.plusDays(27), 60, 2.0,
-        listOf(Group("g", "G", setOf(MONDAY), start)), emptyList(), listOf(Book("b", "Book", 1, 20)), emptyList(), emptyList())
+        listOf(Group("g", "G", setOf(MONDAY), start)), emptyList(), listOf(Book("b", "Book", 1, 20)), emptyList(), emptyList(), today = TEST_TODAY)
     private val g = p.groups.single()
     private fun extra(date: LocalDate = start.plusDays(1)) = ExtraLesson("e", date, mapOf("b" to listOf(1, 2, 3, 4)))
 

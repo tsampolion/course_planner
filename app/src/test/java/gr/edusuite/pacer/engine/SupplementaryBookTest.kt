@@ -5,6 +5,7 @@ import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.Plan
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.seedPlan
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.TUESDAY
@@ -29,6 +30,7 @@ class SupplementaryBookTest {
         id = "p", name = "Test", start = d("2027-03-01"), end = d(end), mins = 60, pace = pace,
         groups = groups ?: listOf(Group("g", "G", setOf(MONDAY, WEDNESDAY), d("2027-03-01"))),
         closures = emptyList(), books = books, homework = emptyList(), events = emptyList(),
+        today = TEST_TODAY,
     )
 
     private var n = 0

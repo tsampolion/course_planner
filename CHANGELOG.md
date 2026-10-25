@@ -25,6 +25,17 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.10] - 2026-10-25
+
+### Fixed
+
+- One date for the whole app. Every plan the app builds now reads the same "today" as Home, Plan, Work and Stats, which already follow midnight, resume and date or time-zone changes. Before, homework banking and unit-revision dates read the clock whenever a plan happened to be built, so around midnight a screen could show a date that the revision sheet or the page pools disagreed with. Scheduling on any given date is unchanged.
+- The cached group, class and year warnings rebuild at midnight, and the New year suggestion uses the same date.
+
+### Changed
+
+- `Plan.today` and `SchoolYear.planFor` no longer default to the clock, so the compiler finds every caller. `docs/ONE_TODAY_BRIEF.md` records the rules; `docs/ARCHITECTURE.md` and `docs/PLANNED_FEATURES.md` are updated to match.
+
 ## [0.4.4.9] - 2026-10-25
 
 ### Added
@@ -913,6 +924,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.10]: https://github.com/tsampolion/course_planner/compare/v0.4.4.9...v0.4.4.10
 [0.4.4.9]: https://github.com/tsampolion/course_planner/compare/v0.4.4.8...v0.4.4.9
 [0.4.4.8]: https://github.com/tsampolion/course_planner/compare/v0.4.4.7...v0.4.4.8
 [0.4.4.7]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.7

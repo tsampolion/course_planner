@@ -3,11 +3,17 @@ package gr.edusuite.pacer.ui
 import gr.edusuite.pacer.data.PlanFile
 import gr.edusuite.pacer.data.PlanStore
 import gr.edusuite.pacer.data.SettingsPort
+import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.bankedPages
+import gr.edusuite.pacer.engine.remainingPages
 import gr.edusuite.pacer.model.AppData
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.SchoolClass
+import gr.edusuite.pacer.model.RevisionKind
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.update.UpdateChecker
@@ -100,10 +106,10 @@ class PacerViewModelTest {
         override fun save(s: Settings) = Unit
     }
 
-    private inner class Rig(locked: Boolean = false) {
+    private inner class Rig(locked: Boolean = false, start: AppData? = null) {
         val file = FakeFile().also { if (locked) it.readError = IOException("busy") }
         /** What the plans file holds once it can be read again. */
-        var disk = AppData(listOf(year), "y", "c")
+        var disk = start ?: AppData(listOf(year), "y", "c")
         val dispatcher = ManualDispatcher()
         var time = 0L
         var date = d("2026-10-24")
@@ -128,6 +134,42 @@ class PacerViewModelTest {
         assertEquals(d("2026-10-24"), r.vm.today.value)
         r.vm.refreshToday()
         assertEquals(d("2026-10-25"), r.vm.today.value)
+    }
+
+    @Test fun midnightMovesPlansBankingAndRevisionDatesTogether() {
+        val lead = sb.copy(units = "1, 26, 51, 76")
+        val linked = wb.copy(units = "1, 21, 41, 61")
+        val homework = Assignment("hw", AssignmentType.HOMEWORK, "Read", due = d("2026-10-26"), pages = mapOf("sb" to listOf(2, 3)))
+        val cls = SchoolClass(
+            "c", "Class", 60, 4.0, listOf(group.copy(assignments = listOf(homework))), listOf(lead, linked), emptyList(), emptyList(),
+            lead = "sb", unitsEnabled = true, bookLinks = listOf(setOf("sb", "wb")),
+        )
+        val r = Rig(start = AppData(listOf(year.copy(classes = listOf(cls))), "y", "c"))
+        fun plan() = r.vm.state.value.data.plan(r.vm.today.value)!!
+        val target = UnitRevisionTarget("c", "g1", 0)
+
+        // 23:59 on Saturday: the homework is not due yet, so its pages are still to teach.
+        val before = plan()
+        val beforeGroup = before.groups.single()
+        assertEquals(d("2026-10-24"), before.today)
+        assertEquals(0, before.bankedPages(beforeGroup, lead))
+        assertTrue(2 in before.remainingPages(beforeGroup, lead))
+        val monday = revisionDates(GroupReport(before, beforeGroup), 0, before.today).first()
+        assertEquals(d("2026-10-26"), monday)
+
+        // Two days on, the same state: homework is due, so its pages are banked, and the revision date has passed.
+        r.date = d("2026-10-26")
+        r.vm.refreshToday()
+        val after = plan()
+        val afterGroup = after.groups.single()
+        assertEquals(d("2026-10-26"), after.today)
+        assertEquals(2, after.bankedPages(afterGroup, lead))
+        assertFalse(2 in after.remainingPages(afterGroup, lead))
+        val later = revisionDates(GroupReport(after, afterGroup), 0, after.today)
+        assertFalse(monday in later)
+        assertFalse(r.vm.saveUnitRevision(target, RevisionKind.TEST, monday, emptyMap(), "Unit 1 revision"))
+        assertTrue(r.vm.saveUnitRevision(target, RevisionKind.TEST, later.first(), emptyMap(), "Unit 1 revision"))
+        assertEquals(afterGroup.assignments.size + 1, r.group.assignments.size)
     }
 
     @Test fun editPushesOneUndoStep() {

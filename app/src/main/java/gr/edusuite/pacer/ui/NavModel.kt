@@ -14,6 +14,7 @@ import gr.edusuite.pacer.engine.shortfallCoverage
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.verdict
 import gr.edusuite.pacer.model.SchoolYear
+import java.time.LocalDate
 import java.text.Normalizer
 import java.util.Locale
 import kotlin.math.ceil
@@ -37,13 +38,13 @@ fun GroupReport.lessonsShort(): Int? = when (val v = verdict()) {
 }
 
 /** Every group of the year by id, with [lessonsShort] for the plan it follows. */
-fun yearStatus(year: SchoolYear): Map<String, Int?> = year.classes.flatMap { c ->
-    val plan = year.planFor(c)
+fun yearStatus(year: SchoolYear, today: LocalDate): Map<String, Int?> = year.classes.flatMap { c ->
+    val plan = year.planFor(c, today)
     c.groups.map { it.id to GroupReport(plan, it).lessonsShort() }
 }.toMap()
 
 /** How many groups of the year are behind: the count by Pacing overview in the menu. */
-fun groupsBehind(year: SchoolYear): Int = yearStatus(year).values.count { (it ?: 0) > 0 }
+fun groupsBehind(year: SchoolYear, today: LocalDate): Int = yearStatus(year, today).values.count { (it ?: 0) > 0 }
 
 /** A group found by [searchGroups], with its class. */
 data class GroupHit(val classId: String, val className: String, val groupId: String, val groupName: String)

@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.ClassCollection
 import gr.edusuite.pacer.model.ClassOrder
@@ -43,19 +44,19 @@ class ScreensModelTest {
 
     @Test fun overviewFollowsTheYearAndItsVerdicts() {
         val year = seedYear()
-        val o = pacingOverview(year).single()
+        val o = pacingOverview(year, TEST_TODAY).single()
         assertEquals(listOf("ga", "gb"), o.groups.map { it.groupId })
-        assertEquals(yearStatus(year)["ga"], o.groups.first().short)
+        assertEquals(yearStatus(year, TEST_TODAY)["ga"], o.groups.first().short)
         assertEquals(LocalDate.parse("2026-09-09"), o.groups.first().next)
-        assertEquals(groupsBehind(year), o.behind)
+        assertEquals(groupsBehind(year, TEST_TODAY), o.behind)
     }
 
     @Test fun classSummaryCountsGroupsBooksAndBehind() {
         val year = seedYear()
-        val s = classSummaries(year).single()
+        val s = classSummaries(year, TEST_TODAY).single()
         assertEquals(listOf("Group A", "Group B"), s.groupNames)
         assertEquals(3, s.books)
-        assertEquals(groupsBehind(year), s.behind)
+        assertEquals(groupsBehind(year, TEST_TODAY), s.behind)
     }
 
     @Test fun termSummaryCountsWeeksAndEveryoneDaysOffWithoutSundays() {

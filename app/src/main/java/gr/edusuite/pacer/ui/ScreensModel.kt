@@ -35,8 +35,8 @@ data class OverviewClass(val classId: String, val name: String, val groups: List
 }
 
 /** Every class of the year, in the year's order, with each group's figures from its active plan. */
-fun pacingOverview(year: SchoolYear): List<OverviewClass> = year.classes.map { c ->
-    val plan = year.planFor(c)
+fun pacingOverview(year: SchoolYear, today: LocalDate): List<OverviewClass> = year.classes.map { c ->
+    val plan = year.planFor(c, today)
     OverviewClass(c.id, c.name, plan.groups.map { g ->
         val r = GroupReport(plan, g)
         OverviewGroup(c.id, g.id, g.name, r.lessonsShort(), r.rows.firstOrNull()?.date, r.lessons.size)
@@ -88,7 +88,7 @@ data class ClassSummary(
     val measured: Boolean,
 )
 
-fun classSummaries(year: SchoolYear): List<ClassSummary> = pacingOverview(year).zip(year.classes) { o, c ->
+fun classSummaries(year: SchoolYear, today: LocalDate): List<ClassSummary> = pacingOverview(year, today).zip(year.classes) { o, c ->
     ClassSummary(c.id, c.name, c.groups.map { it.name }, c.books.size, o.behind, o.groups.any { it.short != null })
 }
 

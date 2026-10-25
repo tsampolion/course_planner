@@ -122,7 +122,8 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
     val year = data.year
-    val status = remember(year) { year?.let(::yearStatus).orEmpty() }
+    val today = rememberToday()
+    val status = remember(year, today) { year?.let { yearStatus(it, today) }.orEmpty() }
     val hits = remember(year, query) { year?.let { searchGroups(it, query) }.orEmpty() }
     val go: (() -> Unit) -> Unit = { move -> query = ""; onClose(); move() }
     val content: @Composable () -> Unit = {
@@ -262,7 +263,8 @@ private fun GroupRow(label: String, short: Int?, onClick: () -> Unit) {
 @Composable
 fun GroupSwitcherSheet(year: SchoolYear, classId: String, groupId: String, recent: List<GroupRef>, vm: PacerViewModel, onDismiss: () -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val status = remember(year) { yearStatus(year) }
+    val today = rememberToday()
+    val status = remember(year, today) { yearStatus(year, today) }
     val hits = remember(year, query) { searchGroups(year, query) }
     // Recent groups that still exist, other than the open one.
     val recents = remember(year, recent, groupId) {

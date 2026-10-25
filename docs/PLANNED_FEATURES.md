@@ -8,6 +8,7 @@ How to use this file:
 - When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and remove the entry from this file.
 - Entry 2 (Tidy and Fit) is built and recorded in [`TIDY_FIT_BRIEF.md`](TIDY_FIT_BRIEF.md).
 - Entry 3 (save status) is built and recorded in [`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md); its number is not reused, so the other entries keep theirs.
+- Entry 4 (one today for the engine) is built and recorded in [`ONE_TODAY_BRIEF.md`](ONE_TODAY_BRIEF.md); its number is not reused either.
 - Entries 2 to 9 come from the usability audit of 25 October 2026. That audit was read-only and covered 0.4.1.3 and 0.4.2.0. Every finding was checked again against 0.4.4.0. Findings keep their audit IDs (F01 to F19) and open decisions keep theirs (I1 to I6), so they can be traced.
 - The audit's visual, accessibility and streamlining findings (F09 to F12 and F16 to F18, with I1, I3, I4 and I5) are now in the approved [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md) and [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md). This file keeps the parts that change data, the engine, storage or output, which those briefs do not cover.
 - Most of entries 2 to 8 fix existing behaviour rather than add features. They wait here because they need the owner's go-ahead, and some need an engine decision.
@@ -133,55 +134,6 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 7. **"Reset all positions":** keep blocks (recommended) or clear them too?
 8. **Display:** is a "Focus: Grammar" tag with "—" in the other columns enough, or should block lessons be shaded like test lessons?
 9. **Relation to pinned lessons:** fixing the pages of a single future lesson was left out of 1.5.0 (`docs/LESSON_PAGES_BRIEF.md`, "Out of scope"). A one-lesson focus block covers part of that idea. Is that enough, or is a separate "plan this lesson's pages" still wanted?
-
-## 4. One "today" for the engine too (F08, rest of B0)
-
-**Status:** proposed (audit P2). Part B (0.4.3.0) fixed the screens but not the engine. Not approved.
-
-### The problem
-
-**What Part B fixed.**
-
-- `TodayProvider` and `rememberToday()` (`ui/Today.kt`) follow midnight, resume and date or time-zone broadcasts.
-- `PacerViewModel.today` is re-read on resume.
-- Home, Plan, Work, Stats and set-aside read it.
-- `homeworkPages` takes today explicitly.
-
-**What is still wrong.**
-
-- `Plan.today` defaults to `LocalDate.now()` (`model/Model.kt:193`), and `SchoolYear.planFor(c, today = LocalDate.now())` (`Model.kt:234`) is never given a date by any caller. Callers include:
-  - `AppData.plan`, `HomeModel.kt:38,69,84,104`, `ScreensModel.kt:39`, `NavModel.kt:39`
-  - `Nav.kt:152,155`, `PrintDialog.kt:56-58`, `PacerViewModel.kt:198,207`
-  - `PacerApp.kt:360`, `Sanitise.kt:33`
-- So homework banking (`remainingPages`, `bankedPages`, `engine/Pacer.kt:128,140`) and unit-revision dates read the clock whenever a plan happens to be built, not the shared today.
-- `UnitRevisionSheet.kt:19` offers dates from `plan.today`, but `saveUnitRevision` checks them against the ViewModel's `today.value` (`PacerViewModel.kt:208`). The two can disagree around midnight.
-- Cached reports (`PacerApp.kt:191,421`, `remember(screen, plan)`) are not rebuilt when the date changes.
-- `HomeScreen.kt:432` still uses `remember { suggestYear(years, LocalDate.now()) }`.
-- `docs/ARCHITECTURE.md` said the engine never reads the clock. That sentence was corrected in 0.4.4.1.
-
-### Proposal
-
-- Pass the ViewModel's `today` into every `planFor`.
-- Remove the `LocalDate.now()` defaults from `Plan` and `planFor`, so the compiler finds every caller.
-- Key cached reports on today.
-- Use `rememberToday()` for the year suggestion.
-- Keep the one source of truth: the ViewModel's `today` flow, fed by the existing provider. Add no second timer or listener.
-
-### Acceptance
-
-With a fake clock:
-
-- At 23:59 → 00:00, on resume, on a time-zone change and on repeated broadcasts, Home, group home, Plan, Work, Stats, banking and revision dates all move together.
-- No manual content is rewritten.
-- There is one listener.
-
-Also: a test that `planFor` follows the ViewModel's `today`, and a device run at the Europe/Athens daylight-saving change.
-
-### Risk and dependencies
-
-- **Risk:** medium to high, because banking changes page pools. Scheduling on a given date is unchanged.
-- **Complexity:** low to medium.
-- **Depends on:** the D5 clock seam (`dateNow`, `PacerViewModel.kt:122`).
 
 ## 5. Removed books keep their taught history; tests for schema 15 (F04, F19)
 
@@ -413,7 +365,7 @@ Warn or block at export when the file would be over the import limit. This is a 
 ### Coverage gaps to close with tests
 
 - Failed writes and retry ([`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md)).
-- Midnight across screens (entry 4).
+- Midnight across screens: the engine side is covered (`PacerViewModelTest.midnightMovesPlansBankingAndRevisionDatesTogether`); the Compose screens are not.
 - Rendered history and schema-15 codec round trips (entry 5).
 - Shared-control semantics (UI audit X12, X13).
 - Process and sheet restoration (streamlining S4).
@@ -484,7 +436,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 
 1. ~~Entry 3, save status~~ (0.4.4.6, `SAVE_STATUS_BRIEF.md`).
 2. ~~Entry 2, Tidy and Fit preservation~~ (0.4.4.8, `TIDY_FIT_BRIEF.md`).
-3. **Entry 4**, one today for the engine. Do it before UI PR 3, because Home's today list depends on it.
+3. ~~Entry 4, one today for the engine~~ (0.4.4.10, `ONE_TODAY_BRIEF.md`).
 4. **Entry 5**, history and schema-15 tests. Do it before UI PR 2 reworks the ledger rows (gutters, edges).
 5. **UI PR 1**, group home and the hero. It includes F09: the pages wrap at any width (audit G1).
 6. **UI PR 2**, Plan. It includes the book-label decision (I5, audit X14).

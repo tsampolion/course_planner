@@ -37,6 +37,7 @@ enum class PrintScope { GROUP, CLASS, YEAR }
 @Composable
 fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val today = rememberToday()
     val segment = rememberSegmentHaptic()
     val onlyClass = only?.let { (c, _) -> year.classes.firstOrNull { it.id == c } }
     val onlyGroup = only?.let { (_, g) -> onlyClass?.groups?.firstOrNull { it.id == g } }
@@ -53,9 +54,9 @@ fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss:
         canAdd = scope != PrintScope.YEAR || year.classes.isNotEmpty(),
         onAdd = {
             val plans = when {
-                scope == PrintScope.GROUP && onlyClass != null && onlyGroup != null -> listOf(year.planFor(onlyClass).copy(groups = listOf(onlyGroup)))
-                scope == PrintScope.CLASS && onlyClass != null -> listOf(year.planFor(onlyClass))
-                else -> year.classes.map { year.planFor(it) }
+                scope == PrintScope.GROUP && onlyClass != null && onlyGroup != null -> listOf(year.planFor(onlyClass, today).copy(groups = listOf(onlyGroup)))
+                scope == PrintScope.CLASS && onlyClass != null -> listOf(year.planFor(onlyClass, today))
+                else -> year.classes.map { year.planFor(it, today) }
             }
             PrintSheet.print(context, year.name, plans, margin)
         },

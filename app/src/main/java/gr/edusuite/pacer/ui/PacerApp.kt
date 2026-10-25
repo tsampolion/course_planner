@@ -188,16 +188,18 @@ fun PacerApp(vm: PacerViewModel) {
     var groupSheet by rememberSaveable(screen.key()) { mutableStateOf<GroupSheet?>(null) }
     var printing by rememberSaveable(screen.key()) { mutableStateOf(false) }
     val large = rememberLargeText()
-    val groupReport = remember(screen, ui.data.plan) {
-        val plan = ui.data.plan
+    // One today for every plan built below; the reports are rebuilt when it changes at midnight.
+    val today = rememberToday()
+    val groupReport = remember(screen, ui.data, today) {
+        val plan = ui.data.plan(today)
         val group = (screen as? Screen.Group)?.let { s -> plan?.groups?.firstOrNull { it.id == s.id } }
         if (plan == null || group == null) null else GroupReport(plan, group)
     }
     val warnings = remember(groupReport) { groupReport?.let(::groupWarnings).orEmpty() }
     // Pacing overview's warning button counts the year's problems instead (decision 7).
-    val yearProblems = remember(screen, ui.data.year) { if (screen == Screen.Overview) ui.data.year?.let { Nav.problems(it).size } ?: 0 else 0 }
+    val yearProblems = remember(screen, ui.data.year, today) { if (screen == Screen.Overview) ui.data.year?.let { Nav.problems(it, today).size } ?: 0 else 0 }
     // The class screen's warning button counts the class's problems (the locked Class mock-up, D7).
-    val classProblems = remember(screen, ui.data.plan) { if (screen == Screen.Class) ui.data.plan?.let { screenProblems(it, Screen.Class).size } ?: 0 else 0 }
+    val classProblems = remember(screen, ui.data, today) { if (screen == Screen.Class) ui.data.plan(today)?.let { screenProblems(it, Screen.Class).size } ?: 0 else 0 }
     var problemsOpen by rememberSaveable(screen.key()) { mutableStateOf(false) }
     val groupMenu = groupReport?.let { report ->
         GroupMenu(
@@ -349,7 +351,7 @@ fun PacerApp(vm: PacerViewModel) {
     if (problemsOpen && screen == Screen.Overview && year != null) {
         YearProblemsSheet(year, vm) { problemsOpen = false }
     }
-    val plan = ui.data.plan
+    val plan = ui.data.plan(today)
     if (problemsOpen && screen == Screen.Class && plan != null) {
         ClassProblemsSheet(plan, vm) { problemsOpen = false }
     }
@@ -360,7 +362,7 @@ fun PacerApp(vm: PacerViewModel) {
         val year = ui.data.year
         val cls = year?.classes?.firstOrNull { it.id == target.classId }
         val group = cls?.groups?.firstOrNull { it.id == target.groupId }
-        if (year != null && cls != null && group != null) androidx.compose.runtime.key(target) { UnitRevisionSheet(GroupReport(year.planFor(cls), group), target, vm, undoToast) }
+        if (year != null && cls != null && group != null) androidx.compose.runtime.key(target) { UnitRevisionSheet(GroupReport(year.planFor(cls, today), group), target, vm, undoToast) }
     }
     setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
 }
@@ -388,7 +390,8 @@ private fun ScreenContent(
 ) {
     // Each is null for a moment while the screen of something just deleted fades out.
     val year = data.year
-    val plan = data.plan
+    val today = rememberToday()
+    val plan = data.plan(today)
     when (s) {
         Screen.Home -> HomeScreen(
             data, settings.name, vm, padding,

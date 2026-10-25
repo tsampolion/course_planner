@@ -3,6 +3,7 @@ package gr.edusuite.pacer.engine
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
+import gr.edusuite.pacer.model.TEST_TODAY
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
@@ -24,6 +25,7 @@ class WarningsTest {
         groups = listOf(Group("g", "G", setOf(MONDAY, WEDNESDAY), d("2027-03-01"), pos)),
         closures = emptyList(), books = listOf(Book("a", "SB", 1, 20), Book("b", "WB", 1, 10)) + extra,
         homework = emptyList(), events = emptyList(),
+        today = TEST_TODAY,
     )
 
     private var n = 0

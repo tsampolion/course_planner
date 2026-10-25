@@ -10,7 +10,7 @@ class StatsModelTest {
     private val start = LocalDate.of(2026, 10, 5)
     private val book = Book(id = "b", name = "Book", first = 1, last = 20)
     private val group = Group(id = "g", name = "Group", days = setOf(java.time.DayOfWeek.MONDAY), from = null)
-    private val plan = Plan("p", "Plan", start, start.plusWeeks(3), 60, 5.0, listOf(group), emptyList(), listOf(book), emptyList(), emptyList())
+    private val plan = Plan("p", "Plan", start, start.plusWeeks(3), 60, 5.0, listOf(group), emptyList(), listOf(book), emptyList(), emptyList(), today = TEST_TODAY)
 
     @Test fun plannedPositionAdvancesWithLessonsBeforeToday() {
         val report = GroupReport(plan, group)

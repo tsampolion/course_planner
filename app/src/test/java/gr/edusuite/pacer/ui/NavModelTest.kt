@@ -1,6 +1,7 @@
 package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.Group
@@ -24,7 +25,7 @@ class NavModelTest {
     private fun year(vararg classes: SchoolClass) =
         SchoolYear("y", "2026–27", LocalDate.parse("2027-03-01"), LocalDate.parse("2027-03-31"), emptyList(), classes.toList())
 
-    private fun report(c: SchoolClass): GroupReport = year(c).let { y -> GroupReport(y.planFor(c), c.groups.first()) }
+    private fun report(c: SchoolClass): GroupReport = year(c).let { y -> GroupReport(y.planFor(c, TEST_TODAY), c.groups.first()) }
 
     @Test fun wholeLessonsRoundUpAndShowAtLeastOne() {
         assertEquals(4, wholeLessons(3.33))
@@ -52,8 +53,8 @@ class NavModelTest {
             schoolClass("b", "C2", 4.0, listOf(group("b1", "Mon"))),
             schoolClass("c", "FCE", 0.0, listOf(group("c1", "Mon"))),
         )
-        assertEquals(mapOf("a1" to 5, "a2" to 5, "b1" to 0, "c1" to null), yearStatus(y))
-        assertEquals(2, groupsBehind(y))
+        assertEquals(mapOf("a1" to 5, "a2" to 5, "b1" to 0, "c1" to null), yearStatus(y, TEST_TODAY))
+        assertEquals(2, groupsBehind(y, TEST_TODAY))
     }
 
     @Test fun searchFindsGroupsByClassAndGroupName() {

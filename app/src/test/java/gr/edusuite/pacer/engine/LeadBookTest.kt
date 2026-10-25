@@ -3,6 +3,7 @@ package gr.edusuite.pacer.engine
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.seedPlan
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.WEDNESDAY
@@ -19,6 +20,7 @@ class LeadBookTest {
         id = "p", name = "Test", start = d("2027-03-01"), end = d("2027-03-31"), mins = 60, pace = 2.0,
         groups = listOf(Group("g", "G", setOf(MONDAY, WEDNESDAY), d("2027-03-01"))),
         closures = emptyList(), books = books, homework = emptyList(), events = emptyList(), lead = lead,
+        today = TEST_TODAY,
     )
 
     private fun report(p: Plan) = GroupReport(p, p.groups.first())

@@ -35,7 +35,7 @@ data class NextLesson(
 fun nextLesson(year: SchoolYear, today: LocalDate): NextLesson? {
     var best: NextLesson? = null
     for (c in year.classes) {
-        val plan = year.planFor(c)
+        val plan = year.planFor(c, today)
         for (g in plan.groups) {
             val report = GroupReport(plan, g)
             val row = report.rows.firstOrNull() ?: continue
@@ -64,9 +64,9 @@ fun nextLesson(year: SchoolYear, today: LocalDate): NextLesson? {
  * Marks the next lesson of group [groupId] in class [classId] done: the same rule as ticking it on the group screen
  * (`PacerViewModel.markNextLessonDone`), for a class that need not be the open one. Unknown ids change nothing.
  */
-fun SchoolYear.markNextLessonDone(classId: String, groupId: String): SchoolYear {
+fun SchoolYear.markNextLessonDone(classId: String, groupId: String, today: LocalDate): SchoolYear {
     val c = classes.firstOrNull { it.id == classId } ?: return this
-    val plan = planFor(c)
+    val plan = planFor(c, today)
     val g = plan.groups.firstOrNull { it.id == groupId } ?: return this
     val r = GroupReport(plan, g)
     val next = r.rows.firstOrNull()?.let { r.markDone(setOf(it.date)) } ?: return this
@@ -81,7 +81,7 @@ fun lessonsToday(year: SchoolYear, today: LocalDate): TodayCount {
     var left = 0
     var done = 0
     for (c in year.classes) {
-        val plan = year.planFor(c)
+        val plan = year.planFor(c, today)
         for (g in plan.groups) {
             // A done lesson's date leaves the schedule, so the two never count the same lesson.
             left += GroupReport(plan, g).rows.count { it.date == today }
@@ -100,8 +100,8 @@ data class BoardCell(val classId: String, val groupId: String, val groupName: St
 data class BoardRow(val classId: String, val className: String, val cells: List<BoardCell>)
 
 /** Home's Pacing overview board: one row per class that has groups, in the year's order, from the same verdict as every status label. */
-fun pacingBoard(year: SchoolYear): List<BoardRow> = year.classes.filter { it.groups.isNotEmpty() }.map { c ->
-    val plan = year.planFor(c)
+fun pacingBoard(year: SchoolYear, today: LocalDate): List<BoardRow> = year.classes.filter { it.groups.isNotEmpty() }.map { c ->
+    val plan = year.planFor(c, today)
     BoardRow(c.id, c.name, plan.groups.map { BoardCell(c.id, it.id, it.name, GroupReport(plan, it).lessonsShort()) })
 }
 

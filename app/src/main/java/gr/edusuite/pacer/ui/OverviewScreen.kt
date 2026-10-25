@@ -40,7 +40,8 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
     // Large text: the classes whose on-pace groups are shown, and whether the classes all on pace are.
     var opened by rememberSaveable { mutableStateOf(emptySet<String>()) }
     var allOpen by rememberSaveable { mutableStateOf(false) }
-    val overview = remember(year) { pacingOverview(year) }
+    val today = rememberToday()
+    val overview = remember(year, today) { pacingOverview(year, today) }
     val classes = remember(overview, order) { sortGroups(overview, order) }
     val groups = overview.sumOf { it.groups.size }
     val behind = overview.sumOf { it.behind }
@@ -175,7 +176,8 @@ private fun GroupOrder.label(): String = stringResource(when (this) {
 /** The year's problems (decision 7), behind Pacing overview's warning button: each with Fix where a screen fixes it. */
 @Composable
 fun YearProblemsSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
-    val problems = remember(year) { Nav.problems(year) }
+    val today = rememberToday()
+    val problems = remember(year, today) { Nav.problems(year, today) }
     HomeSheet(stringResource(R.string.overview_problems), onDismiss) { close ->
         if (problems.isEmpty()) Hint(stringResource(R.string.warnings_none))
         problems.forEach { p ->

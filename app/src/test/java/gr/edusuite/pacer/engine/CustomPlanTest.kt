@@ -7,6 +7,7 @@ import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.Plan
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.ui.GroupWarning
 import gr.edusuite.pacer.ui.daysOff
@@ -29,6 +30,7 @@ class CustomPlanTest {
         id = "p", name = "Test", start = d("2027-03-01"), end = d("2027-03-31"), mins = 60, pace = 3.0,
         groups = listOf(Group("g", "G", setOf(MONDAY, WEDNESDAY), d("2027-03-01"))),
         closures = closures, books = listOf(Book("a", "SB", 1, 20), Book("b", "WB", 1, 10, due = due)), homework = emptyList(), events = events,
+        today = TEST_TODAY,
     )
 
     private var n = 0

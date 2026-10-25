@@ -85,7 +85,8 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
     var newYear by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf(false) }
     var editingTerm by rememberSaveable(year.id) { mutableStateOf(false) }
-    val problems = remember(year) { Nav.problems(year).filter { it.fix == Screen.YearSettings } }
+    val today = rememberToday()
+    val problems = remember(year, today) { Nav.problems(year, today).filter { it.fix == Screen.YearSettings } }
     val sorted = remember(years) { years.sortedByDescending { it.start } }
     val term = remember(year) { termSummary(year) }
 
@@ -216,8 +217,9 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
     var newCollection by rememberSaveable { mutableStateOf(false) }
     var editingCollection by rememberSaveable { mutableStateOf<String?>(null) }
     var adding by rememberSaveable { mutableStateOf(false) }
-    val problems = remember(year) { Nav.problems(year).groupingBy { it.classId }.eachCount() }
-    val rows = remember(year) { classSummaries(year) }
+    val today = rememberToday()
+    val problems = remember(year, today) { Nav.problems(year, today).groupingBy { it.classId }.eachCount() }
+    val rows = remember(year, today) { classSummaries(year, today) }
     val groups = rows.sumOf { it.groupNames.size }
     val sections = remember(rows, year.collections, order) { classSections(rows, year.collections, order) }
 

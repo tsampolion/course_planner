@@ -60,5 +60,8 @@ fun seedYear(): SchoolYear {
     )
 }
 
+/** The day plans are built on in tests: before the sample term starts, so homework is not banked until it is due. */
+val TEST_TODAY: LocalDate = LocalDate.of(2026, 9, 1)
+
 /** The sample class as the engine sees it. */
-fun seedPlan(): Plan = seedYear().let { it.planFor(it.classes.first()) }
+fun seedPlan(): Plan = seedYear().let { it.planFor(it.classes.first(), TEST_TODAY) }
