@@ -167,7 +167,7 @@ One `PacerViewModel` exposes `StateFlow<UiState>`. Every mutation goes through `
 
 Opening another school year clears the undo history. Deleting a year lands on Home, whose snackbar offers undo (which opens that year again). Deletes happen at once with a 5 s Undo snackbar; only Import's Replace all still asks first. Undo shows in the top bar only where `Screen.showsUndo` (Group, Class, Classes, School year, Tests, Homework).
 
-Only the open year, class and group persist (`activeYear`, `activeClass`, `view`), and launch reopens a saved group only. With no year open, Home shows the one that starts last (`defaultYearId`).
+Only the open year, class and group persist (`activeYear`, `activeClass`, `view`), but a fresh start always opens Home (`Nav.launch`, 0.4.1.3): the saved group is written and never reopened. With no year open, Home shows the one that starts last (`defaultYearId`).
 
 ### Navigation
 

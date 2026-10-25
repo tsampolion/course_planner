@@ -102,7 +102,7 @@ private data class Snapshot(val years: List<SchoolYear>, val activeYear: String,
  */
 class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore, private val updates: UpdateChecker) : ViewModel() {
     private val loaded = store.load()
-    private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.fromView(d.view), 0) })
+    private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.launch, 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     /** Where an unreadable plans file was moved at launch, until the teacher closes the notice about it. */

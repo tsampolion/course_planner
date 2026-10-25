@@ -25,6 +25,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.1.3] - 2026-10-25
+
+### Changed
+
+- The app always opens on Home when you start it. It no longer reopens the group that was open when you closed it. The open school year and class are still remembered.
+
 ## [0.4.1.2] - 2026-10-25
 
 ### Changed
@@ -765,7 +771,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.1.2...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.1.3...HEAD
+[0.4.1.3]: https://github.com/tsampolion/course_planner/compare/v0.4.1.2...v0.4.1.3
 [0.4.1.2]: https://github.com/tsampolion/course_planner/compare/v0.4.1.1...v0.4.1.2
 [0.4.1.1]: https://github.com/tsampolion/course_planner/compare/v4.1.0...v0.4.1.1
 [0.4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0
