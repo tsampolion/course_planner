@@ -25,6 +25,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.6] - 2026-10-25
+
+### Added
+
+- `docs/NAVIGATION.md`: a navigation graph of the whole app. It maps every screen, the drawer, the group switcher, the top-bar buttons, each screen's controls, the lesson and group menus, the sheets and dialogs, and the hand-offs to Android (share, print, files, browser).
+
 ## [0.4.4.5] - 2026-10-25
 
 ### Added
@@ -870,6 +876,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
 [0.4.4.5]: https://github.com/tsampolion/course_planner/compare/v0.4.4.4...v0.4.4.5
 [0.4.4.4]: https://github.com/tsampolion/course_planner/compare/v0.4.4.3...v0.4.4.4
 [0.4.4.3]: https://github.com/tsampolion/course_planner/compare/v0.4.4.2...v0.4.4.3
