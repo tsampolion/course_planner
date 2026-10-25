@@ -173,7 +173,7 @@ data class TestEvent(
  * A date for code that reads only a plan's calendar (its lesson dates), never the pages that homework has banked.
  * Anything the teacher sees is built with the app's shared today instead.
  */
-val NO_TODAY: LocalDate = LocalDate.EPOCH
+val NO_TODAY: LocalDate = LocalDate.of(1970, 1, 1)
 
 /** What the engine paces: one class over one term. The app builds it with [SchoolYear.planFor]. */
 data class Plan(
