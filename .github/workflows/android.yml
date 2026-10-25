@@ -24,6 +24,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Unit tests
         run: ./gradlew --no-daemon testDebugUnitTest
+      - name: Lint
+        run: ./gradlew --no-daemon lint
       # Signs with the permanent key from the release environment's secrets (docs/SIGNING_BRIEF.md). Without them,
       # main fails; other branches and pull requests get none, so they fall back to the debug key and never publish.
       - name: Release APK

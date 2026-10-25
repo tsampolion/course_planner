@@ -48,7 +48,7 @@ The app's only network use is the update check: one request to api.github.com, o
 ## Installing on a phone
 
 1. Open [Releases](https://github.com/tsampolion/course_planner/releases/latest) in the phone's browser.
-2. Download the latest `course-pacer-X.Y.Z.apk`.
+2. Download the latest `course-pacer-0.X.Y.Z.apk`.
 3. Allow installs from the browser if Android asks.
 4. Install the APK and open Course Pacer.
 
@@ -81,7 +81,7 @@ A local `assembleRelease` is signed with your debug key, so you can install it d
 
 ## CI and releases
 
-[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, pull request and manual dispatch. It runs the tests, builds the release APK and checks its signing certificate. When it passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) tags `vX.Y.Z` from `versionName` and publishes a GitHub release with that version's `CHANGELOG.md` section as the notes. Only `main` signs with the release key. Other branches use the debug key and never publish. How release signing works: [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
+[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, pull request and manual dispatch. It runs the tests and lint, builds the release APK and checks its signing certificate. When it passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) tags `v0.X.Y.Z` from `versionName` and publishes a GitHub release with that version's `CHANGELOG.md` section as the notes. Only `main` signs with the release key. Other branches use the debug key and never publish. How release signing works: [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
 
 | Name | Kind | Holds |
 | --- | --- | --- |
@@ -107,7 +107,7 @@ A local `assembleRelease` is signed with your debug key, so you can install it d
 ├── docs/                             # briefs, style guide and decision records; start at docs/README.md
 ├── gradle/libs.versions.toml         # version catalog
 ├── .github/workflows/android.yml     # CI: tests and release APK
-└── .github/workflows/release.yml     # tags vX.Y.Z and publishes the release after CI passes on main
+└── .github/workflows/release.yml     # tags v0.X.Y.Z and publishes the release after CI passes on main
 ```
 
 ## Tech stack

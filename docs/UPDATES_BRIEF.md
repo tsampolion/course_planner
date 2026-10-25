@@ -1,4 +1,4 @@
-Built in 4.1.0. Spec: superpowers/specs/2026-10-23-in-app-update-check-design.md.
+Built in 4.1.0 (versions written `0.X.Y.Z` from 0.4.1.1; the first four-part build is installed by hand). Spec: superpowers/specs/2026-10-23-in-app-update-check-design.md.
 
 # In-app updates
 
@@ -10,8 +10,8 @@ after that, they can find and install updates themselves.
 ## What the app relies on
 
 Every installed copy checks `releases/latest` in the public repository
-`tsampolion/course_planner`. A release has tag `vX.Y.Z`, exactly one asset named
-`course-pacer-X.Y.Z.apk` signed with the permanent release key, and its matching
+`tsampolion/course_planner`. A release has tag `v0.X.Y.Z`, exactly one asset named
+`course-pacer-0.X.Y.Z.apk` signed with the permanent release key, and its matching
 changelog section as the release body. Renaming the asset, changing the tag format,
 or making the repository private silently stops in-app updates for installed copies.
 
@@ -39,7 +39,7 @@ The app's only permission is `INTERNET`.
 ## Setting up a colleague's phone
 
 1. Open [Releases](https://github.com/tsampolion/course_planner/releases/latest) in the phone's browser.
-2. Download the latest `course-pacer-X.Y.Z.apk`.
+2. Download the latest `course-pacer-0.X.Y.Z.apk`.
 3. Allow installs from that browser if Android asks.
 4. Install the APK and open Course Pacer.
 

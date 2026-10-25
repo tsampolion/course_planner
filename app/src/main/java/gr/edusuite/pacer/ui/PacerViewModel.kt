@@ -113,6 +113,14 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         _setAside.value = null
     }
 
+    /** True once at launch when the plans file couldn't be read right now; the notice is shown once. */
+    private val _readFailed = MutableStateFlow(loaded.readFailed)
+    val readFailed: StateFlow<Boolean> = _readFailed.asStateFlow()
+
+    fun dismissReadFailed() {
+        _readFailed.value = false
+    }
+
     /** Groups opened this session, latest first, for the group switcher. Not saved: a new session starts empty. */
     private val _recent = MutableStateFlow(recentAfter(emptyList(), _state.value))
     val recent: StateFlow<List<GroupRef>> = _recent.asStateFlow()
