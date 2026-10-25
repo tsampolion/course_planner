@@ -25,6 +25,23 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.3.0] - 2026-10-25
+
+### Added
+
+- Group home: Plan, Work, Stats and Settings are pill buttons at the foot (2 × 2 on phones, one row on tablets, one column at large text). Group settings no longer sits in the ⋮ menu.
+- Group home: Progress is one line ("Lesson 14 of 40 · On pace") over a thin bar; tap it for Stats. Progress, Pace track and Due soon each sit in a container with one spacing between sections.
+- The group's name has a switcher: on group home it lists the other groups (picking one opens its home), and on Plan, Work, Stats and Settings it lists the group's other pages.
+- The group's ⋮ menu is in sections: Share & print, Plan, Lessons and Help.
+
+### Changed
+
+- The lesson box on group home and Plan is filled with the accent colour. Its "Pages taught" button is gone: tap the pages to record what was taught, which always marks the lesson done.
+
+### Fixed
+
+- Today's date now stays current: Home, group home, Plan, Work and Stats follow the real date when the app is left open overnight, resumed, or the date or time zone changes. The engine no longer reads the clock itself.
+
 ## [0.4.2.0] - 2026-10-25
 
 ### Added
@@ -787,6 +804,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.3.0]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...v0.4.3.0
 [0.4.2.0]: https://github.com/tsampolion/course_planner/compare/v0.4.1.3...v0.4.2.0
 [0.4.1.3]: https://github.com/tsampolion/course_planner/compare/v0.4.1.2...v0.4.1.3
 [0.4.1.2]: https://github.com/tsampolion/course_planner/compare/v0.4.1.1...v0.4.1.2

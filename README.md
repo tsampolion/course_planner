@@ -18,7 +18,7 @@ Each line links to where the feature is explained: a decision record in `docs/` 
 - **School years, classes and groups**: terms, days off with one-tap Greek holidays from Orthodox Easter, classes with books and groups. [Brief](docs/YEARS_BRIEF.md)
 - **Home**: next lesson with **Done**, your classes and the Pacing overview board of groups behind. [Home](docs/ARCHITECTURE.md#home)
 - **Menu and group switcher**: find any class or group by name from ☰ on every screen. [Navigation](docs/ARCHITECTURE.md#navigation)
-- **Group**: Plan (today, week sections, long-press lesson menu), Work and Stats with the verdict and pace track. [Group screens](docs/ARCHITECTURE.md#group-screens)
+- **Group**: a home with today's lesson, a progress strip and pills to Plan (today, week sections, long-press lesson menu), Work, Stats (the verdict and pace track) and Settings; the group's name switches group or page. [Group screens](docs/ARCHITECTURE.md#group-screens)
 - **Done lessons and pages taught**: tick lessons, or record the pages you really covered; the rest re-spreads. [Brief](docs/LESSON_PAGES_BRIEF.md)
 - **Custom plans**: make the proposed schedule your own, edit lessons, re-pace and switch back. [Brief](docs/CUSTOM_PLANS_BRIEF.md)
 - **Lead book**: other books keep step with the one you choose. [Brief](docs/CUSTOM_PLANS_BRIEF.md)
