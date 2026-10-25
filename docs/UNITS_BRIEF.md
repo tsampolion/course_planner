@@ -1,8 +1,8 @@
 # Book units
 
-Approved engine extension from Part A of the owner's handoff, delivered together
-with the separately approved update checker in one combined PR. The original
-update-spec PR50 was closed unmerged; its closure is preserved.
+Status: shipped in 4.1.0 (0.4.1.0 in the four-part format), schema 14.
+
+An approved engine extension, delivered together with the update checker.
 
 Book units are optional. The class master switch defaults off. A group can disable units or follow the class; a stored group choice to enable units is inert while the class switch is off. Unit metadata remains saved when units are disabled, and the old allocator, lead following, custom plans and catch-up retain their behavior.
 
@@ -17,8 +17,3 @@ Manual custom lessons, touched content, supplementary placements and pinned extr
 Persistence is schema 14. Missing metadata defaults to units off, no links, no override and no revisions. Malformed revision records are isolated. Unknown linked books are removed on sanitising, and invalid starts stay visible for correction instead of being silently sorted.
 
 Validation includes units-off rows/custom/catch-up parity, linked boundaries, count mismatch, strict starts, zero-page units, group master-switch precedence, per-group revisions, homework and optional membership, impossible windows and deadlines, touched custom plans, catch-up, and platform JSON round-trip/default/malformed-record checks. Device execution remains separate from JVM verification.
-
-Final integrated verification: 380 JVM tests pass; lint zero errors (71 warnings,
-one hint); release and Android test APKs build. Signature/package checks pass.
-Platform execution and native QA remain pending. See
-[combined verification](work/units-and-updates/verification.md) and its ledger.

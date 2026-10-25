@@ -1,6 +1,6 @@
 # Catch-up survives re-pacing
 
-Status: implemented for 3.6.2. Owner chose preservation on 2026-10-22.
+Status: shipped in 3.6.2. Owner chose preservation on 2026-10-22.
 
 ## Problem and behavior
 

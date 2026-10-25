@@ -1,6 +1,6 @@
 # Task: Export and import school years
 
-> Decision record: built in 1.6.0. The code and CLAUDE.md describe the current app.
+Status: shipped in 1.6.0. [`ARCHITECTURE.md`](ARCHITECTURE.md) describes the current app.
 
 This is the follow-up agreed while settling the signing key (`docs/SIGNING_BRIEF.md`), with the answers to its questions folded in. Version 1.6.0 was built from it.
 

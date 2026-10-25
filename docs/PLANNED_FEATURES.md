@@ -1,15 +1,15 @@
 # Planned features
 
-Features that have been discussed and specified but not built yet. Each entry describes the problem, a proposed design that fits the app's rules, a worked example, and the questions to settle before building it.
+Ideas that have been discussed and specified but are not approved or built. Each entry describes the problem, a proposed design that fits the app's rules, a worked example, and the questions to settle before building it.
 
 How to use this file:
 
 - **Nothing here is approved yet.** Build an entry only when the owner asks for it in a session. Several entries change the pacing engine, which `CLAUDE.md` treats as a contract ("Engine parity is the contract"), so they need explicit sign-off.
-- When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and change the entry's status here to point to that brief and the version that shipped it.
+- When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and remove the entry from this file.
 
 ## 1. Focus blocks: one book on its own for a run of lessons
 
-**Status:** proposed (discussed while building 1.5.0). Not approved. It's an engine extension. Custom plans (§3) and the lead book (§4) cover part of it: a custom plan can give a run of lessons to one book by hand.
+**Status:** proposed (discussed while building 1.5.0). Not approved. It's an engine extension. Custom plans and the lead book cover part of it (see the architecture): a custom plan can give a run of lessons to one book by hand.
 
 ### The problem
 
@@ -122,23 +122,7 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 8. **Display:** is a "Focus: Grammar" tag with "—" in the other columns enough, or should block lessons be shaded like test lessons?
 9. **Relation to pinned lessons:** fixing the pages of a single future lesson was left out of 1.5.0 (`docs/LESSON_PAGES_BRIEF.md`, "Out of scope"). A one-lesson focus block covers part of that idea. Is that enough, or is a separate "plan this lesson's pages" still wanted?
 
-## 2. Permanent release signing key: every release installs over the last
-
-**Status:** shipped in 1.5.3. How it works now: [`docs/SIGNING_BRIEF.md`](SIGNING_BRIEF.md).
-
-## 3. Custom plans: the teacher's own plan built from the proposed one
-
-**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Shipped in 2.7.0, after the Plan | Stats split of the group screen (2.6.0).
-
-## 4. Lead book: one book directs the pacing of the others
-
-**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). An engine extension that changes nothing when no lead book is set. Shipped in 2.8.0.
-
-## 5. Pace and left-behind warnings with catch-up
-
-**Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Shipped in 2.9.0.
-
-## 6. Front-end redesign audit with taste-skill
+## 2. Front-end redesign audit with taste-skill
 
 **Status:** proposed (from the owner's 4.1.0 audit). Not approved; build it only when the owner asks. Redesign work counts as a B-level change (a new feature) in the version rules.
 
@@ -158,7 +142,7 @@ The app can look generic, and the Saffron/Bone palette is not always applied the
 - Does the audit change `docs/PACER_DESIGN.md`, or only apply it?
 - Who checks each result on a phone? Layout can't be run on a device in the build environment.
 
-## 7. Streamlining: a clear start, purpose, path and end for every screen
+## 3. Streamlining: a clear start, purpose, path and end for every screen
 
 **Status:** proposed (from the owner's 4.1.0 audit). Not approved. It follows after the current feature work, and after the front-end audit above if both go ahead.
 

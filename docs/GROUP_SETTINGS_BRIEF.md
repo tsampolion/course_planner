@@ -1,6 +1,6 @@
 # Group settings and group-only books
 
-Status: implemented for 3.10.0 alongside class collections. Owner confirmed the shared optional-book design in this session on 2026-10-23.
+Status: shipped in 3.10.0 alongside class collections. Owner confirmed the shared optional-book design in this session on 2026-10-23.
 
 ## Intent
 

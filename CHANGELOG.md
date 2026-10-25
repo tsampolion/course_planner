@@ -25,6 +25,22 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.1.2] - 2026-10-25
+
+### Changed
+
+- `CLAUDE.md` is now the short list of contributor rules. How the app works moved to the new `docs/ARCHITECTURE.md`, which describes only the current app and holds the schema version table.
+- The README feature list is one line per feature, linking to its brief or architecture section. The README, `PRODUCT.md` and `docs/PACER_DESIGN.md` name the real palettes (Bone & green, Saffron & ink) instead of teal, and the product record no longer lists stale items.
+- Every brief starts with a `Status:` line. The docs index has Reference, Decision records and Not yet approved sections; shipped features are removed from `docs/PLANNED_FEATURES.md`.
+
+### Added
+
+- Docs rules in `CLAUDE.md`, a pull request checklist, and `DocsTest`, which checks the docs index, relative links, brief status lines, the size of `CLAUDE.md` and that the top changelog section matches `versionName`.
+
+### Removed
+
+- Working logs (`docs/work/`), finished plans and specs, and the redesign screenshots. Git history keeps them.
+
 ## [0.4.1.1] - 2026-10-25
 
 ### Added
@@ -749,7 +765,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.1.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.1.2...HEAD
+[0.4.1.2]: https://github.com/tsampolion/course_planner/compare/v0.4.1.1...v0.4.1.2
 [0.4.1.1]: https://github.com/tsampolion/course_planner/compare/v4.1.0...v0.4.1.1
 [0.4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0
 [0.4.0.0]: https://github.com/tsampolion/course_planner/compare/v3.11.0...v4.0.0

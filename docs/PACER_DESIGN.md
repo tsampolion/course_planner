@@ -1,18 +1,6 @@
 # Course Pacer design language
 
-> **Status: approved, built; Stats and Plan refinements in 3.9.0.** Agreed with the owner on 2026-10-21. It ships in 3.1.0 to 3.6.0 following
-> `docs/superpowers/plans/2026-10-21-app-redesign.md`. **Tokens and type landed in 3.1.0** (PR1): the dark set, the edge
-> tokens, `Figures`, the 48dp segmented switch and targets, and the pale status pill (D1, D2, D8, D10, D11's pills).
-> **Navigation landed in 3.2.0** (PR2): the ☰ menu, the group switcher, the Warnings sheet and the Pacing overview
-> name (D5 on phones, D7). **Home landed in 3.3.0** (PR3): "Hello, name", the next-lesson bar, the Classes card and
-> the Pacing overview board (D3, D4, D11's board cells), with the year switcher moved to School year. **The group
-> screen landed in 3.4.0** (PR4): today's box, the custom-plan line, the lesson ledger in week sections with edge
-> colours, the ⋮ menu, and Stats with the pace track (D6, D8 on lesson rows). **The other screens landed in 3.5.0**
-> (PR5): Classes, Class, School year, Pacing overview (sorted inside each class, problems in the warning sheet), Tests
-> and Homework as ledger rows with edges and one status mark, the full-page welcome (D9) and Print's three choices. **Large text and the tablet landed in 3.6.0** (PR6 and PR7 together): the reflow and
-> "show less" rules from font scale 1.5, and the list and detail panes with a permanent menu (D5 on tablets). **The
-> background pattern (D12) was dropped by the owner before it was built**, so there is no pattern, no `SolidSheet` and
-> no `PatternBackground`, and the before/after boards still show it. The rest of the design is built. **Selectable Bone and Saffron palettes land in 3.8.0** as D13. The full design is `docs/superpowers/specs/2026-10-21-app-redesign-design.md`.
+> **Status: built.** Agreed with the owner on 2026-10-21 and shipped in 3.1.0 to 3.9.0 (see `CHANGELOG.md`). The background pattern (D12) was dropped before it was built. D13 adds the selectable Bone and Saffron palettes. The front-end redesign audit (`PLANNED_FEATURES.md` §2) will review it.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.
 This file records where Course Pacer departs from it. Every departure is Pacer-only for now. Together they are
@@ -103,19 +91,6 @@ Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distan
   - from 600dp, Pacing overview and the open group share the window as a list pane and a detail pane, with one set of actions in the detail pane's bar and the open group highlighted in the list;
   - from 840dp the menu is a permanent drawer, so there is no ☰;
   - Back closes the detail pane first (`Nav.panes`).
-
-## Pictures
-
-Before/after boards of the approved design are in `docs/images/redesign/`. Their classes and figures are sample data.
-
-![Home](images/redesign/home.png)
-![Group](images/redesign/group.png)
-![Stats](images/redesign/stats.png)
-![Classes, Class, School year](images/redesign/classes.png)
-![Pacing overview, Tests, Homework](images/redesign/overview.png)
-![Settings, welcome, sheets](images/redesign/settings.png)
-![Large text](images/redesign/large.png)
-![Tablet](images/redesign/tablet.png)
 
 ## Popup corners (3.8.1)
 
