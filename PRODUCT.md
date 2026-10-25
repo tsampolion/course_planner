@@ -47,21 +47,21 @@ catch-up and supplementary books build on it without breaking that parity.
 
 ## Capabilities and Constraints
 
-- Capabilities: school years, classes, books (lead and supplementary), groups, days off, tests, homework, the proposed
-  plan, custom plans, done lessons and pages taught, warnings with catch-up, Overview, print/PDF, undo (60 steps),
-  export and import.
-- Engine parity and its four approved extensions are a contract. A change to the engine needs the owner's approval and
-  a test.
+- Capabilities: school years, classes and collections, books (lead, supplementary, optional, with units), groups with
+  their own settings, days off, assignments (homework, tests, worksheets), extra lessons, the proposed plan, custom
+  plans, done lessons and pages taught, warnings with catch-up, Pacing overview, print/PDF, undo (60 steps), export
+  and import, and an in-app update check.
+- Engine parity and its approved extensions (listed in `docs/ARCHITECTURE.md`) are a contract. A change to the engine
+  needs the owner's approval and a test.
 - Kotlin + Jetpack Compose with Material 3 only. Approved dependencies only. No icon library: Material Symbols are kept
   as path data. No XML layouts.
 - Every visible string lives in `strings.xml`. Colours, type, shape, spacing and motion are tokens.
 - `applicationId` (`gr.edusuite.pacer`), the release signing key and `minSdk 26` never change.
 - UI language: English only. Class and book names may be in Greek.
-- Tests and Homework will get their own overhaul later. Until then, the redesign keeps their structure.
 
 ## Brand Commitments
 
-- The name is Course Pacer, part of EduSuite. The accent is teal. The typeface is the bundled Outfit. Wallpaper
+- The name is Course Pacer, part of EduSuite. The accent is Bone & green (default) or Saffron & ink, chosen in Settings. The typeface is the bundled Outfit. Wallpaper
   (dynamic) colour stays off, so the accent identifies the app.
 - Voice: plain, short and warm. Sentence case. No exclamation marks, no blame.
 - The launcher icon is an open book with three pacing lines.
