@@ -21,7 +21,7 @@ Copy is recorded, never rewritten here. Wording waits for the owner's filled-in 
 
 ## How the audit was done
 
-- **Sources read:** every Compose screen under `ui/`, `Tokens.kt`, `Color.kt`, `Shape.kt`, `Type.kt`, `strings.xml`, `PACER_DESIGN.md`, `EDUSUITE_STYLE_GUIDE.md`, `PACER_ACCENT_CONTRAST.md` and `PRODUCT.md`, on `main` at 0.4.4.0. The spacing PR (0.4.4.1, open as #61) was read too; spacing findings assume it lands.
+- **Sources read:** every Compose screen under `ui/`, `Tokens.kt`, `Color.kt`, `Shape.kt`, `Type.kt`, `strings.xml`, `PACER_DESIGN.md`, `EDUSUITE_STYLE_GUIDE.md`, `PACER_ACCENT_CONTRAST.md` and `PRODUCT.md`, on `main` at 0.4.4.0. The spacing change in 0.4.4.1 (merged while this brief was written) was read too, and the spacing findings take it into account.
 - **Methods:** impeccable `audit` (native Android variant) and `critique` with its Android reference; taste-skill's app-screen rules and checklist (`references/app-screens.md`); the design-critique, accessibility-review, ux-copy and design-system checklists.
 - **Not possible here:** the app can't run in the build sandbox (no Android SDK, no emulator), so there are no screenshots. Taste-skill's inspector and impeccable's detector read web pages only, so neither ran.
 - **What that means:** every finding is from code. The *Seen* column says **code** when the code alone proves it, and **phone** when how it looks must be checked on a device. Contrast figures were computed from `Tokens.kt` with the WCAG formula.

@@ -83,6 +83,7 @@ import gr.edusuite.pacer.engine.plain
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -330,7 +331,7 @@ fun DateField(
         Box(
             Modifier
                 .matchParentSize()
-                .padding(top = 8.dp)
+                .padding(top = Space.s)
                 .clickable(role = Role.Button) { open = true }
                 .semantics { contentDescription = dateDescription },
         )
@@ -379,7 +380,7 @@ fun Picker(
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth(),
         )
-        Box(Modifier.matchParentSize().padding(top = 8.dp).clickable(role = Role.DropdownList) { open = true })
+        Box(Modifier.matchParentSize().padding(top = Space.s).clickable(role = Role.DropdownList) { open = true })
         PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { (id, name) ->
                 DropdownMenuItem(text = { Text(name) }, onClick = { onSelect(id); open = false })
@@ -495,9 +496,9 @@ fun LinkRow(title: String, detail: String, onClick: () -> Unit) {
     }
 }
 
-/** The scrolling body most screens share, inset by the scaffold's [padding]: 16dp edges, 12dp between items. */
+/** The scrolling body most screens share, inset by the scaffold's [padding]: 16dp edges, [Rhythm.section] between items. */
 @Composable
-fun ScreenList(padding: PaddingValues, spacing: Dp = Space.m, content: LazyListScope.() -> Unit) {
+fun ScreenList(padding: PaddingValues, spacing: Dp = Rhythm.section, content: LazyListScope.() -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentPadding = PaddingValues(
@@ -641,4 +642,10 @@ fun SwipeRow(what: String, onRemove: () -> Unit, content: @Composable () -> Unit
             }
         }
     }
+}
+
+/** One block of a screen (a heading with its rows and hint): its parts are [Rhythm.inSection] apart. */
+@Composable
+fun SectionColumn(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(Rhythm.inSection), content = content)
 }

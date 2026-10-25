@@ -37,6 +37,7 @@ import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
@@ -106,7 +107,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
         }
         items(problems) { Box(Modifier.animateItem()) { ErrorBox(it.text) } }
         item(key = "term") {
-            Column {
+            SectionColumn {
                 SectionHead(stringResource(R.string.year_term), action = stringResource(R.string.year_edit), onAction = { editingTerm = true }, plus = false)
                 val datesSet = year.start != null && year.end != null
                 val validDates = datesSet && !year.end!!.isBefore(year.start)
@@ -117,26 +118,28 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                         onClick = { editingTerm = true },
                     ) { Chevron() }
                 }
-                if (!validDates) Hint(stringResource(R.string.year_date_warning), Modifier.padding(top = Space.s), color = Pacer.colors.warn)
+                if (!validDates) Hint(stringResource(R.string.year_date_warning), color = Pacer.colors.warn)
             }
         }
-        item(key = "offhead") { SectionHead(stringResource(R.string.year_days_off), action = stringResource(R.string.year_add), onAction = { adding = true }) }
-        if (year.closures.isEmpty()) item(key = "empty") { Hint(stringResource(R.string.year_no_days_off)) }
-        else item(key = "days-off") {
-            RowGroup(Modifier.animateItem()) {
-                year.closures.sortedBy { it.from }.forEachIndexed { i, c ->
-                    if (i > 0) RowDivider()
-                    val title = c.label.ifBlank { stringResource(R.string.year_day_off) }
-                    val remove = { vm.removeClosure(c.id); undoToast(context.getString(R.string.year_removed, title)) }
-                    val who = whoTag(context, year, c.who)?.let { stringResource(R.string.year_group_only, it) } ?: stringResource(R.string.year_all_groups)
-                    SwipeRow(title, remove) {
-                        LedgerRow(title, detail = who, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface))
+        item(key = "days-off") {
+            SectionColumn(Modifier.animateItem()) {
+                SectionHead(stringResource(R.string.year_days_off), action = stringResource(R.string.year_add), onAction = { adding = true })
+                if (year.closures.isEmpty()) Hint(stringResource(R.string.year_no_days_off))
+                else RowGroup {
+                    year.closures.sortedBy { it.from }.forEachIndexed { i, c ->
+                        if (i > 0) RowDivider()
+                        val title = c.label.ifBlank { stringResource(R.string.year_day_off) }
+                        val remove = { vm.removeClosure(c.id); undoToast(context.getString(R.string.year_removed, title)) }
+                        val who = whoTag(context, year, c.who)?.let { stringResource(R.string.year_group_only, it) } ?: stringResource(R.string.year_all_groups)
+                        SwipeRow(title, remove) {
+                            LedgerRow(title, detail = who, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface))
+                        }
                     }
                 }
             }
         }
         item(key = "greek") {
-            Column {
+            SectionColumn {
                 PaletteTextButton(onClick = {
                     val n = vm.addGreekHolidays()
                     toast(if (n > 0) context.resources.getQuantityString(R.plurals.year_holidays_added, n, n) else context.getString(R.string.year_already_there))
@@ -239,7 +242,7 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
             }
             sections.forEach { section ->
                 item(key = classSectionKey(section.collection?.id)) {
-                    Column {
+                    SectionColumn {
                         if (section.collection != null) CollectionSectionHead(section.collection,
                             onEdit = { editingCollection = section.collection.id },
                             onDelete = { if (vm.removeCollection(section.collection.id)) undoToast(context.getString(R.string.collections_deleted, section.collection.name)) },
@@ -269,7 +272,7 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
                 }
             }
             item(key = "foot") {
-                Column {
+                SectionColumn {
                     TertiaryButton(stringResource(R.string.collections_new), { newCollection = true })
                     Hint(stringResource(R.string.year_defaults_hint))
                 }

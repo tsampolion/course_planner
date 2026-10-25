@@ -24,11 +24,11 @@ fun UnitsSettingsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) 
     val leadStarts = lead?.validUnitStarts()
     val linked = linkedUnitBooks(plan)
     ScreenList(padding) {
-        item { Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        item { SectionColumn {
             SwitchRow(stringResource(R.string.units_enable), plan.unitsEnabled, vm::setUnitsEnabled)
             Hint(stringResource(R.string.units_rule))
         } }
-        item { Column(verticalArrangement = Arrangement.spacedBy(Space.m)) {
+        item { SectionColumn {
             SectionHead(stringResource(R.string.units_step_lead))
             if (plan.coreBooks.isEmpty()) {
                 Hint(stringResource(R.string.units_no_books))
@@ -36,7 +36,7 @@ fun UnitsSettingsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) 
             } else Picker(stringResource(R.string.class_lead_book), plan.coreBooks.map { it.id to it.name }, plan.lead,
                 { vm.setLead(it) }, Modifier.fillMaxWidth())
         } }
-        item { Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        item { SectionColumn {
             SectionHead(stringResource(R.string.units_step_starts))
             Hint(stringResource(R.string.units_starts_hint))
             RowGroup { plan.coreBooks.forEachIndexed { i, book ->
@@ -48,7 +48,7 @@ fun UnitsSettingsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) 
                 }
             } }
         } }
-        item { Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        item { SectionColumn {
             SectionHead(stringResource(R.string.units_step_links))
             Hint(stringResource(R.string.units_links_hint))
             if (lead == null || leadStarts == null) Hint(stringResource(R.string.units_choose_lead_first), color = Pacer.colors.warn)

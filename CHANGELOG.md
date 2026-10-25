@@ -36,6 +36,14 @@ Keep `[Unreleased]` empty between pull requests.
 
 - The front-end redesign audit and the streamlining pass leave `docs/PLANNED_FEATURES.md` now that they are approved. No app code, resources or wording changed.
 
+## [0.4.4.1] - 2026-10-25
+
+### Changed
+
+- One spacing rhythm on the list and settings screens: 16dp between sections and 8dp inside one (heading, rows, hint, button). School year settings had no gaps under some headings and 12dp under others; it now matches Settings, Group settings, Classes, Class, Pacing overview, Units, Work, Stats and Plan.
+- A test (`SpacingTokensTest`) fails if those screens use a literal `NN.dp` for padding or gaps instead of `Space` and `Rhythm`.
+- The finished 4.1.0 audit plan and design are removed from `docs/superpowers/`.
+
 ## [0.4.4.0] - 2026-10-25
 
 ### Changed
@@ -824,6 +832,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
 [0.4.4.2]: https://github.com/tsampolion/course_planner/compare/v0.4.4.1...v0.4.4.2
+[0.4.4.1]: https://github.com/tsampolion/course_planner/compare/v0.4.4.0...v0.4.4.1
 [0.4.4.0]: https://github.com/tsampolion/course_planner/compare/v0.4.3.0...v0.4.4.0
 [0.4.3.0]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...v0.4.3.0
 [0.4.2.0]: https://github.com/tsampolion/course_planner/compare/v0.4.1.3...v0.4.2.0
