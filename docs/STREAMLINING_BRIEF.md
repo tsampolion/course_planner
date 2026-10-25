@@ -91,7 +91,7 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 | # | What | Why |
 |---|---|---|
 | R1 | Class's "Work" section with a link per group, and its "moved" hint | kept "for one release" in 3.11.0; Work is on every group home |
-| R2 | The old `Screen.Tests` and `Screen.Homework` routes (`MovedWorkScreen`) | same transition; no screen opens them any more |
+| R2 | The old `Screen.Tests` and `Screen.Homework` routes (`MovedWorkScreen`) and their `NavTest` cases | same transition; nothing navigates to them (`ui/Nav.kt:23-24`, `PacerApp.kt:411-412`) and saved state can't restore them |
 | R3 | The duplicate lesson row under Plan's day strip | it repeats the hero; the strip can scroll the list to the chosen day instead |
 | R4 | The Units switch and link inside the class settings sheet | Units has its own row (S3) |
 | R5 | Unused components (`ListItemRow`, `AddButton`, `Heading`, `CardRow`, `RemoveButton`) | dead code; no feature lost |
@@ -101,7 +101,7 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 | # | What | Into |
 |---|---|---|
 | S2 | Class's group pencil sheet (name, days, next lesson) | Group settings, which gains name and lesson days; the pencil opens Group settings |
-| S4 | `HomeSheet`, `SheetFrame`, `WorkSheetFrame` | one sheet frame that always ends the same way: a filled action when there is something to save, ✕ otherwise |
+| S4 | `HomeSheet`, `SheetFrame`, `WorkSheetFrame` | one sheet frame that always ends the same way: a filled action when there is something to save, ✕ otherwise. An untouched sheet closes at once. A changed draft asks Keep editing / Discard (F18: today Back, a scrim tap or ✕ drops it silently, `ui/WorkSheetFrame.kt:51-90`). A draft is never autosaved invalid, or restored into another group after switching or process death (I4: confirm, recommended, or restore). |
 | S5 | Stats' and Plan's separate My plan/Proposed switches | one choice per group, shared by both pages |
 | S6 | Day-off rows' ⋮ (Remove) and long-press menu (Edit, Delete) | one ⋮ with Edit and Delete |
 
@@ -127,6 +127,19 @@ The owner keeps ☰ on every screen. To give every screen a visible way up:
 - The small context line above each title ("2026–27 · FCE") becomes a link to its parent (the class, or the year).
 - Group pages keep the title switcher; it lists the group's pages first, then other groups, so one sheet serves both (today they are two sheets).
 - Recent groups, kept for the session today, appear in the menu under search.
+
+## Rules for every change
+
+- **Progressive disclosure.**
+  - Keep the pages needed to teach today visible. Hide detailed figures and rare tools, never what is needed to teach.
+  - At large text, hide something only behind a named one-tap route, with an accurate count.
+  - A state with no lessons, no books or no safe repair says what to do next. It never shows an enabled action that does nothing.
+- **Live or staged.** Forms mix live fields with sheets that save on Save. First check whether teachers can tell which values already apply. Don't add a Save button to every field or a confirmation to every close.
+- **Scope in sight.** Show group, class or year scope whenever a change affects other screens (a year day off moves every group).
+- **Repairs stay safe.** A more visible "Fix" (D1) must only offer repairs that keep hand-edited lessons ([`PLANNED_FEATURES.md`](PLANNED_FEATURES.md) entry 2).
+- **Also weigh** (hypotheses):
+  - new classes start with Group A on Mon/Wed/Fri (S1's question at creation answers it);
+  - some class-level problems have no direct fix link.
 
 ## Order
 

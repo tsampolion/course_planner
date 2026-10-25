@@ -6,6 +6,16 @@ How to use this file:
 
 - **Nothing here is approved yet.** Build an entry only when the owner asks for it in a session. Several entries change the pacing engine, which `CLAUDE.md` treats as a contract ("Engine parity is the contract"), so they need explicit sign-off.
 - When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and remove the entry from this file.
+- Entries 2 to 9 come from the usability audit of 25 October 2026. That audit was read-only and covered 0.4.1.3 and 0.4.2.0. Every finding was checked again against 0.4.4.0. Findings keep their audit IDs (F01 to F19) and open decisions keep theirs (I1 to I6), so they can be traced.
+- The audit's visual, accessibility and streamlining findings (F09 to F12 and F16 to F18, with I1, I3, I4 and I5) are now in the approved [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md) and [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md). This file keeps the parts that change data, the engine, storage or output, which those briefs do not cover.
+- Most of entries 2 to 8 fix existing behaviour rather than add features. They wait here because they need the owner's go-ahead, and some need an engine decision.
+- [Order of work](#order-of-work) at the end merges these entries with the briefs' fix pull requests.
+
+Evidence labels used in entries 2 to 9:
+
+- **Source**: the code path has been read and holds, but nothing was run on a device.
+- **Hypothesis**: a design choice that may cause friction. Only teachers can confirm it.
+- **Not run**: needs a device, TalkBack or a PDF, none of which the build environment has.
 
 ## 1. Focus blocks: one book on its own for a run of lessons
 
@@ -121,3 +131,444 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 7. **"Reset all positions":** keep blocks (recommended) or clear them too?
 8. **Display:** is a "Focus: Grammar" tag with "—" in the other columns enough, or should block lessons be shaded like test lessons?
 9. **Relation to pinned lessons:** fixing the pages of a single future lesson was left out of 1.5.0 (`docs/LESSON_PAGES_BRIEF.md`, "Out of scope"). A one-lesson focus block covers part of that idea. Is that enough, or is a separate "plan this lesson's pages" still wanted?
+
+## 2. Hand-edited lessons survive Tidy and Fit to term (F01, F02)
+
+**Status:** proposed (audit P1, Source, high confidence). Not approved. It changes engine behaviour, so it needs the owner's sign-off. It brings the custom-plan repairs into line with the CLAUDE.md rule "Never rewrite the teacher's work … never change a `touched` lesson".
+
+### The problem
+
+**Tidy (F01).** `CustomPlan.tidy` in `engine/Custom.kt:236-250` filters the core pages of every lesson, touched or not (lines 242-246). `touched` (or a note) only stops a lesson from being deleted once it is empty (line 247). So a lesson where the teacher deliberately repeated page 1 loses the repeat.
+
+- `CustomPlanTest.tidyTakesOutPagesThatNeedNoTeaching` (`CustomPlanTest.kt:227-239`) requires that cleanup after `editLesson`. The test encodes the policy that contradicts CLAUDE.md.
+- **Removed books.** Tidy builds its page sets from the effective plan (`forGroup`, `engine/GroupOverrides.kt:17`). So every hand-placed page of a book the group has dropped is removed, supplementary books included.
+- This contradicts `coverage()` (`Custom.kt:72-75`: those pages "are listed, never removed").
+- The Stale warning that lists them offers Tidy as its fix (`ui/NavUi.kt:393-396`). No test runs `tidy()` with `removedBooks`; `GroupOverridesTest.kt:104-112` only checks coverage.
+
+**Fit to term (F02).** `fitToTerm` (`Custom.kt:257-272`):
+
+- An overflow lesson survives only if it holds supplementary pages, and then only those (line 263). Any other lesson past the term, touched or not, loses its id, note and `touched`.
+- Its core pages come back only through the page pool. So `repaceFrom`'s own touched guard (line 203) never sees them.
+- When every lesson in the term is touched, the overflow's core pages are merged into the last touched lesson (lines 269-271), which changes a touched lesson.
+- `repaceCustomPlanToFit` (`ui/PacerViewModel.kt:759-763`) chains fit and re-pace.
+- The entries are the Overflow warning's "Fit to term" and the Behind warning's "re-pace to fit" (`ui/NavUi.kt:371-388`).
+- No test covers a touched or noted overflow lesson, or the all-touched merge.
+
+Undo can recover all of this, but undo does not excuse a surprise rewrite.
+
+### Proposal
+
+- **Tidy** first reserves every touched lesson's pages, notes, `inLesson`, `replacementBase` and identity. It then removes repeats and stale or out-of-book pages from untouched lessons only. A repeat inside a touched lesson stays.
+- Stale pages of a removed book stay, as `coverage()` promises. The Stale warning stays until the teacher edits that lesson. Its fix opens the lesson rather than Tidy.
+- **Fit to term** fits only generated (untouched) lessons. A touched lesson past the term stays unchanged and stays past the term. Fit never merges pages into a touched lesson.
+- When no safe fit exists, the Overflow warning stays and says why ("3 lessons you edited are after the term ends").
+- The fix should also preview what will change ("Fits 4 lessons; 2 you edited stay as they are").
+
+### Alternative
+
+Show each affected manual lesson and let the teacher edit or release it explicitly, for example "Let Tidy change this lesson". General Tidy is never treated as permission. A preview that does allow manual rewrites would be a separate product decision, and is not recommended.
+
+### Acceptance
+
+- Every touched lesson (pages, note, `inLesson`, `replacementBase`, id) is equal before and after Tidy, Fit and Fit plus re-pace.
+- This holds even for an overflow that is entirely touched, and for a term where every lesson is touched.
+- Untouched duplicates of pages reserved by a manual lesson are still removed.
+- Every core page is accounted for once. Leftover warnings are accurate. One Undo restores the whole input.
+- Supplementary metadata stays correct.
+- New engine tests: `tidyKeepsTouchedLessons`, `tidyKeepsRemovedBookPages`, `fitKeepsTouchedOverflow`, `fitNeverMergesIntoTouched`, `fitWithNoSafeSlotKeepsTheWarning`.
+- `CustomPlanTest.kt:227` is revised with the owner, and all parity and extension tests stay green.
+- On a device, run the warning flow end to end.
+
+### Risk and dependencies
+
+- **Risk:** high, because duplicate precedence and supplementary placements must stay right.
+- **Complexity:** medium.
+- **Rollback:** revert the engine change. No migration is needed. Never use a rollback to rewrite stored manual content.
+- **Depends on:** nothing. Do it before broad UX work (see [Order of work](#order-of-work)).
+
+### Open questions
+
+1. **(I2)** When a manual lesson blocks a repair, does preservation win and leave the warning (recommended)? Or should an explicit per-lesson override exist, naming exactly what it will change?
+2. Should the Stale warning's fix open the affected lessons, or offer "Remove these pages" as its own, clearly named action?
+
+## 3. Save status the teacher can trust (F03)
+
+**Status:** proposed (audit P1, Source, high confidence). Not approved. No change to the data format.
+
+### The problem
+
+- `PlanStore.save` (`data/PlanStore.kt:89-97`) catches a failed write, logs it and returns nothing.
+- `scheduleSave` (`ui/PacerViewModel.kt:292-298`) ignores the result. `flush()` (`:304-308`) returns when the save job has already finished, so a failed save is never retried. That includes going to the background (`MainActivity.kt:52`).
+- Messages such as "Assignment saved" (`ui/AssignmentEditor.kt:27`, also `GroupScreen.kt:384,403,423,458`, `CollectionsUi.kt:82`) report the in-memory edit, not the disk.
+- `AtomicFile` keeps the old file intact, but the acknowledged new edit is lost if the process ends.
+- **Read lock.** The A4 read lock lasts the whole session: `load()` runs once (`PacerViewModel.kt:125`), and while `locked` every save is skipped (`PlanStore.kt:91`). The one-off notice (`load_read_failed`) asks the teacher to reopen the app, but any edits made meanwhile are silently never written.
+
+### Proposal
+
+- `save` returns a result.
+- The ViewModel keeps a revision-aware dirty state. A successful write clears only the revision it wrote, never a newer one.
+- `flush()` writes whenever the state is dirty, whatever the job's state. A failed write retries on the next edit, on background and on Retry.
+- A lasting, non-blocking notice ("Couldn't save your changes. Retry · Export a copy") stays until a write succeeds.
+- While reading is locked, the same notice shows that edits are not being saved and offers Export.
+- Keep the A4 rule: never overwrite a file that could not be read.
+- Do not add a disk-confirmation dialog to ordinary edits.
+
+### Alternative
+
+A small storage coordinator that emits a typed status (idle, saving, saved, failed, locked) for the UI to show. This is the same behaviour behind a cleaner seam.
+
+### Acceptance
+
+- Inject a write that fails and then succeeds. The error is visible, the data stays in memory, and Retry or going to the background persists the newest state.
+- No false "saved" and no clearing of a newer dirty revision.
+- Nothing is written after a locked read.
+- Rapid edits and stop-time ordering are covered.
+- Tests extend the existing `PlanFile` fake (`PacerViewModelTest.kt:80-108`, `PlanStoreTest.kt:31`) with a throwing write.
+- On a device, run a process-restart scenario.
+
+### Risk and dependencies
+
+- **Risk:** high integrity risk, because an old success must never clear a newer edit.
+- **Complexity:** medium.
+- **Rollback:** revert the store and UI changes together, after exporting the newest in-memory work.
+- **Seam:** the existing `internal interface PlanFile` (`PlanStore.kt:17-22`) and the D5 fakes. There is no separate `PlansPort`, contrary to the plan's wording.
+
+### Open questions
+
+1. Is a lasting snackbar enough, or should the top bar show a small "not saved" mark until a write succeeds?
+2. Should a locked read offer "Try reading again" in the app, rather than only "close and reopen"?
+
+## 4. One "today" for the engine too (F08, rest of B0)
+
+**Status:** proposed (audit P2). Part B (0.4.3.0) fixed the screens but not the engine. Not approved.
+
+### The problem
+
+**What Part B fixed.**
+
+- `TodayProvider` and `rememberToday()` (`ui/Today.kt`) follow midnight, resume and date or time-zone broadcasts.
+- `PacerViewModel.today` is re-read on resume.
+- Home, Plan, Work, Stats and set-aside read it.
+- `homeworkPages` takes today explicitly.
+
+**What is still wrong.**
+
+- `Plan.today` defaults to `LocalDate.now()` (`model/Model.kt:193`), and `SchoolYear.planFor(c, today = LocalDate.now())` (`Model.kt:234`) is never given a date by any caller. Callers include:
+  - `AppData.plan`, `HomeModel.kt:38,69,84,104`, `ScreensModel.kt:39`, `NavModel.kt:39`
+  - `Nav.kt:152,155`, `PrintDialog.kt:56-58`, `PacerViewModel.kt:198,207`
+  - `PacerApp.kt:360`, `Sanitise.kt:33`
+- So homework banking (`remainingPages`, `bankedPages`, `engine/Pacer.kt:128,140`) and unit-revision dates read the clock whenever a plan happens to be built, not the shared today.
+- `UnitRevisionSheet.kt:19` offers dates from `plan.today`, but `saveUnitRevision` checks them against the ViewModel's `today.value` (`PacerViewModel.kt:208`). The two can disagree around midnight.
+- Cached reports (`PacerApp.kt:191,421`, `remember(screen, plan)`) are not rebuilt when the date changes.
+- `HomeScreen.kt:432` still uses `remember { suggestYear(years, LocalDate.now()) }`.
+- `docs/ARCHITECTURE.md` said the engine never reads the clock. That sentence was corrected in 0.4.4.1.
+
+### Proposal
+
+- Pass the ViewModel's `today` into every `planFor`.
+- Remove the `LocalDate.now()` defaults from `Plan` and `planFor`, so the compiler finds every caller.
+- Key cached reports on today.
+- Use `rememberToday()` for the year suggestion.
+- Keep the one source of truth: the ViewModel's `today` flow, fed by the existing provider. Add no second timer or listener.
+
+### Acceptance
+
+With a fake clock:
+
+- At 23:59 → 00:00, on resume, on a time-zone change and on repeated broadcasts, Home, group home, Plan, Work, Stats, banking and revision dates all move together.
+- No manual content is rewritten.
+- There is one listener.
+
+Also: a test that `planFor` follows the ViewModel's `today`, and a device run at the Europe/Athens daylight-saving change.
+
+### Risk and dependencies
+
+- **Risk:** medium to high, because banking changes page pools. Scheduling on a given date is unchanged.
+- **Complexity:** low to medium.
+- **Depends on:** the D5 clock seam (`dateNow`, `PacerViewModel.kt:122`).
+
+## 5. Removed books keep their taught history; tests for schema 15 (F04, F19)
+
+**Status:** proposed (audit P2). It completes Part D's own acceptance ("taught history kept"). Not approved.
+
+### The problem
+
+**F04.** When a group drops a book (`Group.removedBooks`), `forGroup` filters it out (`engine/GroupOverrides.kt:17`). Done rows show only the effective plan's books (`ui/LessonLedger.kt:148`).
+
+- The pages taught from that book stay stored in `DoneLesson.pages` (`model/GroupBooks.kt:15-21`), but no cell shows them. A teacher may think the work vanished.
+- "Add back" brings them back.
+- `GroupOverridesTest.removedBookKeepsDoneHistory` (`:83-95`) checks storage, not the visible rows.
+- Print covers only the lessons still to come, so print loses nothing.
+
+**F19.** Schema 15 (book `type`, group `removedBooks` and `bookDue`) has no codec test.
+
+- The only platform codec suite, `app/src/androidTest/.../data/ExtraLessonCodecTest.kt`, stops at schema 13.
+- JVM tests never call `JsonCodec`.
+- `BookTypeTest.schema14LoadsGuessedTypes` tests the type helper, not migration.
+- So the code that writes (`JsonCodec.kt:162-163,264`) and reads (`:226-227,279`) schema 15 is unproven against real `org.json`.
+
+### Proposal
+
+- Done rows get a historical book projection: the effective books, plus any book that has taught pages in that row, labelled as no longer in the group's plan.
+- The future rows and the pacing omit the book, as now.
+- Extend the platform codec suite with:
+  - a schema-14 → 15 migration (types guessed from names, no overrides)
+  - a schema-15 round trip with every new field
+  - an unknown `type` value
+  - malformed `removedBooks` and `bookDue` entries
+  - a file newer than `VERSION`, which must be refused
+
+### Alternative
+
+A "past lesson details" view that lists every book taught, retired ones included, without changing the row columns.
+
+### Acceptance
+
+- A removed book's taught pages and note show with the right book identity, and future rows omit it.
+- "Add back" and Undo are stable.
+- Tests check the rendered model's cells and the spoken text.
+- Codec tests compare every relevant field: touched, done, pairs, units, `removedBooks`, `bookDue`, `type`.
+- With no overrides there is no semantic change.
+- The codec tests run against real platform JSON, on CI or a device. If an approved JVM JSON test dependency is ever wanted, that needs the owner's approval.
+
+### Risk and dependencies
+
+- **Risk:** medium to high for the column mapping. A removed book must never re-enter future pacing. Low for the tests.
+- **Rollback:** a presentation-only revert. Keep the schema-15 reader and the stored fields.
+- **Coordination:** Part C (0.4.4.0) has since added `differs` to `Lesson` in the same `lessonsOf` function. The new projection must keep the `differingBooks` indices aligned with the columns it shows.
+
+### Open questions
+
+1. Should the retired book be a greyed column in done rows, or a line under the row ("Also taught: Grammar 12–14")?
+
+## 6. Setup checks that match the rest of the app (F05, F06, F07)
+
+**Status:** proposed (audit P2). No pacing change. Not approved.
+
+### The problem
+
+**Add book (F05)** (`ui/ClassScreens.kt:416-438`):
+
+- Add is enabled when Last is valid. First is ignored.
+- A First of 0, blank or above `MAX_PAGE` (`model/Model.kt:13`, 100,000) silently becomes 1 (line 426).
+- First 100 / Last 10 is saved reversed. The engine only reports it afterwards ("the last page is before the first", `engine/Pacer.kt:427`).
+- The book editor has the same gap (`ClassScreens.kt:339-340`, `PacerViewModel.kt:827-868` only cap the maximum).
+- The optional group book already does it right: inline errors and `lastN >= firstN` (`ui/GroupSettingsScreen.kt:235-252`), backed by `addGroupBook`'s `first !in 1..MAX_PAGE || last !in first..MAX_PAGE` (`PacerViewModel.kt:630`).
+
+**Year day off (F06).** Year settings → Add day off → More options accepts From 20 Nov, To 10 Nov.
+
+- Add only needs From (`ui/YearScreens.kt:196-200`). `addClosure` stores it as given (`PacerViewModel.kt:488-490`).
+- The list shows "20 Nov – 10 Nov" (`YearScreens.kt:70-71`), while the engine closes the whole span either way round (`engine/Pacer.kt:144-153`).
+- The group day-off sheet already refuses this (`GroupSettingsScreen.kt:193`), as does `withClosureEdited` (`model/GroupBooks.kt:33-37`).
+
+**On pace at large text (F07).** `BoardCell.short == null` means "nothing to measure", but `behind` treats null as 0 (`ui/HomeModel.kt:94-97`).
+
+- So `behindOnly()` counts unmeasured groups as on pace (`:117-121`). Large-text Home then says "N groups on pace" (`HomeScreen.kt:307-347`) for a class with no books.
+- Tests lock this in: `HomeModelTest.kt:132-142` expects 3, counting a null cell, and `ScreensModelTest.kt:86-87` puts an unmeasured group behind the "on pace" link.
+- The Classes list already shows "On pace" only when measured (`YearScreens.kt:262`).
+
+### Proposal
+
+- One shared page-range check, `1 ≤ first ≤ last ≤ MAX_PAGE`, used by Add book, the book editor, the supplementary page fields and the optional group book.
+- Inline reasons on both fields, and Add disabled until the range is valid. Imported invalid data keeps today's warning.
+- The year day-off sheet reuses the group sheet's `to >= from` rule with an inline message. A reversed closure already stored keeps working; its row shows the effective span in order.
+- Count only measured groups (`short == 0`) as on pace. Show unmeasured groups as "set-up needed", or use a neutral "See all N groups ›". Update the two tests.
+
+### Alternative
+
+- For ranges: offer an explicit suggested correction ("Swap to 10–100?") that the teacher must accept. Never correct silently.
+- For F07: a neutral total with no verdict word.
+
+### Acceptance
+
+- Blank, boundary, invalid and reversed inputs never change data or close the sheet. Accepted values are stored exactly.
+- Ordinary and supplementary paths are tested separately.
+- Single-day, open-ended and valid ranges still work; a reversed range is disabled.
+- Scope, Greek holiday deduplication and Undo are unaffected.
+- With null-only data, Home never says "on pace", and mixed null, zero and behind totals are right. Every group stays reachable, and 100% and 200% text agree.
+- Parity is unchanged.
+
+### Risk
+
+- **Fits with:** the F07 fix can ride UI fix PR 3 (Home today) in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), since that PR rewrites the same `HomeModel` code. The range and day-off checks fit PR 6 (set-up screens).
+- **Ranges:** low to medium.
+- **Year closures:** medium, because a closure affects every group under it.
+- **F07:** low; the shared verdict is unchanged.
+- **Rollback:** three independent reverts, no data change.
+
+## 7. Print that fits the page and never comes out blank (F14, F15)
+
+**Status:** proposed (audit P2, Source; no PDF rendered). Not approved. It changes printed output only, never pacing.
+
+### The problem
+
+**F14.** `ui/PrintSheet.kt` sets `table{width:100%}` (line 53) and `white-space:nowrap` on every cell, notes included (line 55). It adds one column per book (lines 74-100). It has no `table-layout`, wrapping or scaling. Many books or long notes overflow A4 portrait.
+
+**F15.** `ui/PrintDialog.kt:53`:
+
+- The Group and Class scopes are always enabled.
+- Year only checks that classes exist.
+- `PrintSheet` skips reports with no rows (`:63-65`).
+
+So a finished group, or a year with nothing left, opens the system print dialog on a blank page.
+
+### Proposal
+
+- Notes and event labels wrap. Date and page columns get reserved widths.
+- A strategy for many books: landscape above a book count, or split tables that repeat the date on each part.
+- One shared "printable" check, used by every scope. A scope with nothing to print is disabled with a reason ("No lessons left to print"). Test-only schedules stay printable.
+
+### Alternative
+
+- For F14: always offer landscape.
+- For F15: print a short "No lessons left" summary page, if the owner prefers having a page.
+
+### Acceptance
+
+- PDFs with 1, 4 and 8 books, at every margin, with long Greek names and notes and multi-page breaks, keep every cell readable.
+- Empty or completed groups and years, mixed scopes, test-only schedules and a cancelled print all give an intentional result. No blank job.
+- Eligible output matches the current report.
+- Check the real PDF preview and output, not only the HTML.
+
+### Risk
+
+- **Fits with:** streamlining M3 adds Print to Class and School year. Land the shared printable check first, or with it, so the new entry points never print a blank page.
+- Medium for the format, low for eligibility.
+- **Rollback:** a print-only revert.
+
+### Open questions
+
+1. Is a page with "No lessons left" useful to keep on paper, or should the scope just be disabled?
+
+## 8. Every backup can be restored (F13)
+
+**Status:** proposed (audit P2, Source; no file above 5 MiB tested). Not approved.
+
+### The problem
+
+- Export writes `JsonCodec.encode(data)` with no size limit (`ui/SettingsScreen.kt:153-165`, `PacerViewModel.kt:473`).
+- Import refuses anything above `MAX_IMPORT_BYTES` (5 MiB, `data/Backup.kt:19`) and shows the generic "unreadable" message (`SettingsScreen.kt:246,173`).
+- So a large but valid backup made by the app cannot be restored by the same version.
+
+### Proposal
+
+- A round-trip contract: anything this version exports, it can import.
+- Choose the supported scale from synthetic data, for example several years of eight classes and fifteen groups each.
+- Raise or replace the limit with a bounded, streamed read using platform APIs only. Keep a bound so that a huge or junk file is still refused without exhausting memory.
+- Give an oversized file its own clear message rather than "unreadable".
+
+### Alternative
+
+Warn or block at export when the file would be over the import limit. This is a stopgap only: it leaves large records without full transfer.
+
+### Acceptance
+
+- Small, boundary-sized and above-the-old-limit files encoded by the real codec round-trip with nothing missing.
+- Oversized or junk input stays bounded. Settings stay out of backups.
+- Add, Replace all, Undo and cancellation are checked.
+
+### Risk and dependencies
+
+- **Risk:** high for backup compatibility and memory.
+- **Complexity:** medium to high.
+- **No new dependency** without the owner's approval.
+- **Rollback:** keep old-file compatibility. Document limits rather than quietly downgrading backups.
+
+### Open questions
+
+1. **(I6)** What scale must backups support? Recommended: same-version exports always import, with bounded memory, at a scale set from synthetic data. A warning-only cap is only a temporary fallback.
+
+## 9. Device and accessibility check pass
+
+**Status:** proposed. Not approved. It is a verification pass, not an app change. Its results feed the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), whose own phone checks are the short form of this matrix.
+
+### Why
+
+- The audit had no Android SDK, device or emulator. So:
+  - no screenshots, semantics tree, touch bounds, TalkBack, 200% rendering or PDF output were checked;
+  - nothing on performance or end-to-end runtime was checked.
+- Its passing test run was a subset: 137 engine and model tests, compiled by hand against 0.4.1.3, with `CustomPlanTest` excluded. CI on `main` is the real record.
+- Every "Source" finding above still needs a reproduction on a device.
+
+### Synthetic data (never a real teacher's records)
+
+- Invented classes such as A Junior, B Senior, FCE and Proficiency: at least 8 classes and 15 groups meeting 2 or 3 times a week.
+- Greek names, Greek public holidays and a group snow day.
+- Core books and workbooks, plus supplementary and optional books, one lead book and units.
+- Paired homework, tests and worksheets, and an extra lesson.
+- Done and overdue lessons, and a touched custom plan that overflows the term.
+
+### Matrix
+
+- **Themes:** both palettes, light and dark.
+- **Devices:** a compact phone, a large phone and a tablet, in portrait and landscape.
+- **Text:** 100%, 150% and 200%.
+- **Widths:** 599, 600, 839, 840 and 1024dp, plus split screen.
+- **Capture:** real screenshots, merged and unmerged semantics, and touch bounds.
+- **Input:** TalkBack, a keyboard where available, switch access and gesture alternatives (every long-press and swipe has a named action), the keyboard up, Remove animations, and system haptics.
+- **Lifecycle:**
+  - midnight, resume and time-zone changes, including Europe/Athens summer time;
+  - an open sheet while the year or group changes, and process death;
+  - cancelled and failed file pickers;
+  - empty, completed, invalid and large data;
+  - print and PDF with 1, 4 and 8 books.
+- **Consistency:** after every cross-screen action, compare the class, group, date and plan source shown.
+
+### Coverage gaps to close with tests
+
+- Preservation in Tidy and Fit (entry 2).
+- Failed writes and retry (entry 3).
+- Midnight across screens (entry 4).
+- Rendered history and schema-15 codec round trips (entry 5).
+- Shared-control semantics (UI audit X12, X13).
+- Process and sheet restoration (streamlining S4).
+- Printable scopes (entry 7) and large-backup round trips (entry 8).
+
+`CustomPlanTest`'s current Tidy expectation is not proof of the preservation contract; entry 2 reviews it.
+
+What the existing tests do not prove:
+
+- **Deep JSON.** The A4 fake-file tests inject a `StackOverflowError` but do not decode really deep JSON.
+- **The platform suite** (`app/src/androidTest`) is a codec suite only. It has no Compose UI, semantics or workflow tests.
+- **D4's long-press sheets.** The group book options and own-day-off Edit/Delete need a device check that TalkBack and switch access reach them, not only the long press.
+- **Gestures and speed.** System Back and predictive back, the system bars and gesture navigation, and a startup or large-data frame benchmark were not run. Don't infer speed from file size.
+
+## Order of work
+
+The 4.1.0 audit plan (`docs/superpowers/plans/2026-10-24-audit-4-1-0.md`) has shipped every part:
+
+| Part | Release | Version code |
+| --- | --- | --- |
+| A, F | — | — |
+| D | 0.4.2.0 | 53 |
+| B | 0.4.3.0 | 55 |
+| C | 0.4.4.0 | 56 |
+| E | 0.4.4.1 | 57 |
+
+The UI/UX audit and streamlining briefs were approved in 0.4.4.2 (58). What is left is the briefs' nine fix pull requests and the entries in this file.
+
+The recommended sequence keeps data safety ahead of layout work, and each layout area is touched once. Each step is its own pull request with its own version bump; re-check `main` before each one.
+
+1. **Entry 3**, save status. It reuses the D5 `PlanFile` seam and keeps the A4 read lock.
+2. **Entry 2**, Tidy and Fit preservation. It needs the owner's engine sign-off, and must land before UI PR 1 adds a "Fix" to the progress strip (streamlining D1), so that a more visible fix can't rewrite manual lessons.
+3. **Entry 4**, one today for the engine. Do it before UI PR 3, because Home's today list depends on it.
+4. **Entry 5**, history and schema-15 tests. Do it before UI PR 2 reworks the ledger rows (gutters, edges).
+5. **UI PR 1**, group home and the hero. It includes F09: the pages wrap at any width (audit G1).
+6. **UI PR 2**, Plan. It includes the book-label decision (I5, audit X14).
+7. **UI PR 3**, Home today. It includes F16 (audit H1) and entry 6's F07 fix.
+8. **UI PR 4**, menu and top bar.
+9. **UI PR 5**, one sheet frame. It includes F18's draft rule (streamlining S4) and the shared Picker and SwitchRow semantics (audit X12, X13).
+10. **UI PR 6**, set-up screens. It includes F17 (audit C2, streamlining S2) and entry 6's range and day-off checks.
+11. **UI PRs 7 and 8**, Stats and Work; Settings, welcome and empty states.
+12. **Entries 7 and 8**, print and backup. They can go any time after step 1, as separate pull requests. Entry 7 goes before or with streamlining M3.
+13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
+
+Entry 1 (focus blocks) has no slot; build it only when asked. Do not start a parallel navigation or design system.
+
+Stale facts in the 4.1.0 plan and spec (the plan is kept as written until it is deleted):
+
+- **Version codes.** The plan's allocations no longer match: the open-on-Home release took 52, and 54 went to an unmerged pull request. Always take the next number from `main`.
+- **B1.** "Use `recordLesson` then the existing tick path" would tick twice. The shipped code calls `recordLesson` alone, which already completes the lesson (`engine/Pacer.kt:353-364`, one Undo step).
+- **Clock.** The spec says the engine no longer reads the clock by default. It still does, through `Plan`/`planFor` (entry 4).
+- **Names.** The D5 seam is `PlanFile`, not `PlansPort`. Part B's pills use `GroupDestination`, not `GroupPage.SETTINGS`.
+- **Deleting the plan.** Every part has shipped, so the plan and spec can be deleted under docs rule 3. Their remaining facts now live here and in the briefs.
