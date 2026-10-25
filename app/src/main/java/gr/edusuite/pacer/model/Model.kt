@@ -169,6 +169,12 @@ data class TestEvent(
     val consumes: Boolean,
 )
 
+/**
+ * A date for code that reads only a plan's calendar (its lesson dates), never the pages that homework has banked.
+ * Anything the teacher sees is built with the app's shared today instead.
+ */
+val NO_TODAY: LocalDate = LocalDate.of(1970, 1, 1)
+
 /** What the engine paces: one class over one term. The app builds it with [SchoolYear.planFor]. */
 data class Plan(
     val id: String,
@@ -190,7 +196,7 @@ data class Plan(
     val unitsEnabled: Boolean = false,
     val bookLinks: List<Set<String>> = emptyList(),
     /** The day the plan is read on. The engine takes today from here and never asks the clock itself. */
-    val today: LocalDate = LocalDate.now(),
+    val today: LocalDate,
 )
 
 /** A class: books taught to one or more groups, each with its own days and positions. */
@@ -231,7 +237,7 @@ data class SchoolYear(
      * and the class's own books and groups. Days off for a whole class become [ALL_GROUPS];
      * those for other classes' groups are left out.
      */
-    fun planFor(c: SchoolClass, today: LocalDate = LocalDate.now()): Plan {
+    fun planFor(c: SchoolClass, today: LocalDate): Plan {
         val groupIds = c.groups.mapTo(HashSet()) { it.id }
         val days = closures.mapNotNull { k ->
             when (k.who) {
@@ -258,10 +264,10 @@ data class AppData(
 ) {
     val year: SchoolYear? get() = years.firstOrNull { it.id == activeYear }
     val schoolClass: SchoolClass? get() = year?.classes?.firstOrNull { it.id == activeClass }
-    /** The open class as the engine sees it. */
-    val plan: Plan? get() {
+    /** The open class as the engine sees it on [today], the app's shared date. */
+    fun plan(today: LocalDate): Plan? {
         val y = year ?: return null
-        return schoolClass?.let { y.planFor(it) }
+        return schoolClass?.let { y.planFor(it, today) }
     }
 
     companion object {

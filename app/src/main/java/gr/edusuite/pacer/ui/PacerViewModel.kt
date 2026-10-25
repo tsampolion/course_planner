@@ -66,6 +66,7 @@ import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
+import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.ClassCollection
@@ -206,7 +207,7 @@ class PacerViewModel(
         val y = data.year ?: return
         val c = y.classes.firstOrNull { it.id == classId } ?: return
         val g = c.groups.firstOrNull { it.id == groupId } ?: return
-        val p = y.planFor(c)
+        val p = y.planFor(c, today.value)
         val old = pendingUnitRevisions(p, before).toSet()
         revisionPrompts.offer(pendingUnitRevisions(p, g).filter { it !in old }.map { UnitRevisionTarget(classId, groupId, it) })
         _unitRevision.value = revisionPrompts.current
@@ -215,8 +216,8 @@ class PacerViewModel(
         val y = data.year ?: return false
         val c = y.classes.firstOrNull { it.id == target.classId } ?: return false
         val g = c.groups.firstOrNull { it.id == target.groupId } ?: return false
-        val report = GroupReport(y.planFor(c), g)
-        if (kind != RevisionKind.NONE && date != null && date !in revisionDates(report, target.unitIndex, today.value)) return false
+        val report = GroupReport(y.planFor(c, today.value), g)
+        if (kind != RevisionKind.NONE && date != null && date !in revisionDates(report, target.unitIndex, report.plan.today)) return false
         if (kind == RevisionKind.PAGES && !validRevisionPages(report.plan, pages)) return false
         if (pages.any { (id, ps) -> report.plan.books.firstOrNull { it.id == id }?.let { assignmentPages(ps.joinToString(","), it) == null } != false }) return false
         val old = g.unitRevisions.firstOrNull { it.unitIndex == target.unitIndex }?.assignmentId?.let { id -> g.assignments.firstOrNull { it.id == id } }
@@ -701,9 +702,12 @@ class PacerViewModel(
 
     // ---- done lessons ------------------------------------------------------
 
+    /** The open class as the engine sees it on the app's shared [today]. */
+    private fun openPlan(): Plan? = data.plan(today.value)
+
     /** Applies [change] to a group of the open class, given its current schedule. */
     private fun editLessons(groupId: String, change: (GroupReport, Group) -> Group): Boolean {
-        val plan = data.plan ?: return false
+        val plan = openPlan() ?: return false
         val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
         val next = change(GroupReport(plan, g), g)
         val changed = editGroup(groupId) { next }
@@ -732,7 +736,7 @@ class PacerViewModel(
     // ---- date-pinned extra lessons -----------------------------------------
 
     fun addExtra(groupId: String, date: LocalDate, pages: Map<String, List<Int>>): Boolean {
-        val plan = data.plan ?: return false
+        val plan = openPlan() ?: return false
         return editGroup(groupId) { g ->
             if (g.extras.any { it.date == date } || g.done.any { it.date == date }) g
             else plan.withExtra(g, ExtraLesson(newId(), date, pages))
@@ -740,14 +744,14 @@ class PacerViewModel(
     }
 
     fun saveExtra(groupId: String, extraId: String, pages: Map<String, List<Int>>): Boolean {
-        val plan = data.plan ?: return false
+        val plan = openPlan() ?: return false
         return editGroup(groupId) { g ->
             g.extras.firstOrNull { it.id == extraId }?.let { plan.withExtra(g, it.copy(pages = pages)) } ?: g
         }
     }
 
     fun removeExtra(groupId: String, extraId: String): Boolean {
-        val plan = data.plan ?: return false
+        val plan = openPlan() ?: return false
         return editGroup(groupId) { plan.withoutExtra(it, extraId) }
     }
 
@@ -755,7 +759,7 @@ class PacerViewModel(
 
     /** Applies [change] to the group's custom plan, laid out by a report that follows it. Does nothing when it has none. */
     private fun editCustom(groupId: String, tag: String? = null, change: (GroupReport, CustomPlan) -> CustomPlan?): Boolean {
-        val plan = data.plan ?: return false
+        val plan = openPlan() ?: return false
         val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
         val c = g.custom ?: return false
         val next = change(GroupReport(plan, g, Source.CUSTOM), c) ?: return false
@@ -789,7 +793,7 @@ class PacerViewModel(
      * One undo step, re-pacing included. Returns false, changing nothing, when a page can't go there.
      */
     fun saveLesson(groupId: String, slot: Int, save: LessonSave): Boolean {
-        val plan = data.plan ?: return false
+        val plan = openPlan() ?: return false
         val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
         val next = GroupReport(plan, g, if (g.custom != null) Source.CUSTOM else Source.PROPOSED).saveLesson(slot, save) ?: return false
         editGroup(groupId) { it.copy(custom = next) }
@@ -833,7 +837,7 @@ class PacerViewModel(
 
     /** Gives group [to] a copy of group [from]'s plan, replacing any it had, in one undo step. */
     fun copyCustomPlan(from: String, to: String): Boolean {
-        val plan = data.plan ?: return false
+        val plan = openPlan() ?: return false
         val c = plan.groups.firstOrNull { it.id == from }?.custom ?: return false
         val target = plan.groups.firstOrNull { it.id == to } ?: return false
         return editGroup(to) { it.copy(custom = plan.copyCustomPlan(c, target)) }
@@ -842,7 +846,7 @@ class PacerViewModel(
     /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */
     fun markNextLessonDoneIn(classId: String, groupId: String): Boolean {
         val before = data.year?.classes?.firstOrNull { it.id == classId }?.groups?.firstOrNull { it.id == groupId } ?: return false
-        val changed = editYear { it.markNextLessonDone(classId, groupId) }
+        val changed = editYear { it.markNextLessonDone(classId, groupId, today.value) }
         if (changed) offerUnitRevision(classId, groupId, before)
         return changed
     }

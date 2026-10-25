@@ -29,13 +29,13 @@ class SchoolYearTest {
         )
         val year = SchoolYear("y", "2026–27", d("2026-09-01"), d("2027-06-01"), off, listOf(a, b))
 
-        val plan = year.planFor(a)
+        val plan = year.planFor(a, TEST_TODAY)
         assertEquals(listOf("1" to ALL_GROUPS, "2" to ALL_GROUPS, "3" to "a2"), plan.closures.map { it.id to it.who })
         assertEquals("a", plan.id)
         assertEquals("Class a", plan.name)
         assertEquals(year.start, plan.start)
         assertEquals(a.groups, plan.groups)
-        assertEquals(listOf("1" to ALL_GROUPS, "4" to "b1"), year.planFor(b).closures.map { it.id to it.who })
+        assertEquals(listOf("1" to ALL_GROUPS, "4" to "b1"), year.planFor(b, TEST_TODAY).closures.map { it.id to it.who })
     }
 
     @Test fun seedYearPacesLikeTheSamplePlan() {
@@ -58,7 +58,7 @@ class SchoolYearTest {
         assertEquals(MIGRATED_CLASS_NAME, data.schoolClass?.name)
         assertEquals("gb", data.view)
 
-        val migrated = data.plan!!
+        val migrated = data.plan(TEST_TODAY)!!
         for (g in old.groups) {
             assertEquals(GroupReport(old, g).rows, GroupReport(migrated, g).rows)
         }
@@ -71,7 +71,7 @@ class SchoolYearTest {
         // An unknown active plan opens nothing.
         val none = migratePlans(listOf(p), "gone", "ga")
         assertEquals("", none.activeYear)
-        assertEquals(null, none.plan)
+        assertEquals(null, none.plan(TEST_TODAY))
         assertEquals(AppData.VIEW_SETUP, none.view)
     }
 

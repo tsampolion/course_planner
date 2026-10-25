@@ -5,6 +5,7 @@ import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
+import java.time.LocalDate
 
 enum class GroupPage { HOME, PLAN, WORK, STATS }
 
@@ -147,12 +148,12 @@ object Nav {
      * Every problem in the year. Term problems are listed once; the rest name their class
      * and open it when fixed.
      */
-    fun problems(year: SchoolYear): List<Problem> {
+    fun problems(year: SchoolYear, today: LocalDate): List<Problem> {
         val none = SchoolClass("", "", 0, 0.0, emptyList(), emptyList(), emptyList(), emptyList())
-        val term = problems(year.planFor(none)).filter { it.fix == Screen.YearSettings }
+        val term = problems(year.planFor(none, today)).filter { it.fix == Screen.YearSettings }
         if (year.classes.isEmpty()) return term + Problem("Add at least one class.", Screen.Classes)
         return term + year.classes.flatMap { c ->
-            problems(year.planFor(c)).filter { it.fix != Screen.YearSettings }
+            problems(year.planFor(c, today)).filter { it.fix != Screen.YearSettings }
                 .map { Problem("${c.name.ifBlank { "Class" }}: ${it.text}", it.fix, c.id) }
         }
     }

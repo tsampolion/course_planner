@@ -13,7 +13,7 @@ class UnitsTest {
     private val workbook = Book("w", "Workbook", 1, 18, units = "1, 11, 15")
     private fun plan(days: Int = 8) = Plan("p", "P", start, start.plusDays(days - 1L), 60, 2.0,
         listOf(g), emptyList(), listOf(lead, workbook), emptyList(), emptyList(), "l",
-        unitsEnabled = true, bookLinks = listOf(setOf("l", "w")))
+        unitsEnabled = true, bookLinks = listOf(setOf("l", "w")), today = TEST_TODAY)
 
     private fun assertBoundaries(p: Plan, group: Group = g) {
         val rows = GroupReport(p, group).rows

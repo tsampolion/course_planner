@@ -9,7 +9,7 @@ import org.junit.Test
 class ExtraLessonEditTest {
     private val start = LocalDate.of(2027, 3, 1)
     private val g = Group("g", "G", setOf(MONDAY), start)
-    private val p = Plan("p", "P", start, start.plusDays(27), 60, 2.0, listOf(g), emptyList(), listOf(Book("b", "B", 1, 20)), emptyList(), emptyList())
+    private val p = Plan("p", "P", start, start.plusDays(27), 60, 2.0, listOf(g), emptyList(), listOf(Book("b", "B", 1, 20)), emptyList(), emptyList(), today = TEST_TODAY)
 
     @Test fun proposedExtraPagesEqualsFloatingShare() {
         val report = GroupReport(p, g)

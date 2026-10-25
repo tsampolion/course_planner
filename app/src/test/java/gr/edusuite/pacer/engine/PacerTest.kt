@@ -1,14 +1,18 @@
 package gr.edusuite.pacer.engine
 
 import gr.edusuite.pacer.model.ALL_GROUPS
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.DoneLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
 import gr.edusuite.pacer.model.Plan
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.model.seedPlan
+import gr.edusuite.pacer.model.seedYear
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
@@ -19,6 +23,24 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PacerTest {
+    @Test fun planForReadsTheGivenTodayNotTheClock() {
+        val year = seedYear()
+        val book = year.classes.first().books.first()
+        val due = d("2027-02-10")
+        val homework = Assignment("hw", AssignmentType.HOMEWORK, "Read", due = due, pages = mapOf(book.id to listOf(book.first + 1, book.first + 2)))
+        val c = year.classes.first().let { k -> k.copy(groups = k.groups.map { g -> if (g === k.groups.first()) g.copy(assignments = listOf(homework)) else g }) }
+        val day = year.copy(classes = listOf(c))
+        // The same class, read the day before and on the day the homework is due: a fixed past date, so the real clock cannot matter.
+        val before = day.planFor(c, due.minusDays(1))
+        val onDue = day.planFor(c, due)
+        assertEquals(due.minusDays(1), before.today)
+        assertEquals(due, onDue.today)
+        val g = before.groups.first()
+        assertEquals(0, before.bankedPages(g, book))
+        assertEquals(2, onDue.bankedPages(g, book))
+        assertEquals(before.remainingPages(g, book).size - 2, onDue.remainingPages(g, book).size)
+    }
+
     @Test fun disabledUnitMetadataPreservesTheOriginalAllocator() {
         val p = seedPlan()
         val metadata = p.copy(unitsEnabled = false, bookLinks = listOf(p.books.map { it.id }.toSet()))
@@ -37,6 +59,7 @@ class PacerTest {
         id = "p", name = "Test", start = d("2027-03-01"), end = d("2027-03-31"), mins = 60, pace = 2.0,
         groups = listOf(Group("g", "G", setOf(MONDAY, WEDNESDAY), d("2027-03-01"))),
         closures = closures, books = books, homework = homework, events = events,
+        today = TEST_TODAY,
     )
 
     @Test fun noCatchUpChoiceKeepsProposedPacingUnchanged() {

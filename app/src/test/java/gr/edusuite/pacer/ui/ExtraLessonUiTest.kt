@@ -14,7 +14,7 @@ class ExtraLessonUiTest {
     private val y = SchoolYear("y", "Y", date, date.plusDays(20), emptyList(), listOf(c))
 
     @Test fun extraMenuOffersEditAndDeleteWithoutCustomSlotActions() {
-        val r = GroupReport(y.planFor(c), g)
+        val r = GroupReport(y.planFor(c, TEST_TODAY), g)
         val l = lessonsOf(r).first()
         assertEquals("e", l.extraId)
         assertFalse(l.free)
@@ -31,7 +31,7 @@ class ExtraLessonUiTest {
     }
 
     @Test fun blockedExtraWarnsAndKeepsPagesInPool() {
-        val plan = y.planFor(c).copy(events = listOf(TestEvent("t", "Test", date, ALL_GROUPS, true)))
+        val plan = y.planFor(c, TEST_TODAY).copy(events = listOf(TestEvent("t", "Test", date, ALL_GROUPS, true)))
         val r = GroupReport(plan, g)
         assertTrue(groupWarnings(r).any { it is GroupWarning.ExtraUnavailable })
         assertEquals(20, r.pages)
@@ -39,7 +39,7 @@ class ExtraLessonUiTest {
 
     @Test fun extraAppearsInHomePrintAndTsv() {
         assertEquals(date, nextLesson(y, date)!!.date)
-        val r = GroupReport(y.planFor(c), g)
+        val r = GroupReport(y.planFor(c, TEST_TODAY), g)
         assertTrue(r.asTsv().contains("1–2"))
         assertTrue(r.asTsv().contains("Extra"))
         val html = PrintSheet.html(listOf(r.plan))

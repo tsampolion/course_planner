@@ -2,6 +2,7 @@ package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.markDoneUpTo
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.BookType
@@ -28,7 +29,7 @@ class SanitiseTest {
         assertEquals(false, out.groups.first().unitsOverride)
         assertEquals(1, out.groups.first().unitRevisions.size)
         assertEquals(emptyList<Set<String>>(), out.bookLinks)
-        assertEquals(true, y.planFor(revised).unitsEnabled)
+        assertEquals(true, y.planFor(revised, TEST_TODAY).unitsEnabled)
     }
 
     @Test fun savedCatchUpChoicesSurviveAndInvalidChoicesAreIgnored() {
@@ -59,7 +60,7 @@ class SanitiseTest {
         assertEquals(Book("b", "Huge", 0, MAX_PAGE), out.books.single())
         assertEquals(MAX_PAGE, out.homework.single().to)
         // Pages 0–MAX_PAGE, minus the homework on 5–MAX_PAGE, leave 0–4 to teach.
-        val plan = y.copy(classes = listOf(out)).planFor(out)
+        val plan = y.copy(classes = listOf(out)).planFor(out, TEST_TODAY)
         assertEquals(5, GroupReport(plan, plan.groups.first()).pages)
     }
 
@@ -92,7 +93,7 @@ class SanitiseTest {
         val y = seedYear()
         val c = y.classes.first()
         val g = c.groups.first()
-        val r = GroupReport(y.planFor(c), g)
+        val r = GroupReport(y.planFor(c, TEST_TODAY), g)
         val ticked = r.markDoneUpTo(r.rows[4].date)
         val saved = ticked.copy(from = g.from)
         val read = sanitiseYears(listOf(y.copy(classes = listOf(c.copy(groups = listOf(saved) + c.groups.drop(1))))))

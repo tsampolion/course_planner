@@ -7,6 +7,7 @@ import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.model.TEST_TODAY
 import java.time.DayOfWeek.MONDAY
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
@@ -166,7 +167,7 @@ class NavTest {
         end: LocalDate? = LocalDate.parse("2027-03-31"),
         groups: List<Group> = listOf(Group("g", "Group A", setOf(MONDAY), null)),
         books: List<Book> = listOf(Book("b", "Workbook", 1, 20)),
-    ) = Plan("p", "Test", start, end, 60, 2.0, groups, emptyList(), books, emptyList(), emptyList())
+    ) = Plan("p", "Test", start, end, 60, 2.0, groups, emptyList(), books, emptyList(), emptyList(), today = TEST_TODAY)
 
     @Test fun problemsLinkToTheScreenThatFixesThem() {
         assertEquals(emptyList<Problem>(), Nav.problems(plan()))
@@ -201,10 +202,10 @@ class NavTest {
                 Problem("Set both a term start and a term end.", Screen.YearSettings),
                 Problem("C2: Add at least one book.", Screen.Class, "b"),
             ),
-            Nav.problems(year),
+            Nav.problems(year, TEST_TODAY),
         )
         val empty = year.copy(start = LocalDate.parse("2026-09-01"), end = LocalDate.parse("2027-06-01"), classes = emptyList())
-        assertEquals(listOf(Problem("Add at least one class.", Screen.Classes)), Nav.problems(empty))
+        assertEquals(listOf(Problem("Add at least one class.", Screen.Classes)), Nav.problems(empty, TEST_TODAY))
     }
 
     @Test fun aPhoneIsAlwaysOnePane() {

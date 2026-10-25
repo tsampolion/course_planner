@@ -18,6 +18,7 @@ import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Homework
 import gr.edusuite.pacer.model.PlannedLesson
+import gr.edusuite.pacer.model.NO_TODAY
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
@@ -150,6 +151,7 @@ object JsonCodec {
         books = books(o.optJSONArray("books")),
         homework = homework(o.optJSONArray("homework")),
         events = events(o.optJSONArray("events")),
+        today = NO_TODAY,
     )
 
     private fun groups(list: List<Group>) = JSONArray(list.map { g ->

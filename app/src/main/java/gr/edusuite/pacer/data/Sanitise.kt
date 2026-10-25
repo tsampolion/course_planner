@@ -7,6 +7,7 @@ import gr.edusuite.pacer.model.MAX_LAG_LESSONS
 import gr.edusuite.pacer.model.consistent
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
+import gr.edusuite.pacer.model.NO_TODAY
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.newId
 
@@ -30,7 +31,7 @@ fun sanitiseYears(years: List<SchoolYear>): List<SchoolYear> =
         val collections = unique(clean.collections, { it.id }) { c, id -> c.copy(id = id) }.map { c ->
             c.copy(classIds = c.classIds.filterTo(linkedSetOf()) { it in classIds && assigned.add(it) })
         }
-        clean.copy(collections = collections, classes = clean.classes.map { c -> val plan = clean.planFor(c); c.copy(groups = c.groups.map(plan::settleNextLesson)) })
+        clean.copy(collections = collections, classes = clean.classes.map { c -> val plan = clean.planFor(c, NO_TODAY); c.copy(groups = c.groups.map(plan::settleNextLesson)) })
     }
 
 private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(

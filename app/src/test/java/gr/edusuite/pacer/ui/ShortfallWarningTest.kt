@@ -11,7 +11,7 @@ class ShortfallWarningTest {
     private val group = Group("g", "Monday", setOf(MONDAY), null)
     private val schoolClass = SchoolClass("c", "Class", 60, 2.0, listOf(group), listOf(Book("b", "Book", 1, 22)), emptyList(), emptyList())
     private val year = SchoolYear("y", "Year", LocalDate.parse("2027-03-01"), LocalDate.parse("2027-03-31"), emptyList(), listOf(schoolClass))
-    private val plan = year.planFor(schoolClass)
+    private val plan = year.planFor(schoolClass, TEST_TODAY)
 
     @Test fun completeContentBeyondTermDoesNotSilenceSixLessonShortfall() {
         val custom = CustomPlan(true, (0..10).map { i -> PlannedLesson("l$i", mapOf("b" to listOf(i * 2 + 1, i * 2 + 2))) })

@@ -10,7 +10,7 @@ class GroupOverridesTest {
     private fun d(v: String) = LocalDate.parse(v)
     private val g = Group("g", "Group", setOf(MONDAY), null)
     private val b = Book("b", "Book", 1, 20)
-    private val plan = Plan("p", "Plan", d("2027-03-01"), d("2027-03-31"), 60, 4.0, listOf(g), emptyList(), listOf(b), emptyList(), emptyList())
+    private val plan = Plan("p", "Plan", d("2027-03-01"), d("2027-03-31"), 60, 4.0, listOf(g), emptyList(), listOf(b), emptyList(), emptyList(), today = TEST_TODAY)
 
     @Test fun groupEndStopsLessonsAndCannotExtendTerm() {
         assertEquals(listOf(d("2027-03-01"), d("2027-03-08")), plan.lessonsFor(g.copy(end = d("2027-03-10"))))

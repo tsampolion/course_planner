@@ -2,6 +2,7 @@ package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.markDone
+import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.Book
@@ -73,27 +74,27 @@ class HomeModelTest {
     /** Home ticks a group of any class; the result must equal ticking it on the group screen of the open class. */
     @Test fun tickingFromHomeEqualsTickingTheOpenClass() {
         val year = twoClasses()
-        val ticked = year.markNextLessonDone("c2", "g2")
+        val ticked = year.markNextLessonDone("c2", "g2", TEST_TODAY)
         val c = year.classes[1]
-        val plan = year.planFor(c)
+        val plan = year.planFor(c, TEST_TODAY)
         val r = GroupReport(plan, plan.groups.single())
         val expected = r.markDone(setOf(r.rows.first().date))
         assertEquals(expected, ticked.classes[1].groups.single())
         assertEquals(year.classes[0], ticked.classes[0])
         // That group's next lesson moves on to its second one.
-        val after = ticked.planFor(ticked.classes[1])
+        val after = ticked.planFor(ticked.classes[1], TEST_TODAY)
         assertEquals(r.rows[1].date, GroupReport(after, after.groups.single()).rows.first().date)
     }
 
     @Test fun unknownIdsChangeNothing() {
-        assertEquals(seed, seed.markNextLessonDone("nope", "ga"))
-        assertEquals(seed, seed.markNextLessonDone(sample.id, "nope"))
+        assertEquals(seed, seed.markNextLessonDone("nope", "ga", TEST_TODAY))
+        assertEquals(seed, seed.markNextLessonDone(sample.id, "nope", TEST_TODAY))
     }
 
     @Test fun todayCountsEveryGroupsLessonsTodayDoneOrNot() {
         val wed = LocalDate.parse("2026-09-09") // Group A (Mon, Wed, Fri) only
         assertEquals(TodayCount(1, 1), lessonsToday(seed, wed))
-        val ticked = seed.markNextLessonDone(sample.id, "ga")
+        val ticked = seed.markNextLessonDone(sample.id, "ga", TEST_TODAY)
         assertEquals(TodayCount(0, 1), lessonsToday(ticked, wed))
         assertEquals(TodayCount(1, 1), lessonsToday(ticked, wed.plusDays(1))) // Group B's first
         assertEquals(TodayCount(0, 0), lessonsToday(seed, LocalDate.parse("2026-09-13"))) // a Sunday
@@ -102,20 +103,20 @@ class HomeModelTest {
 
     @Test fun theBoardHasOneCellPerGroupByClassFromTheSameVerdict() {
         val year = twoClasses().let { y -> y.copy(classes = y.classes + sample.copy(id = "c3", name = "Empty", groups = emptyList())) }
-        val board = pacingBoard(year)
+        val board = pacingBoard(year, TEST_TODAY)
         assertEquals(listOf(sample.id, "c2"), board.map { it.classId })
         assertEquals(listOf("ga", "gb"), board[0].cells.map { it.groupId })
-        val status = yearStatus(year)
+        val status = yearStatus(year, TEST_TODAY)
         board.flatMap { it.cells }.forEach { assertEquals(status[it.groupId], it.short) }
     }
 
     @Test fun behindCellsAreTheOnesShortOfTheTerm() {
         val slow = seed.copy(classes = listOf(sample.copy(pace = 0.5)))
-        val cells = pacingBoard(slow).single().cells
+        val cells = pacingBoard(slow, TEST_TODAY).single().cells
         assertTrue(cells.all { it.behind && it.short!! >= 1 })
-        assertEquals(BoardSummary(2, 2), pacingBoard(slow).summary())
-        assertEquals(groupsBehind(seed), pacingBoard(seed).summary().behind)
-        assertEquals(BoardSummary(0, 0), pacingBoard(seed.copy(classes = emptyList())).summary())
+        assertEquals(BoardSummary(2, 2), pacingBoard(slow, TEST_TODAY).summary())
+        assertEquals(groupsBehind(seed, TEST_TODAY), pacingBoard(seed, TEST_TODAY).summary().behind)
+        assertEquals(BoardSummary(0, 0), pacingBoard(seed.copy(classes = emptyList()), TEST_TODAY).summary())
         // Nothing to measure is neither on pace nor behind.
         assertFalse(BoardCell("c", "g", "G", null).behind)
     }

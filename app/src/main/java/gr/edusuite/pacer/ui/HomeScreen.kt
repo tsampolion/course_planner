@@ -301,7 +301,8 @@ private fun ClassesCard(year: SchoolYear, vm: PacerViewModel) {
 @Composable
 private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
     val context = LocalContext.current
-    val full = remember(year) { pacingBoard(year) }
+    val today = rememberToday()
+    val full = remember(year, today) { pacingBoard(year, today) }
     val summary = remember(full) { full.summary() }
     // Large text: only the groups behind, with the groups on pace one tap away.
     val large = rememberLargeText()
@@ -429,7 +430,8 @@ fun HomeSheet(title: String, onDismiss: () -> Unit, content: @Composable ColumnS
 /** Four fields, so a dialog rather than a sheet (§6 Bottom sheet is for three or fewer). */
 @Composable
 internal fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss: () -> Unit) {
-    val draft = remember { suggestYear(years, LocalDate.now()) }
+    val today = rememberToday()
+    val draft = remember { suggestYear(years, today) }
     var name by rememberSaveable { mutableStateOf(draft.name) }
     var startText by rememberSaveable { mutableStateOf(draft.start?.toString()) }
     var endText by rememberSaveable { mutableStateOf(draft.end?.toString()) }
