@@ -1,4 +1,4 @@
-Built in 4.1.0 (versions written `0.X.Y.Z` from 0.4.1.1; the first four-part build is installed by hand). Spec: superpowers/specs/2026-10-23-in-app-update-check-design.md.
+Built in 4.1.0 (versions written `0.X.Y.Z` from 0.4.1.1; the first four-part build is installed by hand).
 
 # In-app updates
 
