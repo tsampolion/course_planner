@@ -34,6 +34,10 @@ Keep `[Unreleased]` empty between pull requests.
   - a behaviour change updates the tests that lock in the old behaviour, never deletes them.
 - `docs/PLANNED_FEATURES.md`'s Order of work says which steps carry the test clean-up.
 
+### Added
+
+- CI runs the 16 platform tests (`app/src/androidTest`, real `org.json` codec round trips) on a Gradle Managed Device in a new `device-tests` job, so releases wait for them too. Run them locally with `./gradlew pixel6Api33DebugAndroidTest`.
+
 ## [0.4.4.6] - 2026-10-25
 
 ### Added

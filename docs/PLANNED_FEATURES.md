@@ -495,7 +495,6 @@ What the existing tests do not prove:
 
 - Unit tests check the engine and the models. Nothing checks the screens: that Done is there and works, that every control has a TalkBack name, or that large text keeps the important parts on screen.
 - So every pull request asks the owner to check by hand on a phone. A screen bug fixed once can come back unnoticed.
-- The 16 platform codec tests (`app/src/androidTest`) never run in CI.
 
 ### Proposal
 
@@ -507,7 +506,7 @@ What the existing tests do not prove:
   - a failed save shows its notice (entry 3);
   - every control on group home has a name;
   - 200% text keeps today's pages.
-- **CI (owner's choice):** run them with Gradle Managed Devices, which is built into the Android Gradle Plugin (no extra dependency). This also runs the 16 codec tests. Each CI run gets about 5 to 10 minutes slower.
+- **CI:** they run in the `device-tests` job, which already runs the 16 codec tests on a Gradle Managed Device (0.4.4.7). New tests there make that job somewhat longer.
 
 ### Alternative
 
@@ -527,7 +526,6 @@ How screens look. That stays with `scripts/device-check.sh` and the owner's eyes
 ### Open questions
 
 1. Approve `ui-test-junit4` and `ui-test-manifest` as test-only dependencies?
-2. Run them in CI on every pull request, only on `main`, or locally only? Recommended: every pull request, once there are more than a handful.
 
 ## Order of work
 
