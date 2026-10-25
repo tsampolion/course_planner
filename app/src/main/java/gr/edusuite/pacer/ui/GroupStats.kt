@@ -253,10 +253,10 @@ internal fun PaceTrack(report: GroupReport, compact: Boolean = false, onOpen: (S
                 else -> pluralStringResource(R.plurals.stats_left_rate, st.pages, st.pages, if (st.lessons > 0) st.rate.fixed2() else "—")
             }
             val due = b.due?.let { d ->
-                if (st.crammed) { if (d.isBefore(report.group.from ?: plan.start ?: LocalDate.now())) stringResource(R.string.group_due_passed) else stringResource(R.string.group_no_before_due) }
+                if (st.crammed) { if (d.isBefore(report.group.from ?: plan.start ?: plan.today)) stringResource(R.string.group_due_passed) else stringResource(R.string.group_no_before_due) }
                 else stringResource(R.string.group_due, d.fmtShort())
             }
-            val planned = planLinePosition(report, i, LocalDate.now())
+            val planned = planLinePosition(report, i, plan.today)
             val planFraction = if (planned != null && all.isNotEmpty()) all.count { it < planned }.toFloat() / all.size else null
             val planDescription = if (planFraction != null) stringResource(R.string.stats_plan_position, planned ?: pos, pos) else null
             TrackRow(
@@ -304,7 +304,7 @@ private fun TrackRow(name: String, tag: String?, where: String, fraction: Float,
 private fun MonthColumns(report: GroupReport) {
     val months = statsMonths(report)
     val max = months.maxOf { it.second }.coerceAtLeast(1)
-    val now = remember { LocalDate.now().withDayOfMonth(1) }
+    val now = rememberToday().withDayOfMonth(1)
     val c = Pacer.colors
     StatsPart(stringResource(R.string.group_by_month_title)) {
         Row(Modifier.fillMaxWidth().padding(top = Space.m), horizontalArrangement = Arrangement.spacedBy(Space.xs)) {

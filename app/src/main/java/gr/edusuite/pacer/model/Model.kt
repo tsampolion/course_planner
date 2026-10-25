@@ -189,6 +189,8 @@ data class Plan(
     val lagLessons: Int = DEFAULT_LAG_LESSONS,
     val unitsEnabled: Boolean = false,
     val bookLinks: List<Set<String>> = emptyList(),
+    /** The day the plan is read on. The engine takes today from here and never asks the clock itself. */
+    val today: LocalDate = LocalDate.now(),
 )
 
 /** A class: books taught to one or more groups, each with its own days and positions. */
@@ -229,7 +231,7 @@ data class SchoolYear(
      * and the class's own books and groups. Days off for a whole class become [ALL_GROUPS];
      * those for other classes' groups are left out.
      */
-    fun planFor(c: SchoolClass): Plan {
+    fun planFor(c: SchoolClass, today: LocalDate = LocalDate.now()): Plan {
         val groupIds = c.groups.mapTo(HashSet()) { it.id }
         val days = closures.mapNotNull { k ->
             when (k.who) {
@@ -239,7 +241,7 @@ data class SchoolYear(
                 else -> null
             }
         }
-        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events, c.lead, c.lagLessons, c.unitsEnabled, c.bookLinks)
+        return Plan(c.id, c.name, start, end, c.mins, c.pace, c.groups, days, c.books, c.homework, c.events, c.lead, c.lagLessons, c.unitsEnabled, c.bookLinks, today)
     }
 }
 
@@ -259,7 +261,7 @@ data class AppData(
     /** The open class as the engine sees it. */
     val plan: Plan? get() {
         val y = year ?: return null
-        return schoolClass?.let(y::planFor)
+        return schoolClass?.let { y.planFor(it) }
     }
 
     companion object {

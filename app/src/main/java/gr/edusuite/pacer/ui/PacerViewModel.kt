@@ -118,9 +118,20 @@ class PacerViewModel(
     private val io: CoroutineDispatcher = Dispatchers.IO,
     /** A millisecond clock for merging edits to one field into one undo step. */
     private val clock: () -> Long = SystemClock::elapsedRealtime,
+    /** The calendar date; tests pass their own so a day can pass without waiting. */
+    private val dateNow: () -> LocalDate = LocalDate::now,
 ) : ViewModel() {
     private val scope: CoroutineScope = scopeOverride ?: viewModelScope
     private val loaded = store.load()
+    private val _today = MutableStateFlow(dateNow())
+    /** The current date, for every screen and for the engine's callers. Kept fresh by [refreshToday]. */
+    val today: StateFlow<LocalDate> = _today.asStateFlow()
+
+    /** Re-reads the date: on resume, at midnight, and when the system changes the date or time zone. */
+    fun refreshToday() {
+        _today.value = dateNow()
+    }
+
     private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.launch, 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
 
@@ -194,7 +205,7 @@ class PacerViewModel(
         val c = y.classes.firstOrNull { it.id == target.classId } ?: return false
         val g = c.groups.firstOrNull { it.id == target.groupId } ?: return false
         val report = GroupReport(y.planFor(c), g)
-        if (kind != RevisionKind.NONE && date != null && date !in revisionDates(report, target.unitIndex, LocalDate.now())) return false
+        if (kind != RevisionKind.NONE && date != null && date !in revisionDates(report, target.unitIndex, today.value)) return false
         if (kind == RevisionKind.PAGES && !validRevisionPages(report.plan, pages)) return false
         if (pages.any { (id, ps) -> report.plan.books.firstOrNull { it.id == id }?.let { assignmentPages(ps.joinToString(","), it) == null } != false }) return false
         val old = g.unitRevisions.firstOrNull { it.unitIndex == target.unitIndex }?.assignmentId?.let { id -> g.assignments.firstOrNull { it.id == id } }

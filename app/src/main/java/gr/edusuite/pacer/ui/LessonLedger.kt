@@ -247,7 +247,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     }
     val editHomework = workNames.map { stringResource(R.string.homework_edit_named, it) }
     val deleteHomework = workNames.map { stringResource(R.string.homework_delete_named, it) }
-    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(LocalDate.now()), hasCustomPlan = ca != null, canTick = actions.canTick)
+    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(rememberToday()), hasCustomPlan = ca != null, canTick = actions.canTick)
     return buildList {
         kinds.forEach { kind ->
             when (kind) {

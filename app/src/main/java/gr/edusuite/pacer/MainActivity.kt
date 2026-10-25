@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.ui.PacerApp
 import gr.edusuite.pacer.ui.PacerViewModel
+import gr.edusuite.pacer.ui.TodayProvider
 import gr.edusuite.pacer.ui.theme.PacerTheme
 
 class MainActivity : ComponentActivity() {
@@ -37,8 +38,13 @@ class MainActivity : ComponentActivity() {
                 val style = if (dark) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
             }
-            PacerTheme(dark = dark, palette = settings.palette) { PacerApp(vm) }
+            PacerTheme(dark = dark, palette = settings.palette) { TodayProvider(vm) { PacerApp(vm) } }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        vm.refreshToday()
     }
 
     override fun onStop() {

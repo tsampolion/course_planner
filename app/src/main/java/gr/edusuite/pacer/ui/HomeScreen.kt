@@ -109,7 +109,7 @@ fun HomeScreen(
     menuBadge: Boolean = false,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
-    val today = remember { LocalDate.now() }
+    val today = rememberToday()
     // The VM opens the latest year when none is open; until it has, show that one.
     val fallback = remember(data.years) { defaultYearId(data.years)?.let { id -> data.years.first { it.id == id } } }
     val year = data.year ?: fallback

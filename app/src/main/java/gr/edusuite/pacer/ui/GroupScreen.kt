@@ -134,7 +134,7 @@ fun GroupScreen(
             if (position == null) lesson else lesson.copy(unitIndex = position.unitIndex, unitLesson = position.lesson, unitLessons = position.total)
         }
     }
-    val today = remember { LocalDate.now() }
+    val today = rememberToday()
     var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.firstOrNull() ?: today).toString()) }
     var extraDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }

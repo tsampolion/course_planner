@@ -16,7 +16,7 @@ internal fun UnitRevisionSheet(report: GroupReport, target: UnitRevisionTarget, 
     val old = report.group.unitRevisions.firstOrNull { it.unitIndex == target.unitIndex }
     val assignment = report.group.assignments.firstOrNull { it.id == old?.assignmentId }
     val oldPages = assignment?.pages ?: old?.pages.orEmpty()
-    val dates = revisionDates(report, target.unitIndex, LocalDate.now())
+    val dates = revisionDates(report, target.unitIndex, report.plan.today)
     var kind by rememberSaveable(target) { mutableStateOf(old?.kind ?: RevisionKind.TEST) }
     var date by rememberSaveable(target) { mutableStateOf(assignment?.due?.takeIf { it in dates }?.toString() ?: dates.firstOrNull()?.toString()) }
     val books = revisionBooks(report.plan)
