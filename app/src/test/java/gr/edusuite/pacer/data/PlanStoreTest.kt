@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.data
 
+import gr.edusuite.pacer.model.AppData
 import java.io.File
 import java.io.IOException
 import org.junit.Assert.assertEquals
@@ -34,10 +35,17 @@ class PlanStoreTest {
         override fun warn(message: String, error: Throwable) { warnings += message + ": " + error }
     }
 
-    private fun store(text: String?, base: File = File(dir.root, "plans.json")): Pair<PlanStore, FakeFile> {
+    // The JVM tests run against the android.jar stubs of org.json, so the codec is replaced by fakes here.
+    private val empty = AppData(years = emptyList())
+
+    private fun store(
+        text: String?,
+        decode: (String) -> AppData = { empty },
+        base: File = File(dir.root, "plans.json"),
+    ): Pair<PlanStore, FakeFile> {
         text?.let(base::writeText)
         val fake = FakeFile(base, { base.readBytes() })
-        return PlanStore(fake) to fake
+        return PlanStore(fake, decode, { "{}" }) to fake
     }
 
     @Test fun ioErrorDoesNotMoveFile() {
@@ -80,7 +88,7 @@ class PlanStoreTest {
     }
 
     @Test fun deepNestingIsSetAside() {
-        val (store, fake) = store("{\"years\":" + "[".repeat(200_000))
+        val (store, fake) = store("deeply nested", decode = { throw StackOverflowError() })
         val loaded = store.load()
         assertNotNull(loaded.setAside)
         assertFalse(loaded.readFailed)
@@ -88,7 +96,7 @@ class PlanStoreTest {
     }
 
     @Test fun garbageIsStillSetAside() {
-        val (store, fake) = store("not json at all")
+        val (store, fake) = store("not json at all", decode = { throw IllegalArgumentException("bad") })
         val loaded = store.load()
         assertEquals(File(dir.root, "plans.json.bad"), loaded.setAside)
         assertFalse(fake.base.exists())

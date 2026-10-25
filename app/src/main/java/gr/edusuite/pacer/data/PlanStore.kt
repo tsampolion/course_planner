@@ -48,14 +48,18 @@ private class AtomicPlanFile(override val base: File) : PlanFile {
  * A fresh install, or a file whose content can't be parsed, starts with no school years; only unparseable
  * content is set aside. A read error leaves the file alone and blocks saving (see [Loaded.readFailed]).
  */
-class PlanStore internal constructor(private val plans: PlanFile) {
+class PlanStore internal constructor(
+    private val plans: PlanFile,
+    private val decode: (String) -> AppData = JsonCodec::decode,
+    private val encode: (AppData) -> String = JsonCodec::encode,
+) {
     constructor(dir: File) : this(AtomicPlanFile(File(dir, "plans.json")))
 
     @Volatile private var locked = false
 
     fun load(): Loaded {
         val result = try {
-            Loaded(JsonCodec.decode(plans.read().decodeToString()))
+            Loaded(decode(plans.read().decodeToString()))
         } catch (e: java.io.FileNotFoundException) {
             if (plans.base.exists()) {
                 plans.warn("Could not open the plans file; leaving it alone", e)
@@ -86,7 +90,7 @@ class PlanStore internal constructor(private val plans: PlanFile) {
     fun save(data: AppData) {
         if (locked) return
         try {
-            plans.write(JsonCodec.encode(data).encodeToByteArray())
+            plans.write(encode(data).encodeToByteArray())
         } catch (e: Exception) {
             plans.warn("Could not save plans", e)
         }
