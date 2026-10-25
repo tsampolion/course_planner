@@ -1,6 +1,6 @@
 # Group settings and group-only books
 
-Status: shipped in 3.10.0 alongside class collections. Owner confirmed the shared optional-book design in this session on 2026-10-23.
+Status: shipped in 3.10.0 alongside class collections; extended in 0.4.2.0 with removing a default book from one group, a per-group book finish date and editing a group's days off. Owner confirmed the shared optional-book design on 2026-10-23.
 
 ## Intent
 
@@ -26,3 +26,10 @@ Each class belongs to at most one collection. Selecting it elsewhere moves it; d
 ## Compatibility and delivery
 
 One feature release, 3.10.0 (46), from merged PR48. One schema bump, 10 to 11, stores both group overrides and class collections. Version 10 backups retain current behavior with default values; builds predating this schema refuse new exports. Persist the class sort in Settings outside undo. No dependencies added.
+
+## Book and day-off overrides (0.4.2.0)
+
+- **Leave a default book out of one group.** Long-press the book. Taught history and positions stay, untouched lessons re-pace, hand-edited custom lessons are left alone and flagged by the stale-pages warning. A group keeps at least one paced book. Adding it back resumes where the group was.
+- **Own finish-by date.** Long-press a book to set a date for this group only. The class date shows as "Class: <date>" with a "Use class date" action. The date is clamped to the group's end and never extends the term.
+- **Days off.** Long-press one of the group's own days off for Edit (the add sheet, filled in) or Delete with Undo. Inherited class and year days off are read-only here.
+- Stored in schema 15 as `removedBooks` and `bookDue`. With neither set, pacing is unchanged.
