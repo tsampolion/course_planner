@@ -1,6 +1,6 @@
 # UI/UX audit and redesign
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2). Fixes not started: each fix pull request below needs the owner's go-ahead, one at a time.
+Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fixes not started: each fix pull request below needs the owner's go-ahead, one at a time.
 
 This brief records the taste-skill UI/UX audit (`PLANNED_FEATURES.md` §2 until 0.4.4.2), what it found per screen, and the order of the fix pull requests. Its companion is [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md), which covers each screen's start, purpose, next step and end.
 
@@ -61,6 +61,12 @@ Design specificity: the bones are Course Pacer's own (the ledger rows, kind edge
 | X13 | **Switch labels are separate nodes** (F11). `SwitchRow` (`ui/ClassScreens.kt:402-411`, six consumers) and Work's "Takes a lesson" switch (`WorkScreen.kt:186-190`) have a label that is neither part of the switch's node nor a touch target. H6 is the same pattern on a checkbox. Fix: `toggleable(role = Role.Switch)` on the row, with the child callback null. | code | P2 |
 | X14 | **Book labels shift between groups and screens** (I5). Lesson rows use type labels (SB, WB1, WB2); Stats and Print use full names. Labels are recomputed per group, so a group that drops WB1 shows its other workbook as WB while sibling groups show WB2. Recommended: one stable class-wide abbreviation in compact views, full names in Print and Stats, and the full name always for TalkBack. | code | P3 |
 | X15 | **Wider window, narrower panes** (F12). Layout follows the whole window (`ui/Layout.kt:22-35`). At 840dp the 320dp permanent drawer arrives (`NavUi.kt:176`) on top of the 40/60 split (`PacerApp.kt:293,303`), so the panes drop from about 336/503dp at 839dp to 208/312dp. Proposal: show the permanent drawer only when both panes keep a minimum width (for example 320 and 360dp). Check at 599, 600, 839, 840 and 1024dp. | phone | P2 |
+| X16 | **Two routes nobody can reach.** `Screen.Tests` and `Screen.Homework` (`MovedWorkScreen`) keep titles, Undo and problem lists, but no control opens them; they only link on to each group's Work, as Class already does. Proposal: remove the routes (owner's yes). | code | P3 |
+| X17 | **Deletes with no confirmation.** Delete this school year, Delete this class and Delete group act on one tap; the Undo message is the only way back, and it closes after a later edit. Proposal: one confirm step for the three, or a longer-lived Undo. | code | P2 |
+| X18 | **One action, two outcomes.** Create on Plan makes a custom plan with an Undo message; Make a custom plan in ⋮ (large text) shows a plain message with no Undo. | code | P3 |
+| X19 | **A sheet opens by itself.** Ticking the last lesson of a unit (Plan's tick or Home's Done) opens the unit revision sheet unasked, mid-class. Proposal: a quiet prompt on the row or Home tile that opens it. | code | P2 |
+| X20 | **Undo history clears silently.** Creating or switching a school year empties Undo, and the bar's Undo count drops to 0 without a word. | code | P3 |
+| X21 | **Long-press means different things on a day off.** On Plan it offers only Add extra lesson…; in Group settings it offers Edit and Delete; on School year it offers Remove (X9's pattern). | code | P3 |
 
 Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral darks; the brief keeps D1, as the brand decided.
 
@@ -198,14 +204,16 @@ Each is its own session and PR, approved by the owner one at a time. Redesign wo
 | # | PR | Covers | Size |
 |---|---|---|---|
 | 1 | **Group home and the hero** | G1–G6 (G1 includes F09), X1 (progress bar), X5 (pills), D-proposals 1, 3, 6, the pages headline and pacing lines | M |
-| 2 | **Plan** | P1–P6, X14, X2, X3, X9 (week and month controls), D-proposal 4, ledger gutters | L |
+| 2 | **Plan** | P1–P6, X14, X2, X3, X9 (week and month controls), X19, X21, D-proposal 4, ledger gutters | L |
 | 3 | **Home today** | H1–H6 (with F16 and F07), D-proposal 7; needs a `HomeModel` change and tests | M |
-| 4 | **Menu and top bar** | N1–N3, D-proposal 2, X1 (update dot) | M |
+| 4 | **Menu and top bar** | N1–N3, D-proposal 2, X1 (update dot), X16, X18 | M |
 | 5 | **One sheet frame** | X7, D1, D2, X12, X13, F18 (streamlining S4); every sheet ends the same way | L |
-| 6 | **Set-up screens** | C1–C5 (with F17), X6 (Group settings), D-proposal 5; removals only with the owner's yes | L |
+| 6 | **Set-up screens** | C1–C5 (with F17), X6 (Group settings), X17, X20, D-proposal 5; removals only with the owner's yes | L |
 | 7 | **Stats and Work** | S1–S3, W1 | S |
 | 8 | **Settings, welcome, empty states** | D3, D4, X8, X10, X11 | S |
 | 9 | **Polish and record** | dark-mode and tablet pass over all screens, X15 and D-proposal 9, `PACER_DESIGN.md` updated with what was approved | M |
+
+Each PR checks its screens' rows in [NAVIGATION.md](NAVIGATION.md) first and updates them with the change.
 
 Copy changes wait for the inventory and can ride any PR after it comes back.
 

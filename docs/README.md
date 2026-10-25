@@ -7,6 +7,7 @@ Briefs give versions in the old three-part form up to 4.1.0 (4.1.0 is `0.4.1.0` 
 ## Reference
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): how the app works today: model, engine and its extensions, storage and schema versions, update check, UI, theme.
+- [NAVIGATION.md](NAVIGATION.md): every control on every screen, sheet, menu and dialog: its gesture, when it shows and what it opens or changes.
 - [BRIEF.md](BRIEF.md): the original port brief and the feature-parity checklist.
 - [EDUSUITE_STYLE_GUIDE.md](EDUSUITE_STYLE_GUIDE.md): the shared EduSuite look. A copy of the canonical guide.
 - [PACER_DESIGN.md](PACER_DESIGN.md): Course Pacer's own design language and its departures from the shared guide.

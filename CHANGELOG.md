@@ -25,6 +25,14 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.9] - 2026-10-25
+
+### Added
+
+- `docs/NAVIGATION.md`: a map of every control in the app (360 interactions over 13 screens and 50 sheets, menus, dialogs and panels). For each it gives the gesture, when it shows, and what it opens or changes, with the message and Undo it leaves. It opens with a screen graph and the navigation findings.
+- `CLAUDE.md` and `docs/STREAMLINING_BRIEF.md` point UI and streamlining work at the map and ask for it to be kept current.
+- `docs/UI_AUDIT_BRIEF.md`: the map's findings join the audit as X16–X21 (unreachable routes, deletes with no confirmation, the two custom-plan outcomes, the revision sheet that opens by itself, silent Undo clearing, day-off long-press), each placed in a fix pull request.
+
 ## [0.4.4.8] - 2026-10-25
 
 ### Changed
@@ -905,6 +913,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.9]: https://github.com/tsampolion/course_planner/compare/v0.4.4.8...v0.4.4.9
 [0.4.4.8]: https://github.com/tsampolion/course_planner/compare/v0.4.4.7...v0.4.4.8
 [0.4.4.7]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.7
 [0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
