@@ -4,6 +4,7 @@ import gr.edusuite.pacer.engine.parseInclude
 import gr.edusuite.pacer.engine.normaliseAssignmentMetadata
 import gr.edusuite.pacer.engine.settleNextLesson
 import gr.edusuite.pacer.model.MAX_LAG_LESSONS
+import gr.edusuite.pacer.model.consistent
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.SchoolYear
@@ -43,6 +44,9 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
                 r.copy(pages = r.pages.filterKeys { it in books }.mapValues { (_, ps) -> ps.map(::page).distinct().sorted() }.filterValues { it.isNotEmpty() })
             },
             skip = g.skip.filterKeys { it in books },
+            // Only a default (not optional) book can be removed; a date only means something on a paced book.
+            removedBooks = g.removedBooks.filterTo(linkedSetOf()) { id -> c.books.any { it.id == id && !it.groupOnly } },
+            bookDue = g.bookDue.filterKeys { id -> c.books.any { it.id == id && !it.supplementary } },
             extraBooks = g.extraBooks.filterTo(linkedSetOf()) { id -> c.books.any { it.id == id && it.groupOnly } },
             done = g.done.distinctBy { it.date },
             assignments = unique(g.assignments.map { a ->
@@ -70,7 +74,7 @@ private fun sanitiseClass(c: SchoolClass): SchoolClass = c.copy(
             },
         )
     },
-    books = unique(c.books, { it.id }) { b, id -> b.copy(id = id) }.map { b ->
+    books = unique(c.books, { it.id }) { b, id -> b.copy(id = id) }.map { it.consistent() }.map { b ->
         // A supplementary book's first and last pages come from its include list when it reads.
         val inc = if (b.supplementary) parseInclude(b.include).orEmpty() else emptyList()
         if (inc.isNotEmpty()) b.copy(first = inc.first(), last = inc.last()) else b.copy(first = page(b.first), last = page(b.last))

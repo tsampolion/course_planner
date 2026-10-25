@@ -7,6 +7,7 @@ import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.taughtPages
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.BookType
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -49,6 +50,26 @@ fun shortBookNames(names: List<String>): List<String> {
     val short = names.map(::bookInitials)
     val counts = short.groupingBy { it.lowercase(Locale.ROOT) }.eachCount()
     return names.mapIndexed { i, n -> if ((counts[short[i].lowercase(Locale.ROOT)] ?: 0) > 1) n else short[i] }
+}
+
+/**
+ * The short name of every book, in order. A classified book shows its type's abbreviation, never anything from its
+ * name; two or more of one type are numbered in book order ("WB1", "WB2"), a single one stays plain. An unclassified
+ * book keeps what [shortBookNames] gives it, so a class with no types set reads as before.
+ */
+fun bookLabels(books: List<Book>): List<String> {
+    val total = books.groupingBy { it.type }.eachCount()
+    val seen = HashMap<BookType, Int>()
+    val typed = books.map { b ->
+        if (b.type == BookType.UNCLASSIFIED) null
+        else if ((total[b.type] ?: 0) > 1) b.type.abbr + seen.merge(b.type, 1, Int::plus)
+        else b.type.abbr
+    }
+    val initials = books.map { bookInitials(it.name) }
+    val taken = (typed.filterNotNull() + initials.filterIndexed { i, _ -> typed[i] == null }).groupingBy { it.lowercase(Locale.ROOT) }.eachCount()
+    return books.mapIndexed { i, b ->
+        typed[i] ?: if ((taken[initials[i].lowercase(Locale.ROOT)] ?: 0) > 1) b.name else initials[i]
+    }
 }
 
 /** How a week section is headed: "This week", "Next week", or only its dates. */

@@ -123,7 +123,7 @@ fun Group.taughtPages(bookId: String): Set<Int> = done.flatMapTo(HashSet()) { it
  * paced, only placed by hand (engine/Supplementary.kt).
  */
 fun Plan.remainingPages(g: Group, b: Book): List<Int> {
-    if (b.supplementary || (b.groupOnly && b.id !in g.extraBooks)) return emptyList()
+    if (b.supplementary || !g.usesBook(b)) return emptyList()
     val skip = parseRanges(b.skip) + parseRanges(g.skip[b.id].orEmpty())
     val hw = homeworkPages(g.id, b.id)
     val taught = g.taughtPages(b.id)
@@ -135,7 +135,7 @@ fun Plan.remainingPages(g: Group, b: Book): List<Int> {
 
 /** Pages still ahead that were set for homework, so no lesson has to teach them. */
 fun Plan.bankedPages(g: Group, b: Book): Int {
-    if (b.supplementary || (b.groupOnly && b.id !in g.extraBooks)) return 0
+    if (b.supplementary || !g.usesBook(b)) return 0
     val skip = parseRanges(b.skip) + parseRanges(g.skip[b.id].orEmpty())
     val hw = homeworkPages(g.id, b.id)
     return (position(g, b)..b.last).count { it !in skip && it in hw }

@@ -40,7 +40,14 @@ data class Group(
     val assignments: List<Assignment> = emptyList(),
     val unitsOverride: Boolean? = null,
     val unitRevisions: List<UnitRevision> = emptyList(),
-)
+    /** Default class books this group doesn't use. Its taught history stays; optional books use [extraBooks] instead. */
+    val removedBooks: Set<String> = emptySet(),
+    /** Book id to this group's own finish-by date, replacing the class's for that book (never past the group's end). */
+    val bookDue: Map<String, LocalDate> = emptyMap(),
+) {
+    /** Whether this group paces [b]: an optional book only when selected, any other unless removed. */
+    fun usesBook(b: Book): Boolean = if (b.groupOnly) b.id in extraBooks else b.id !in removedBooks
+}
 
 /** A saved extra lesson keeps its date and pages until the teacher edits it. */
 data class ExtraLesson(val id: String, val date: LocalDate, val pages: Map<String, List<Int>> = emptyMap())
@@ -112,6 +119,8 @@ data class Book(
     val countInLesson: Boolean = false,
     /** Optional catalogue entry: only groups selecting this book use it. */
     val groupOnly: Boolean = false,
+    /** Sets the book's abbreviation. Kept in step with [supplementary]: the Supplementary type is the supplementary switch. */
+    val type: BookType = BookType.UNCLASSIFIED,
 )
 
 /** Unit indices are zero-based. NONE records an explicit decision to skip revision. */

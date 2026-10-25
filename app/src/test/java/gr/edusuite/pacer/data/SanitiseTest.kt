@@ -4,6 +4,7 @@ import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.markDoneUpTo
 import gr.edusuite.pacer.model.ExtraLesson
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.BookType
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.DoneLesson
@@ -146,4 +147,32 @@ class SanitiseTest {
         assertEquals(emptyMap<String, List<Int>>(), sanitiseYears(listOf(y.copy(classes = listOf(removed)))).single().classes.single().groups.single().extras.first().pages)
     }
 
+
+    @Test fun supplementaryFlagAndTypeAreMadeToAgree() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val books = listOf(
+            Book("a", "A", 1, 5, supplementary = true, include = "1-5"),
+            Book("b", "B", 1, 5, include = "1-5", type = BookType.SUPPLEMENTARY),
+            Book("c", "C", 1, 5, type = BookType.WORKBOOK),
+        )
+        val out = sanitiseYears(listOf(y.copy(classes = listOf(c.copy(books = books))))).single().classes.single().books
+        assertEquals(listOf(true, true, false), out.map { it.supplementary })
+        assertEquals(listOf(BookType.SUPPLEMENTARY, BookType.SUPPLEMENTARY, BookType.WORKBOOK), out.map { it.type })
+    }
+
+    @Test fun sanitiseDropsUnknownBookIds() {
+        val y = seedYear()
+        val c = y.classes.first()
+        val sb = c.books[0].id
+        val optional = Book("opt", "Optional", 1, 5, groupOnly = true)
+        val supp = Book("sup", "Reader", 1, 5, supplementary = true, include = "1-5", type = BookType.SUPPLEMENTARY)
+        val g = c.groups.first().copy(
+            removedBooks = setOf(sb, "gone", "opt"),
+            bookDue = mapOf(sb to LocalDate.parse("2027-01-01"), "gone" to LocalDate.parse("2027-01-01"), "sup" to LocalDate.parse("2027-01-01")),
+        )
+        val out = sanitiseYears(listOf(y.copy(classes = listOf(c.copy(books = c.books + optional + supp, groups = listOf(g)))))).single().classes.single().groups.single()
+        assertEquals(setOf(sb), out.removedBooks)
+        assertEquals(mapOf(sb to LocalDate.parse("2027-01-01")), out.bookDue)
+    }
 }
