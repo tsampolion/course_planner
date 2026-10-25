@@ -25,6 +25,32 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.3] - 2026-10-25
+
+### Changed
+
+- The usability audit of 25 October 2026, re-checked against 0.4.4.0, is merged with the UI/UX audit and streamlining briefs.
+- `docs/PLANNED_FEATURES.md` gains eight entries for the fixes those briefs don't cover:
+  - hand-edited lessons survive Tidy and Fit to term;
+  - save status the teacher can trust;
+  - one "today" for the engine;
+  - removed books keep their taught history, with schema-15 codec tests;
+  - setup checks;
+  - print that fits;
+  - restorable backups;
+  - a device and accessibility check pass.
+- It also gains one Order of work that runs these entries together with the briefs' nine fix pull requests.
+- `docs/UI_AUDIT_BRIEF.md` adds:
+  - findings X12 to X15: Picker and switch semantics, book-label identity, tablet pane widths;
+  - notes under G1, H1 and C2;
+  - a tablet design proposal;
+  - a list of what to keep.
+- `docs/STREAMLINING_BRIEF.md` adds the draft rule to S4, evidence to R2, and rules for every change.
+
+### Fixed
+
+- `docs/ARCHITECTURE.md` no longer says the engine never reads the clock: `Plan.today` still defaults to it when a plan is built.
+
 ## [0.4.4.2] - 2026-10-25
 
 ### Added
@@ -831,6 +857,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.3]: https://github.com/tsampolion/course_planner/compare/v0.4.4.2...v0.4.4.3
 [0.4.4.2]: https://github.com/tsampolion/course_planner/compare/v0.4.4.1...v0.4.4.2
 [0.4.4.1]: https://github.com/tsampolion/course_planner/compare/v0.4.4.0...v0.4.4.1
 [0.4.4.0]: https://github.com/tsampolion/course_planner/compare/v0.4.3.0...v0.4.4.0

@@ -1,6 +1,6 @@
 # UI/UX audit and redesign
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). Fixes not started: each fix pull request below needs the owner's go-ahead, one at a time.
+Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2). Fixes not started: each fix pull request below needs the owner's go-ahead, one at a time.
 
 This brief records the taste-skill UI/UX audit (`PLANNED_FEATURES.md` §2 until 0.4.4.2), what it found per screen, and the order of the fix pull requests. Its companion is [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md), which covers each screen's start, purpose, next step and end.
 
@@ -57,6 +57,10 @@ Design specificity: the bones are Course Pacer's own (the ledger rows, kind edge
 | X9 | **Same job, different controls.** Previous/next week uses arrow text buttons; previous/next month uses chevron pills. Day-off rows have a ⋮ with Remove only and a long-press menu with Edit and Delete. | code | P3 |
 | X10 | **Tablet widths.** Home caps at 640dp and the welcome page at 560dp; list screens, Stats and sheets stretch to the full pane. | phone | P3 |
 | X11 | **Generic surfaces.** Taste-skill flags a greeting header with a logo, a tinted circle with an icon for empty states, numbered circles for steps and rows of equal grey buttons as kit habits. Bone light's warm paper with rust also matches its "cream with terracotta" pattern; the brand keeps it, so rust stays for *behind* only. | code | P3 |
+| X12 | **Picker has an unnamed second node** (usability audit F10). `Picker` (`ui/Components.kt:360-389`) is a labelled read-only field with a separate clickable overlay (`Role.DropdownList`) that has no name or value. TalkBack meets two items, and the menu items show no selected state. Seven consumers, among them the lead book, book type, "Applies to", units and homework content. Fix: one merged named node (label, choice, role), or Material 3's `ExposedDropdownMenuBox`. | code | P2 |
+| X13 | **Switch labels are separate nodes** (F11). `SwitchRow` (`ui/ClassScreens.kt:402-411`, six consumers) and Work's "Takes a lesson" switch (`WorkScreen.kt:186-190`) have a label that is neither part of the switch's node nor a touch target. H6 is the same pattern on a checkbox. Fix: `toggleable(role = Role.Switch)` on the row, with the child callback null. | code | P2 |
+| X14 | **Book labels shift between groups and screens** (I5). Lesson rows use type labels (SB, WB1, WB2); Stats and Print use full names. Labels are recomputed per group, so a group that drops WB1 shows its other workbook as WB while sibling groups show WB2. Recommended: one stable class-wide abbreviation in compact views, full names in Print and Stats, and the full name always for TalkBack. | code | P3 |
+| X15 | **Wider window, narrower panes** (F12). Layout follows the whole window (`ui/Layout.kt:22-35`). At 840dp the 320dp permanent drawer arrives (`NavUi.kt:176`) on top of the 40/60 split (`PacerApp.kt:293,303`), so the panes drop from about 336/503dp at 839dp to 208/312dp. Proposal: show the permanent drawer only when both panes keep a minimum width (for example 320 and 360dp). Check at 599, 600, 839, 840 and 1024dp. | phone | P2 |
 
 Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral darks; the brief keeps D1, as the brand decided.
 
@@ -72,6 +76,20 @@ Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral
 | G4 | **"Short by 2 lessons" leads to Stats, not to the fix.** The fix is behind the warning icon in the top bar (see the streamlining brief). | code | P2 |
 | G5 | Progress strip bar fails 3:1 in Saffron light (X1). | code | P1 |
 | G6 | In Saffron dark and Bone dark the hero is a large light fill on a dark ground; check it doesn't glare at night. | phone | P3 |
+
+**G1 in detail (usability audit F09).**
+
+- In compact layout, the pages line and the tests/note line use `maxLines = 1` (`ui/TodayBox.kt:184-188`).
+- The stacked layout depends on large text only (`TodayBox.kt:164`; `largeText` ignores width).
+- The pages column clears its semantics (`:182`), so TalkBack reaches "record pages" only through the lesson menu.
+
+PR 1 should:
+
+- wrap or stack the pages by measured width, not only at large text;
+- give the pages a named click action;
+- keep Part B's `heroActions` guards.
+
+Acceptance: every range is visible at 320dp, on a 360dp phone and in a 312dp pane, with four or more books and Greek names, at 100%, 150% and 200% text, with the full spoken text kept.
 
 ### Plan
 
@@ -94,6 +112,14 @@ Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral
 | H4 | Classes scroll sideways, so classes past the third or fourth are out of sight. | phone | P3 |
 | H5 | The board's legend shows an outlined square; on-pace cells have no outline. | code | P3 |
 | H6 | New school year: only the checkbox toggles Greek holidays, not its label. | code | P3 |
+
+**H1 and the usability audit (F16, I1).** Today's bar takes the earliest pending lesson across all groups (`ui/HomeModel.kt:35-55`). Its Done ticks that lesson even when it is overdue (`markNextLessonDoneIn`). The group screen's hero skips overdue lessons (`GroupScreen.kt:182`). The today list should therefore:
+
+- keep earlier unticked lessons in their own alert that opens them;
+- never tick anything automatically;
+- give each Done the right group and date.
+
+The large-text board's "N groups on pace" counts unmeasured groups too. That is fixed with this PR (F07, [`PLANNED_FEATURES.md`](PLANNED_FEATURES.md) entry 6).
 
 ### Navigation, top bar and group menu
 
@@ -123,6 +149,8 @@ Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral
 | C5 | Group settings' Dates repeat Class's "Next lesson" field. | code | P3 |
 | Y1 | School year and Classes follow the ledger rules well; spacing is fixed by 0.4.4.1. | code | none |
 
+**C2 detail (F17).** `renameGroup` and `toggleDay` have no caller outside the pencil sheet. The "has no teaching days selected" problem routes to Class (`ui/Nav.kt:165`), so it should open Group settings once S2 lands.
+
 ### Sheets, dialogs and notices
 
 | # | Finding | Seen | Severity |
@@ -151,6 +179,7 @@ Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral
 6. **Pills have a visible edge:** a 1px `outline` stroke or a tone step that reaches 3:1 against the ground (X5).
 7. **D4, revised:** Home's first block lists today's lessons, each with Done (H1).
 8. **Signature elements** (push further): see below.
+9. **Tablets:** the permanent drawer appears only when both panes keep a usable width, replacing the plain 840dp rule (X15).
 
 ## The bolder direction (push further)
 
@@ -168,17 +197,19 @@ Each is its own session and PR, approved by the owner one at a time. Redesign wo
 
 | # | PR | Covers | Size |
 |---|---|---|---|
-| 1 | **Group home and the hero** | G1–G6, X1 (progress bar), X5 (pills), D-proposals 1, 3, 6, the pages headline and pacing lines | M |
-| 2 | **Plan** | P1–P6, X2, X3, X9 (week and month controls), D-proposal 4, ledger gutters | L |
-| 3 | **Home today** | H1–H6, D-proposal 7; needs a `HomeModel` change and tests | M |
+| 1 | **Group home and the hero** | G1–G6 (G1 includes F09), X1 (progress bar), X5 (pills), D-proposals 1, 3, 6, the pages headline and pacing lines | M |
+| 2 | **Plan** | P1–P6, X14, X2, X3, X9 (week and month controls), D-proposal 4, ledger gutters | L |
+| 3 | **Home today** | H1–H6 (with F16 and F07), D-proposal 7; needs a `HomeModel` change and tests | M |
 | 4 | **Menu and top bar** | N1–N3, D-proposal 2, X1 (update dot) | M |
-| 5 | **One sheet frame** | X7, D1, D2; every sheet ends the same way | L |
-| 6 | **Set-up screens** | C1–C5, X6 (Group settings), D-proposal 5; removals only with the owner's yes | L |
+| 5 | **One sheet frame** | X7, D1, D2, X12, X13, F18 (streamlining S4); every sheet ends the same way | L |
+| 6 | **Set-up screens** | C1–C5 (with F17), X6 (Group settings), D-proposal 5; removals only with the owner's yes | L |
 | 7 | **Stats and Work** | S1–S3, W1 | S |
 | 8 | **Settings, welcome, empty states** | D3, D4, X8, X10, X11 | S |
-| 9 | **Polish and record** | dark-mode and tablet pass over all screens, `PACER_DESIGN.md` updated with what was approved | M |
+| 9 | **Polish and record** | dark-mode and tablet pass over all screens, X15 and D-proposal 9, `PACER_DESIGN.md` updated with what was approved | M |
 
 Copy changes wait for the inventory and can ride any PR after it comes back.
+
+The data, engine and output fixes that must come before or alongside these PRs (save status, Tidy and Fit preservation, one today, removed-book history, setup checks, print, backup) are in [`PLANNED_FEATURES.md`](PLANNED_FEATURES.md), with the combined order in its Order of work section.
 
 ## What to check on the phone (each PR lists its own)
 
@@ -191,3 +222,15 @@ Install the PR's debug build from Android Studio, then for each changed screen:
 - TalkBack on: the lesson row and the hero read their pages and offer Done and the menu actions.
 
 Send screenshots of anything that looks wrong, so the next session sees what you saw.
+
+The full matrix (widths 599 to 1024dp, 150% text, switch access, Remove animations, midnight and time-zone changes, process death, synthetic data) is entry 9 of [`PLANNED_FEATURES.md`](PLANNED_FEATURES.md). Run it before PR 9.
+
+### Already right, keep it
+
+- Lesson rows are one TalkBack node, with actions from the same model as the long-press menu.
+- Shared buttons are 48dp and rows 56dp.
+- Motion snaps when animations are off.
+- Kinds of lesson and work are named in words.
+- The Plan rows' "differs from the proposed plan" marker is spoken.
+- Plan tools use explicit preview and apply.
+- The app opens on Home at launch (an owner decision).
