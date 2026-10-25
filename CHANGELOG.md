@@ -36,6 +36,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 - Fit to term no longer merges pages into the last lesson when every lesson in the term is yours, and re-pacing no longer drops untouched lessons past the term when there is no free lesson to take their pages.
 
+## [0.4.4.7] - 2026-10-25
+
+### Changed
+
+- `CLAUDE.md` has two test rules:
+  - a new test checks what the teacher sees or what is saved;
+  - a behaviour change updates the tests that lock in the old behaviour, never deletes them.
+- `docs/PLANNED_FEATURES.md`'s Order of work says which steps carry the test clean-up.
+
+### Added
+
+- CI runs the 16 platform tests (`app/src/androidTest`, real `org.json` codec round trips) on a Gradle Managed Device in a new `device-tests` job, so releases wait for them too. Run them locally with `./gradlew pixel6Api33DebugAndroidTest`.
+
 ## [0.4.4.6] - 2026-10-25
 
 ### Added
@@ -892,7 +905,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
-[0.4.4.8]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.8
+[0.4.4.8]: https://github.com/tsampolion/course_planner/compare/v0.4.4.7...v0.4.4.8
+[0.4.4.7]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.7
 [0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
 [0.4.4.5]: https://github.com/tsampolion/course_planner/compare/v0.4.4.4...v0.4.4.5
 [0.4.4.4]: https://github.com/tsampolion/course_planner/compare/v0.4.4.3...v0.4.4.4

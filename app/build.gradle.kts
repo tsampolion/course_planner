@@ -40,6 +40,20 @@ android {
         }
     }
 
+    // The platform tests (app/src/androidTest) run on this Gradle Managed Device in CI:
+    // ./gradlew pixel6Api33DebugAndroidTest. "aosp-atd" is the headless image made for automated tests.
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel6Api33") {
+                    device = "Pixel 6"
+                    apiLevel = 33
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // A separate app, "Course Pacer (debug)", so debug builds never replace a release or its data.
