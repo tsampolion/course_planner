@@ -12,6 +12,8 @@ Docs index: `docs/README.md`. How the app works (model, engine and its extension
 ./gradlew assembleRelease                        # R8-minified APK, debug-signed unless SIGNING_KEYSTORE is set
 ./gradlew installDebug                           # installs "Course Pacer (debug)"; needs a device or emulator
 ./gradlew lint
+scripts/device-check.sh [label] [--install] [--kill]   # screenshots the open screen in light/dark, 100-200% text, 599-1024dp widths
+./gradlew connectedAndroidTest                   # the platform codec tests; needs a device or emulator
 ```
 
 CI (`.github/workflows/android.yml`) runs `testDebugUnitTest`, then `lint`, then `assembleRelease` on JDK 17, then checks the APK's signing certificate. Any change has to pass all four. When it passes on `main`, `.github/workflows/release.yml` checks the certificate again, tags `v<versionName>` and publishes the release.
