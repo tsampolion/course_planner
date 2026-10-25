@@ -36,6 +36,13 @@ Keep `[Unreleased]` empty between pull requests.
 
 - A failed save was never tried again. It is now retried on the next edit, when you leave the app and on Retry, and an older save can no longer mark a newer edit as saved.
 
+## [0.4.4.5] - 2026-10-25
+
+### Added
+
+- `scripts/device-check.sh`: with the emulator or a phone connected, it screenshots the open screen in light and dark, at 100, 150 and 200% text and at 599 to 1024dp widths. It saves the accessibility tree for each shot and can also check that the app survives being killed. Every setting it changes is put back afterwards.
+- `docs/PLANNED_FEATURES.md` entry 10: automatic UI tests with Compose's test library, for the owner to approve.
+
 ## [0.4.4.4] - 2026-10-25
 
 ### Fixed
@@ -875,6 +882,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
 [0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
+[0.4.4.5]: https://github.com/tsampolion/course_planner/compare/v0.4.4.4...v0.4.4.5
 [0.4.4.4]: https://github.com/tsampolion/course_planner/compare/v0.4.4.3...v0.4.4.4
 [0.4.4.3]: https://github.com/tsampolion/course_planner/compare/v0.4.4.2...v0.4.4.3
 [0.4.4.2]: https://github.com/tsampolion/course_planner/compare/v0.4.4.1...v0.4.4.2
