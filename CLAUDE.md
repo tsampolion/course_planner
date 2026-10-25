@@ -14,7 +14,7 @@ Docs index: `docs/README.md`.
 ./gradlew lint
 ```
 
-CI (`.github/workflows/android.yml`) runs `testDebugUnitTest` then `assembleRelease` on JDK 17, then checks the APK's signing certificate. Any change has to pass all three. When it passes on `main`, `.github/workflows/release.yml` checks the certificate again, tags `v<versionName>` and publishes the release.
+CI (`.github/workflows/android.yml`) runs `testDebugUnitTest`, then `lint`, then `assembleRelease` on JDK 17, then checks the APK's signing certificate. Any change has to pass all four. When it passes on `main`, `.github/workflows/release.yml` checks the certificate again, tags `v<versionName>` and publishes the release.
 
 ## Architecture
 
