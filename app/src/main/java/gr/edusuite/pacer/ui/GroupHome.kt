@@ -84,6 +84,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
 internal fun ProgressStrip(report: GroupReport, onOpen: () -> Unit) {
     val line = remember(report) { progressLine(report) }
     val c = Pacer.colors
+    val fill = c.accent
     val motion = animationsEnabled()
     val fraction by animateFloatAsState(line.fraction, if (motion) Motion.work(MotionSpec.Step.PACE) else snap())
     val verdict = when (line.status) {
@@ -107,7 +108,7 @@ internal fun ProgressStrip(report: GroupReport, onOpen: () -> Unit) {
             Text(text, style = MaterialTheme.typography.titleSmall.merge(Figures), color = if (line.status == ProgressStatus.SHORT) c.warn else c.ink, modifier = Modifier.weight(1f))
             Chevron()
         }
-        LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = c.accent, trackColor = c.surfaceContainer)
+        LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
     }
 }
 

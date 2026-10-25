@@ -118,11 +118,13 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
     val label = stringResource(if (next.date == today) R.string.today_label else R.string.today_next_label, next.n)
     val large = rememberLargeText()
     // Tapping the pages records what was taught and ticks the lesson (the lesson menu keeps the same action for TalkBack).
+    // The lesson box is a fill, so the accent is a background here, never text.
+    val fill = c.accent
     val hero = heroActions(next, actions.canTick)
     val editLabel = stringResource(R.string.today_pages_taught)
     val editPages = if (hero.canEditPages && !completing) Modifier.heightIn(min = 48.dp).clickable(onClickLabel = editLabel, role = Role.Button, onClick = onPagesTaught) else Modifier
     Box(modifier) {
-        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = c.accent, contentColor = c.onAccent) {
+        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = fill, contentColor = c.onAccent) {
             val info = @Composable { m: Modifier ->
                 Column(
                     m.lessonNode("$label. $description", next.done, null, items) { menu = true },
