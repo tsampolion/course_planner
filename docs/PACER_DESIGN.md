@@ -1,6 +1,6 @@
 # Course Pacer design language
 
-> **Status: built.** Agreed with the owner on 2026-10-21 and shipped in 3.1.0 to 3.9.0 (see `CHANGELOG.md`). The background pattern (D12) was dropped before it was built. D13 adds the selectable Bone and Saffron palettes. The front-end redesign audit (`PLANNED_FEATURES.md` §2) will review it.
+> **Status: built.** Agreed with the owner on 2026-10-21 and shipped in 3.1.0 to 3.9.0 (see `CHANGELOG.md`). The background pattern (D12) was dropped before it was built. D13 adds the selectable Bone and Saffron palettes. The UI/UX audit ([`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md)) proposes changes to it, each to be approved on its own.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.
 This file records where Course Pacer departs from it. Every departure is Pacer-only for now. Together they are

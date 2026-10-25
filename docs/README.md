@@ -31,6 +31,8 @@ Each one records why a feature was built, and starts with a `Status:` line.
 - [HOMEWORK_BRIEF.md](HOMEWORK_BRIEF.md): lesson homework actions, pairing and date-based banking.
 - [UNITS_BRIEF.md](UNITS_BRIEF.md): optional linked book units, group overrides and revisions.
 - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases and its release contract.
+- [UI_AUDIT_BRIEF.md](UI_AUDIT_BRIEF.md): the UI/UX audit: findings per screen, proposed design-rule changes and the order of the fix pull requests.
+- [STREAMLINING_BRIEF.md](STREAMLINING_BRIEF.md): each screen's start, purpose, next step and end, and what to remove, merge or move.
 
 ## Not yet approved
 
