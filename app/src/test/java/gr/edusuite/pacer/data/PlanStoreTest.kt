@@ -30,7 +30,8 @@ class PlanStoreTest {
     private class FakeFile(override val base: File, var onRead: () -> ByteArray, val writes: MutableList<ByteArray> = mutableListOf()) : PlanFile {
         override fun read() = onRead()
         override fun write(bytes: ByteArray) { writes += bytes }
-        override fun warn(message: String, error: Throwable) = Unit
+        val warnings = mutableListOf<String>()
+        override fun warn(message: String, error: Throwable) { warnings += message + ": " + error }
     }
 
     private fun store(text: String?, base: File = File(dir.root, "plans.json")): Pair<PlanStore, FakeFile> {
@@ -75,7 +76,7 @@ class PlanStoreTest {
         fake.onRead = { fake.base.readBytes() }
         assertFalse(store.load().readFailed)
         store.save(failed.data)
-        assertEquals(1, fake.writes.size)
+        assertEquals(fake.warnings.toString(), 1, fake.writes.size)
     }
 
     @Test fun deepNestingIsSetAside() {
