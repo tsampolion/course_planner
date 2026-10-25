@@ -4,6 +4,8 @@ Status: approved 2026-10-25; audit done (stage 1, this brief). Changes not start
 
 This brief records the streamlining pass (`PLANNED_FEATURES.md` §3 until 0.4.4.2). For every screen it answers four questions: where the teacher arrives from, what the screen is for, what the next step is, and how it ends (done, back, undo). It then lists what to remove, merge or move.
 
+Every control each screen offers today, and where it leads, is in [NAVIGATION.md](NAVIGATION.md). Check each proposal against it, and update it in the pull request that carries the change.
+
 ## Decisions settled with the owner
 
 - **Flows:** all four matter (daily use, weekly planning at the desk, term set-up, first run).
