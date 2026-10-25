@@ -25,6 +25,17 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.6] - 2026-10-25
+
+### Added
+
+- A lasting notice says when your latest changes are not saved, and stays until they are. It offers **Retry** and **Export a copy**.
+- If your saved plans couldn't be read at launch, the notice says changes aren't being saved and offers **Try reading again**. If the file reads and you haven't edited anything, it opens and saving resumes. If you have, saving stays off so neither the file nor your edits are overwritten, and the notice asks you to export a copy and reopen the app.
+
+### Fixed
+
+- A failed save was never tried again. It is now retried on the next edit, when you leave the app and on Retry, and an older save can no longer mark a newer edit as saved.
+
 ## [0.4.4.5] - 2026-10-25
 
 ### Added
@@ -870,6 +881,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
 [0.4.4.5]: https://github.com/tsampolion/course_planner/compare/v0.4.4.4...v0.4.4.5
 [0.4.4.4]: https://github.com/tsampolion/course_planner/compare/v0.4.4.3...v0.4.4.4
 [0.4.4.3]: https://github.com/tsampolion/course_planner/compare/v0.4.4.2...v0.4.4.3

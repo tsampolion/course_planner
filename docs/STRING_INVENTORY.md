@@ -52,7 +52,13 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `rows_delete` | Delete |  |  |
 | `panes_pick_group` | Pick a group to open it here. |  |  |
 | `toast_nothing_changed` | Already up to date |  |  |
-| `load_read_failed` | Couldn't read your saved plans right now. Nothing was changed; close and reopen the app to try again. |  |  |
+| `save_not_saved` | Couldn't save your latest changes. They are still in the app; keep it open until they are saved. |  |  |
+| `save_read_locked` | Couldn't read your saved plans right now. Nothing was changed, and changes made now aren't being saved. |  |  |
+| `save_read_locked_edits` | Your saved plans can be read again, but the changes made since would replace them, so nothing is being saved. Export a copy, then close and reopen the app. |  |  |
+| `save_retry` | Retry |  |  |
+| `save_read_again` | Try reading again |  |  |
+| `save_export` | Export a copy |  |  |
+| `save_exported` | Saved a copy of your changes |  |  |
 | `nav_menu_update` | Menu, update available |  |  |
 | `nav_update` | Update |  |  |
 | `nav_update_description` | Update available |  | TalkBack |
