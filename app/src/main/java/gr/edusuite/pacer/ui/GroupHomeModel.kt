@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.verdict
@@ -64,6 +65,13 @@ fun groupPageCanTick(report: GroupReport, page: GroupPage, showMine: Boolean): B
 /** The pages group home's pills open. Settings is its own screen, so this is not [GroupPage]. */
 enum class GroupDestination {
     PLAN, WORK, STATS, SETTINGS;
+
+    fun titleRes(): Int = when (this) {
+        PLAN -> R.string.group_tab_plan
+        WORK -> R.string.work_title
+        STATS -> R.string.group_tab_stats
+        SETTINGS -> R.string.group_settings_title
+    }
 
     fun screen(groupId: String): Screen = when (this) {
         PLAN -> Screen.Group(groupId, GroupPage.PLAN)

@@ -217,7 +217,6 @@ fun PacerApp(vm: PacerViewModel) {
             share = { share(context, "${report.plan.name} — ${report.group.name}", report.asTsv()) },
             print = { printing = true },
             open = { groupSheet = it },
-            settings = { vm.open(Screen.GroupSettings(report.group.id)) },
             customPlan = if (large && report.group.custom == null && report.rows.isNotEmpty()) ({
                 vm.createCustomPlan(report.group.id)
                 toast(context.getString(R.string.custom_created))
@@ -338,8 +337,11 @@ fun PacerApp(vm: PacerViewModel) {
         gesturesEnabled = drawer.isOpen,
     ) { body() }
     val year = ui.data.year
-    if (switching && screen is Screen.Group && year != null) {
-        GroupSwitcherSheet(year, ui.data.activeClass, screen.id, recent, vm) { switching = false }
+    if (switching && screen.groupId != null && year != null) {
+        when (val entries = switcherEntries(screen, ui.data.schoolClass?.groups.orEmpty())) {
+            is SwitcherEntries.Groups -> GroupSwitcherSheet(year, ui.data.activeClass, screen.groupId!!, recent, vm) { switching = false }
+            is SwitcherEntries.Pages -> PageSwitcherSheet(entries.groupId, entries.pages, vm) { switching = false }
+        }
     }
     if (problemsOpen && screen == Screen.Overview && year != null) {
         YearProblemsSheet(year, vm) { problemsOpen = false }
@@ -464,7 +466,7 @@ private fun ScreenBar(
     groupMenu: GroupMenu?,
 ) {
     val context = LocalContext.current
-    val switchable = screen is Screen.Group && data.year != null
+    val switchable = screen.groupId != null && data.year != null
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         navigationIcon = {

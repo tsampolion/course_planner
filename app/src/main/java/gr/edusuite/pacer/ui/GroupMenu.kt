@@ -88,12 +88,18 @@ internal class GroupMenu(
     val hasCustom: Boolean, val large: Boolean, val others: List<Pair<String, String>>,
     val repace: () -> Unit, val copyPlan: (String, String) -> Unit, val deletePlan: () -> Unit, val catchUp: Boolean,
     val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit,
-    val settings: () -> Unit,
     /** Large text: "Make a custom plan", which the Plan tab's line offers otherwise. Null when there is nothing to offer. */
     val customPlan: (() -> Unit)? = null,
 )
 
-/** The group's ⋮: Copy, Share, Print, Term weeks and Tips. */
+/** A section's name in the ⋮ menu: not a target, a heading for TalkBack. */
+@Composable
+private fun MenuHeading(text: String) {
+    Text(text, style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted,
+        modifier = Modifier.padding(horizontal = Space.l, vertical = Space.s).semantics { heading() })
+}
+
+/** The group's ⋮, in sections: Share & print, Plan, Lessons and Help. Group settings is a pill on group home. */
 @Composable
 internal fun GroupMenuButton(menu: GroupMenu) {
     var open by remember { mutableStateOf(false) }
@@ -102,24 +108,28 @@ internal fun GroupMenuButton(menu: GroupMenu) {
     Box {
         PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
         PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_settings_title)) }, leadingIcon = { AppIcon(AppIcons.Settings) }, onClick = { open = false; menu.settings() })
-            if (GroupMenuItem.MY_PLAN in available) {
-                Text(stringResource(R.string.plan_menu_heading), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.s))
-                DropdownMenuItem(text = { Text(stringResource(R.string.custom_repace_all)) }, onClick = { open = false; menu.repace() })
-                if (menu.catchUp) DropdownMenuItem(text = { Text(stringResource(R.string.custom_adjust_catch_up)) }, onClick = { open = false; menu.open(GroupSheet.CATCH_UP) })
-                if (GroupMenuItem.COPY_PLAN in available) DropdownMenuItem(text = { Text(stringResource(R.string.custom_copy_to)) }, onClick = { open = false; copying = true })
-                DropdownMenuItem(text = { Text(stringResource(R.string.custom_delete), color = Pacer.colors.warn) }, onClick = { open = false; menu.deletePlan() })
-                HorizontalDivider()
-            }
-            if (GroupMenuItem.OWN_PACE in available) DropdownMenuItem(text = { Text(stringResource(R.string.plan_own_pace)) }, onClick = { open = false; menu.open(GroupSheet.OWN_PACE) })
-            menu.customPlan?.let { make ->
-                DropdownMenuItem(text = { Text(stringResource(R.string.group_make_custom_plan)) }, leadingIcon = { AppIcon(AppIcons.Edit) }, onClick = { open = false; make() })
-            }
-            DropdownMenuItem(text = { Text(stringResource(R.string.extra_add)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.EXTRA) })
+            MenuHeading(stringResource(R.string.menu_share_print))
             DropdownMenuItem(text = { Text(stringResource(R.string.group_copy)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.ContentCopy) }, onClick = { open = false; menu.copy() })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_share)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.Share) }, onClick = { open = false; menu.share() })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
+            HorizontalDivider()
+            MenuHeading(stringResource(R.string.group_tab_plan))
+            menu.customPlan?.let { make ->
+                DropdownMenuItem(text = { Text(stringResource(R.string.group_make_custom_plan)) }, leadingIcon = { AppIcon(AppIcons.Edit) }, onClick = { open = false; make() })
+            }
+            if (GroupMenuItem.MY_PLAN in available) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.custom_repace_all)) }, onClick = { open = false; menu.repace() })
+                if (GroupMenuItem.COPY_PLAN in available) DropdownMenuItem(text = { Text(stringResource(R.string.custom_copy_to)) }, onClick = { open = false; copying = true })
+                DropdownMenuItem(text = { Text(stringResource(R.string.custom_delete), color = Pacer.colors.warn) }, onClick = { open = false; menu.deletePlan() })
+            }
+            if (GroupMenuItem.OWN_PACE in available) DropdownMenuItem(text = { Text(stringResource(R.string.plan_own_pace)) }, onClick = { open = false; menu.open(GroupSheet.OWN_PACE) })
+            if (menu.catchUp) DropdownMenuItem(text = { Text(stringResource(R.string.custom_adjust_catch_up)) }, onClick = { open = false; menu.open(GroupSheet.CATCH_UP) })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_term_weeks)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.TERM_WEEKS) })
+            HorizontalDivider()
+            MenuHeading(stringResource(R.string.menu_lessons))
+            DropdownMenuItem(text = { Text(stringResource(R.string.extra_add)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.EXTRA) })
+            HorizontalDivider()
+            MenuHeading(stringResource(R.string.menu_help))
             DropdownMenuItem(text = { Text(stringResource(R.string.group_tips)) }, leadingIcon = { AppIcon(AppIcons.Info) }, onClick = { open = false; menu.open(GroupSheet.TIPS) })
         }
         PacerDropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {

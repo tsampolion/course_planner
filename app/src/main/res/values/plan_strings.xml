@@ -6,7 +6,6 @@
     <string name="plan_next_month">Next month</string>
     <string name="plan_choose_month">Choose month</string>
     <string name="plan_in_use">%1$s · In use</string>
-    <string name="plan_menu_heading">MY PLAN</string>
     <string name="plan_own_pace">Own pace…</string>
     <string name="plan_hide_earlier">Hide earlier lessons</string>
     <plurals name="plan_earlier_lessons"><item quantity="one">%d earlier lesson ›</item><item quantity="other">%d earlier lessons ›</item></plurals>
