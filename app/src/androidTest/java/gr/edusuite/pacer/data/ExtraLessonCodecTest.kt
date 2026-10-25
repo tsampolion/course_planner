@@ -168,7 +168,7 @@ class ExtraLessonCodecTest : Instrumentation() {
         assertEquals(false, written.has("homework"))
         assertEquals(false, written.has("events"))
         assertEquals(read, JsonCodec.decode(JsonCodec.encode(read)))
-        val store = PlanStore(java.io.File(context.cacheDir, "assignment-codec-test").apply { mkdirs() })
+        val store = PlanStore(java.io.File(targetContext.cacheDir, "assignment-codec-test").apply { mkdirs() })
         assertEquals(SaveResult.Saved, store.save(read))
         val loaded = store.load()
         assertEquals(null, loaded.setAside)
