@@ -1,6 +1,6 @@
 # Task: Supplementary books in chosen lessons
 
-> Decision record: built in 2.10.0. The code and CLAUDE.md describe the current app.
+Status: shipped in 2.10.0. [`ARCHITECTURE.md`](ARCHITECTURE.md) describes the current app.
 
 The owner's request, clarified on 2026-10-20:
 
@@ -10,7 +10,7 @@ The owner's request, clarified on 2026-10-20:
 
 ## Context
 
-Read `CLAUDE.md` and [the docs index](README.md) first. The existing custom plans, lead book and warnings remain the basis of the feature. The [design spec](superpowers/specs/2026-10-20-supplementary-books-design.md) defines the engine and UI; the [implementation plan](superpowers/plans/2026-10-20-supplementary-books.md) tracks delivery.
+Read `CLAUDE.md` and [the docs index](README.md) first. The existing custom plans, lead book and warnings remain the basis of the feature.
 
 The baseline is main at 2.9.0, versionCode 31, JSON version 7. This is one feature and one PR to main.
 

@@ -1,6 +1,6 @@
 # Release signing
 
-> Decision record: built in 1.5.3; secrets limited to `main` since 1.7.3. The code and CLAUDE.md describe the current app.
+Status: shipped in 1.5.3; secrets limited to `main` since 1.7.3. [`CLAUDE.md`](../CLAUDE.md) holds the rules.
 
 Android installs an update only when it is signed with the same certificate as the installed app. Until 1.5.1, every release was signed with a different key, so none could install over the last, and the only way past that was an uninstall, which deletes the school years on the phone. Since 1.5.3 every release is signed with one permanent key.
 

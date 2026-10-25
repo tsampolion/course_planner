@@ -1,6 +1,7 @@
 # Homework in the lesson flow (Part B)
 
-Status: implemented for 4.0.0 (48), schema 13; automated checks pass, device QA pending.
+Status: shipped in 4.0.0 (0.4.0.0 in the four-part format), schema 13.
+
 Native Operate surface; extend the
 existing ledger, TalkBack custom actions, assignment editor and Bone/Saffron tokens.
 
