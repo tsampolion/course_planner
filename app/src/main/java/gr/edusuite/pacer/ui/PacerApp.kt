@@ -184,7 +184,7 @@ fun PacerApp(vm: PacerViewModel) {
     // The group switcher and the Warnings sheet belong to the screen they opened on.
     var switching by rememberSaveable(screen.key()) { mutableStateOf(false) }
     var warningsOpen by rememberSaveable(screen.key()) { mutableStateOf(false) }
-    // What the group's ⋮ menu opened: Term weeks or Tips on the screen, or Print over it.
+    // What the group's ⋮ menu opened: Tips on the screen, or Print over it.
     var groupSheet by rememberSaveable(screen.key()) { mutableStateOf<GroupSheet?>(null) }
     var printing by rememberSaveable(screen.key()) { mutableStateOf(false) }
     val large = rememberLargeText()
@@ -445,7 +445,7 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
 /**
  * Every other screen's bar: ☰ for the menu, where the screen sits over its title, and Undo where school-year data
  * changes ([undoDepth] null hides it). On a group, the title opens the group switcher and a warning button with the
- * count opens the Warnings sheet, and ⋮ holds the schedule's Copy, Share, Print, Term weeks and Tips. System Back still pops the back stack.
+ * count opens the Warnings sheet, and ⋮ holds the schedule's Copy, Share, Print and Tips. System Back still pops the back stack.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

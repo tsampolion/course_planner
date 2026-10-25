@@ -2,17 +2,20 @@
 
 Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can propose new wording in one place. **No wording has been changed.** Fill the *Your proposal* column and return the file; copy changes then happen in one pass.
 
-- **Resource strings:** 766 entries from `app/src/main/res/values/*strings.xml`, grouped by screen. Plurals are one row each, with their `one` and `other` forms. `%1$s`, `%d` and similar are filled in by the app (names, numbers, dates); keep them in any proposal.
+- **Resource strings:** 787 entries from `app/src/main/res/values/*strings.xml`, grouped by screen. Plurals are one row each, with their `one` and `other` forms. `%1$s`, `%d` and similar are filled in by the app (names, numbers, dates); keep them in any proposal.
 - **TalkBack labels** are resource strings too (content descriptions, state descriptions and custom actions). Rows whose ID looks like one are tagged *TalkBack* in Notes; others used only by TalkBack are not separately tagged, so treat every row as possibly spoken.
 - **Strings written in Kotlin** (last section) are engine messages, default names, printed output and exports. They are kept out of resources on purpose, so changing them is a code change; say which you want changed.
 
 ## App bar, menu and shared actions
 
-40 entries.
+44 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
 | `app_name` | Course Pacer |  |  |
+| `menu_help` | Help |  |  |
+| `menu_lessons` | Lessons |  |  |
+| `menu_share_print` | Share & print |  |  |
 | `app_settings` | Settings |  |  |
 | `app_year_settings` | School year settings |  |  |
 | `app_overview` | Pacing overview |  |  |
@@ -41,11 +44,12 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `nav_all_classes` | one: The class / other: All %d classes |  | Plural, Has placeholders |
 | `switcher_title` | Go to a group |  |  |
 | `switcher_open` | Switch group |  |  |
+| `switcher_pages_title` | Go to a page |  |  |
 | `switcher_recent` | Recent |  |  |
-| `switcher_here` | %1$s · you are here |  | Has placeholders |
 | `status_on_pace` | On pace |  |  |
 | `status_short` | one: Short by %d lesson / other: Short by %d lessons |  | Plural, Has placeholders |
 | `rows_options` | Options for %1$s |  | Has placeholders |
+| `rows_delete` | Delete |  |  |
 | `panes_pick_group` | Pick a group to open it here. |  |  |
 | `toast_nothing_changed` | Already up to date |  |  |
 | `load_read_failed` | Couldn't read your saved plans right now. Nothing was changed; close and reopen the app to try again. |  |  |
@@ -263,7 +267,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Group (home, settings, menu)
 
-79 entries.
+88 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
@@ -272,7 +276,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `group_marked_not_done` | Lessons marked not done |  |  |
 | `group_saved` | Pages taught saved |  |  |
 | `group_lesson_done` | Lesson marked done |  |  |
-| `group_term_weeks` | Term weeks |  |  |
 | `group_copy` | Copy |  |  |
 | `group_share` | Share |  |  |
 | `group_add_books` | Add this class's books |  |  |
@@ -322,6 +325,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `group_blocked` | one: %1$d lesson goes to tests or worksheets; pages spread over %2$s. / other: %1$d lessons go to tests or worksheets; pages spread over %2$s. |  | Plural, Has placeholders |
 | `group_teaching_count` | one: %1$d lesson / other: %1$d lessons |  | Plural, Has placeholders |
 | `group_more` | More options |  |  |
+| `progress_strip` | Lesson %1$d of %2$d · %3$s |  | Has placeholders |
 | `group_print` | Print |  |  |
 | `group_make_custom_plan` | Make a custom plan |  |  |
 | `group_settings_title` | Group settings |  |  |
@@ -358,7 +362,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Group plan (ledger, custom plan, extra lessons, supplementary books)
 
-108 entries.
+116 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
@@ -393,6 +397,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `custom_moved` | Lesson moved |  |  |
 | `custom_free` | Free lesson |  |  |
 | `custom_proposed_line` | Proposed: %1$s |  | Has placeholders |
+| `custom_differs` | differs from the proposed plan |  |  |
 | `custom_drag` | Drag to move lesson %1$d |  | Has placeholders |
 | `custom_sheet_title` | Lesson %1$d · %2$s %3$s |  | Has placeholders |
 | `custom_sheet_new` | New lesson |  |  |
@@ -467,14 +472,13 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `extra_unavailable` | Extra lesson on %1$s is unavailable |  | Has placeholders |
 | `extra_unavailable_hint` | A whole-lesson test or the group’s date range excludes it. Its pages are back in the remaining plan. |  |  |
 | `extra_after_short` | one: After this: Short by %d lesson / other: After this: Short by %d lessons |  | Plural, Has placeholders |
-| `plan_weeks` | Weeks |  |  |
-| `plan_months` | Months |  |  |
+| `plan_weeks` | Weekly view |  |  |
+| `plan_months` | Monthly view |  |  |
 | `plan_this_month` | This month · %1$s |  | Has placeholders |
 | `plan_previous_month` | Previous month |  |  |
 | `plan_next_month` | Next month |  |  |
 | `plan_choose_month` | Choose month |  |  |
 | `plan_in_use` | %1$s · In use |  | Has placeholders |
-| `plan_menu_heading` | MY PLAN |  |  |
 | `plan_own_pace` | Own pace… |  |  |
 | `plan_hide_earlier` | Hide earlier lessons |  |  |
 | `plan_earlier_lessons` | one: %d earlier lesson › / other: %d earlier lessons › |  | Plural, Has placeholders |
@@ -609,7 +613,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## School year
 
-50 entries.
+51 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
@@ -632,6 +636,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `year_no_days_off` | No days off yet. |  |  |
 | `year_day_off` | Day off |  |  |
 | `year_add_day_off` | Add a day off |  |  |
+| `year_edit_day_off` | Edit day off |  |  |
 | `year_term_starts` | Term starts |  |  |
 | `year_term_ends` | Term ends |  |  |
 | `year_save` | Save |  |  |
@@ -777,7 +782,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Settings, palette and updates
 
-73 entries.
+72 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |

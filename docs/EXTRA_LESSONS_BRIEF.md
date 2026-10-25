@@ -2,7 +2,7 @@
 
 Status: shipped in 3.7.0. Approved on 2026-10-22.
 
-An extra lesson is a date and pinned core-book pages, shared by Proposed and My plan. Tap a day-off row, choose a date in Term weeks, or use the group’s ⋮ → Add extra lesson. The editor starts with the proposed share for that date, accepts strict page ranges and shows the verdict after saving. Other lessons re-pace when saved; typing changes only the preview. Existing extras have Edit and Delete actions in the lesson menu and TalkBack. The row and today’s box say Extra; Print and TSV include it too.
+An extra lesson is a date and pinned core-book pages, shared by Proposed and My plan. Tap a day-off row, choose a date in the week pills on the Plan page, or use the group’s ⋮ → Add extra lesson. The editor starts with the proposed share for that date, accepts strict page ranges and shows the verdict after saving. Other lessons re-pace when saved; typing changes only the preview. Existing extras have Edit and Delete actions in the lesson menu and TalkBack. The row and today’s box say Extra; Print and TSV include it too.
 
 `Group.extras` stores `ExtraLesson(id, date, pages)` in JSON schema 10 (schema 9 already stores the chosen catch-up boost). Older files without extras read unchanged. Import refuses versions above 10. Sanitising keeps one pin per date and unique ids, drops unknown and supplementary books, and removes pages outside 0..MAX_PAGE. Removing a book removes its pages from pins.
 

@@ -25,6 +25,14 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.0] - 2026-10-25
+
+### Changed
+
+- Plan: in a custom plan, the pages of a book that differ from the proposed plan show in red, and TalkBack says the lesson "differs from the proposed plan". Nothing turns red when the proposed plan has no lesson that day, or for supplementary pages.
+- Plan: the toggle reads "Weekly view" and "Monthly view". The term-week pills sit directly under the My plan | Proposed switch, and "Term weeks" is gone from the ⋮ menu. In Monthly view the month arrows sit there too, with the month centred between them.
+- String inventory brought up to date with the strings.
+
 ## [0.4.3.0] - 2026-10-25
 
 ### Added
@@ -804,6 +812,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.0]: https://github.com/tsampolion/course_planner/compare/v0.4.3.0...v0.4.4.0
 [0.4.3.0]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...v0.4.3.0
 [0.4.2.0]: https://github.com/tsampolion/course_planner/compare/v0.4.1.3...v0.4.2.0
 [0.4.1.3]: https://github.com/tsampolion/course_planner/compare/v0.4.1.2...v0.4.1.3

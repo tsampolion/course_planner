@@ -103,7 +103,7 @@ Stats follows the selected My plan or Proposed source. Custom figures show plann
 
 The book pace track retains its lead-book tick and adds a thin outlined proposed-position bar when the group is behind the calendar schedule. One accessible description names both positions; the outline carries the distinction beyond colour.
 
-The Plan hero is two compact rows: label/date with Done, then the pages, which open the taught-pages edit. Preview actions reserve the same space. Large text reflows actions below the lesson. The source switch labels the plan in use; re-pace, copy, delete and catch-up adjustment live in the group menu. Weeks or Months is remembered, month navigation stays above the list, and earlier/done lessons across months expand from one count. Calendar filtering precedes partitioning so list positioning stays aligned.
+The Plan hero is two compact rows: label/date with Done, then the pages, which open the taught-pages edit. Preview actions reserve the same space. Large text reflows actions below the lesson. The source switch labels the plan in use; re-pace, copy, delete and catch-up adjustment live in the group menu. Weekly or Monthly view is remembered, the week pills or month navigation sit under the source switch, and earlier/done lessons across months expand from one count. Calendar filtering precedes partitioning so list positioning stays aligned.
 
 ## Group assignments and group home (3.11.0)
 

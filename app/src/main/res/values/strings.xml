@@ -148,7 +148,6 @@
     <string name="group_marked_not_done">Lessons marked not done</string>
     <string name="group_saved">Pages taught saved</string>
     <string name="group_lesson_done">Lesson marked done</string>
-    <string name="group_term_weeks">Term weeks</string>
     <string name="group_copy">Copy</string>
     <string name="group_share">Share</string>
     <string name="group_add_books">Add this class\'s books</string>
@@ -461,6 +460,7 @@
     <string name="custom_removed">Lesson removed; its pages joined the next one</string>
     <string name="custom_moved">Lesson moved</string>
     <string name="custom_free">Free lesson</string>
+    <string name="custom_differs">differs from the proposed plan</string>
     <string name="custom_proposed_line">Proposed: %1$s</string>
     <string name="custom_drag">Drag to move lesson %1$d</string>
     <string name="custom_sheet_title">Lesson %1$d · %2$s %3$s</string>

@@ -72,7 +72,7 @@ import kotlinx.coroutines.delay
 private const val REVEAL_MS = 1000L
 
 /** The sheets the group's ⋮ menu opens on the screen itself. */
-enum class GroupSheet { TERM_WEEKS, TIPS, EXTRA, OWN_PACE, CATCH_UP }
+enum class GroupSheet { TIPS, EXTRA, OWN_PACE, CATCH_UP }
 
 /**
  * A group (design decision 8). Plan opens on today's lesson, with the done lessons above it and the lessons to come
@@ -209,23 +209,6 @@ fun GroupScreen(
         if (page == GroupPage.PLAN) {
             Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 SegmentedToggle(listOf(stringResource(R.string.plan_weeks), stringResource(R.string.plan_months)), grouping.ordinal, { vm.setPlanGrouping(PlanGrouping.entries[it]) })
-                if (grouping == PlanGrouping.MONTHS) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    PillIconButton(stringResource(R.string.plan_previous_month), { monthText = selectedMonth.minusMonths(1).toString() }) { AppIcon(AppIcons.ChevronRight, modifier = Modifier.rotate(180f)) }
-                    Box(Modifier.weight(1f)) {
-                        TertiaryButton(selectedMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH)), { pickMonth = true })
-                        PacerDropdownMenu(pickMonth, { pickMonth = false }) {
-                            val first = YearMonth.from(plan.start ?: today)
-                            val last = YearMonth.from(plan.end ?: today)
-                            var month = first
-                            while (month <= last) {
-                                val option = month
-                                DropdownMenuItem(text = { Text(option.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH))) }, onClick = { monthText = option.toString(); pickMonth = false })
-                                month = month.plusMonths(1)
-                            }
-                        }
-                    }
-                    PillIconButton(stringResource(R.string.plan_next_month), { monthText = selectedMonth.plusMonths(1).toString() }) { AppIcon(AppIcons.ChevronRight) }
-                }
             }
         }
         when (page) {
@@ -290,6 +273,45 @@ fun GroupScreen(
                         } else {
                             PlanSourceBar(custom, showMine, { showMine = it }, { vm.setCustomActive(g.id, showMine) })
                         }
+                    }
+                }
+                item(key = "view") {
+                    Column(Modifier.padding(horizontal = Space.l, vertical = Space.s), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                        if (grouping == PlanGrouping.MONTHS) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            PillIconButton(stringResource(R.string.plan_previous_month), { monthText = selectedMonth.minusMonths(1).toString() }) { AppIcon(AppIcons.ChevronRight, modifier = Modifier.rotate(180f)) }
+                            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                TertiaryButton(selectedMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH)), { pickMonth = true })
+                                PacerDropdownMenu(pickMonth, { pickMonth = false }) {
+                                    val first = YearMonth.from(plan.start ?: today)
+                                    val last = YearMonth.from(plan.end ?: today)
+                                    var month = first
+                                    while (month <= last) {
+                                        val option = month
+                                        DropdownMenuItem(text = { Text(option.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH))) }, onClick = { monthText = option.toString(); pickMonth = false })
+                                        month = month.plusMonths(1)
+                                    }
+                                }
+                            }
+                            PillIconButton(stringResource(R.string.plan_next_month), { monthText = selectedMonth.plusMonths(1).toString() }) { AppIcon(AppIcons.ChevronRight) }
+                        } else {
+                            val start = plan.start
+                            val end = plan.end
+                            if (start != null && end != null) {
+                                DayStrip(start, end, LocalDate.parse(selectedDay), lessons.map { it.date }.toSet(), { selectedDay = it.toString() })
+                                val date = LocalDate.parse(selectedDay)
+                                val lesson = lessons.firstOrNull { it.date == date }
+                                if (lesson?.done != true) TertiaryButton(stringResource(if (lesson?.extraId == null) R.string.extra_add else R.string.extra_edit), { extraDate = date.toString() })
+                                if (lesson != null) EntryRow(Entry.Item(lesson), actions)
+                                else {
+                                    val closure = plan.closedDates(g.id)[date]
+                                    Hint(if (closure != null) stringResource(R.string.group_day_off, closure) else stringResource(R.string.group_no_on_day, date.fmt()))
+                                }
+                            }
+                        }
+                    }
+                }
+                item(key = "notes") {
+                    Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                         // Quiet, not a warning: what each supplementary book still has to place.
                         plan.supplementaryBooks.forEach { b ->
                             val left = remember(report, b) { report.unplacedPages(b) }
@@ -342,26 +364,6 @@ fun GroupScreen(
     }
 
     when (sheet) {
-        GroupSheet.TERM_WEEKS -> {
-            val start = plan.start
-            val end = plan.end
-            HomeSheet(stringResource(R.string.group_term_weeks), onSheetClose) {
-                if (start == null || end == null) {
-                    Hint(stringResource(R.string.group_no_range))
-                    return@HomeSheet
-                }
-                DayStrip(start, end, LocalDate.parse(selectedDay), lessons.map { it.date }.toSet(), { selectedDay = it.toString() })
-                val date = LocalDate.parse(selectedDay)
-                val lesson = lessons.firstOrNull { it.date == date }
-                if (lesson?.done != true) TertiaryButton(stringResource(if (lesson?.extraId == null) R.string.extra_add else R.string.extra_edit), { onSheetClose(); extraDate = date.toString() })
-                if (lesson != null) {
-                    EntryRow(Entry.Item(lesson), actions)
-                } else {
-                    val closure = plan.closedDates(g.id)[date]
-                    Hint(if (closure != null) stringResource(R.string.group_day_off, closure) else stringResource(R.string.group_no_on_day, date.fmt()))
-                }
-            }
-        }
         GroupSheet.TIPS -> HomeSheet(stringResource(R.string.group_tips), onSheetClose) {
             Note(stringResource(R.string.guide_schedule_note))
             Hint(stringResource(R.string.group_tick_hint))
