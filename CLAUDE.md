@@ -13,10 +13,11 @@ Docs index: `docs/README.md`. How the app works (model, engine and its extension
 ./gradlew installDebug                           # installs "Course Pacer (debug)"; needs a device or emulator
 ./gradlew lint
 scripts/device-check.sh [label] [--install] [--kill]   # screenshots the open screen in light/dark, 100-200% text, 599-1024dp widths
-./gradlew connectedAndroidTest                   # the platform codec tests; needs a device or emulator
+./gradlew connectedAndroidTest                   # the platform codec tests on a connected device or emulator
+./gradlew pixel6Api33DebugAndroidTest            # the same on the managed emulator CI uses (downloads it once)
 ```
 
-CI (`.github/workflows/android.yml`) runs `testDebugUnitTest`, then `lint`, then `assembleRelease` on JDK 17, then checks the APK's signing certificate. Any change has to pass all four. When it passes on `main`, `.github/workflows/release.yml` checks the certificate again, tags `v<versionName>` and publishes the release.
+CI (`.github/workflows/android.yml`) runs `testDebugUnitTest`, then `lint`, then `assembleRelease` on JDK 17, then checks the APK's signing certificate. A second job runs the platform tests on a Gradle Managed Device (`pixel6Api33DebugAndroidTest`). Any change has to pass all five. When it passes on `main`, `.github/workflows/release.yml` checks the certificate again, tags `v<versionName>` and publishes the release.
 
 ## Architecture in brief
 
@@ -55,6 +56,8 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest`, then `lint`, then
 ## Workflow
 
 - Run `./gradlew testDebugUnitTest` (and `assembleRelease` if you touched the build or dependencies) before committing.
+- A new test checks what the teacher sees or what is saved, not only that a call succeeded.
+- A pull request that changes behaviour updates every test that locks in the old behaviour, in the same pull request; never delete such a test to get green.
 - `docs/PLANNED_FEATURES.md` holds features that are specified but not approved. Build one only when the owner asks for it; then ask its open questions, write its `docs/<NAME>_BRIEF.md`, and remove its entry.
 - **Every PR bumps the version.** Set `versionName` in `app/build.gradle.kts` to the next version `0.A.B.C` (always four parts, starting `0.`). **A** is a change that breaks old saved files or changes scheduling on purpose (rare); **B** is a new feature (redesign work included); **C** is fixes, docs, copy and polish. The leading `0` becomes `1` only when the owner says the app is ready for others. See the rules at the top of `CHANGELOG.md`. Increase `versionCode` by one, and add a matching `## [0.A.B.C] - YYYY-MM-DD` section to `CHANGELOG.md` with its compare link. Don't tag by hand: after the merge, `.github/workflows/release.yml` creates the tag and release from `versionName` and that changelog section, and it fails if the section is missing.
 - **Nothing risky in the public docs.** Don't commit plans, specs or notes that describe other repositories, security weaknesses, or how keys and secrets are created, stored or handled.
