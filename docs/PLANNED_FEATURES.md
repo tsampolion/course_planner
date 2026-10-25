@@ -6,6 +6,7 @@ How to use this file:
 
 - **Nothing here is approved yet.** Build an entry only when the owner asks for it in a session. Several entries change the pacing engine, which `CLAUDE.md` treats as a contract ("Engine parity is the contract"), so they need explicit sign-off.
 - When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and remove the entry from this file.
+- Entry 3 (save status) is built and recorded in [`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md); its number is not reused, so the other entries keep theirs.
 - Entries 2 to 9 come from the usability audit of 25 October 2026. That audit was read-only and covered 0.4.1.3 and 0.4.2.0. Every finding was checked again against 0.4.4.0. Findings keep their audit IDs (F01 to F19) and open decisions keep theirs (I1 to I6), so they can be traced.
 - The audit's visual, accessibility and streamlining findings (F09 to F12 and F16 to F18, with I1, I3, I4 and I5) are now in the approved [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md) and [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md). This file keeps the parts that change data, the engine, storage or output, which those briefs do not cover.
 - Most of entries 2 to 8 fix existing behaviour rather than add features. They wait here because they need the owner's go-ahead, and some need an engine decision.
@@ -190,53 +191,6 @@ Show each affected manual lesson and let the teacher edit or release it explicit
 
 1. **(I2)** When a manual lesson blocks a repair, does preservation win and leave the warning (recommended)? Or should an explicit per-lesson override exist, naming exactly what it will change?
 2. Should the Stale warning's fix open the affected lessons, or offer "Remove these pages" as its own, clearly named action?
-
-## 3. Save status the teacher can trust (F03)
-
-**Status:** proposed (audit P1, Source, high confidence). Not approved. No change to the data format.
-
-### The problem
-
-- `PlanStore.save` (`data/PlanStore.kt:89-97`) catches a failed write, logs it and returns nothing.
-- `scheduleSave` (`ui/PacerViewModel.kt:292-298`) ignores the result. `flush()` (`:304-308`) returns when the save job has already finished, so a failed save is never retried. That includes going to the background (`MainActivity.kt:52`).
-- Messages such as "Assignment saved" (`ui/AssignmentEditor.kt:27`, also `GroupScreen.kt:384,403,423,458`, `CollectionsUi.kt:82`) report the in-memory edit, not the disk.
-- `AtomicFile` keeps the old file intact, but the acknowledged new edit is lost if the process ends.
-- **Read lock.** The A4 read lock lasts the whole session: `load()` runs once (`PacerViewModel.kt:125`), and while `locked` every save is skipped (`PlanStore.kt:91`). The one-off notice (`load_read_failed`) asks the teacher to reopen the app, but any edits made meanwhile are silently never written.
-
-### Proposal
-
-- `save` returns a result.
-- The ViewModel keeps a revision-aware dirty state. A successful write clears only the revision it wrote, never a newer one.
-- `flush()` writes whenever the state is dirty, whatever the job's state. A failed write retries on the next edit, on background and on Retry.
-- A lasting, non-blocking notice ("Couldn't save your changes. Retry · Export a copy") stays until a write succeeds.
-- While reading is locked, the same notice shows that edits are not being saved and offers Export.
-- Keep the A4 rule: never overwrite a file that could not be read.
-- Do not add a disk-confirmation dialog to ordinary edits.
-
-### Alternative
-
-A small storage coordinator that emits a typed status (idle, saving, saved, failed, locked) for the UI to show. This is the same behaviour behind a cleaner seam.
-
-### Acceptance
-
-- Inject a write that fails and then succeeds. The error is visible, the data stays in memory, and Retry or going to the background persists the newest state.
-- No false "saved" and no clearing of a newer dirty revision.
-- Nothing is written after a locked read.
-- Rapid edits and stop-time ordering are covered.
-- Tests extend the existing `PlanFile` fake (`PacerViewModelTest.kt:80-108`, `PlanStoreTest.kt:31`) with a throwing write.
-- On a device, run a process-restart scenario.
-
-### Risk and dependencies
-
-- **Risk:** high integrity risk, because an old success must never clear a newer edit.
-- **Complexity:** medium.
-- **Rollback:** revert the store and UI changes together, after exporting the newest in-memory work.
-- **Seam:** the existing `internal interface PlanFile` (`PlanStore.kt:17-22`) and the D5 fakes. There is no separate `PlansPort`, contrary to the plan's wording.
-
-### Open questions
-
-1. Is a lasting snackbar enough, or should the top bar show a small "not saved" mark until a write succeeds?
-2. Should a locked read offer "Try reading again" in the app, rather than only "close and reopen"?
 
 ## 4. One "today" for the engine too (F08, rest of B0)
 
@@ -517,7 +471,7 @@ Warn or block at export when the file would be over the import limit. This is a 
 ### Coverage gaps to close with tests
 
 - Preservation in Tidy and Fit (entry 2).
-- Failed writes and retry (entry 3).
+- Failed writes and retry ([`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md)).
 - Midnight across screens (entry 4).
 - Rendered history and schema-15 codec round trips (entry 5).
 - Shared-control semantics (UI audit X12, X13).
@@ -549,7 +503,7 @@ The UI/UX audit and streamlining briefs were approved in 0.4.4.2 (58). What is l
 
 The recommended sequence keeps data safety ahead of layout work, and each layout area is touched once. Each step is its own pull request with its own version bump; re-check `main` before each one.
 
-1. **Entry 3**, save status. It reuses the D5 `PlanFile` seam and keeps the A4 read lock.
+1. ~~Entry 3, save status~~ (0.4.4.5, `SAVE_STATUS_BRIEF.md`).
 2. **Entry 2**, Tidy and Fit preservation. It needs the owner's engine sign-off, and must land before UI PR 1 adds a "Fix" to the progress strip (streamlining D1), so that a more visible fix can't rewrite manual lessons.
 3. **Entry 4**, one today for the engine. Do it before UI PR 3, because Home's today list depends on it.
 4. **Entry 5**, history and schema-15 tests. Do it before UI PR 2 reworks the ledger rows (gutters, edges).
@@ -560,7 +514,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 9. **UI PR 5**, one sheet frame. It includes F18's draft rule (streamlining S4) and the shared Picker and SwitchRow semantics (audit X12, X13).
 10. **UI PR 6**, set-up screens. It includes F17 (audit C2, streamlining S2) and entry 6's range and day-off checks.
 11. **UI PRs 7 and 8**, Stats and Work; Settings, welcome and empty states.
-12. **Entries 7 and 8**, print and backup. They can go any time after step 1, as separate pull requests. Entry 7 goes before or with streamlining M3.
+12. **Entries 7 and 8**, print and backup. They can go any time, as separate pull requests. Entry 7 goes before or with streamlining M3.
 13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
 
 Entry 1 (focus blocks) has no slot; build it only when asked. Do not start a parallel navigation or design system.

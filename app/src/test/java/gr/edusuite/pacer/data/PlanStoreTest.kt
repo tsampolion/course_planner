@@ -29,8 +29,12 @@ class PlanStoreTest {
     }
 
     private class FakeFile(override val base: File, var onRead: () -> ByteArray, val writes: MutableList<ByteArray> = mutableListOf()) : PlanFile {
+        var failWrites = false
         override fun read() = onRead()
-        override fun write(bytes: ByteArray) { writes += bytes }
+        override fun write(bytes: ByteArray) {
+            if (failWrites) throw IOException("disk full")
+            writes += bytes
+        }
         val warnings = mutableListOf<String>()
         override fun warn(message: String, error: Throwable) { warnings += message + ": " + error }
     }
@@ -101,5 +105,37 @@ class PlanStoreTest {
         assertEquals(File(dir.root, "plans.json.bad"), loaded.setAside)
         assertFalse(fake.base.exists())
         assertTrue(loaded.data.years.isEmpty())
+    }
+
+    @Test fun saveReportsWhatHappened() {
+        val (store, fake) = store("""{"years":[]}""")
+        assertEquals(SaveResult.Saved, store.save(empty))
+        assertEquals(1, fake.writes.size)
+        fake.failWrites = true
+        assertEquals(SaveResult.Failed, store.save(empty))
+        assertEquals(1, fake.writes.size)
+        fake.failWrites = false
+        assertEquals("a failed write doesn't block the next one", SaveResult.Saved, store.save(empty))
+    }
+
+    @Test fun saveAfterAReadFailureWritesNothing() {
+        val (store, fake) = store("""{"years":[]}""")
+        fake.onRead = { throw IOException("disk hiccup") }
+        assertTrue(store.load().readFailed)
+        assertEquals(SaveResult.Locked, store.save(empty))
+        assertEquals(0, fake.writes.size)
+    }
+
+    @Test fun reloadReadsWithoutUnlocking() {
+        val (store, fake) = store("""{"years":[]}""")
+        var failing = true
+        fake.onRead = { if (failing) throw IOException("disk hiccup") else "{}".toByteArray() }
+        assertTrue(store.load().readFailed)
+        failing = false
+        assertFalse(store.reload().readFailed)
+        assertEquals("reading again alone doesn't allow overwriting", SaveResult.Locked, store.save(empty))
+        store.unlock()
+        assertEquals(SaveResult.Saved, store.save(empty))
+        assertEquals(1, fake.writes.size)
     }
 }

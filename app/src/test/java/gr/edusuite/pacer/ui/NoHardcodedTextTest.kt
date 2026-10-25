@@ -32,6 +32,7 @@ class NoHardcodedTextTest {
         "GroupModel.kt" to setOf("[^\\\\p{L}\\\\p{N}']+", "B", "book"),
         "NavModel.kt" to setOf("\\\\p{Mn}+", "\\\\s+"),
         "SetAside.kt" to setOf("application/json", "course-pacer-unreadable-.json"),
+        "SaveNotice.kt" to setOf("application/json", "course-pacer-.json"),
     )
 
     private fun violations(file: String, original: String): List<String> {
