@@ -2,7 +2,7 @@
 
 This is the improved version of the original request ("turn the Coursebook Pacer page into a lightweight, fast Android app"). The app in this repository was built from it. The app is now called Course Pacer; since 1.3.0 plans are organised as school years and classes (see `docs/YEARS_BRIEF.md`).
 
-The screen structure has changed since this brief: Home is now the open school year's dashboard, with Classes, Class and Group screens below it. `CLAUDE.md` describes the current app; this file keeps the original port scope and the parity checklist.
+The screen structure has changed since this brief: Home is now the open school year's dashboard, with Classes, Class and Group screens below it. `docs/ARCHITECTURE.md` describes the current app; this file keeps the original port scope and the parity checklist.
 
 ## Goal
 

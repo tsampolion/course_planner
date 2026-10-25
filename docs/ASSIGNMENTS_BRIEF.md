@@ -1,7 +1,8 @@
 # Group assignments (Part C)
 
-Status: implemented for 3.11.0, schema 12; automated checks pass, device QA pending.
-Part B is specified in HOMEWORK_BRIEF.md; Part A (book units) follows separately.
+Status: shipped in 3.11.0 (0.3.11.0 in the four-part format), schema 12.
+
+Lesson homework is in [HOMEWORK_BRIEF.md](HOMEWORK_BRIEF.md) and book units in [UNITS_BRIEF.md](UNITS_BRIEF.md).
 
 ## Behaviour
 

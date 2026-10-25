@@ -1,6 +1,6 @@
 # Extra lessons
 
-> Built in 3.7.0. Approved for implementation in the Phase B session on 2026-10-22.
+Status: shipped in 3.7.0. Approved on 2026-10-22.
 
 An extra lesson is a date and pinned core-book pages, shared by Proposed and My plan. Tap a day-off row, choose a date in Term weeks, or use the group’s ⋮ → Add extra lesson. The editor starts with the proposed share for that date, accepts strict page ranges and shows the verdict after saving. Other lessons re-pace when saved; typing changes only the preview. Existing extras have Edit and Delete actions in the lesson menu and TalkBack. The row and today’s box say Extra; Print and TSV include it too.
 

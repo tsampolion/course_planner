@@ -1,6 +1,6 @@
 # Task: Supplementary books in chosen lessons
 
-> Decision record: built in 2.10.0. The code and CLAUDE.md describe the current app.
+Status: shipped in 2.10.0. [`ARCHITECTURE.md`](ARCHITECTURE.md) describes the current app.
 
 The owner's request, clarified on 2026-10-20:
 

@@ -1,6 +1,6 @@
-Built in 4.1.0 (versions written `0.X.Y.Z` from 0.4.1.1; the first four-part build is installed by hand).
-
 # In-app updates
+
+Status: shipped in 4.1.0 (versions written `0.X.Y.Z` from 0.4.1.1; the first four-part build is installed by hand).
 
 ## Why
 
