@@ -25,7 +25,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
-## [0.4.4.7] - 2026-10-25
+## [0.4.4.8] - 2026-10-25
 
 ### Changed
 
@@ -892,7 +892,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
-[0.4.4.7]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.7
+[0.4.4.8]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.8
 [0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
 [0.4.4.5]: https://github.com/tsampolion/course_planner/compare/v0.4.4.4...v0.4.4.5
 [0.4.4.4]: https://github.com/tsampolion/course_planner/compare/v0.4.4.3...v0.4.4.4

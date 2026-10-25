@@ -485,7 +485,7 @@ The UI/UX audit and streamlining briefs were approved in 0.4.4.2 (58). What is l
 The recommended sequence keeps data safety ahead of layout work, and each layout area is touched once. Each step is its own pull request with its own version bump; re-check `main` before each one.
 
 1. ~~Entry 3, save status~~ (0.4.4.6, `SAVE_STATUS_BRIEF.md`).
-2. ~~Entry 2, Tidy and Fit preservation~~ (0.4.4.7, `TIDY_FIT_BRIEF.md`).
+2. ~~Entry 2, Tidy and Fit preservation~~ (0.4.4.8, `TIDY_FIT_BRIEF.md`).
 3. **Entry 4**, one today for the engine. Do it before UI PR 3, because Home's today list depends on it.
 4. **Entry 5**, history and schema-15 tests. Do it before UI PR 2 reworks the ledger rows (gutters, edges).
 5. **UI PR 1**, group home and the hero. It includes F09: the pages wrap at any width (audit G1).
