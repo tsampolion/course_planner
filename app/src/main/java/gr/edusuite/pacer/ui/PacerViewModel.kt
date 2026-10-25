@@ -114,12 +114,12 @@ class PacerViewModel(
     private val settingsStore: SettingsPort,
     private val updates: UpdateChecker,
     /** Where background work runs; tests pass their own, the app uses [viewModelScope]. */
-    scope: CoroutineScope? = null,
+    scopeOverride: CoroutineScope? = null,
     private val io: CoroutineDispatcher = Dispatchers.IO,
     /** A millisecond clock for merging edits to one field into one undo step. */
     private val clock: () -> Long = SystemClock::elapsedRealtime,
 ) : ViewModel() {
-    private val scope: CoroutineScope = scope ?: viewModelScope
+    private val scope: CoroutineScope = scopeOverride ?: viewModelScope
     private val loaded = store.load()
     private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.launch, 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
