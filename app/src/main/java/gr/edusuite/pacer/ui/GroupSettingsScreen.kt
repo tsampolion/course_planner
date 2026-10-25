@@ -54,7 +54,7 @@ fun GroupSettingsScreen(
     val nextLesson = remember(plan, group) { plan.lessonsFor(group).firstOrNull() ?: group.from ?: plan.start }
     ScreenList(padding) {
         item(key = 1) {
-            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            SectionColumn {
                 SectionHead(stringResource(R.string.group_settings_dates))
                 DateField(nextLesson, { vm.setNextLesson(group.id, it) }, stringResource(R.string.class_next_lesson), Modifier.fillMaxWidth(), clearable = true)
                 Hint(stringResource(R.string.group_settings_default_start, plan.start?.fmt() ?: stringResource(R.string.component_not_set)))
@@ -64,7 +64,7 @@ fun GroupSettingsScreen(
             }
         }
         item(key = 2) {
-            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            SectionColumn {
                 SectionHead(stringResource(R.string.group_settings_days_off), action = stringResource(R.string.year_add), onAction = { addingClosure = true })
                 Hint(stringResource(R.string.group_settings_days_off_hint))
                 if (inherited.isNotEmpty()) {
@@ -111,7 +111,7 @@ fun GroupSettingsScreen(
             }
         }
         item(key = 3) {
-            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            SectionColumn {
                 SectionHead(stringResource(R.string.group_settings_skipped_pages))
                 Hint(stringResource(R.string.group_settings_skip_hint))
                 plan.books.filter { !it.supplementary && group.usesBook(it) }.forEach { book ->
@@ -123,7 +123,7 @@ fun GroupSettingsScreen(
             }
         }
         item(key = 4) {
-            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            SectionColumn {
                 SectionHead(stringResource(R.string.group_settings_books), action = stringResource(R.string.class_add_a_book), onAction = { addingBook = true })
                 Hint(stringResource(R.string.group_settings_books_hint))
                 Hint(stringResource(R.string.group_settings_books_long_press))
@@ -150,7 +150,7 @@ fun GroupSettingsScreen(
             }
         }
         item(key = "units") {
-            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            SectionColumn {
                 SectionHead(stringResource(R.string.units_title))
                 Picker(stringResource(R.string.units_group_setting), listOf(
                     "inherit" to stringResource(R.string.units_follow_class),

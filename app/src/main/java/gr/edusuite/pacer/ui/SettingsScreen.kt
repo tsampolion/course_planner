@@ -41,6 +41,7 @@ import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Figures
+import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
@@ -77,7 +78,7 @@ fun SettingsScreen(
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentPadding = PaddingValues(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
-        verticalArrangement = Arrangement.spacedBy(Space.l),
+        verticalArrangement = Arrangement.spacedBy(Rhythm.section),
     ) {
         if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, Modifier.animateItem()) }
         item(key = "name") {

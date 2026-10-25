@@ -21,6 +21,7 @@ import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.MotionSpec
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
@@ -71,7 +72,7 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
         LazyColumn(contentPadding = PaddingValues(top = padding.calculateTopPadding() + Space.m,
             bottom = padding.calculateBottomPadding() + Space.xxl * 3)) {
             item {
-                LazyRow(contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+                LazyRow(Modifier.padding(bottom = Rhythm.inSection), contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                     items(labels.indices.toList()) { index -> FilterChip(selected = filter == index, onClick = { filter = index }, label = { Text(labels[index]) }) }
                 }
             }
@@ -80,13 +81,13 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                     EmptyState(AppIcons.Homework, stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint), stringResource(R.string.work_add)) { adding = true }
                 }
             }
-            sections.forEach { section ->
+            sections.forEachIndexed { sectionIndex, section ->
                 item { SectionHead(stringResource(when (section.period) {
                     WorkPeriod.THIS_WEEK -> R.string.work_this_week
                     WorkPeriod.LATER -> R.string.work_later
                     WorkPeriod.UNDATED -> R.string.work_undated
                     WorkPeriod.EARLIER -> R.string.work_earlier
-                }), Modifier.padding(horizontal = Space.l)) }
+                }), Modifier.padding(horizontal = Space.l).let { if (sectionIndex > 0) it.padding(top = Rhythm.section) else it }) }
                 itemsIndexed(section.assignments, key = { _, a -> a.id }) { index, a ->
                     var menu by remember { mutableStateOf(false) }
                     val title = assignmentTitle(a)

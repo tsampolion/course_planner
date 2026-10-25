@@ -34,6 +34,16 @@ object Space {
     val xxl = 32.dp
 }
 
+/**
+ * One vertical rhythm for list and settings screens: [section] separates the blocks of a screen (a heading with its
+ * rows, a card, a button row); [inSection] separates the parts of one block (heading, rows, hint, button).
+ * Built from [Space], so the 4dp grid holds.
+ */
+object Rhythm {
+    val section = Space.l
+    val inSection = Space.s
+}
+
 /** Shared motion specs (§5); work uses explicit timings with a finished reduced-motion state. */
 object Motion {
     private val WorkEase = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)

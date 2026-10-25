@@ -62,6 +62,7 @@ import gr.edusuite.pacer.engine.unplacedPages
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.ui.theme.Figures
+import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -207,7 +208,7 @@ fun GroupScreen(
     val largeText = rememberLargeText()
     Column(Modifier.fillMaxSize().imePadding().padding(top = insets.top)) {
         if (page == GroupPage.PLAN) {
-            Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Rhythm.inSection)) {
                 SegmentedToggle(listOf(stringResource(R.string.plan_weeks), stringResource(R.string.plan_months)), grouping.ordinal, { vm.setPlanGrouping(PlanGrouping.entries[it]) })
             }
         }
@@ -260,7 +261,7 @@ fun GroupScreen(
                     unitWindows.filter { it.end == next?.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                 }
                 item(key = "custom") {
-                    Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                    Column(Modifier.padding(start = Space.l, end = Space.l, top = Rhythm.section), verticalArrangement = Arrangement.spacedBy(Rhythm.inSection)) {
                         if (custom == null) {
                             // Large text: the line lives in the ⋮ menu instead.
                             if (report.rows.isNotEmpty() && !largeText) CustomPlanLine({
@@ -276,7 +277,7 @@ fun GroupScreen(
                     }
                 }
                 item(key = "view") {
-                    Column(Modifier.padding(horizontal = Space.l, vertical = Space.s), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                    Column(Modifier.padding(horizontal = Space.l, vertical = Rhythm.inSection), verticalArrangement = Arrangement.spacedBy(Rhythm.inSection)) {
                         if (grouping == PlanGrouping.MONTHS) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             PillIconButton(stringResource(R.string.plan_previous_month), { monthText = selectedMonth.minusMonths(1).toString() }) { AppIcon(AppIcons.ChevronRight, modifier = Modifier.rotate(180f)) }
                             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -311,7 +312,7 @@ fun GroupScreen(
                     }
                 }
                 item(key = "notes") {
-                    Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                    Column(Modifier.padding(horizontal = Space.l), verticalArrangement = Arrangement.spacedBy(Rhythm.inSection)) {
                         // Quiet, not a warning: what each supplementary book still has to place.
                         plan.supplementaryBooks.forEach { b ->
                             val left = remember(report, b) { report.unplacedPages(b) }

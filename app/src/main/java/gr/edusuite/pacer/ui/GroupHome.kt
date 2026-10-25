@@ -34,6 +34,7 @@ import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.ui.theme.Motion
 import gr.edusuite.pacer.ui.theme.MotionSpec
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
@@ -42,7 +43,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
     padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onOpen: (GroupDestination) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(start = Space.l, end = Space.l,
         top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
-        verticalArrangement = Arrangement.spacedBy(Space.l)) {
+        verticalArrangement = Arrangement.spacedBy(Rhythm.section)) {
         item {
             TodayBox(next, today, actions, onDone, onPagesTaught) {
                 val due = report.group.assignments.filter { it.type == AssignmentType.HOMEWORK && it.due == today && next?.date != today }
