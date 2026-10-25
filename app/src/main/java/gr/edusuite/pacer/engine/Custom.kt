@@ -46,6 +46,8 @@ data class Coverage(
     val stale: Map<String, List<Int>>,
     val overflow: Int,
     val shortCovered: Int = 0,
+    /** How many of the [overflow] lessons the teacher edited by hand: Fit to term leaves those where they are. */
+    val overflowEdited: Int = 0,
 ) {
     val ok: Boolean get() = missing.isEmpty() && doubled.isEmpty() && stale.isEmpty() && overflow == 0
     val missingCount: Int get() = missing.values.sumOf { it.size }
@@ -73,7 +75,7 @@ fun GroupReport.coverage(): Coverage? {
     for (id in group.removedBooks) {
         c.lessons.flatMap { it.pages[id].orEmpty() }.distinct().sorted().takeIf { it.isNotEmpty() }?.let { stale[id] = it }
     }
-    return Coverage(missing, doubled, stale, (c.lessons.size - teaching).coerceAtLeast(0), coveredShortLessons(c))
+    return Coverage(missing, doubled, stale, (c.lessons.size - teaching).coerceAtLeast(0), coveredShortLessons(c), c.lessons.drop(teaching).count { it.touched })
 }
 
 
@@ -198,6 +200,8 @@ fun GroupReport.repaceFrom(from: Int): CustomPlan? {
     }
     val days = teachingDates
     val k = from.coerceAtLeast(0)
+    // With no untouched lesson in the term to take the pages, nothing moves: dropping the lessons past the term would lose their pages.
+    if (c.lessons.indices.none { it >= k && it < days.size && !c.lessons[it].touched }) return c
     val kept = c.lessons.withIndex().mapNotNull { (i, l) ->
         when {
             i < days.size || i < k || l.touched -> l
@@ -207,7 +211,6 @@ fun GroupReport.repaceFrom(from: Int): CustomPlan? {
     }
     val targets = kept.indices.filter { it >= k && it < days.size && !kept[it].touched }
     val out = kept.mapIndexed { i, l -> if (i in targets) l.copy(pages = plan.supplementaryOf(l.pages)) else l }.toMutableList()
-    if (targets.isEmpty()) return c.copy(lessons = out)
     val pools = plan.books.associate { b ->
         val covered = out.flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
         b.id to plan.remainingPages(group, b).filter { it !in covered }
@@ -230,45 +233,53 @@ fun GroupReport.repaceFrom(from: Int): CustomPlan? {
 }
 
 /**
- * Takes out pages that need no teaching and pages an earlier lesson already teaches. A lesson the teacher never
- * touched and that is left with nothing to teach goes too. Supplementary pages are left as they are.
+ * Takes out pages that need no teaching and pages an earlier lesson already teaches, from lessons the teacher never
+ * touched. A touched lesson stays exactly as it is and its pages are reserved first, so an untouched lesson's copy of
+ * one of them goes. A lesson nobody touched and that is left with nothing to teach goes too, unless it has a note.
+ * Supplementary pages and the pages of a book the group dropped are left as they are.
  */
 fun GroupReport.tidy(): CustomPlan? {
     val c = group.custom ?: return null
     val left = plan.books.associate { b -> b.id to plan.remainingPages(group, b).toHashSet() }
     val seen = plan.books.associate { b -> b.id to HashSet<Int>() }
+    for (l in c.lessons) if (l.touched) for ((book, ps) in l.pages) seen[book]?.addAll(ps)
     val supp = plan.supplementaryIds
     val out = c.lessons.mapNotNull { l ->
+        if (l.touched) return@mapNotNull l
         val pages = l.pages.mapNotNull { (book, ps) ->
-            if (book in supp) return@mapNotNull book to ps
+            if (book in supp || book in group.removedBooks) return@mapNotNull book to ps
             val keep = ps.filter { p -> left[book]?.contains(p) == true && seen.getValue(book).add(p) }
             if (keep.isEmpty()) null else book to keep
         }.toMap()
-        if (pages.isEmpty() && l.pages.isNotEmpty() && !l.touched && l.note.isBlank()) null else l.copy(pages = pages)
+        if (pages.isEmpty() && l.pages.isNotEmpty() && l.note.isBlank()) null else l.copy(pages = pages)
     }
     return c.copy(lessons = out)
 }
 
 /**
- * Brings lessons past the term end back into it. Their pages re-spread over the untouched lessons after the last one
- * the teacher touched; if every lesson in the term is touched, they join the last lesson. A lesson past the end that
- * holds supplementary pages stays where it is, with only those, for the teacher to place again.
+ * Brings lessons past the term end back into it. Only lessons the teacher never touched move: their pages re-spread
+ * over the untouched lessons after the last one the teacher touched. A touched lesson past the end stays there, as it is.
+ * A lesson past the end that holds supplementary pages stays where it is, with only those, for the teacher to place again.
+ * If no untouched lesson in the term is free to take them, nothing changes and the warning stays.
  */
 fun GroupReport.fitToTerm(): CustomPlan? {
     val c = group.custom ?: return null
     val days = teaching
     if (c.lessons.size <= days || days == 0) return c
     val inTerm = c.lessons.take(days)
-    val beyond = c.lessons.drop(days)
-    val keep = beyond.filter { plan.hasSupplementary(it) }.map { it.copy(pages = plan.supplementaryOf(it.pages)) }
     val k = inTerm.indexOfLast { it.touched } + 1
-    if (k < days) {
-        val fitted = GroupReport(plan, group.copy(custom = c.copy(lessons = inTerm)), Source.CUSTOM).repaceFrom(k) ?: return c
-        return fitted.copy(lessons = fitted.lessons + keep)
+    if (k >= days) return c
+    val keep = c.lessons.drop(days).mapNotNull { l ->
+        when {
+            l.touched -> l
+            plan.hasSupplementary(l) -> l.copy(pages = plan.supplementaryOf(l.pages))
+            else -> null
+        }
     }
-    val last = inTerm.last()
-    val merged = beyond.fold(last.pages) { acc, l -> mergePages(acc, plan.coreOf(l.pages)) }
-    return c.copy(lessons = inTerm.dropLast(1) + last.copy(pages = merged, touched = true) + keep)
+    // The lessons that stay count as placed, so their pages are not handed out again.
+    val fitted = GroupReport(plan, group.copy(custom = c.copy(lessons = inTerm + keep)), Source.CUSTOM).repaceFrom(k) ?: return c
+    val keepIds = keep.mapTo(HashSet()) { it.id }
+    return fitted.copy(lessons = fitted.lessons.filter { it.id !in keepIds } + keep)
 }
 
 /** The lesson [id] with [pages] and [note]. Changing its pages marks it touched, so re-pacing leaves it alone. */

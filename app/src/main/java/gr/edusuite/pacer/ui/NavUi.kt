@@ -339,6 +339,7 @@ class WarningFixes(
     val extra: (java.time.LocalDate) -> Unit = {},
     val repaceToFit: () -> Unit = repace,
     val units: (gr.edusuite.pacer.engine.UnitIssue) -> Unit = {},
+    val openLesson: (String) -> Unit = {},
 )
 
 /**
@@ -384,31 +385,44 @@ fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: Warn
                 )
                 is GroupWarning.Overflow -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.custom_overflow, w.lessons, w.lessons),
-                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_fit), onFix = { close(); fixes.fit() },
+                    overflowHint(w), if (w.canFit) stringResource(R.string.custom_fix_fit) else null, onFix = { close(); fixes.fit() },
                 )
                 is GroupWarning.Doubled -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.custom_doubled, w.pages, w.pages),
-                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_tidy), onFix = { close(); fixes.tidy() },
+                    if (w.openLesson == null) stringResource(R.string.warnings_plan_hint) else stringResource(R.string.warnings_edited_hint),
+                    stringResource(if (w.openLesson == null) R.string.custom_fix_tidy else R.string.custom_fix_open_lesson),
+                    onFix = { close(); w.openLesson?.let(fixes.openLesson) ?: fixes.tidy() },
                 )
                 is GroupWarning.Stale -> WarningItem(
                     AppIcons.Warning, pluralStringResource(R.plurals.custom_stale, w.pages, w.pages),
-                    stringResource(R.string.warnings_plan_hint), stringResource(R.string.custom_fix_tidy), onFix = { close(); fixes.tidy() },
+                    if (w.openLesson == null) stringResource(R.string.warnings_plan_hint) else stringResource(R.string.warnings_edited_hint),
+                    stringResource(if (w.openLesson == null) R.string.custom_fix_tidy else R.string.custom_fix_open_lesson),
+                    onFix = { close(); w.openLesson?.let(fixes.openLesson) ?: fixes.tidy() },
                 )
             }
         }
     }
 }
 
-/** A warning: its symbol, what is wrong over a line on why, and the button that fixes it ([strong] fills it in warn). */
+/** Why the Overflow warning stays: the lessons the teacher edited stay where they are, and Fit to term may have nowhere to put the rest. */
 @Composable
-private fun WarningItem(icon: ImageVector, title: String, hint: String, fix: String, strong: Boolean = false, onFix: () -> Unit) {
+private fun overflowHint(w: GroupWarning.Overflow): String {
+    val base = stringResource(R.string.warnings_plan_hint)
+    val edited = if (w.edited > 0) pluralStringResource(R.plurals.warnings_overflow_edited, w.edited, w.edited) else null
+    val stuck = if (!w.canFit && w.edited < w.lessons) stringResource(R.string.warnings_overflow_stuck) else null
+    return listOfNotNull(base, edited, stuck).joinToString(" ")
+}
+
+/** A warning: its symbol, what is wrong over a line on why, and the button that fixes it, if any ([strong] fills it in warn). */
+@Composable
+private fun WarningItem(icon: ImageVector, title: String, hint: String, fix: String?, strong: Boolean = false, onFix: () -> Unit = {}) {
     val c = Pacer.colors
     Row(Modifier.fillMaxWidth().padding(vertical = Space.s), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
         AppIcon(icon, Modifier.padding(top = Space.xs))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(hint, style = MaterialTheme.typography.bodyMedium, color = c.muted)
-            if (strong) {
+            if (fix == null) Unit else if (strong) {
                 Button(
                     onClick = onFix, modifier = Modifier.heightIn(min = 48.dp), shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(containerColor = c.warn, contentColor = c.onWarn),

@@ -136,7 +136,7 @@ The owner keeps ☰ on every screen. To give every screen a visible way up:
   - A state with no lessons, no books or no safe repair says what to do next. It never shows an enabled action that does nothing.
 - **Live or staged.** Forms mix live fields with sheets that save on Save. First check whether teachers can tell which values already apply. Don't add a Save button to every field or a confirmation to every close.
 - **Scope in sight.** Show group, class or year scope whenever a change affects other screens (a year day off moves every group).
-- **Repairs stay safe.** A more visible "Fix" (D1) must only offer repairs that keep hand-edited lessons ([`PLANNED_FEATURES.md`](PLANNED_FEATURES.md) entry 2).
+- **Repairs stay safe.** A more visible "Fix" (D1) must only offer repairs that keep hand-edited lessons ([`TIDY_FIT_BRIEF.md`](TIDY_FIT_BRIEF.md)).
 - **Also weigh** (hypotheses):
   - new classes start with Group A on Mon/Wed/Fri (S1's question at creation answers it);
   - some class-level problems have no direct fix link.

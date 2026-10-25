@@ -2,7 +2,7 @@
 
 Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can propose new wording in one place. **No wording has been changed.** Fill the *Your proposal* column and return the file; copy changes then happen in one pass.
 
-- **Resource strings:** 787 entries from `app/src/main/res/values/*strings.xml`, grouped by screen. Plurals are one row each, with their `one` and `other` forms. `%1$s`, `%d` and similar are filled in by the app (names, numbers, dates); keep them in any proposal.
+- **Resource strings:** 791 entries from `app/src/main/res/values/*strings.xml`, grouped by screen. Plurals are one row each, with their `one` and `other` forms. `%1$s`, `%d` and similar are filled in by the app (names, numbers, dates); keep them in any proposal.
 - **TalkBack labels** are resource strings too (content descriptions, state descriptions and custom actions). Rows whose ID looks like one are tagged *TalkBack* in Notes; others used only by TalkBack are not separately tagged, so treat every row as possibly spoken.
 - **Strings written in Kotlin** (last section) are engine messages, default names, printed output and exports. They are kept out of resources on purpose, so changing them is a code change; say which you want changed.
 
@@ -383,6 +383,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `custom_fix_repace` | Re-pace |  |  |
 | `custom_fix_tidy` | Tidy |  |  |
 | `custom_fix_fit` | Fit to term |  |  |
+| `custom_fix_open_lesson` | Open lesson |  |  |
 | `custom_repace_all` | Re-pace untouched lessons |  |  |
 | `custom_copy_to` | Copy to… |  |  |
 | `custom_copied` | Plan copied to %1$s |  | Has placeholders |
@@ -764,6 +765,9 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `warnings_book_behind` | one: %1$s is %2$d lesson behind / other: %1$s is %2$d lessons behind |  | Plural, Has placeholders |
 | `warnings_book_hint` | The other books are further on. |  |  |
 | `warnings_plan_hint` | In your custom plan. |  |  |
+| `warnings_edited_hint` | In a lesson you edited, so Tidy leaves it as it is. |  |  |
+| `warnings_overflow_stuck` | No lesson you haven't edited is free in the term, so Fit to term has nowhere to put them. |  |  |
+| `warnings_overflow_edited` | one: %d of them you edited, so it stays as it is. / other: %d of them you edited, so they stay as they are. |  | Plural, Has placeholders |
 | `warn_repace_keeps_catch_up` | Re-pacing untouched lessons keeps your chosen catch-up pace. |  |  |
 | `warnings_repace_to_fit` | Re-pace to fit |  |  |
 

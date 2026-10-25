@@ -25,6 +25,17 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.7] - 2026-10-25
+
+### Changed
+
+- **Tidy** and **Fit to term** no longer change a lesson you edited. Tidy only cleans the lessons you haven't touched, and a page you placed by hand wins over an untouched lesson's copy of it. Fit to term only moves lessons you haven't touched, and a lesson you edited that falls after the term stays there, with its note. Pages of a book you removed from the group are never taken out of a lesson.
+- When nothing can move, the Overflow warning stays and says why. If the Doubled or Stale warning is about a lesson you edited, its button is now **Open lesson** instead of Tidy.
+
+### Fixed
+
+- Fit to term no longer merges pages into the last lesson when every lesson in the term is yours, and re-pacing no longer drops untouched lessons past the term when there is no free lesson to take their pages.
+
 ## [0.4.4.6] - 2026-10-25
 
 ### Added
@@ -881,6 +892,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.7]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.7
 [0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
 [0.4.4.5]: https://github.com/tsampolion/course_planner/compare/v0.4.4.4...v0.4.4.5
 [0.4.4.4]: https://github.com/tsampolion/course_planner/compare/v0.4.4.3...v0.4.4.4
