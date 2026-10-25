@@ -17,7 +17,8 @@ Dependency injection is manual: `PacerApplication.store` goes to `PacerViewModel
 - `AppData`: every `SchoolYear`, `activeYear`, `activeClass`, and `view` (the open group's id, or `"setup"` when none is open).
 - `SchoolYear`: the term dates, the days off (`Closure.who` is `ALL_GROUPS`, a class id or a group id), its `SchoolClass`es and its `collections`.
 - `SchoolClass`: lesson length, pace, books and groups.
-- `Group`: owns its assignments, done lessons, custom plan and extras.
+- `Group`: owns its assignments, done lessons, custom plan, extras and its overrides of the class's books (`removedBooks`, `bookDue`).
+- `Book` has a `BookType` (`BookType.kt`): SB, WB, GB, WrB, SkB, R, Supp or unclassified. The Supplementary type and `Book.supplementary` are one setting, kept equal by `withType`, the sanitiser and the codec.
 - `Settings`: app preferences (theme, palette, new-class defaults, whether the welcome guide was seen, the teacher's `name`, `classOrder`, `planGrouping`, and `seenTips`, the show-once hints already seen). Read and mark hints through `Hints` by stable id.
 - `ALL_GROUPS = "all"` stands in for a group id on closures and tests.
 - `Drafts.kt` holds `newId()` and `suggestYear()`.
@@ -88,7 +89,9 @@ A catch-up plan saves its chosen `catchUpBoost`. Re-pacing keeps that policy whi
 
 - All book indices belong to `report.plan`, never a raw class catalogue.
 - Direct remaining and banked pages also honour membership and additive skips.
-- Unselected optional leads fall back to no lead for that group.
+- A default book can be left out of one group (`Group.removedBooks`, `withBookRemoved`: never the last paced book). The group keeps its taught pages and positions, so adding the book back resumes where it was; hand-placed pages of it stay in their custom lessons and count as stale in the warnings. Only default books are removed; optional ones are selected.
+- A group can set its own finish-by date for a book (`Group.bookDue`). `forGroup` makes it the book's `due`, replacing the class's, and clamps it to the group's end.
+- Unselected or removed leads fall back to no lead for that group.
 - With no overrides, pacing is unchanged.
 - Override edits preserve custom content and expose existing missing, stale and overflow fixes rather than silently re-pacing.
 
@@ -118,7 +121,7 @@ A catch-up plan saves its chosen `catchUpBoost`. Re-pacing keeps that policy whi
 
 `data/`: `JsonCodec` maps to `org.json` by hand. Weekdays are numbered **0 = Sunday**, unlike `java.time.DayOfWeek`; dates are ISO strings. The format stays readable from the web page's localStorage export through `migratePlans` (`Migration.kt`), which makes each plan a year with one class. If the schema changes, bump `JsonCodec.VERSION` and keep reading old files.
 
-Reading is lenient per record: one it can't read is left out and one without an id gets a new one, so a single bad record doesn't cost the whole file.
+Reading is lenient per record: one it can't read is left out and one without an id gets a new one, so a single bad record doesn't cost the whole file. A book with no stored `type` (a file before schema 15) gets one from its name (`guessBookType`) or is unclassified (`readBookType`); a stored type is never guessed again.
 
 | Version | Adds | Release |
 | --- | --- | --- |
@@ -136,6 +139,7 @@ Reading is lenient per record: one it can't read is left out and one without an 
 | 12 | `Group.assignments`; legacy class homework/tests convert on load/import/save and are no longer written | 3.11.0 |
 | 13 | optional homework `contentType` and `linkedId` | 4.0.0 |
 | 14 | class units and book links; per-group overrides and revisions | 4.1.0 |
+| 15 | `Book.type`; `Group.removedBooks` and `Group.bookDue` | 0.4.2.0 |
 
 Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHANGELOG.md` explains the mapping).
 
@@ -163,7 +167,7 @@ Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHAN
 
 ### View model, edits and undo
 
-One `PacerViewModel` exposes `StateFlow<UiState>`. Every mutation goes through `edit`, `editYear`, `editClass`, `editGroup` or `editBook`, which push undo (at most 60 steps; edits with the same tag within 1.2 s merge) and schedule a debounced save (400 ms). The edit helpers return whether state changed; custom-plan fixes show Undo only for a change. `UndoGate` gives each notification a unique token, and its display starts the timeout independently of the history step. `MainActivity.onStop` calls `vm.flush()`.
+One `PacerViewModel` exposes `StateFlow<UiState>`. Every mutation goes through `edit`, `editYear`, `editClass`, `editGroup` or `editBook`, which push undo (at most 60 steps; edits with the same tag within 1.2 s merge) and schedule a debounced save (400 ms). The edit helpers return whether state changed; custom-plan fixes show Undo only for a change. `UndoGate` gives each notification a unique token, and its display starts the timeout independently of the history step. `MainActivity.onStop` calls `vm.flush()`. The view model takes its settings through `SettingsPort`, and its scope, IO dispatcher and clock as parameters, so `PacerViewModelTest` runs on the JVM with fakes and a manual dispatcher.
 
 Opening another school year clears the undo history. Deleting a year lands on Home, whose snackbar offers undo (which opens that year again). Deletes happen at once with a 5 s Undo snackbar; only Import's Replace all still asks first. Undo shows in the top bar only where `Screen.showsUndo` (Group, Class, Classes, School year, Tests, Homework).
 
@@ -188,10 +192,10 @@ Group home (`Screen.Group(id, page)`) has a hero, Progress, Due soon and Plan / 
 - **Plan** (`GroupScreen.kt`, `LessonLedger.kt`): today's `TodayBox`, the custom-plan line (`CustomPlanLine`, or the My plan | Proposed switch with an In use label), then `weekSections` of `LessonRow`s and `SlimRow`s (days off, whole-lesson tests), with earlier and done lessons collapsed above today and the list opening on it. The pinned Weeks | Months switch remembers `Settings.planGrouping`; Months has arrows and a picker, filters upcoming entries before partitioning, and preserves earlier entries across months. The compact hero reserves action space for previews. My plan actions live in the group menu.
 - **Rows**: each row is one TalkBack node whose custom actions are its long-press menu (`lessonMenu`, chosen by `lessonMenuItems` in `LessonMenuModel.kt`: planned pages for future lessons, recording taught pages for today and earlier). Its edge colour comes from `Lesson.kind`.
 - **Stats** (`GroupStats.kt`, `StatsModel.kt`) follows the selected active/custom or proposed source and reports planned count, rate and end. It is the verdict heading with in-term shortfall coverage, `FigureStrip`, `PaceTrack` (its tick is `inStepPages`, the engine's `followLead` over the whole book, so no new figure), an outlined proposed-position line for books behind, month columns and details. Own pace is offered on long-press of Pace needed (also in the large-text group menu).
-- **`GroupModel.kt`** holds `bookInitials`/`shortBookNames`, `weekSections` and `inStepPages`, plain Kotlin and unit-tested.
+- **`GroupModel.kt`** holds `bookLabels` (a type's abbreviation, numbered when a class has two of a type; unclassified books use `bookInitials`/`shortBookNames`), `weekSections` and `inStepPages`, plain Kotlin and unit-tested.
 - **Warnings**: `WarningsSheet`, opened from the warning button in the group's top bar. Applying a fix closes it so its notification is visible.
 - **Group menu** (`GroupMenu` in `PacerApp.kt`): Copy, Share, Print (`PrintDialog(only = …)`, this group chosen), Term weeks, Add extra lesson and Tips (`GroupSheet`).
-- **Group settings**: `Screen.GroupSettings(id)` keeps the group on the navigation stack and in the tablet detail pane, shows Undo, and is pruned after deletion. Its inputs use the raw class plan to show defaults; its reports use effective plans. Group Greek holiday additions are scoped and deduplicate against applicable inherited closures. Optional definitions are edited once from the class book editor.
+- **Group settings**: `Screen.GroupSettings(id)` keeps the group on the navigation stack and in the tablet detail pane, shows Undo, and is pruned after deletion. Its inputs use the raw class plan to show defaults; its reports use effective plans. Group Greek holiday additions are scoped and deduplicate against applicable inherited closures. Optional definitions are edited once from the class book editor. Long-pressing a book opens its options (leave it out, the group's own finish-by date with "Use class date"); long-pressing one of the group's own days off offers Edit and Delete (`withClosureEdited`), while inherited days off stay read-only.
 - **Work**: saves and deletes each run one group edit and the existing Undo.
 
 ### List screens

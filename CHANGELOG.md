@@ -25,6 +25,21 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.2.0] - 2026-10-25
+
+### Added
+
+- Book types: Student's Book (SB), Workbook (WB), Grammar Book (GB), Writing Book (WrB), Skills Book (SkB), Reader (R) and Supplementary book (Supp). Pick one in the class book editor; a book's short name on lesson rows now comes from its type, never its name. Two or more books of one type in a class read WB1, WB2; a single one stays plain. Books you have not given a type keep their old initials.
+- Group settings: long-press a book to leave it out of that group, or to give that group its own finish-by date. The class date shows under it ("Class: …") with a "Use class date" action. Lessons already taught stay; the pages still to teach re-spread; hand-placed pages of a removed book stay in their lessons and show in the group's warnings. A group keeps at least one paced book.
+- Group settings: long-press one of the group's own days off to edit it or delete it, with Undo. Days off inherited from the class or year stay read-only.
+- View-model tests for edits, undo, the save debounce and the new group edits.
+
+### Changed
+
+- The Supplementary type and the supplementary switch are one setting; existing supplementary books get the type.
+- Saved files are schema 15 (book `type`, group `removedBooks` and `bookDue`). Older files load: a book whose name is clear (Student's Book, Workbook, Grammar, Writing, Skills, Reader) gets that type, others stay unclassified.
+- Settings no longer shows the "You" caption above the name box.
+
 ## [0.4.1.3] - 2026-10-25
 
 ### Changed
@@ -771,7 +786,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.1.3...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.2.0]: https://github.com/tsampolion/course_planner/compare/v0.4.1.3...v0.4.2.0
 [0.4.1.3]: https://github.com/tsampolion/course_planner/compare/v0.4.1.2...v0.4.1.3
 [0.4.1.2]: https://github.com/tsampolion/course_planner/compare/v0.4.1.1...v0.4.1.2
 [0.4.1.1]: https://github.com/tsampolion/course_planner/compare/v4.1.0...v0.4.1.1

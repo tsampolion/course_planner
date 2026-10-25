@@ -69,6 +69,10 @@ fun GroupReport.coverage(): Coverage? {
         count.filterValues { it > 1 }.keys.sorted().takeIf { it.isNotEmpty() }?.let { doubled[b.id] = it }
         count.keys.filter { it !in leftSet }.sorted().takeIf { it.isNotEmpty() }?.let { stale[b.id] = it }
     }
+    // Hand-placed pages of a book the group has since dropped stay in their lessons; they are listed, never removed.
+    for (id in group.removedBooks) {
+        c.lessons.flatMap { it.pages[id].orEmpty() }.distinct().sorted().takeIf { it.isNotEmpty() }?.let { stale[id] = it }
+    }
     return Coverage(missing, doubled, stale, (c.lessons.size - teaching).coerceAtLeast(0), coveredShortLessons(c))
 }
 
@@ -313,7 +317,7 @@ fun CustomPlan.moveLesson(id: String, to: Int): CustomPlan {
  * It replaces the target's own custom plan and becomes active.
  */
 fun Plan.copyCustomPlan(c: CustomPlan, target: Group, id: () -> String = ::newId): CustomPlan {
-    val left = books.filter { !it.groupOnly || it.id in target.extraBooks }.associate { b ->
+    val left = books.filter(target::usesBook).associate { b ->
         b.id to if (b.supplementary) (b.includedPages() - target.taughtPages(b.id)).toHashSet() else remainingPages(target, b).toHashSet()
     }
     val keep = { m: Map<String, List<Int>> ->

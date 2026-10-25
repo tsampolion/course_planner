@@ -46,6 +46,7 @@ import gr.edusuite.pacer.engine.lessonsFor
 import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.parseRanges
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.BookType
 import gr.edusuite.pacer.engine.forGroup
 import gr.edusuite.pacer.engine.coreBooks
 import gr.edusuite.pacer.engine.includedPages
@@ -324,8 +325,8 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
     val ui by vm.state.collectAsState()
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommitField(b.name, { vm.renameBook(b.id, it) }, stringResource(R.string.class_title), Modifier.weight(1f))
-
     }
+    BookTypePicker(b.type) { vm.setBookType(b.id, it) }
     if (b.supplementary) {
         // Placed by hand, so none of the pacing settings apply.
         IncludeField(b.include, { vm.setInclude(b.id, it) })
@@ -378,6 +379,26 @@ private fun IncludeField(value: String, onCommit: (String) -> Unit) {
     )
 }
 
+/** The book's type, which gives it its short name; Supplementary is the one setting that makes a book hand-placed. */
+@Composable
+private fun BookTypePicker(type: BookType, onSelect: (BookType) -> Unit) {
+    Picker(
+        stringResource(R.string.book_type), BookType.entries.map { it.name to stringResource(bookTypeName(it)) },
+        type.name, { onSelect(BookType.valueOf(it)) }, Modifier.fillMaxWidth(),
+    )
+}
+
+private fun bookTypeName(type: BookType): Int = when (type) {
+    BookType.STUDENT -> R.string.book_type_student
+    BookType.WORKBOOK -> R.string.book_type_workbook
+    BookType.GRAMMAR -> R.string.book_type_grammar
+    BookType.WRITING -> R.string.book_type_writing
+    BookType.SKILLS -> R.string.book_type_skills
+    BookType.READER -> R.string.book_type_reader
+    BookType.SUPPLEMENTARY -> R.string.book_type_supplementary
+    BookType.UNCLASSIFIED -> R.string.book_type_none
+}
+
 /** A labelled switch with the shared toggle haptic and the ✓/✕ thumb (§5). */
 @Composable
 internal fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
@@ -394,16 +415,18 @@ private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var first by rememberSaveable { mutableStateOf("1") }
     var last by rememberSaveable { mutableStateOf("") }
-    var supplementary by rememberSaveable { mutableStateOf(false) }
+    var typeName by rememberSaveable { mutableStateOf(BookType.UNCLASSIFIED.name) }
+    val type = BookType.valueOf(typeName)
+    val supplementary = type == BookType.SUPPLEMENTARY
     var include by rememberSaveable { mutableStateOf("") }
     val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
     val includeOk = !parseInclude(include).isNullOrEmpty()
     SheetFrame(stringResource(R.string.class_add_a_book), stringResource(R.string.class_add), if (supplementary) includeOk else lastN != null, {
         if (supplementary) vm.addSupplementaryBook(name.trim(), include)
-        else vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!)
+        else vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!, type)
     }, onDismiss) {
         CommitField(name, { name = it }, stringResource(R.string.class_title), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_companion))
-        SwitchRow(stringResource(R.string.supp_switch), supplementary) { supplementary = it }
+        BookTypePicker(type) { typeName = it.name }
         if (supplementary) {
             Hint(stringResource(R.string.supp_switch_hint))
             CommitField(include, { include = it }, stringResource(R.string.supp_include), Modifier.fillMaxWidth(),

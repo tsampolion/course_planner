@@ -341,7 +341,16 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `group_settings_none` | None |  |  |
 | `group_settings_delete` | Delete group |  |  |
 | `group_settings_books` | Books |  |  |
-| `group_settings_books_hint` | Class books are always included. Choose additional books for this group. |  |  |
+| `group_settings_books_hint` | Class books are included unless you leave one out. Choose additional books for this group. |  |  |
+| `group_settings_books_long_press` | Long-press a book to leave it out of this group or give this group its own finish-by date. |  |  |
+| `group_settings_removed_book` | Not used in this group |  |  |
+| `group_settings_class_date` | Class: %1$s |  |  |
+| `group_settings_use_class_date` | Use class date |  |  |
+| `group_settings_book_due_clamped` | This group finishes on %1$s, so the book ends then. |  |  |
+| `group_settings_remove_book` | Remove from this group |  |  |
+| `group_settings_remove_book_hint` | Lessons already taught stay as they are. The pages still to teach spread over the lessons left. |  |  |
+| `group_settings_add_back` | Add back |  |  |
+| `group_settings_keep_one_book` | A group needs at least one book that is paced. |  |  |
 | `group_settings_default_book` | Class default · included |  |  |
 | `group_settings_optional_book` | Optional book |  |  |
 | `group_settings_new_book_hint` | This book is added to the class library and selected only for this group. Other groups can choose it in their settings. |  |  |
@@ -396,7 +405,15 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `custom_stale` | one: %d page already covered / other: %d pages already covered |  | Plural, Has placeholders |
 | `custom_overflow` | one: %d lesson after the term ends / other: %d lessons after the term ends |  | Plural, Has placeholders |
 | `supp_tag` | Supplementary |  |  |
-| `supp_switch` | Supplementary book |  |  |
+| `book_type` | Type |  |  |
+| `book_type_student` | Student\'s Book |  |  |
+| `book_type_workbook` | Workbook |  |  |
+| `book_type_grammar` | Grammar Book |  |  |
+| `book_type_writing` | Writing Book |  |  |
+| `book_type_skills` | Skills Book |  |  |
+| `book_type_reader` | Reader |  |  |
+| `book_type_supplementary` | Supplementary book |  |  |
+| `book_type_none` | Not set |  |  |
 | `supp_switch_hint` | Never paced: you place its pages by hand in the lessons you choose, on top of the lesson or in it. |  |  |
 | `supp_include` | Pages you'll use |  |  |
 | `supp_include_placeholder` | 4-7, 12, 30-33 |  |  |
@@ -772,7 +789,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `settings_class_defaults` | Class defaults |  |  |
 | `settings_defaults_hint` | Used when you add a class. Existing classes keep their own values, which you change on the class screen. |  |  |
 | `settings_help` | Help |  |  |
-| `settings_you` | You |  |  |
 | `settings_your_name` | Your name |  |  |
 | `settings_name_hint` | Home greets you by it. Leave it empty and Home says Hello. |  |  |
 | `settings_show_tips` | Show tips again |  |  |

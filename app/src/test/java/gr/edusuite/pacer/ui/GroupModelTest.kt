@@ -9,6 +9,7 @@ import gr.edusuite.pacer.model.seedYear
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.BookType
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.Settings
@@ -93,6 +94,40 @@ class GroupModelTest {
     @Test fun clashingInitialsKeepFullNames() {
         assertEquals(listOf("SB", "WB", "Reader"), shortBookNames(listOf("Student's Book", "Workbook", "Reader")))
         assertEquals(listOf("Student's Book", "Speaking Book", "WB"), shortBookNames(listOf("Student's Book", "Speaking Book", "Workbook")))
+    }
+
+    private fun typed(name: String, type: BookType) = Book(name, name, 1, 10, type = type)
+
+    @Test fun uniqueTypesUseAbbreviation() {
+        assertEquals(listOf("SB", "WB"), bookLabels(listOf(typed("Student's Book", BookType.STUDENT), typed("Workbook", BookType.WORKBOOK))))
+        assertEquals(listOf("SB", "WB", "GB", "WrB", "SkB", "R", "Supp"), bookLabels(
+            listOf(BookType.STUDENT, BookType.WORKBOOK, BookType.GRAMMAR, BookType.WRITING, BookType.SKILLS, BookType.READER, BookType.SUPPLEMENTARY).map { typed(it.name, it) },
+        ))
+    }
+
+    @Test fun repeatedTypesAreNumbered() {
+        val books = listOf(typed("a", BookType.WORKBOOK), typed("b", BookType.STUDENT), typed("c", BookType.WORKBOOK))
+        assertEquals(listOf("WB1", "SB", "WB2"), bookLabels(books))
+        // A class of three readers still reads apart.
+        assertEquals(listOf("R1", "R2", "R3"), bookLabels(List(3) { typed("Reader $it", BookType.READER) }))
+    }
+
+    @Test fun aClassifiedBooksNameNeverBecomesItsAbbreviation() {
+        assertEquals(listOf("WB"), bookLabels(listOf(typed("Our Great Exercise Pack", BookType.WORKBOOK))))
+        assertEquals(listOf("SB"), bookLabels(listOf(typed("Workbook", BookType.STUDENT))))
+    }
+
+    @Test fun unclassifiedKeepsOldInitials() {
+        val names = listOf("Student's Book", "Speaking Book", "Workbook", "Reader")
+        val books = names.map { typed(it, BookType.UNCLASSIFIED) }
+        assertEquals(shortBookNames(names), bookLabels(books))
+        // A single unclassified Workbook is "WB" by the old rule.
+        assertEquals(listOf("WB"), bookLabels(listOf(typed("Workbook", BookType.UNCLASSIFIED))))
+    }
+
+    @Test fun anUnclassifiedBookThatClashesWithATypeKeepsItsFullName() {
+        val books = listOf(typed("Student's Book", BookType.STUDENT), typed("Super Book", BookType.UNCLASSIFIED))
+        assertEquals(listOf("SB", "Super Book"), bookLabels(books))
     }
 
     @Test fun weeksAreThisWeekNextWeekThenDates() {

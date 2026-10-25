@@ -1,7 +1,9 @@
 package gr.edusuite.pacer.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,8 +79,9 @@ fun RowDivider() {
 /**
  * One ledger row: an optional [edge] for its kind (or a leading [icon] on a row that opens another screen), an optional [date] column in figures, the [title] over a muted
  * [detail], and [trailing] (a status, a chevron, a ⋮). With [onClick] the row is one target; TalkBack reads it as one
- * item. [warn] turns the detail rust.
+ * item. [warn] turns the detail rust. [onLongClick] adds a long-press (named for TalkBack by [longClickLabel]) beside the tap.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LedgerRow(
     title: String,
@@ -89,6 +92,8 @@ fun LedgerRow(
     icon: ImageVector? = null,
     warn: Boolean = false,
     onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    longClickLabel: String? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val c = Pacer.colors
@@ -97,7 +102,11 @@ fun LedgerRow(
     val side = date != null && !large
     Row(
         modifier.fillMaxWidth().height(IntrinsicSize.Min).heightIn(min = 56.dp)
-            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .then(
+                if (onLongClick != null) Modifier.combinedClickable(role = Role.Button, onLongClickLabel = longClickLabel, onLongClick = onLongClick, onClick = onClick ?: {})
+                else if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick)
+                else Modifier,
+            )
             .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,
     ) {

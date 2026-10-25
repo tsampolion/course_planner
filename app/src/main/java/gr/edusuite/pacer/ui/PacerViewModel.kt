@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import gr.edusuite.pacer.data.JsonCodec
 import gr.edusuite.pacer.data.PlanStore
+import gr.edusuite.pacer.data.SettingsPort
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
 import gr.edusuite.pacer.engine.pendingUnitRevisions
@@ -26,6 +27,7 @@ import gr.edusuite.pacer.engine.withoutExtra
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.LessonSave
 import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.collapse
 import gr.edusuite.pacer.engine.parseInclude
 import gr.edusuite.pacer.engine.saveLesson
 import gr.edusuite.pacer.engine.catchUpPlan
@@ -49,7 +51,12 @@ import gr.edusuite.pacer.engine.recordLesson
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.BookType
 import gr.edusuite.pacer.model.Closure
+import gr.edusuite.pacer.model.withBookDue
+import gr.edusuite.pacer.model.withBookRemoved
+import gr.edusuite.pacer.model.withClosureEdited
+import gr.edusuite.pacer.model.withType
 import gr.edusuite.pacer.model.CustomPlan
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.ExtraLesson
@@ -72,6 +79,8 @@ import gr.edusuite.pacer.model.newId
 import java.io.File
 import java.time.DayOfWeek
 import java.time.LocalDate
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -100,7 +109,17 @@ private data class Snapshot(val years: List<SchoolYear>, val activeYear: String,
  * so typing a page number is one step, not six. Moving between screens is not an edit,
  * and opening another school year starts a fresh history.
  */
-class PacerViewModel(private val store: PlanStore, private val settingsStore: SettingsStore, private val updates: UpdateChecker) : ViewModel() {
+class PacerViewModel(
+    private val store: PlanStore,
+    private val settingsStore: SettingsPort,
+    private val updates: UpdateChecker,
+    /** Where background work runs; tests pass their own, the app uses [viewModelScope]. */
+    scopeOverride: CoroutineScope? = null,
+    private val io: CoroutineDispatcher = Dispatchers.IO,
+    /** A millisecond clock for merging edits to one field into one undo step. */
+    private val clock: () -> Long = SystemClock::elapsedRealtime,
+) : ViewModel() {
+    private val scope: CoroutineScope = scopeOverride ?: viewModelScope
     private val loaded = store.load()
     private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.launch, 0) })
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -135,7 +154,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     })
     val settings: StateFlow<Settings> = _settings.asStateFlow()
     val update: StateFlow<Update?> = settings.map(updates::pending)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, updates.pending(_settings.value))
+        .stateIn(scope, SharingStarted.Eagerly, updates.pending(_settings.value))
     private val _updateCheck = MutableStateFlow(UpdateCheckState.IDLE)
     val updateCheck: StateFlow<UpdateCheckState> = _updateCheck.asStateFlow()
     val updatesEnabled: Boolean = updates.enabled
@@ -191,8 +210,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     }
 
     init {
-        if (updates.shouldAutoCheck(_settings.value)) viewModelScope.launch {
-            val fetched = withContext(Dispatchers.IO) { updates.fetch() }
+        if (updates.shouldAutoCheck(_settings.value)) scope.launch {
+            val fetched = withContext(io) { updates.fetch() }
             editSettings { updates.applied(it, fetched) }
         }
     }
@@ -203,7 +222,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         val before = data
         val after = change(before)
         if (after == before) return false
-        val now = SystemClock.elapsedRealtime()
+        val now = clock()
         if (!(tag != null && tag == lastTag && now - lastTime < COALESCE_MS)) {
             undoStack.addLast(Snapshot(before.years, before.activeYear, before.activeClass))
             if (undoStack.size > UNDO_LIMIT) undoStack.removeFirst()
@@ -261,7 +280,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     private fun scheduleSave() {
         saveJob?.cancel()
-        saveJob = viewModelScope.launch(Dispatchers.IO) {
+        saveJob = scope.launch(io) {
             delay(SAVE_DEBOUNCE_MS)
             store.save(data)
         }
@@ -381,8 +400,8 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun checkForUpdates() {
         if (!updates.enabled || _updateCheck.value == UpdateCheckState.CHECKING) return
         _updateCheck.value = UpdateCheckState.CHECKING
-        viewModelScope.launch {
-            val fetched = withContext(Dispatchers.IO) { updates.fetch() }
+        scope.launch {
+            val fetched = withContext(io) { updates.fetch() }
             editSettings { updates.applied(it, fetched) }
             _updateCheck.value = when (fetched) {
                 is Fetched.Found -> UpdateCheckState.IDLE
@@ -458,6 +477,10 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun addClosure(label: String, from: LocalDate, to: LocalDate?, who: String) = editYear { y ->
         y.copy(closures = y.closures + Closure(newId(), label.ifBlank { "Day off" }, from, to ?: from, who))
     }
+
+    /** Changes one of the group's own days off in a single undo step. False when it isn't the group's or the dates are reversed. */
+    fun editClosure(id: String, groupId: String, label: String, from: LocalDate, to: LocalDate?): Boolean =
+        editYear { y -> y.withClosureEdited(id, groupId, label, from, to) }
 
     fun removeClosure(id: String) = editYear { y -> y.copy(closures = y.closures.filter { it.id != id }) }
 
@@ -577,6 +600,20 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
         if (data.schoolClass?.books?.none { it.id == bookId && it.groupOnly } != false) g
         else g.copy(extraBooks = if (selected) g.extraBooks + bookId else g.extraBooks - bookId)
     }
+
+    /**
+     * Stops [groupId] using the default class book [bookId], or brings it back. Its taught pages and position stay.
+     * False when refused (an optional book, or the last paced book) or when nothing changed.
+     */
+    fun setGroupBookRemoved(groupId: String, bookId: String, removed: Boolean): Boolean {
+        val c = data.schoolClass ?: return false
+        val next = c.groups.firstOrNull { it.id == groupId }?.withBookRemoved(c.books, bookId, removed) ?: return false
+        return editGroup(groupId) { next }
+    }
+
+    /** Sets this group's own finish-by date for a book, or with null returns it to the class's date. */
+    fun setGroupBookDue(groupId: String, bookId: String, date: LocalDate?): Boolean =
+        editGroup(groupId) { g -> g.withBookDue(data.schoolClass?.books.orEmpty(), bookId, date) }
 
     /** Adds one shared optional definition and selects it only for the intended group, in one undo step. */
     fun addGroupBook(groupId: String, name: String, first: Int, last: Int): Boolean {
@@ -764,7 +801,7 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
     fun addSupplementaryBook(name: String, include: String) {
         val pages = parseInclude(include)?.takeIf { it.isNotEmpty() } ?: return
         editClass { c ->
-            c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, pages.first(), pages.last(), supplementary = true, include = include.trim()))
+            c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, pages.first(), pages.last(), supplementary = true, include = include.trim(), type = BookType.SUPPLEMENTARY))
         }
     }
 
@@ -776,8 +813,18 @@ class PacerViewModel(private val store: PlanStore, private val settingsStore: Se
 
     fun setCountInLesson(id: String, v: Boolean) = editBook(id, "bcount:$id") { it.copy(countInLesson = v) }
 
-    fun addBook(name: String, first: Int, last: Int) = editClass { c ->
-        c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, first.coerceAtMost(MAX_PAGE), last.coerceAtMost(MAX_PAGE)))
+    fun addBook(name: String, first: Int, last: Int, type: BookType = BookType.UNCLASSIFIED) = editClass { c ->
+        c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, first.coerceAtMost(MAX_PAGE), last.coerceAtMost(MAX_PAGE), type = type))
+    }
+
+    /**
+     * Sets a book's type. Choosing Supplementary makes it one (its pages are hand-placed), listing its current pages as
+     * the ones to use; choosing anything else makes it an ordinary paced book again.
+     */
+    fun setBookType(id: String, type: BookType) = editBook(id) { b ->
+        val typed = b.withType(type)
+        val pages = b.allPages()
+        if (typed.supplementary && typed.include.isBlank() && pages.isNotEmpty()) typed.copy(include = collapse(pages)) else typed
     }
 
     fun removeBook(id: String) = editClass { c ->

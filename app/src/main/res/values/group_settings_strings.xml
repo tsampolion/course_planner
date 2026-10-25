@@ -16,7 +16,16 @@
     <string name="group_settings_none">None</string>
     <string name="group_settings_delete">Delete group</string>
     <string name="group_settings_books">Books</string>
-    <string name="group_settings_books_hint">Class books are always included. Choose additional books for this group.</string>
+    <string name="group_settings_books_hint">Class books are included unless you leave one out. Choose additional books for this group.</string>
+    <string name="group_settings_books_long_press">Long-press a book to leave it out of this group or give this group its own finish-by date.</string>
+    <string name="group_settings_removed_book">Not used in this group</string>
+    <string name="group_settings_class_date">Class: %1$s</string>
+    <string name="group_settings_use_class_date">Use class date</string>
+    <string name="group_settings_book_due_clamped">This group finishes on %1$s, so the book ends then.</string>
+    <string name="group_settings_remove_book">Remove from this group</string>
+    <string name="group_settings_remove_book_hint">Lessons already taught stay as they are. The pages still to teach spread over the lessons left.</string>
+    <string name="group_settings_add_back">Add back</string>
+    <string name="group_settings_keep_one_book">A group needs at least one book that is paced.</string>
     <string name="group_settings_default_book">Class default · included</string>
     <string name="group_settings_optional_book">Optional book</string>
     <string name="group_settings_new_book_hint">This book is added to the class library and selected only for this group. Other groups can choose it in their settings.</string>

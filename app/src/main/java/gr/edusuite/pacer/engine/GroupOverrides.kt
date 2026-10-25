@@ -13,12 +13,15 @@ fun Plan.endFor(group: Group): LocalDate? = when {
 
 /** One consistent book list and calendar for all row/stat/output indices in this group's report. */
 fun Plan.forGroup(group: Group): Plan {
-    val activeBooks = books.filter { !it.groupOnly || it.id in group.extraBooks }.map { b ->
-        val extraSkip = group.skip[b.id].orEmpty()
-        if (extraSkip.isBlank() || b.supplementary) b
-        else b.copy(skip = collapse((parseRanges(b.skip) + parseRanges(extraSkip)).sorted()))
-    }
     val finish = endFor(group)
+    val activeBooks = books.filter(group::usesBook).map { b ->
+        if (b.supplementary) return@map b
+        val extraSkip = group.skip[b.id].orEmpty()
+        val skipped = if (extraSkip.isBlank()) b else b.copy(skip = collapse((parseRanges(b.skip) + parseRanges(extraSkip)).sorted()))
+        // The group's own date replaces the class's, but never runs past the group's end.
+        val due = group.bookDue[b.id]?.let { d -> if (finish != null && d.isAfter(finish)) finish else d }
+        if (due == null) skipped else skipped.copy(due = due)
+    }
     val activeLead = lead?.takeIf { id -> activeBooks.any { it.id == id && !it.supplementary } }
     return if (activeBooks == books && finish == end && activeLead == lead) this
     else copy(books = activeBooks, end = finish, lead = activeLead)

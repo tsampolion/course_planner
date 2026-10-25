@@ -8,6 +8,7 @@ import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.readBookType
 import gr.edusuite.pacer.model.ClassCollection
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.CustomPlan
@@ -38,11 +39,11 @@ import org.json.JSONObject
  * lessons a book may fall behind before a warning (missing reads as the default); version 8 adds supplementary books
  * (`supplementary`, `include`, `countInLesson`) and, on a custom plan's lessons, the books that count in the lesson
  * (`inLesson`) and the core pages to restore (`replacementBase`); version 9 adds the chosen catch-up boost
- * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`); version 11 adds group end/skip/optional books and class collections. Version 12 adds group assignments. Missing reads as none. Version 1
+ * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`); version 11 adds group end/skip/optional books and class collections. Version 12 adds group assignments. Missing reads as none. Version 15 adds each book's `type` (missing reads from the name) and a group's `removedBooks` and `bookDue`. Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 14
+    const val VERSION = 15
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
@@ -158,6 +159,8 @@ object JsonCodec {
             .put("end", g.end?.toString() ?: "")
             .put("skip", JSONObject(g.skip as Map<*, *>))
             .put("extraBooks", JSONArray(g.extraBooks.sorted()))
+            .apply { if (g.removedBooks.isNotEmpty()) put("removedBooks", JSONArray(g.removedBooks.sorted())) }
+            .apply { if (g.bookDue.isNotEmpty()) put("bookDue", JSONObject(g.bookDue.mapValues { it.value.toString() } as Map<*, *>)) }
             .put("pos", JSONObject(g.pos as Map<*, *>))
             .apply { g.unitsOverride?.let { put("unitsOverride", it) } }
             .put("unitRevisions", JSONArray(g.unitRevisions.map { r -> JSONObject()
@@ -220,6 +223,10 @@ object JsonCodec {
             end = g.date("end"),
             skip = g.optJSONObject("skip")?.let { skip -> skip.names().strings().associateWith { skip.optString(it, "") } }.orEmpty(),
             extraBooks = g.optJSONArray("extraBooks").strings().toSet(),
+            removedBooks = g.optJSONArray("removedBooks").strings().toSet(),
+            bookDue = g.optJSONObject("bookDue")?.let { o ->
+                o.names().strings().mapNotNull { id -> o.date(id)?.let { id to it } }.toMap()
+            }.orEmpty(),
             pos = pos?.names().strings().associateWith { pos!!.optInt(it) }.filterValues { it > 0 },
             done = g.optJSONArray("done").rows { l ->
                 val date = l.date("date") ?: return@rows null
@@ -254,6 +261,7 @@ object JsonCodec {
     private fun books(list: List<Book>) = JSONArray(list.map { b ->
         JSONObject().put("id", b.id).put("name", b.name).put("first", b.first).put("last", b.last)
             .put("skip", b.skip).put("due", b.due?.toString() ?: "")
+            .put("type", b.type.name)
             .also { o -> if (b.groupOnly) o.put("groupOnly", true) }
             .also { o -> if (b.units.isNotBlank()) o.put("units", b.units) }
             .also { o -> if (b.supplementary) o.put("supplementary", true).put("include", b.include) }
@@ -261,10 +269,14 @@ object JsonCodec {
     })
 
     private fun books(a: JSONArray?): List<Book> = a.rows { b ->
-        Book(b.id(), b.optString("name", "Book"), b.optInt("first", 1), b.optInt("last", 1),
+        val name = b.optString("name", "Book")
+        val supplementary = b.optBoolean("supplementary", false)
+        Book(b.id(), name, b.optInt("first", 1), b.optInt("last", 1),
             b.optString("skip", ""), b.date("due"), b.optString("units", ""),
-            supplementary = b.optBoolean("supplementary", false), include = b.optString("include", ""),
-            countInLesson = b.optBoolean("countInLesson", false), groupOnly = b.optBoolean("groupOnly", false))
+            supplementary = supplementary, include = b.optString("include", ""),
+            countInLesson = b.optBoolean("countInLesson", false), groupOnly = b.optBoolean("groupOnly", false),
+            // Files before schema 15 have no type: a clear name gives one, anything else stays unclassified.
+            type = readBookType(b.text("type"), name, supplementary))
     }
 
     private fun homework(a: JSONArray?): List<Homework> = a.rows { h ->

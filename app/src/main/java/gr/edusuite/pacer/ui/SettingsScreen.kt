@@ -81,13 +81,15 @@ fun SettingsScreen(
     ) {
         if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, Modifier.animateItem()) }
         item(key = "name") {
-            Section(stringResource(R.string.settings_you), modifier = Modifier.animateItem()) {
-                CommitField(
-                    settings.name, vm::setName, stringResource(R.string.settings_your_name), Modifier.fillMaxWidth(),
-                    // The stored name is trimmed, so a space typed at the end stays in the field.
-                    sameValue = { typed, value -> Settings.cleanName(typed) == value },
-                )
-                Hint(stringResource(R.string.settings_name_hint))
+            ListGroup(Modifier.animateItem()) {
+                Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
+                    CommitField(
+                        settings.name, vm::setName, stringResource(R.string.settings_your_name), Modifier.fillMaxWidth(),
+                        // The stored name is trimmed, so a space typed at the end stays in the field.
+                        sameValue = { typed, value -> Settings.cleanName(typed) == value },
+                    )
+                    Hint(stringResource(R.string.settings_name_hint))
+                }
             }
         }
         item(key = "theme") {
