@@ -169,8 +169,11 @@ class ExtraLessonCodecTest : Instrumentation() {
         assertEquals(false, written.has("events"))
         assertEquals(read, JsonCodec.decode(JsonCodec.encode(read)))
         val store = PlanStore(java.io.File(context.cacheDir, "assignment-codec-test").apply { mkdirs() })
-        store.save(read)
-        assertEquals(read, store.load().data)
+        assertEquals(SaveResult.Saved, store.save(read))
+        val loaded = store.load()
+        assertEquals(null, loaded.setAside)
+        assertEquals(false, loaded.readFailed)
+        assertEquals(read, loaded.data)
     }
     fun testSchemaElevenKeepsOverridesAndMigratesWork() {
         val base = data()
