@@ -535,7 +535,7 @@ What the existing tests do not prove:
 
 ## Order of work
 
-The 4.1.0 audit plan (`docs/superpowers/plans/2026-10-24-audit-4-1-0.md`) has shipped every part:
+The 4.1.0 audit plan has shipped every part, and its plan and spec were deleted in 0.4.4.1 (git history keeps them):
 
 | Part | Release | Version code |
 | --- | --- | --- |
@@ -564,11 +564,3 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
 
 Entry 1 (focus blocks) has no slot; build it only when asked. Do not start a parallel navigation or design system.
-
-Stale facts in the 4.1.0 plan and spec (the plan is kept as written until it is deleted):
-
-- **Version codes.** The plan's allocations no longer match: the open-on-Home release took 52, and 54 went to an unmerged pull request. Always take the next number from `main`.
-- **B1.** "Use `recordLesson` then the existing tick path" would tick twice. The shipped code calls `recordLesson` alone, which already completes the lesson (`engine/Pacer.kt:353-364`, one Undo step).
-- **Clock.** The spec says the engine no longer reads the clock by default. It still does, through `Plan`/`planFor` (entry 4).
-- **Names.** The D5 seam is `PlanFile`, not `PlansPort`. Part B's pills use `GroupDestination`, not `GroupPage.SETTINGS`.
-- **Deleting the plan.** Every part has shipped, so the plan and spec can be deleted under docs rule 3. Their remaining facts now live here and in the briefs.

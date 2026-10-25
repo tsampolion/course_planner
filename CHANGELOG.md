@@ -25,6 +25,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.4] - 2026-10-25
+
+### Fixed
+
+- `docs/PLANNED_FEATURES.md` no longer treats the 4.1.0 audit plan and spec as still present. They were deleted in 0.4.4.1. Its notes on their stale details are gone too.
+
 ## [0.4.4.3] - 2026-10-25
 
 ### Changed
@@ -857,6 +863,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.4]: https://github.com/tsampolion/course_planner/compare/v0.4.4.3...v0.4.4.4
 [0.4.4.3]: https://github.com/tsampolion/course_planner/compare/v0.4.4.2...v0.4.4.3
 [0.4.4.2]: https://github.com/tsampolion/course_planner/compare/v0.4.4.1...v0.4.4.2
 [0.4.4.1]: https://github.com/tsampolion/course_planner/compare/v0.4.4.0...v0.4.4.1
