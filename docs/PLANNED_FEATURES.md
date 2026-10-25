@@ -251,7 +251,7 @@ Also: a test that `planFor` follows the ViewModel's `today`, and a device run at
 
 - The pages taught from that book stay stored in `DoneLesson.pages` (`model/GroupBooks.kt:15-21`), but no cell shows them. A teacher may think the work vanished.
 - "Add back" brings them back.
-- `GroupOverridesTest.removedBookKeepsDoneHistory` (`:83-95`) checks storage, not the visible rows.
+- `GroupOverridesTest.removedBookKeepsDoneHistory` (`:83-95`) checks storage, not the visible rows. This entry extends it to assert the rendered done rows.
 - Print covers only the lessons still to come, so print loses nothing.
 
 **F19.** Schema 15 (book `type`, group `removedBooks` and `bookDue`) has no codec test.
@@ -558,5 +558,12 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 11. **UI PRs 7 and 8**, Stats and Work; Settings, welcome and empty states.
 12. **Entries 7 and 8**, print and backup. They can go any time, as separate pull requests. Entry 7 goes before or with streamlining M3.
 13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
+
+Test clean-up rides these steps rather than a separate audit (the suite has no duplicate tests, but some lock in wrong behaviour or check storage instead of what the teacher sees):
+
+- Entry 2 revises `CustomPlanTest.tidyTakesOutPagesThatNeedNoTeaching`.
+- Entry 5 extends `GroupOverridesTest.removedBookKeepsDoneHistory`.
+- Entry 6 updates `HomeModelTest` (on-pace count) and `ScreensModelTest`.
+- Entries 3 to 8 add the missing cases listed in each one.
 
 Entry 10 (UI tests) can start with step 1: once it is approved, each later step adds tests for what it touches. Entry 1 (focus blocks) has no slot; build it only when asked. Do not start a parallel navigation or design system.

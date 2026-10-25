@@ -55,6 +55,8 @@ CI (`.github/workflows/android.yml`) runs `testDebugUnitTest`, then `lint`, then
 ## Workflow
 
 - Run `./gradlew testDebugUnitTest` (and `assembleRelease` if you touched the build or dependencies) before committing.
+- A new test checks what the teacher sees or what is saved, not only that a call succeeded.
+- A pull request that changes behaviour updates every test that locks in the old behaviour, in the same pull request; never delete such a test to get green.
 - `docs/PLANNED_FEATURES.md` holds features that are specified but not approved. Build one only when the owner asks for it; then ask its open questions, write its `docs/<NAME>_BRIEF.md`, and remove its entry.
 - **Every PR bumps the version.** Set `versionName` in `app/build.gradle.kts` to the next version `0.A.B.C` (always four parts, starting `0.`). **A** is a change that breaks old saved files or changes scheduling on purpose (rare); **B** is a new feature (redesign work included); **C** is fixes, docs, copy and polish. The leading `0` becomes `1` only when the owner says the app is ready for others. See the rules at the top of `CHANGELOG.md`. Increase `versionCode` by one, and add a matching `## [0.A.B.C] - YYYY-MM-DD` section to `CHANGELOG.md` with its compare link. Don't tag by hand: after the merge, `.github/workflows/release.yml` creates the tag and release from `versionName` and that changelog section, and it fails if the section is missing.
 - **Nothing risky in the public docs.** Don't commit plans, specs or notes that describe other repositories, security weaknesses, or how keys and secrets are created, stored or handled.
