@@ -13,6 +13,7 @@ Docs index: `docs/README.md`. How the app works (model, engine and its extension
 ./gradlew installDebug                           # installs "Course Pacer (debug)"; needs a device or emulator
 ./gradlew lint
 scripts/device-check.sh [label] [--install] [--kill]   # screenshots the open screen in light/dark, 100-200% text, 599-1024dp widths
+powershell -ExecutionPolicy Bypass -File scripts\device-check.ps1 [label] [-Install] [-Kill]   # the same on Windows
 ./gradlew connectedAndroidTest                   # the platform codec tests; needs a device or emulator
 ```
 
