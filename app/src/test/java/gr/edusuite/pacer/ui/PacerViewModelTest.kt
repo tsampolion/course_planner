@@ -1,0 +1,232 @@
+package gr.edusuite.pacer.ui
+
+import gr.edusuite.pacer.data.PlanFile
+import gr.edusuite.pacer.data.PlanStore
+import gr.edusuite.pacer.data.SettingsPort
+import gr.edusuite.pacer.model.AppData
+import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.Closure
+import gr.edusuite.pacer.model.Group
+import gr.edusuite.pacer.model.SchoolClass
+import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.model.Settings
+import gr.edusuite.pacer.update.UpdateChecker
+import java.io.File
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.util.PriorityQueue
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.SupervisorJob
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * A dispatcher whose clock only moves when a test says so, so the save debounce is tested without waiting.
+ * (kotlinx-coroutines-test is not an approved dependency.)
+ */
+@OptIn(InternalCoroutinesApi::class)
+private class ManualDispatcher : CoroutineDispatcher(), Delay {
+    private class Task(val time: Long, val seq: Long, val run: Runnable)
+
+    private var now = 0L
+    private var seq = 0L
+    private val queue = PriorityQueue<Task>(compareBy<Task>({ it.time }, { it.seq }))
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        queue += Task(now, seq++, block)
+    }
+
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
+        val task = Task(now + timeMillis, seq++) { continuation.resumeWith(Result.success(Unit)) }
+        queue += task
+        continuation.invokeOnCancellation { queue.remove(task) }
+    }
+
+    /** Runs everything due within [ms] more milliseconds, in time order. */
+    fun advanceBy(ms: Long) {
+        val target = now + ms
+        while (queue.isNotEmpty() && queue.peek().time <= target) {
+            val task = queue.poll()
+            now = maxOf(now, task.time)
+            task.run.run()
+        }
+        now = target
+    }
+}
+
+class PacerViewModelTest {
+    private fun d(v: String) = LocalDate.parse(v)
+
+    private val sb = Book("sb", "Student's Book", 1, 100)
+    private val wb = Book("wb", "Workbook", 1, 80)
+    private val group = Group("g1", "Group A", setOf(DayOfWeek.MONDAY), null)
+    private val year = SchoolYear(
+        "y", "Year", d("2026-09-01"), d("2027-06-01"),
+        listOf(
+            Closure("own", "Trip", d("2026-10-01"), d("2026-10-01"), "g1"),
+            Closure("all", "Holiday", d("2026-10-03"), d("2026-10-03"), "all"),
+        ),
+        listOf(SchoolClass("c", "Class", 60, 4.0, listOf(group), listOf(sb, wb), emptyList(), emptyList())),
+    )
+
+    private class FakeFile : PlanFile {
+        override val base = File("plans.json")
+        val writes = mutableListOf<ByteArray>()
+        override fun read() = "{}".toByteArray()
+        override fun write(bytes: ByteArray) { writes += bytes }
+        override fun warn(message: String, error: Throwable) = Unit
+    }
+
+    private class FakeSettings : SettingsPort {
+        override fun load() = Settings()
+        override fun save(s: Settings) = Unit
+    }
+
+    private inner class Rig {
+        val file = FakeFile()
+        val dispatcher = ManualDispatcher()
+        var time = 0L
+        val vm = PacerViewModel(
+            PlanStore(file, { AppData(listOf(year), "y", "c") }, { "{}" }),
+            FakeSettings(),
+            UpdateChecker({ null }, "0.4.2.0", enabled = false),
+            CoroutineScope(SupervisorJob() + dispatcher),
+            dispatcher,
+            { time },
+        )
+        val group get() = vm.state.value.data.schoolClass!!.groups.single()
+        val years get() = vm.state.value.data.years
+        val undoDepth get() = vm.state.value.undoDepth
+    }
+
+    @Test fun editPushesOneUndoStep() {
+        val r = Rig()
+        assertEquals(0, r.undoDepth)
+        assertTrue(r.vm.toggleDay("g1", DayOfWeek.TUESDAY))
+        assertEquals(1, r.undoDepth)
+        assertEquals(setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY), r.group.days)
+    }
+
+    @Test fun noChangeEditDoesNotPushUndo() {
+        val r = Rig()
+        assertFalse(r.vm.renameGroup("g1", "Group A"))
+        assertFalse(r.vm.setGroupBookDue("g1", "sb", null))
+        assertEquals(0, r.undoDepth)
+    }
+
+    @Test fun sameTagWithinWindowMerges() {
+        val r = Rig()
+        r.vm.renameGroup("g1", "B")
+        r.time = 100
+        r.vm.renameGroup("g1", "Bo")
+        assertEquals(1, r.undoDepth)
+        r.time = 2_000
+        r.vm.renameGroup("g1", "Boo")
+        assertEquals(2, r.undoDepth)
+        // Another field never merges, even at once.
+        r.vm.setNextLesson("g1", d("2026-10-05"))
+        assertEquals(3, r.undoDepth)
+    }
+
+    @Test fun undoRestoresPreviousYears() {
+        val r = Rig()
+        val before = r.years
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.vm.undo()
+        assertEquals(before, r.years)
+        assertEquals(0, r.undoDepth)
+        // Nothing left to undo is harmless.
+        r.vm.undo()
+        assertEquals(before, r.years)
+    }
+
+    @Test fun undoLimitIsSixty() {
+        val r = Rig()
+        repeat(70) { r.vm.toggleDay("g1", DayOfWeek.TUESDAY) }
+        assertEquals(60, r.undoDepth)
+    }
+
+    @Test fun saveIsDebounced() {
+        val r = Rig()
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.dispatcher.advanceBy(399)
+        assertEquals(0, r.file.writes.size)
+        // Another edit restarts the wait.
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.dispatcher.advanceBy(399)
+        assertEquals(0, r.file.writes.size)
+        r.dispatcher.advanceBy(1)
+        assertEquals(1, r.file.writes.size)
+        r.dispatcher.advanceBy(10_000)
+        assertEquals(1, r.file.writes.size)
+    }
+
+    @Test fun flushSavesImmediately() {
+        val r = Rig()
+        r.vm.flush()
+        assertEquals("nothing to save yet", 0, r.file.writes.size)
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.vm.flush()
+        assertEquals(1, r.file.writes.size)
+        r.dispatcher.advanceBy(10_000)
+        assertEquals("the cancelled debounce doesn't save again", 1, r.file.writes.size)
+    }
+
+    @Test fun setGroupBookRemovedRefusesLastCoreBook() {
+        val r = Rig()
+        assertTrue(r.vm.setGroupBookRemoved("g1", "wb", true))
+        assertEquals(setOf("wb"), r.group.removedBooks)
+        assertFalse(r.vm.setGroupBookRemoved("g1", "sb", true))
+        assertEquals(setOf("wb"), r.group.removedBooks)
+        assertEquals(1, r.undoDepth)
+        assertTrue(r.vm.setGroupBookRemoved("g1", "wb", false))
+        assertEquals(emptySet<String>(), r.group.removedBooks)
+        assertFalse("not a book of the class", r.vm.setGroupBookRemoved("g1", "nope", true))
+    }
+
+    @Test fun setGroupBookDueIsOneUndoStep() {
+        val r = Rig()
+        assertTrue(r.vm.setGroupBookDue("g1", "sb", d("2027-01-15")))
+        assertEquals(mapOf("sb" to d("2027-01-15")), r.group.bookDue)
+        assertEquals(1, r.undoDepth)
+        r.vm.undo()
+        assertEquals(emptyMap<String, LocalDate>(), r.group.bookDue)
+        r.vm.setGroupBookDue("g1", "sb", d("2027-01-15"))
+        assertTrue(r.vm.setGroupBookDue("g1", "sb", null))
+        assertEquals(emptyMap<String, LocalDate>(), r.group.bookDue)
+    }
+
+    @Test fun editClosureUndoable() {
+        val r = Rig()
+        val before = r.years
+        assertTrue(r.vm.editClosure("own", "g1", "Away", d("2026-10-02"), d("2026-10-04")))
+        val edited = r.years.single().closures.first { it.id == "own" }
+        assertEquals(Closure("own", "Away", d("2026-10-02"), d("2026-10-04"), "g1"), edited)
+        assertEquals(1, r.undoDepth)
+        r.vm.undo()
+        assertEquals(before, r.years)
+        // A year-wide day off, or one that isn't this group's, is left alone.
+        assertFalse(r.vm.editClosure("all", "g1", "x", d("2026-10-02"), null))
+        assertFalse(r.vm.editClosure("own", "other", "x", d("2026-10-02"), null))
+        assertEquals(0, r.undoDepth)
+    }
+
+    @Test fun settingBookTypeSyncsTheSupplementaryFlag() {
+        val r = Rig()
+        r.vm.setBookType("wb", gr.edusuite.pacer.model.BookType.SUPPLEMENTARY)
+        val book = r.vm.state.value.data.schoolClass!!.books.first { it.id == "wb" }
+        assertTrue(book.supplementary)
+        // Its current pages become the pages to use, so the book isn't left empty.
+        assertEquals("1–80", book.include)
+        r.vm.setBookType("wb", gr.edusuite.pacer.model.BookType.WORKBOOK)
+        assertFalse(r.vm.state.value.data.schoolClass!!.books.first { it.id == "wb" }.supplementary)
+    }
+}

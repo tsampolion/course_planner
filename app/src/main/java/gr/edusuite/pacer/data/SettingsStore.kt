@@ -8,11 +8,17 @@ import gr.edusuite.pacer.model.ClassOrder
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 
+/** What the view model needs from the preferences, so tests can supply their own. */
+interface SettingsPort {
+    fun load(): Settings
+    fun save(s: Settings)
+}
+
 /** App preferences in SharedPreferences (`settings.xml`), kept apart from the plans file. */
-class SettingsStore(context: Context) {
+class SettingsStore(context: Context) : SettingsPort {
     private val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
-    fun load(): Settings = Settings(
+    override fun load(): Settings = Settings(
         autoUpdateCheck = runCatching { prefs.getBoolean(AUTO_UPDATE, true) }.getOrDefault(true),
         lastUpdateCheck = runCatching { prefs.getLong(LAST_UPDATE_CHECK, 0L) }.getOrDefault(0L),
         availableUpdate = storedUpdate(
@@ -34,7 +40,7 @@ class SettingsStore(context: Context) {
         seenTips = prefs.getStringSet(TIPS, null)?.toSet().orEmpty(),
     ).sanitised()
 
-    fun save(s: Settings) {
+    override fun save(s: Settings) {
         prefs.edit()
             .putBoolean(AUTO_UPDATE, s.autoUpdateCheck)
             .putLong(LAST_UPDATE_CHECK, s.lastUpdateCheck)

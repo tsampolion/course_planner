@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -15,10 +17,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
+import gr.edusuite.pacer.engine.endFor
 import gr.edusuite.pacer.engine.fmt
+import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.lessonsFor
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.model.ALL_GROUPS
+import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.SchoolYear
@@ -39,6 +45,8 @@ fun GroupSettingsScreen(
 ) {
     val context = LocalContext.current
     var addingClosure by rememberSaveable(group.id) { mutableStateOf(false) }
+    var editingClosure by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
+    var optionsBook by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
     var addingBook by rememberSaveable(group.id) { mutableStateOf(false) }
     val classId = year.classes.firstOrNull { c -> c.groups.any { it.id == group.id } }?.id
     val inherited = year.closures.filter { it.who == ALL_GROUPS || it.who == classId }
@@ -74,7 +82,23 @@ fun GroupSettingsScreen(
                         if (i > 0) RowDivider()
                         val title = c.label.ifBlank { stringResource(R.string.year_day_off) }
                         val remove = { vm.removeClosure(c.id); undoToast(context.getString(R.string.year_removed, title)) }
-                        LedgerRow(title, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff) { RemoveMenu(title, remove) }
+                        var menu by remember { mutableStateOf(false) }
+                        Box {
+                            LedgerRow(
+                                title, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff,
+                                onLongClick = { menu = true }, longClickLabel = stringResource(R.string.component_options),
+                            ) { RemoveMenu(title, remove) }
+                            PacerDropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.class_edit)) }, leadingIcon = { AppIcon(AppIcons.Edit) },
+                                    onClick = { menu = false; editingClosure = c.id },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.rows_delete), color = Pacer.colors.warn) }, leadingIcon = { AppIcon(AppIcons.Delete) },
+                                    onClick = { menu = false; remove() },
+                                )
+                            }
+                        }
                     }
                 }
                 PaletteTextButton(onClick = {
@@ -90,7 +114,7 @@ fun GroupSettingsScreen(
             Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 SectionHead(stringResource(R.string.group_settings_skipped_pages))
                 Hint(stringResource(R.string.group_settings_skip_hint))
-                plan.books.filter { !it.supplementary && (!it.groupOnly || it.id in group.extraBooks) }.forEach { book ->
+                plan.books.filter { !it.supplementary && group.usesBook(it) }.forEach { book ->
                     Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                         CommitField(group.skip[book.id].orEmpty(), { vm.setGroupSkip(group.id, book.id, it) }, book.name.ifBlank { stringResource(R.string.class_book) }, Modifier.fillMaxWidth(), placeholder = stringResource(R.string.group_settings_skip_example))
                         Hint(stringResource(R.string.group_settings_class_skip, book.skip.ifBlank { stringResource(R.string.group_settings_none) }))
@@ -102,14 +126,22 @@ fun GroupSettingsScreen(
             Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 SectionHead(stringResource(R.string.group_settings_books), action = stringResource(R.string.class_add_a_book), onAction = { addingBook = true })
                 Hint(stringResource(R.string.group_settings_books_hint))
+                Hint(stringResource(R.string.group_settings_books_long_press))
                 RowGroup {
                     plan.books.forEachIndexed { i, book ->
                         if (i > 0) RowDivider()
                         val title = book.name.ifBlank { stringResource(R.string.class_book) }
-                        if (!book.groupOnly) LedgerRow(title, detail = stringResource(R.string.group_settings_default_book))
+                        val removed = book.id in group.removedBooks
+                        val own = group.bookDue[book.id]
+                        val detail = listOfNotNull(
+                            stringResource(if (removed) R.string.group_settings_removed_book else if (book.groupOnly) R.string.group_settings_optional_book else R.string.group_settings_default_book),
+                            own?.takeIf { !removed && !book.supplementary }?.let { stringResource(R.string.class_due_by, it.fmtShort()) },
+                        ).joinToString(" · ")
+                        val options = stringResource(R.string.component_options)
+                        if (!book.groupOnly) LedgerRow(title, detail = detail, onLongClick = { optionsBook = book.id }, longClickLabel = options)
                         else {
                             val selected = book.id in group.extraBooks
-                            LedgerRow(title, detail = stringResource(R.string.group_settings_optional_book), onClick = { vm.setGroupExtraBook(group.id, book.id, !selected) }) {
+                            LedgerRow(title, detail = detail, onClick = { vm.setGroupExtraBook(group.id, book.id, !selected) }, onLongClick = { optionsBook = book.id }, longClickLabel = options) {
                                 Checkbox(checked = selected, onCheckedChange = null)
                             }
                         }
@@ -139,25 +171,62 @@ fun GroupSettingsScreen(
             })
         }
     }
-    if (addingClosure) GroupClosureSheet(group.id, vm) { addingClosure = false }
+    if (addingClosure) GroupClosureSheet(group.id, null, vm) { addingClosure = false }
+    ownClosures.firstOrNull { it.id == editingClosure }?.let { c -> GroupClosureSheet(group.id, c, vm) { editingClosure = null } }
+    plan.books.firstOrNull { it.id == optionsBook }?.let { book ->
+        GroupBookOptionsSheet(plan, group, book, vm, toast) { optionsBook = null }
+    }
     if (addingBook) GroupBookSheet(group.id, vm) { addingBook = false }
 }
 
-/** Scope is fixed to this group so the form cannot accidentally change the class calendar. */
+/** Scope is fixed to this group so the form cannot accidentally change the class calendar. With [editing] the sheet starts filled in and saves over that day off. */
 @Composable
-private fun GroupClosureSheet(groupId: String, vm: PacerViewModel, onDismiss: () -> Unit) {
-    var label by rememberSaveable { mutableStateOf("") }
-    var fromText by rememberSaveable { mutableStateOf<String?>(null) }
-    var toText by rememberSaveable { mutableStateOf<String?>(null) }
+private fun GroupClosureSheet(groupId: String, editing: Closure?, vm: PacerViewModel, onDismiss: () -> Unit) {
+    var label by rememberSaveable(editing?.id) { mutableStateOf(editing?.label.orEmpty()) }
+    var fromText by rememberSaveable(editing?.id) { mutableStateOf(editing?.from?.toString()) }
+    var toText by rememberSaveable(editing?.id) { mutableStateOf(editing?.takeIf { it.to != it.from }?.to?.toString()) }
     val from = fromText?.let(LocalDate::parse)
     val to = toText?.let(LocalDate::parse)
-    SheetFrame(stringResource(R.string.year_add_day_off), stringResource(R.string.year_add), from != null && (to == null || to >= from), {
-        vm.addClosure(label.trim(), from!!, to, groupId)
-    }, onDismiss) {
+    SheetFrame(
+        stringResource(if (editing == null) R.string.year_add_day_off else R.string.year_edit_day_off),
+        stringResource(if (editing == null) R.string.year_add else R.string.component_save),
+        from != null && (to == null || to >= from), {
+            if (editing == null) vm.addClosure(label.trim(), from!!, to, groupId)
+            else vm.editClosure(editing.id, groupId, label.trim(), from!!, to)
+        }, onDismiss,
+    ) {
         Hint(stringResource(R.string.group_settings_days_off_hint))
         CommitField(label, { label = it }, stringResource(R.string.year_reason), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_reason_example))
         DateField(from, { fromText = it?.toString() }, stringResource(R.string.year_from), Modifier.fillMaxWidth())
         DateField(to, { toText = it?.toString() }, stringResource(R.string.year_to_optional), Modifier.fillMaxWidth(), clearable = true)
+    }
+}
+
+/**
+ * What the group can change about one book, opened by a long-press: leave the book out (a default book) or bring it
+ * back, and a finish-by date for this group only, with the class's date shown and a way back to it.
+ */
+@Composable
+private fun GroupBookOptionsSheet(plan: Plan, group: Group, book: Book, vm: PacerViewModel, toast: (String) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val removed = book.id in group.removedBooks
+    val own = group.bookDue[book.id]
+    val end = plan.endFor(group)
+    SheetFrame(book.name.ifBlank { stringResource(R.string.class_book) }, stringResource(R.string.class_done), true, {}, onDismiss) {
+        if (!removed && !book.supplementary) {
+            DateField(own, { vm.setGroupBookDue(group.id, book.id, it) }, stringResource(R.string.class_finish_by), Modifier.fillMaxWidth())
+            Hint(stringResource(R.string.group_settings_class_date, book.due?.fmt() ?: stringResource(R.string.component_not_set)))
+            if (own != null && end != null && own > end) Hint(stringResource(R.string.group_settings_book_due_clamped, end.fmt()), color = Pacer.colors.warn)
+            if (own != null) TertiaryButton(stringResource(R.string.group_settings_use_class_date), { vm.setGroupBookDue(group.id, book.id, null) })
+        }
+        if (!book.groupOnly) {
+            if (removed) TertiaryButton(stringResource(R.string.group_settings_add_back), { vm.setGroupBookRemoved(group.id, book.id, false) })
+            else TertiaryButton(stringResource(R.string.group_settings_remove_book), {
+                if (vm.setGroupBookRemoved(group.id, book.id, true)) onDismiss()
+                else toast(context.getString(R.string.group_settings_keep_one_book))
+            }, color = Pacer.colors.warn)
+            if (!removed) Hint(stringResource(R.string.group_settings_remove_book_hint))
+        }
     }
 }
 
