@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import gr.edusuite.pacer.data.JsonCodec
 import gr.edusuite.pacer.data.PlanStore
+import gr.edusuite.pacer.data.SaveResult
 import gr.edusuite.pacer.data.SettingsPort
 import gr.edusuite.pacer.data.SettingsStore
 import gr.edusuite.pacer.data.addYears
@@ -97,6 +98,16 @@ data class UiState(val data: AppData, val undoDepth: Int, val stack: List<Screen
     val screen: Screen get() = stack.last()
 }
 
+/** Why an edit may not be on disk. */
+enum class SaveProblem {
+    /** A write failed; Retry, the next edit and leaving the app try again. */
+    NotSaved,
+    /** The file couldn't be read at launch, so nothing is written over it. */
+    ReadLocked,
+    /** As [ReadLocked], and the file can be read now, but edits made meanwhile would overwrite it. */
+    LockedWithEdits,
+}
+
 /** Session-only feedback from an explicit update check. */
 enum class UpdateCheckState { IDLE, CHECKING, UP_TO_DATE, FAILED }
 
@@ -143,13 +154,9 @@ class PacerViewModel(
         _setAside.value = null
     }
 
-    /** True once at launch when the plans file couldn't be read right now; the notice is shown once. */
-    private val _readFailed = MutableStateFlow(loaded.readFailed)
-    val readFailed: StateFlow<Boolean> = _readFailed.asStateFlow()
-
-    fun dismissReadFailed() {
-        _readFailed.value = false
-    }
+    /** Why the latest edits may not be on disk, until a write succeeds or the file is read again. Null when all is saved. */
+    private val _saveProblem = MutableStateFlow(if (loaded.readFailed) SaveProblem.ReadLocked else null)
+    val saveProblem: StateFlow<SaveProblem?> = _saveProblem.asStateFlow()
 
     /** Groups opened this session, latest first, for the group switcher. Not saved: a new session starts empty. */
     private val _recent = MutableStateFlow(recentAfter(emptyList(), _state.value))
@@ -175,6 +182,10 @@ class PacerViewModel(
     private var lastTag: String? = null
     private var lastTime = 0L
     private var saveJob: Job? = null
+    /** Counts edits; written on the main thread only. An edit is on disk once [savedRevision] has reached its number. */
+    @Volatile private var revision = 0L
+    private var savedRevision = 0L
+    private val saveLock = Any()
     private var historyStep = 0L
 
     private val data get() = _state.value.data
@@ -290,21 +301,65 @@ class PacerViewModel(
     }
 
     private fun scheduleSave() {
+        revision++
         saveJob?.cancel()
         saveJob = scope.launch(io) {
             delay(SAVE_DEBOUNCE_MS)
-            store.save(data)
+            saveNow()
         }
     }
 
     /**
-     * Writes now, on the calling thread. Called when the app goes to the background,
-     * where the process may be killed before a debounced save runs. The file is a few kilobytes.
+     * Writes the newest state if it isn't on disk yet. The revision is read before the data, and the state is
+     * published before the revision is bumped, so the data is never older than the revision it is recorded under;
+     * a success then clears only that revision, never a newer edit that arrived during the write.
+     */
+    private fun saveNow() = synchronized(saveLock) {
+        val rev = revision
+        if (rev <= savedRevision) return@synchronized
+        when (store.save(data)) {
+            SaveResult.Saved -> {
+                savedRevision = rev
+                if (savedRevision >= revision && _saveProblem.value == SaveProblem.NotSaved) _saveProblem.value = null
+            }
+            SaveResult.Failed -> _saveProblem.value = SaveProblem.NotSaved
+            SaveResult.Locked -> if (_saveProblem.value == null) _saveProblem.value = SaveProblem.ReadLocked
+        }
+    }
+
+    /**
+     * Writes now, on the calling thread, whatever the state of the debounced save. Called when the app goes to the
+     * background, where the process may be killed before a debounced save runs. The file is a few kilobytes.
      */
     fun flush() {
-        if (saveJob?.isActive != true) return
         saveJob?.cancel()
-        store.save(data)
+        saveNow()
+    }
+
+    /** The Retry of the "not saved" notice. */
+    fun retrySave() = flush()
+
+    /**
+     * The "Try reading again" of the locked-read notice. If the file reads and nothing was edited since launch,
+     * its data opens and saving resumes. If edits were made meanwhile, saving stays off: either the file or those
+     * edits would be lost, so the teacher exports a copy and reopens the app.
+     */
+    fun retryRead() {
+        val problem = _saveProblem.value
+        if (problem != SaveProblem.ReadLocked && problem != SaveProblem.LockedWithEdits) return
+        val again = store.reload()
+        if (again.readFailed) return
+        synchronized(saveLock) {
+            if (revision != savedRevision) {
+                _saveProblem.value = SaveProblem.LockedWithEdits
+                return
+            }
+            store.unlock()
+            _saveProblem.value = null
+        }
+        again.setAside?.let { _setAside.value = it }
+        _state.value = stateFor(withDefaultYear(again.data), Nav.launch, 0).copy(historyStep = historyStep)
+        _recent.value = recentAfter(emptyList(), _state.value)
     }
 
     /** The open year and class stay open if they still exist after the undo; otherwise the ones open at the time return. */

@@ -12,6 +12,7 @@ import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.update.UpdateChecker
 import java.io.File
+import java.io.IOException
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.util.PriorityQueue
@@ -80,8 +81,17 @@ class PacerViewModelTest {
     private class FakeFile : PlanFile {
         override val base = File("plans.json")
         val writes = mutableListOf<ByteArray>()
-        override fun read() = "{}".toByteArray()
-        override fun write(bytes: ByteArray) { writes += bytes }
+        /** Set to make [read] fail like a locked file; [write] fails while [failWrites] is true. */
+        var readError: IOException? = null
+        var failWrites = false
+        /** Runs in the middle of a write that is about to succeed: an edit that arrives while the disk is busy. */
+        var duringWrite: () -> Unit = {}
+        override fun read() = readError?.let { throw it } ?: "{}".toByteArray()
+        override fun write(bytes: ByteArray) {
+            if (failWrites) throw IOException("disk full")
+            duringWrite()
+            writes += bytes
+        }
         override fun warn(message: String, error: Throwable) = Unit
     }
 
@@ -90,13 +100,15 @@ class PacerViewModelTest {
         override fun save(s: Settings) = Unit
     }
 
-    private inner class Rig {
-        val file = FakeFile()
+    private inner class Rig(locked: Boolean = false) {
+        val file = FakeFile().also { if (locked) it.readError = IOException("busy") }
+        /** What the plans file holds once it can be read again. */
+        var disk = AppData(listOf(year), "y", "c")
         val dispatcher = ManualDispatcher()
         var time = 0L
         var date = d("2026-10-24")
         val vm = PacerViewModel(
-            PlanStore(file, { AppData(listOf(year), "y", "c") }, { "{}" }),
+            PlanStore(file, { disk }, { it.hashCode().toString() }),
             FakeSettings(),
             UpdateChecker({ null }, "0.4.2.0", enabled = false),
             CoroutineScope(SupervisorJob() + dispatcher),
@@ -239,5 +251,115 @@ class PacerViewModelTest {
         assertEquals("1–80", book.include)
         r.vm.setBookType("wb", gr.edusuite.pacer.model.BookType.WORKBOOK)
         assertFalse(r.vm.state.value.data.schoolClass!!.books.first { it.id == "wb" }.supplementary)
+    }
+
+    private fun Rig.written(data: AppData) = data.hashCode().toString().toByteArray().toList()
+    private fun Rig.lastWrite() = file.writes.last().toList()
+    private fun Rig.newest() = written(vm.state.value.data)
+
+    @Test fun aFailedSaveShowsAProblemAndKeepsTheEditInMemory() {
+        val r = Rig()
+        r.file.failWrites = true
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.dispatcher.advanceBy(400)
+        assertEquals(SaveProblem.NotSaved, r.vm.saveProblem.value)
+        assertEquals(setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY), r.group.days)
+        assertEquals(0, r.file.writes.size)
+    }
+
+    @Test fun retryAfterAFailureWritesTheNewestStateAndClearsTheProblem() {
+        val r = Rig()
+        r.file.failWrites = true
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.dispatcher.advanceBy(400)
+        r.vm.retrySave()
+        assertEquals("still failing, still reported", SaveProblem.NotSaved, r.vm.saveProblem.value)
+        r.file.failWrites = false
+        r.vm.retrySave()
+        assertEquals(null, r.vm.saveProblem.value)
+        assertEquals(r.newest(), r.lastWrite())
+    }
+
+    @Test fun theNextEditRetriesAFailedSave() {
+        val r = Rig()
+        r.file.failWrites = true
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.dispatcher.advanceBy(400)
+        r.file.failWrites = false
+        r.vm.toggleDay("g1", DayOfWeek.WEDNESDAY)
+        r.dispatcher.advanceBy(400)
+        assertEquals(null, r.vm.saveProblem.value)
+        assertEquals(1, r.file.writes.size)
+        assertEquals(r.newest(), r.lastWrite())
+    }
+
+    @Test fun flushWritesAFailedSaveEvenThoughTheJobIsDone() {
+        val r = Rig()
+        r.file.failWrites = true
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.dispatcher.advanceBy(400)
+        r.file.failWrites = false
+        r.vm.flush()
+        assertEquals(1, r.file.writes.size)
+        assertEquals(null, r.vm.saveProblem.value)
+        r.vm.flush()
+        assertEquals("nothing is dirty any more", 1, r.file.writes.size)
+    }
+
+    @Test fun anOlderSuccessNeverClearsANewerEdit() {
+        val r = Rig()
+        r.file.failWrites = true
+        r.vm.toggleDay("g1", DayOfWeek.TUESDAY)
+        r.dispatcher.advanceBy(400)
+        r.file.failWrites = false
+        val older = r.newest()
+        r.file.duringWrite = { r.vm.toggleDay("g1", DayOfWeek.WEDNESDAY); r.file.duringWrite = {} }
+        r.vm.retrySave()
+        assertEquals(older, r.lastWrite())
+        assertEquals("the newer edit isn't on disk yet", SaveProblem.NotSaved, r.vm.saveProblem.value)
+        r.dispatcher.advanceBy(400)
+        assertEquals(r.newest(), r.lastWrite())
+        assertEquals(null, r.vm.saveProblem.value)
+    }
+
+    @Test fun nothingIsWrittenAfterALockedRead() {
+        val r = Rig(locked = true)
+        assertEquals(SaveProblem.ReadLocked, r.vm.saveProblem.value)
+        r.vm.newYear("New", d("2026-09-01"), d("2027-06-01"), false)
+        r.dispatcher.advanceBy(400)
+        r.vm.flush()
+        r.vm.retrySave()
+        assertEquals(0, r.file.writes.size)
+        assertEquals(SaveProblem.ReadLocked, r.vm.saveProblem.value)
+    }
+
+    @Test fun tryingToReadAgainWhileStillUnreadableChangesNothing() {
+        val r = Rig(locked = true)
+        r.vm.retryRead()
+        assertEquals(SaveProblem.ReadLocked, r.vm.saveProblem.value)
+    }
+
+    @Test fun tryingToReadAgainWithNoEditsLoadsTheFileAndResumesSaving() {
+        val r = Rig(locked = true)
+        r.file.readError = null
+        r.vm.retryRead()
+        assertEquals(null, r.vm.saveProblem.value)
+        assertEquals(r.disk.years, r.vm.state.value.data.years)
+        assertEquals("reading doesn't write", 0, r.file.writes.size)
+        r.vm.newYear("New", d("2026-09-01"), d("2027-06-01"), false)
+        r.dispatcher.advanceBy(400)
+        assertEquals(1, r.file.writes.size)
+    }
+
+    @Test fun tryingToReadAgainAfterEditsKeepsTheLockAndTheEdits() {
+        val r = Rig(locked = true)
+        r.vm.newYear("New", d("2026-09-01"), d("2027-06-01"), false)
+        r.file.readError = null
+        r.vm.retryRead()
+        assertEquals(SaveProblem.LockedWithEdits, r.vm.saveProblem.value)
+        assertEquals(listOf("New"), r.years.map { it.name })
+        r.dispatcher.advanceBy(400)
+        r.vm.flush()
+        assertEquals("the file that was just read is never overwritten", 0, r.file.writes.size)
     }
 }

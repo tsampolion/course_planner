@@ -134,7 +134,7 @@ fun PacerApp(vm: PacerViewModel) {
     val settings by vm.settings.collectAsState()
     val update by vm.update.collectAsState()
     val setAside by vm.setAside.collectAsState()
-    val readFailed by vm.readFailed.collectAsState()
+    val saveProblem by vm.saveProblem.collectAsState()
     val screen = ui.screen
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
@@ -273,6 +273,8 @@ fun PacerApp(vm: PacerViewModel) {
     val body: @Composable () -> Unit = {
         Scaffold(
             snackbarHost = {
+                Column {
+                saveProblem?.let { SaveNotice(it, vm, toast) }
                 SnackbarHost(snackbar) { data ->
                     val motion = animationsEnabled()
                     val visible = remember(data) { MutableTransitionState(false).apply { targetState = true } }
@@ -280,6 +282,7 @@ fun PacerApp(vm: PacerViewModel) {
                         enter = if (motion) slideInVertically(Motion.content()) { it } else EnterTransition.None,
                         exit = if (motion) slideOutVertically(Motion.content()) { it } else ExitTransition.None,
                     ) { UndoSnackbar(data, undoGate) }
+                }
                 }
             },
             topBar = {
@@ -360,13 +363,6 @@ fun PacerApp(vm: PacerViewModel) {
         if (year != null && cls != null && group != null) androidx.compose.runtime.key(target) { UnitRevisionSheet(GroupReport(year.planFor(cls), group), target, vm, undoToast) }
     }
     setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
-    if (readFailed) {
-        val message = stringResource(R.string.load_read_failed)
-        LaunchedEffect(Unit) {
-            vm.dismissReadFailed()
-            snackbar.showSnackbar(message)
-        }
-    }
 }
 
 @Composable

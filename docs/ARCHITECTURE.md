@@ -146,7 +146,10 @@ Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHAN
 `PlanStore` writes `plans.json` in `filesDir` through `AtomicFile`, behind the small `PlanFile` seam so the load rules are unit-tested on the JVM.
 
 - If the file is missing, the app starts with no school years.
-- A read error (`IOException`) leaves the file alone: `Loaded.readFailed` is set, `save` does nothing until a later `load` succeeds, and the app shows a one-time snackbar.
+- `save` returns a `SaveResult`: `Saved`, `Failed` or `Locked`. Only `Saved` means the data is on disk.
+- A read error (`IOException`) leaves the file alone: `Loaded.readFailed` is set and `save` returns `Locked` until a later `load` succeeds or `unlock` is called.
+- The ViewModel counts edits (`revision`) and remembers the newest one written (`savedRevision`). `saveNow` writes when they differ, from the debounced job, `flush()` (on stop) and `retrySave()`. A success records only the revision it wrote, so it never clears a newer edit.
+- `saveProblem` (`NotSaved`, `ReadLocked`, `LockedWithEdits`) drives `SaveNotice`, a lasting snackbar outside the toast queue with Retry or Try reading again, and Export a copy. `retryRead` reads without unlocking; it replaces the data in memory and unlocks only if nothing was edited since launch (`SAVE_STATUS_BRIEF.md`).
 - Only content that can't be parsed (including nesting deep enough to overflow the stack) is moved to the first free `plans.json.bad`, `plans.json.bad-2`, … (never overwriting one). The app starts empty too, with a one-time notice (`SetAsideDialog`) that offers to save a copy where the teacher can reach it.
 
 `SettingsStore` keeps `Settings` in SharedPreferences (`settings.xml`), outside undo. Export and import (`BACKUP_BRIEF.md`) write and read the same JSON through the system file pickers: `JsonCodec.readImport` refuses newer versions and junk, and `addYears` in `Backup.kt` (plain Kotlin, unit-tested) gives clashing years a new id or name.
