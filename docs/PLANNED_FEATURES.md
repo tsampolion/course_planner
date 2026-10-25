@@ -480,7 +480,7 @@ Warn or block at export when the file would be over the import limit. This is a 
 
 ## 9. Device and accessibility check pass
 
-**Status:** proposed. Not approved. It is a verification pass, not an app change. Its results feed the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), whose own phone checks are the short form of this matrix.
+**Status:** proposed. Not approved. It is a verification pass, not an app change. `scripts/device-check.sh` (0.4.4.5) already automates the theme, text-size, width and process-death screenshots for whichever screen is open; the palette, TalkBack and midnight checks stay manual. Its results feed the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), whose own phone checks are the short form of this matrix.
 
 ### Why
 
@@ -533,6 +533,48 @@ What the existing tests do not prove:
 - **D4's long-press sheets.** The group book options and own-day-off Edit/Delete need a device check that TalkBack and switch access reach them, not only the long press.
 - **Gestures and speed.** System Back and predictive back, the system bars and gesture navigation, and a startup or large-data frame benchmark were not run. Don't infer speed from file size.
 
+## 10. Automatic UI tests (Compose robot tests)
+
+**Status:** proposed. Not approved. It adds one test-only library, so it needs the owner's approval (CLAUDE.md, approved dependencies).
+
+### The problem
+
+- Unit tests check the engine and the models. Nothing checks the screens: that Done is there and works, that every control has a TalkBack name, or that large text keeps the important parts on screen.
+- So every pull request asks the owner to check by hand on a phone. A screen bug fixed once can come back unnoticed.
+- The 16 platform codec tests (`app/src/androidTest`) never run in CI.
+
+### Proposal
+
+- Add `androidx.compose.ui:ui-test-junit4` (version from the existing Compose BOM) to `androidTestImplementation`, and `ui-test-manifest` to `debugImplementation`. Declare them in `gradle/libs.versions.toml`.
+- Each test opens one screen with synthetic data, acts as the teacher would (`onNodeWithText("Done").performClick()`), and checks what is shown or what was stored.
+- Tests grow with the work: each fix pull request in the Order of work adds tests for the journeys it touches. Start with:
+  - tick a lesson and undo;
+  - record pages taught;
+  - a failed save shows its notice (entry 3);
+  - every control on group home has a name;
+  - 200% text keeps today's pages.
+- **CI (owner's choice):** run them with Gradle Managed Devices, which is built into the Android Gradle Plugin (no extra dependency). This also runs the 16 codec tests. Each CI run gets about 5 to 10 minutes slower.
+
+### Alternative
+
+Run the tests only locally (`./gradlew connectedAndroidTest` with the emulator open) and keep CI as it is. This is cheaper, but it relies on someone running them.
+
+### What it does not cover
+
+How screens look. That stays with `scripts/device-check.sh` and the owner's eyes. Screenshot comparison tests would be another library and a separate decision.
+
+### Acceptance
+
+- The tests pass locally against an emulator, and in CI if chosen.
+- Each test fails when the behaviour it guards is broken. Prove this once by breaking the behaviour on purpose.
+- No production code changes just to make it testable, beyond adding semantics that TalkBack needs anyway.
+- CI time is recorded before and after.
+
+### Open questions
+
+1. Approve `ui-test-junit4` and `ui-test-manifest` as test-only dependencies?
+2. Run them in CI on every pull request, only on `main`, or locally only? Recommended: every pull request, once there are more than a handful.
+
 ## Order of work
 
 The 4.1.0 audit plan has shipped every part, and its plan and spec were deleted in 0.4.4.1 (git history keeps them):
@@ -563,4 +605,4 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 12. **Entries 7 and 8**, print and backup. They can go any time after step 1, as separate pull requests. Entry 7 goes before or with streamlining M3.
 13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
 
-Entry 1 (focus blocks) has no slot; build it only when asked. Do not start a parallel navigation or design system.
+Entry 10 (UI tests) can start with step 1: once it is approved, each later step adds tests for what it touches. Entry 1 (focus blocks) has no slot; build it only when asked. Do not start a parallel navigation or design system.
