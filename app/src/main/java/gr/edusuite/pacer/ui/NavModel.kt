@@ -5,6 +5,8 @@ import gr.edusuite.pacer.engine.unitIssues
 import gr.edusuite.pacer.engine.BookLag
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.Source
+import gr.edusuite.pacer.engine.fitToTerm
+import gr.edusuite.pacer.engine.tidy
 import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.activeExtras
 import gr.edusuite.pacer.engine.bookLags
@@ -73,12 +75,15 @@ sealed interface GroupWarning {
     data class BookBehind(val lag: BookLag, val lessons: Int) : GroupWarning
     /** The custom plan leaves pages out: Re-pace. */
     data class Missing(val pages: Int) : GroupWarning
-    /** The custom plan runs past the term: Fit to term. */
-    data class Overflow(val lessons: Int) : GroupWarning
-    /** The custom plan teaches pages twice: Tidy. */
-    data class Doubled(val pages: Int) : GroupWarning
-    /** The custom plan holds pages already taught: Tidy. */
-    data class Stale(val pages: Int) : GroupWarning
+    /**
+     * The custom plan runs past the term: Fit to term. [edited] of the lessons are the teacher's and stay as they are;
+     * with [canFit] false there is nothing Fit to term could move.
+     */
+    data class Overflow(val lessons: Int, val edited: Int = 0, val canFit: Boolean = true) : GroupWarning
+    /** The custom plan teaches pages twice: Tidy, or, when Tidy can't fix them, [openLesson] (a lesson id) to edit one. */
+    data class Doubled(val pages: Int, val openLesson: String? = null) : GroupWarning
+    /** The custom plan holds pages already taught: Tidy, or [openLesson] (a lesson id) when Tidy can't remove them. */
+    data class Stale(val pages: Int, val openLesson: String? = null) : GroupWarning
 }
 
 /**
@@ -102,11 +107,21 @@ fun groupWarnings(report: GroupReport): List<GroupWarning> {
     val cov = if (report.group.custom == null) null else GroupReport(plan, report.group, Source.CUSTOM).coverage()
     if (cov != null) {
         if (cov.missingCount > 0) out += GroupWarning.Missing(cov.missingCount)
-        if (cov.overflow > 0) out += GroupWarning.Overflow(cov.overflow)
-        if (cov.doubledCount > 0) out += GroupWarning.Doubled(cov.doubledCount)
-        if (cov.staleCount > 0) out += GroupWarning.Stale(cov.staleCount)
+        // Tidy and Fit to term leave the teacher's lessons alone, so each offers its fix only while it can change something.
+        val custom = GroupReport(plan, report.group, Source.CUSTOM)
+        val tidied = custom.tidy()?.let { GroupReport(plan, report.group.copy(custom = it), Source.CUSTOM).coverage() }
+        if (cov.overflow > 0) out += GroupWarning.Overflow(cov.overflow, cov.overflowEdited, custom.fitToTerm() != report.group.custom)
+        if (cov.doubledCount > 0) out += GroupWarning.Doubled(cov.doubledCount, if (tidied != null && tidied.doubledCount < cov.doubledCount) null else custom.lessonHolding(cov.doubled))
+        if (cov.staleCount > 0) out += GroupWarning.Stale(cov.staleCount, if (tidied != null && tidied.staleCount < cov.staleCount) null else custom.lessonHolding(cov.stale))
     }
     return out
+}
+
+/** The id of the lesson to open for [pages] (book id to pages): the first the teacher touched that holds one, else the first that does. */
+private fun GroupReport.lessonHolding(pages: Map<String, List<Int>>): String? {
+    val holds = { l: gr.edusuite.pacer.model.PlannedLesson -> l.pages.any { (book, ps) -> pages[book]?.any { it in ps } == true } }
+    val lessons = group.custom?.lessons.orEmpty()
+    return (lessons.firstOrNull { it.touched && holds(it) } ?: lessons.firstOrNull(holds))?.id
 }
 
 /** What the group switcher lists: from group home the other groups, from any of its pages the group's other pages. */
