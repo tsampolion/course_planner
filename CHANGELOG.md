@@ -25,6 +25,17 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.2] - 2026-10-25
+
+### Added
+
+- `docs/UI_AUDIT_BRIEF.md`: the UI/UX audit of every screen (taste-skill and impeccable methods, from the code), its findings per screen, proposed changes to `PACER_DESIGN.md` for the owner to approve one by one, and the order and size of nine fix pull requests, starting with group home and Plan.
+- `docs/STREAMLINING_BRIEF.md`: where each screen is reached from, what it is for, its next step and how it ends; the daily, weekly, set-up and first-run flows with tap counts; and what to remove (each needing the owner's yes), merge or move.
+
+### Changed
+
+- The front-end redesign audit and the streamlining pass leave `docs/PLANNED_FEATURES.md` now that they are approved. No app code, resources or wording changed.
+
 ## [0.4.4.0] - 2026-10-25
 
 ### Changed
@@ -812,6 +823,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.2]: https://github.com/tsampolion/course_planner/compare/v0.4.4.1...v0.4.4.2
 [0.4.4.0]: https://github.com/tsampolion/course_planner/compare/v0.4.3.0...v0.4.4.0
 [0.4.3.0]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...v0.4.3.0
 [0.4.2.0]: https://github.com/tsampolion/course_planner/compare/v0.4.1.3...v0.4.2.0
