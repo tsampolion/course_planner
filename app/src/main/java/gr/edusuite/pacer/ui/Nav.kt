@@ -74,10 +74,8 @@ object Nav {
     fun groupPage(screen: Screen.Group, layout: WindowLayout): GroupPage =
         if (layout != WindowLayout.COMPACT && screen.page == GroupPage.HOME) GroupPage.PLAN else screen.page
 
-    /** The stack to start with for a saved [AppData.view]. A group reopens under its class, as if opened from Home's Classes tile. */
-    fun fromView(view: String): List<Screen> =
-        if (view == AppData.VIEW_SETUP || view.isBlank()) root
-        else listOf(Screen.Home, Screen.Classes, Screen.Class, Screen.Group(view))
+    /** The stack a fresh start opens with: always Home. The open group is still saved in [AppData.view], but launch ignores it. */
+    val launch: List<Screen> get() = root
 
     /** What to save in [AppData.view] for this stack. */
     fun viewOf(stack: List<Screen>): String =

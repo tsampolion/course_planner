@@ -41,18 +41,16 @@ class NavTest {
     private val home = listOf(Screen.Home)
     private val classStack = listOf(Screen.Home, Screen.Classes, Screen.Class)
 
-    @Test fun savedViewMapsToStack() {
-        assertEquals(home, Nav.fromView(AppData.VIEW_SETUP))
-        assertEquals(home, Nav.fromView(""))
-        assertEquals(classStack + Screen.Group("ga"), Nav.fromView("ga"))
+    /** A fresh start always opens Home, even when a group was open when the app was closed (0.4.1.3). */
+    @Test fun launchOpensHome() {
+        assertEquals(home, Nav.launch)
+        assertEquals(Nav.root, Nav.launch)
     }
 
     @Test fun stackMapsToSavedView() {
         assertEquals(AppData.VIEW_SETUP, Nav.viewOf(home))
         assertEquals(AppData.VIEW_SETUP, Nav.viewOf(classStack))
         assertEquals("ga", Nav.viewOf(listOf(Screen.Home, Screen.Overview, Screen.Group("ga"))))
-        // The round trip keeps an open group.
-        assertEquals("ga", Nav.viewOf(Nav.fromView("ga")))
     }
 
     @Test fun pushAndPop() {
