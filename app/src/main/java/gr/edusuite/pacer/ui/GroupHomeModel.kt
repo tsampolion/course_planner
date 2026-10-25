@@ -1,6 +1,8 @@
 package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.Verdict
+import gr.edusuite.pacer.engine.verdict
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
 import java.time.DayOfWeek
@@ -58,3 +60,34 @@ fun groupPageReport(report: GroupReport, page: GroupPage, showMine: Boolean): Gr
 
 fun groupPageCanTick(report: GroupReport, page: GroupPage, showMine: Boolean): Boolean =
     page != GroupPage.PLAN || report.group.custom?.let { showMine == it.active } != false
+
+/** The pages group home's pills open. Settings is its own screen, so this is not [GroupPage]. */
+enum class GroupDestination {
+    PLAN, WORK, STATS, SETTINGS;
+
+    fun screen(groupId: String): Screen = when (this) {
+        PLAN -> Screen.Group(groupId, GroupPage.PLAN)
+        WORK -> Screen.Group(groupId, GroupPage.WORK)
+        STATS -> Screen.Group(groupId, GroupPage.STATS)
+        SETTINGS -> Screen.GroupSettings(groupId)
+    }
+}
+
+enum class ProgressStatus { ON_PACE, SHORT, UNMEASURED }
+
+/** The group home progress strip: where the group is in its lessons, and whether the plan fits. */
+data class ProgressLine(val lesson: Int, val total: Int, val status: ProgressStatus, val shortBy: Int, val fraction: Float)
+
+/** "Lesson 14 of 40": taught lessons plus the one coming, over taught plus left. With no lessons at all, [ProgressLine.total] is 0. */
+internal fun progressLine(report: GroupReport): ProgressLine {
+    val done = report.group.done.size
+    val left = report.lessons.size
+    val total = done + left
+    val shortBy = report.lessonsShort() ?: 0
+    val status = when (report.verdict()) {
+        is Verdict.Short -> ProgressStatus.SHORT
+        is Verdict.Fits -> ProgressStatus.ON_PACE
+        null -> ProgressStatus.UNMEASURED
+    }
+    return ProgressLine(if (left == 0) done else done + 1, total, status, shortBy, if (total == 0) 0f else done.toFloat() / total)
+}

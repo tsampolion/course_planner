@@ -789,6 +789,7 @@
     <string name="work_saved">Assignment saved</string>
     <string name="work_deleted">Assignment removed</string>
     <string name="work_progress">Progress</string>
+    <string name="progress_strip">Lesson %1$d of %2$d · %3$s</string>
     <string name="work_due_soon">Due soon</string>
     <string name="work_no_due">No dated assignments coming up.</string>
     <string name="work_due_today">Homework due today: %1$s</string>

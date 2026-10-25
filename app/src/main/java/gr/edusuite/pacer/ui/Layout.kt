@@ -39,3 +39,25 @@ data class GroupInsets(val top: androidx.compose.ui.unit.Dp, val body: androidx.
 fun groupInsets(padding: androidx.compose.foundation.layout.PaddingValues): GroupInsets = GroupInsets(
     padding.calculateTopPadding(), androidx.compose.foundation.layout.PaddingValues(bottom = padding.calculateBottomPadding()),
 )
+
+/** How group home lays out its four page pills: 2×2 on phones, one row from 600dp, one column at large text. */
+enum class PillLayout { GRID_2X2, ROW_4, COLUMN }
+
+fun homePills(widthDp: Int, large: Boolean): PillLayout = when {
+    large -> PillLayout.COLUMN
+    widthDp >= 600 -> PillLayout.ROW_4
+    else -> PillLayout.GRID_2X2
+}
+
+/** How many pills share a line in [layout]. */
+fun PillLayout.perLine(): Int = when (this) {
+    PillLayout.GRID_2X2 -> 2
+    PillLayout.ROW_4 -> 4
+    PillLayout.COLUMN -> 1
+}
+
+@Composable
+fun rememberHomePills(): PillLayout {
+    val density = LocalDensity.current
+    return homePills((LocalWindowInfo.current.containerSize.width / density.density).toInt(), rememberLargeText())
+}

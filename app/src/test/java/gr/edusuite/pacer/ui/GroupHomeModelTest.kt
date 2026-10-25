@@ -2,6 +2,7 @@ package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.assignmentsOn
+import gr.edusuite.pacer.engine.markDone
 import gr.edusuite.pacer.engine.plannedPages
 import gr.edusuite.pacer.engine.recordLesson
 import gr.edusuite.pacer.model.*
@@ -105,5 +106,46 @@ class GroupHomeModelTest {
         val first = r.rows.first()
         val g = r.recordLesson(first.date, r.plannedPages(first.date)!!)!!
         assertTrue(g.done.any { it.date == first.date && !it.edited })
+    }
+
+    @Test fun phonesUseTwoByTwo() {
+        assertEquals(PillLayout.GRID_2X2, homePills(360, false))
+        assertEquals(2, homePills(599, false).perLine())
+    }
+    @Test fun tabletsUseOneRow() {
+        assertEquals(PillLayout.ROW_4, homePills(600, false))
+        assertEquals(4, homePills(840, false).perLine())
+    }
+    @Test fun largeTextUsesColumn() {
+        assertEquals(PillLayout.COLUMN, homePills(360, true))
+        assertEquals(PillLayout.COLUMN, homePills(900, true))
+        assertEquals(1, PillLayout.COLUMN.perLine())
+    }
+    @Test fun progressLineFirstLesson() {
+        val r = report(emptyList())
+        val line = progressLine(r)
+        assertEquals(1, line.lesson)
+        assertEquals(r.lessons.size, line.total)
+        assertEquals(0f, line.fraction, 0f)
+    }
+    @Test fun progressLineCountsTaughtLessons() {
+        val r = report(emptyList())
+        val g = r.markDone(setOf(r.rows.first().date))
+        val line = progressLine(GroupReport(r.plan, g))
+        assertEquals(2, line.lesson)
+        assertEquals(r.lessons.size, line.total)
+        assertEquals(1f / r.lessons.size, line.fraction, 1e-6f)
+    }
+    @Test fun progressLineWhenNoLessons() {
+        val p = seedPlan()
+        val none = p.copy(end = p.start!!.minusDays(1))
+        val line = progressLine(GroupReport(none, none.groups.first()))
+        assertEquals(0, line.total)
+        assertEquals(0, line.lesson)
+        assertEquals(0f, line.fraction, 0f)
+    }
+    @Test fun destinationsOpenTheirScreens() {
+        assertEquals(Screen.GroupSettings("g"), GroupDestination.SETTINGS.screen("g"))
+        assertEquals(Screen.Group("g", GroupPage.STATS), GroupDestination.STATS.screen("g"))
     }
 }
