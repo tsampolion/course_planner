@@ -65,6 +65,10 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
@@ -115,6 +119,8 @@ internal data class Lesson(
     val free: Boolean = false,
     /** What the proposed plan teaches that day, when the custom plan shown teaches something else. */
     val proposed: String? = null,
+    /** The books (by place) whose pages differ from the proposed plan's; see [differingBooks]. */
+    val differs: Set<Int> = emptySet(),
     /** Its place among the teaching days still to come (the custom plan's lesson there, or the one a save would make). */
     val slot: Int = -1,
     /** The supplementary books that count in this planned lesson. */
@@ -150,12 +156,14 @@ internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<
         val place = r.lessonId?.let(places::get)
         val proposed = other?.get(r.date)?.takeIf { custom != null && !r.blocked && it.cells != r.cells }
             ?.let { o -> plan.books.zip(o.cells).joinToString(" · ") { (b, cell) -> "${b.name} $cell" } }
-        Lesson(
+        val lesson = Lesson(
             0, r.date, r.events, r.blocked, r.cells, done = false, note = r.note, lessonId = r.lessonId,
             index = place?.first ?: -1, touched = place?.second ?: false,
             free = custom != null && r.lessonId == null && r.extraId == null && !r.blocked, proposed = proposed,
             slot = if (r.blocked || r.extraId != null) -1 else slot++, inLesson = r.lessonId?.let(counting::get).orEmpty(), extraId = r.extraId, assignments = r.assignments,
         )
+        val proposedLesson = if (custom == null) null else other?.get(r.date)?.let { o -> Lesson(0, o.date, o.events, o.blocked, o.cells, done = false) }
+        lesson.copy(differs = differingBooks(lesson, proposedLesson, plan.books.map { it.supplementary }))
     }
     return (done + upcoming).sortedBy { it.date }.mapIndexed { i, l -> l.copy(n = i + 1) }
 }
@@ -367,8 +375,12 @@ private val TickW = 48.dp
 
 /** A book's pages as a row shows them, "SB 38–40 · WB 20–21", with supplementary books left for the line under it. */
 internal fun corePages(l: Lesson, names: List<String>, supplementary: List<Boolean>): String =
+    corePageParts(l, names, supplementary).joinToString(" · ") { it.second }
+
+/** Each core book's "SB 38–40" with the book's place, so a row can colour the books that differ from the proposed plan. */
+internal fun corePageParts(l: Lesson, names: List<String>, supplementary: List<Boolean>): List<Pair<Int, String>> =
     l.cells.withIndex().filter { (i, cell) -> !supplementary.getOrElse(i) { false } && (!l.blocked || (cell.isNotBlank() && cell != collapse(emptyList()))) }
-        .joinToString(" · ") { (i, cell) -> names.getOrElse(i) { (i + 1).toString() } + " " + cell }
+        .map { (i, cell) -> i to names.getOrElse(i) { (i + 1).toString() } + " " + cell }
 
 /** The supplementary pages a lesson places, by full name: "Reader 5–8". */
 internal fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String>> =
@@ -424,6 +436,7 @@ internal fun spokenLesson(l: Lesson, actions: LessonActions): String {
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
         if (l.edited) add(stringResource(R.string.group_edited))
         addAll(homeworkSummaries(l, actions))
+        if (l.differs.isNotEmpty()) add(stringResource(R.string.custom_differs))
         l.proposed?.let { add(stringResource(R.string.custom_proposed_line, it)) }
     }
     return stringResource(R.string.ledger_lesson_spoken, l.n, l.date.format(SPOKEN_DATE), parts.joinToString(". "))
@@ -488,8 +501,15 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
         }
     }
     val pages = corePages(l, actions.shortNames, actions.supplementary)
+    val warn = c.warn
+    val pagesText = if (l.differs.isEmpty()) AnnotatedString(pages) else buildAnnotatedString {
+        corePageParts(l, actions.shortNames, actions.supplementary).forEachIndexed { n, (i, text) ->
+            if (n > 0) append(" · ")
+            if (i in l.differs) withStyle(SpanStyle(color = warn)) { append(text) } else append(text)
+        }
+    }
     // A free lesson with only a note reads as its note.
-    val main = if (l.note.isNotEmpty() && l.cells.withIndex().all { (i, cell) -> actions.supplementary.getOrElse(i) { false } || cell == collapse(emptyList()) }) l.note else pages
+    val main = if (l.note.isNotEmpty() && l.cells.withIndex().all { (i, cell) -> actions.supplementary.getOrElse(i) { false } || cell == collapse(emptyList()) }) AnnotatedString(l.note) else pagesText
     Box {
         Column {
             Row(
@@ -501,7 +521,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
                 val date = "${l.date.dayOfWeek.short()} ${l.date.fmtShort()}"
                 val details = @Composable {
                     Text(main, style = MaterialTheme.typography.bodyLarge.merge(Figures), color = ink)
-                    if (main != l.note && l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = c.muted)
+                    if (main.text != l.note && l.note.isNotEmpty()) Text(l.note, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = c.muted)
                     if (subtitle.isNotEmpty()) Text(subtitle.joinToString(" · "), style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
                     HomeworkLines(l, actions)
                     l.proposed?.let { Text(stringResource(R.string.custom_proposed_line, it), style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted) }
