@@ -11,15 +11,34 @@ const val CHECK_INTERVAL_MS = 86_400_000L
 /** Maximum number of nonempty release-note lines shown. */
 const val NOTE_LINES = 3
 
-/** A numeric release version. */
-data class Version(val major: Int, val minor: Int, val patch: Int) : Comparable<Version> {
-    override fun compareTo(other: Version): Int = compareValuesBy(this, other, Version::major, Version::minor, Version::patch)
+/**
+ * A numeric release version: three parts (`X.Y.Z`, up to 4.1.0) or four (`0.X.Y.Z`, from 0.4.1.1).
+ * A three-part version compares as `[X, Y, Z, 0]` and a four-part one as itself, so every old
+ * version with X >= 1 is newer than any `0.x.y.z`; the first four-part build is installed by hand.
+ */
+data class Version(val parts: List<Int>) : Comparable<Version> {
+    init { require(parts.size == 3 || parts.size == 4) }
+
+    override fun compareTo(other: Version): Int {
+        val a = padded()
+        val b = other.padded()
+        for (i in a.indices) if (a[i] != b[i]) return a[i].compareTo(b[i])
+        return 0
+    }
+
+    private fun padded(): List<Int> = if (parts.size == 3) parts + 0 else parts
+
+    /** The parts joined by dots, as used in tags and asset names. */
+    fun text(): String = parts.joinToString(".")
 }
 
-/** Reads a bare version or lowercase-v tag, rejecting overflowing parts. */
+private val versionPattern = Regex("^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:\\.(\\d+))?$")
+
+/** Reads a bare version or lowercase-v tag of three or four parts, rejecting overflowing parts. */
 fun parseVersion(s: String?): Version? {
-    val parts = Regex("^v?(\\d+)\\.(\\d+)\\.(\\d+)$").matchEntire(s?.trim() ?: return null)?.groupValues ?: return null
-    return Version(parts[1].toIntOrNull() ?: return null, parts[2].toIntOrNull() ?: return null, parts[3].toIntOrNull() ?: return null)
+    val groups = versionPattern.matchEntire(s?.trim() ?: return null)?.groupValues ?: return null
+    val parts = groups.drop(1).filter { it.isNotEmpty() }.map { it.toIntOrNull() ?: return null }
+    return Version(parts)
 }
 
 /** Whether latest is strictly newer. */
@@ -37,7 +56,7 @@ fun pickApk(assets: List<Pair<String, String>>, version: String): String? =
 /** Validates release metadata before any download link can be shown. */
 fun toUpdate(release: Release): Update? {
     val v = parseVersion(release.tag) ?: return null
-    val version = "${v.major}.${v.minor}.${v.patch}"
+    val version = v.text()
     return storedUpdate(version, shortNotes(release.body), pickApk(release.assets, version), release.pageUrl)
 }
 
@@ -66,5 +85,5 @@ fun pendingUpdate(stored: Update?, installed: String): Update? {
 fun storedUpdate(version: String?, notes: String?, apkUrl: String?, pageUrl: String?): Update? {
     val v = parseVersion(version) ?: return null
     if (apkUrl?.startsWith(APK_URL_PREFIX) != true || pageUrl?.startsWith(PAGE_URL_PREFIX) != true) return null
-    return Update("${v.major}.${v.minor}.${v.patch}", notes.orEmpty(), apkUrl, pageUrl)
+    return Update(v.text(), notes.orEmpty(), apkUrl, pageUrl)
 }

@@ -20,29 +20,71 @@ class UpdateModelTest {
     ) = Release(tag, body, pageUrl, assets)
 
     @Test fun parseVersionAcceptsTagsAndBareVersions() {
-        assertEquals(Version(3, 10, 0), parseVersion("v3.10.0"))
-        assertEquals(Version(3, 10, 0), parseVersion("3.10.0"))
-        assertEquals(Version(3, 10, 0), parseVersion(" v3.10.0 "))
+        assertEquals(Version(listOf(3, 10, 0)), parseVersion("v3.10.0"))
+        assertEquals(Version(listOf(3, 10, 0)), parseVersion("3.10.0"))
+        assertEquals(Version(listOf(3, 10, 0)), parseVersion(" v3.10.0 "))
     }
 
     @Test fun parseVersionRejectsOtherShapes() {
-        listOf(null, "", "v3.10", "3.10.0-beta", "3.10.0.1", "vx.y.z", "V3.10.0", "v-1.0.0", "3..0").forEach {
+        listOf(null, "", "v3.10", "3.10.0-beta", "vx.y.z", "V3.10.0", "v-1.0.0", "3..0").forEach {
             assertNull(it, parseVersion(it))
         }
     }
 
     @Test fun parseVersionNumericEdgeCases() {
-        assertEquals(Version(3, 10, 0), parseVersion("v3.010.0"))
-        assertEquals(Version(10, 0, 0), parseVersion("v10.0.0"))
+        assertEquals(Version(listOf(3, 10, 0)), parseVersion("v3.010.0"))
+        assertEquals(Version(listOf(10, 0, 0)), parseVersion("v10.0.0"))
         assertNull(parseVersion("v3.10.2147483648"))
     }
 
+    @Test fun parsesFourParts() {
+        assertEquals("0.4.1.1", parseVersion("v0.4.1.1")!!.text())
+        assertEquals("0.4.1.1", parseVersion("0.4.1.1")!!.text())
+    }
+
+    @Test fun parsesOldThreeParts() {
+        assertEquals("4.1.0", parseVersion("4.1.0")!!.text())
+    }
+
+    @Test fun rejectsFiveParts() {
+        assertNull(parseVersion("0.4.1.1.1"))
+        assertNull(parseVersion("v0.4.1."))
+    }
+
+    @Test fun rejectsOverflow() {
+        assertNull(parseVersion("v0.4.1.2147483648"))
+    }
+
+    @Test fun fourPartOrdering() {
+        fun v(s: String) = parseVersion(s)!!
+        assertTrue(isNewer(v("0.4.2.0"), v("0.4.1.1")))
+        assertTrue(isNewer(v("0.4.1.1"), v("0.4.1.0")))
+        assertFalse(isNewer(v("0.4.1.1"), v("4.1.0")))
+        assertFalse(isNewer(v("0.4.1.0"), v("4.1.0")))
+        assertTrue(isNewer(v("4.1.0"), v("0.4.1.0")))
+        assertFalse(isNewer(v("0.4.1.1"), v("0.4.1.1")))
+    }
+
+    @Test fun pickApkFindsFourPartAsset() {
+        val url = "https://github.com/tsampolion/course_planner/releases/download/v0.4.2.0/course-pacer-0.4.2.0.apk"
+        assertEquals(url, pickApk(listOf("course-pacer-0.4.2.0.apk" to url), "0.4.2.0"))
+    }
+
+    @Test fun toUpdateKeepsFourPartVersion() {
+        val url = "https://github.com/tsampolion/course_planner/releases/download/v0.4.2.0/course-pacer-0.4.2.0.apk"
+        val pg = "https://github.com/tsampolion/course_planner/releases/tag/v0.4.2.0"
+        val u = toUpdate(Release("v0.4.2.0", "- New", pg, listOf("course-pacer-0.4.2.0.apk" to url)))
+        assertEquals(Update("0.4.2.0", "New", url, pg), u)
+        assertEquals(u, pendingUpdate(u, "0.4.1.1"))
+        assertNull(pendingUpdate(u, "0.4.2.0"))
+    }
+
     @Test fun isNewerComparesNumerically() {
-        assertTrue(isNewer(Version(3, 10, 0), Version(3, 9, 0)))
-        assertTrue(isNewer(Version(3, 10, 1), Version(3, 10, 0)))
-        assertTrue(isNewer(Version(4, 0, 0), Version(3, 99, 99)))
-        assertFalse(isNewer(Version(3, 10, 0), Version(3, 10, 0)))
-        assertFalse(isNewer(Version(3, 9, 9), Version(3, 10, 0)))
+        assertTrue(isNewer(Version(listOf(3, 10, 0)), Version(listOf(3, 9, 0))))
+        assertTrue(isNewer(Version(listOf(3, 10, 1)), Version(listOf(3, 10, 0))))
+        assertTrue(isNewer(Version(listOf(4, 0, 0)), Version(listOf(3, 99, 99))))
+        assertFalse(isNewer(Version(listOf(3, 10, 0)), Version(listOf(3, 10, 0))))
+        assertFalse(isNewer(Version(listOf(3, 9, 9)), Version(listOf(3, 10, 0))))
     }
 
     @Test fun pickApkFindsExactNameOnly() {
