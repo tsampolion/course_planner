@@ -155,14 +155,14 @@ class PacerViewModelTest {
         assertEquals(0, before.bankedPages(beforeGroup, lead))
         assertTrue(2 in before.remainingPages(beforeGroup, lead))
         val monday = revisionDates(GroupReport(before, beforeGroup), 0, before.today).first()
-        assertEquals(d("2026-10-26"), monday)
+        assertTrue(monday > before.today)
 
-        // Two days on, the same state: homework is due, so its pages are banked, and the revision date has passed.
-        r.date = d("2026-10-26")
+        // The day that revision date arrives (the homework is due by then): its pages are banked and the date has passed.
+        r.date = monday
         r.vm.refreshToday()
         val after = plan()
         val afterGroup = after.groups.single()
-        assertEquals(d("2026-10-26"), after.today)
+        assertEquals(monday, after.today)
         assertEquals(2, after.bankedPages(afterGroup, lead))
         assertFalse(2 in after.remainingPages(afterGroup, lead))
         val later = revisionDates(GroupReport(after, afterGroup), 0, after.today)

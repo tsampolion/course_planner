@@ -8,6 +8,8 @@ import org.junit.Test
 
 class AssignmentTest {
     private val date = LocalDate.of(2026, 9, 9)
+    /** After the homework is due, so its pages are banked as the legacy homework's always were. */
+    private val later = date.plusDays(30)
 
     @Test fun migratedAssignmentsChangeNothing() {
         val year = seedYear()
@@ -15,8 +17,8 @@ class AssignmentTest {
         val c = base.copy(homework = listOf(Homework("h", "ga", base.books.first().id, 12, 15, date)),
             events = listOf(TestEvent("all", "Test", date, ALL_GROUPS, true),
                 TestEvent("one", "Alongside", date.plusDays(2), "ga", false)))
-        val old = year.planFor(c, TEST_TODAY)
-        val migrated = year.planFor(migrateAssignments(c), TEST_TODAY)
+        val old = year.planFor(c, later)
+        val migrated = year.planFor(migrateAssignments(c), later)
         for (g in old.groups) {
             val before = GroupReport(old, g)
             val after = GroupReport(migrated, migrated.groups.first { it.id == g.id })
@@ -37,7 +39,7 @@ class AssignmentTest {
     }
 
     @Test fun worksheetsBlockButHomeworkNeverTakesALesson() {
-        val p = seedPlan()
+        val p = seedPlan().copy(today = later)
         val g = p.groups.first().copy(assignments = listOf(
             Assignment("hw", AssignmentType.HOMEWORK, "Read", due = date, takesLesson = true,
                 pages = mapOf(p.books.first().id to listOf(1, 2))),
@@ -58,9 +60,9 @@ class AssignmentTest {
         val c = base.copy(books = listOf(optional) + base.books, groups = listOf(g),
             homework = listOf(Homework("h", g.id, optional.id, 1, 2, date)),
             events = listOf(TestEvent("t", "Test", date.plusDays(2), ALL_GROUPS, true)))
-        val before = GroupReport(y.planFor(c, TEST_TODAY), g)
+        val before = GroupReport(y.planFor(c, later), g)
         val migrated = migrateAssignments(c)
-        val after = GroupReport(y.planFor(migrated, TEST_TODAY), migrated.groups.single())
+        val after = GroupReport(y.planFor(migrated, later), migrated.groups.single())
         fun comparable(rows: List<Row>) = rows.map { row -> row.copy(events = row.events.map { it.copy(who = g.id) }, assignments = emptyList()) }
         assertEquals(comparable(before.rows), comparable(after.rows))
         assertEquals(before.plan.books, after.plan.books)
@@ -70,7 +72,7 @@ class AssignmentTest {
         assertEquals(g.skip, after.group.skip)
         assertEquals(g.extraBooks, after.group.extraBooks)
         val unselected = after.group.copy(extraBooks = emptySet())
-        val without = GroupReport(y.planFor(migrated, TEST_TODAY), unselected)
+        val without = GroupReport(y.planFor(migrated, later), unselected)
         assertFalse(without.plan.books.any { it.id == optional.id })
         assertTrue(without.rows.all { it.pages.size == base.books.size })
     }
