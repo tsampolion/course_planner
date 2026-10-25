@@ -77,7 +77,7 @@ A local `assembleRelease` is signed with your debug key, so you can install it d
 
 ## CI and releases
 
-[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, pull request and manual dispatch. It runs the tests and lint, builds the release APK and checks its signing certificate. When it passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) tags `v0.X.Y.Z` from `versionName` and publishes a GitHub release with that version's `CHANGELOG.md` section as the notes. Only `main` signs with the release key. Other branches use the debug key and never publish. How release signing works: [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
+[`.github/workflows/android.yml`](.github/workflows/android.yml) runs on every push, pull request and manual dispatch. It runs the unit tests and lint, builds the release APK and checks its signing certificate, and in a second job runs the platform tests on a managed Android emulator. When it passes on `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) tags `v0.X.Y.Z` from `versionName` and publishes a GitHub release with that version's `CHANGELOG.md` section as the notes. Only `main` signs with the release key. Other branches use the debug key and never publish. How release signing works: [docs/SIGNING_BRIEF.md](docs/SIGNING_BRIEF.md).
 
 | Name | Kind | Holds |
 | --- | --- | --- |

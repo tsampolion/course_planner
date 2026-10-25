@@ -442,6 +442,7 @@ fun GroupScreen(
             fit = { changed(vm.fitCustomPlanToTerm(g.id), context.getString(R.string.custom_fitted)) },
             tidy = { changed(vm.tidyCustomPlan(g.id), context.getString(R.string.custom_tidied)) },
             extra = { extraDate = it.toString() },
+            openLesson = { id -> showMine = true; planning = "L$id" },
         ), onWarningsClose)
     }
     if (catchingUp) CatchUpSheet(report, { boost ->

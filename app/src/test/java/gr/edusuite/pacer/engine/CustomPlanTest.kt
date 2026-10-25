@@ -8,7 +8,9 @@ import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.PlannedLesson
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.TestEvent
+import gr.edusuite.pacer.ui.GroupWarning
 import gr.edusuite.pacer.ui.daysOff
+import gr.edusuite.pacer.ui.groupWarnings
 import gr.edusuite.pacer.model.seedPlan
 import java.time.DayOfWeek.MONDAY
 import java.time.DayOfWeek.TUESDAY
@@ -224,18 +226,119 @@ class CustomPlanTest {
         assertEquals("Revision", GroupReport(p, fit).rows[0].note)
     }
 
+    /** Every touched lesson of [before] is in [after] with the same pages, note, inLesson, replacementBase and id. */
+    private fun assertTouchedKept(before: CustomPlan, after: CustomPlan) {
+        for (l in before.lessons.filter { it.touched }) assertEquals(l, after.lessons.singleOrNull { it.id == l.id })
+    }
+
+    /** Lesson [i] of [g]'s custom plan set to [l], as the teacher's hand edit leaves it. */
+    private fun withLesson(g: Group, i: Int, l: PlannedLesson): Group =
+        g.copy(custom = g.custom!!.let { c -> c.copy(lessons = c.lessons.mapIndexed { j, old -> if (j == i) l else old }) })
+
+    @Test fun tidyKeepsTouchedLessons() {
+        val p = plan()
+        val g = withPlan(p)
+        // Lesson 2 repeats SB 1 (lesson 1 has it) and holds SB 25 (the book doesn't); the teacher made it.
+        val mine = PlannedLesson(g.custom!!.lessons[1].id, mapOf("a" to listOf(1, 3, 4, 25), "b" to listOf(2)), "Video", true, setOf("s"), mapOf("a" to listOf(3, 4)))
+        val messy = withLesson(g, 1, mine)
+        val tidy = GroupReport(p, messy).tidy()!!
+        assertEquals(mine, tidy.lessons[1])
+        // The untouched duplicate goes: the touched lesson reserved page 1 first.
+        assertEquals(mapOf("a" to listOf(2), "b" to listOf(1)), tidy.lessons[0].pages)
+        val cov = GroupReport(p, messy.copy(custom = tidy)).coverage()!!
+        assertTrue(cov.doubled.isEmpty())
+        assertEquals(mapOf("a" to listOf(25)), cov.stale)
+        assertTrue(cov.missing.isEmpty())
+        assertTouchedKept(messy.custom!!, tidy)
+        // Two touched lessons that repeat a page: both stay and Doubled stays.
+        val both = withLesson(messy, 0, messy.custom!!.lessons[0].copy(touched = true))
+        val kept = GroupReport(p, both).tidy()!!
+        assertEquals(both.custom, kept)
+        assertEquals(mapOf("a" to listOf(1)), GroupReport(p, both.copy(custom = kept)).coverage()!!.doubled)
+    }
+
     @Test fun tidyTakesOutPagesThatNeedNoTeaching() {
         val p = plan()
         val g = withPlan(p)
-        val c = g.custom!!
-        // Lesson 2 also teaches SB 1, which lesson 1 has, and SB 25, which the book doesn't have.
-        val l2 = c.lessons[1]
-        val messy = g.copy(custom = c.editLesson(l2.id, l2.pages + ("a" to listOf(1) + l2.pages["a"].orEmpty() + 25), ""))
+        val l2 = g.custom!!.lessons[1]
+        // Lesson 2 also teaches SB 1, which lesson 1 has, and SB 25, which the book doesn't have; nobody touched it.
+        val messy = withLesson(g, 1, l2.copy(pages = l2.pages + ("a" to listOf(1) + l2.pages["a"].orEmpty() + 25)))
         val cov = GroupReport(p, messy).coverage()!!
         assertEquals(mapOf("a" to listOf(1)), cov.doubled)
         assertEquals(mapOf("a" to listOf(25)), cov.stale)
         val tidy = messy.copy(custom = GroupReport(p, messy).tidy())
         assertTrue(GroupReport(p, tidy).coverage()!!.ok)
+    }
+
+    @Test fun tidyKeepsRemovedBookPages() {
+        val base = plan()
+        val p = base.copy(books = base.books + Book("r", "RB", 1, 10))
+        val g0 = withPlan(p, p.groups[0].copy(removedBooks = setOf("r")))
+        val c = g0.custom!!
+        val mine = c.lessons[1].copy(pages = c.lessons[1].pages + ("r" to listOf(3)), touched = true)
+        val g = withLesson(g0.copy(custom = c.copy(lessons = c.lessons.mapIndexed { j, l -> if (j == 0) l.copy(pages = l.pages + ("r" to listOf(1, 2))) else l })), 1, mine)
+        val tidy = GroupReport(p, g).tidy()!!
+        assertEquals(listOf(1, 2), tidy.lessons[0].pages["r"])
+        assertEquals(mine, tidy.lessons[1])
+        assertEquals(mapOf("r" to listOf(1, 2, 3)), GroupReport(p, g.copy(custom = tidy)).coverage()!!.stale)
+    }
+
+    /** The plan with a revision lesson in front, which pushes the last lesson past the term, and [tail] after it. */
+    private fun overflowing(p: Plan, vararg tail: PlannedLesson): Group {
+        val g = withPlan(p)
+        val c = g.custom!!.insertLesson(0, PlannedLesson("r", note = "Revision"))
+        return g.copy(custom = c.copy(lessons = c.lessons + tail))
+    }
+
+    @Test fun fitKeepsTouchedOverflow() {
+        val p = plan()
+        val mine = PlannedLesson("t", note = "Review", touched = true)
+        val g = overflowing(p, mine)
+        val fit = GroupReport(p, g).fitToTerm()!!
+        assertEquals(mine, fit.lessons.last())
+        assertEquals(11, fit.lessons.size)
+        assertTouchedKept(g.custom!!, fit)
+        val cov = GroupReport(p, g.copy(custom = fit)).coverage()!!
+        assertTrue(cov.missing.isEmpty() && cov.doubled.isEmpty() && cov.stale.isEmpty())
+        assertEquals(1, cov.overflow)
+        assertEquals(1, cov.overflowEdited)
+        // The untouched overflow lesson went back into the term; the edited one stays where it is.
+        assertTouchedKept(g.custom!!, GroupReport(p, g.copy(custom = fit)).repaceFrom(0)!!)
+    }
+
+    @Test fun fitNeverMergesIntoTouched() {
+        val p = plan()
+        val open = overflowing(p).custom!!
+        // Every lesson in the term is the teacher's; the last lesson, past the term, is not.
+        val c = open.copy(lessons = open.lessons.mapIndexed { i, l -> if (i < 10) l.copy(touched = true) else l })
+        val g = withPlan(p).copy(custom = c)
+        val fit = GroupReport(p, g).fitToTerm()!!
+        assertEquals(c.lessons.take(10), fit.lessons.take(10))
+        assertTouchedKept(c, fit)
+        val cov = GroupReport(p, g.copy(custom = fit)).coverage()!!
+        assertTrue(cov.doubled.isEmpty() && cov.missing.isEmpty())
+    }
+
+    @Test fun fitWithNoSafeSlotKeepsTheWarning() {
+        val p = plan()
+        val open = overflowing(p).custom!!
+        val c = open.copy(lessons = open.lessons.mapIndexed { i, l -> if (i < 10) l.copy(touched = true) else l })
+        val g = withPlan(p).copy(custom = c)
+        val fit = GroupReport(p, g).fitToTerm()!!
+        // Nothing could move, so every core page is still taught once, past the term, and the warning says so.
+        assertEquals(c, fit)
+        val r = GroupReport(p, g.copy(custom = fit))
+        assertEquals(1, r.coverage()!!.overflow)
+        assertEquals(GroupWarning.Overflow(1, edited = 0, canFit = false), groupWarnings(r).filterIsInstance<GroupWarning.Overflow>().single())
+    }
+
+    @Test fun fitThenRepaceKeepsTouchedLessons() {
+        val p = plan()
+        val g = overflowing(p, PlannedLesson("t", note = "Review", touched = true)).let { it.copy(custom = it.custom!!.copy(lessons = it.custom!!.lessons.mapIndexed { i, l -> if (i == 3) l.copy(touched = true) else l })) }
+        val fit = GroupReport(p, g).fitToTerm()!!
+        val both = GroupReport(p, g.copy(custom = fit)).repaceFrom(0)!!
+        assertTouchedKept(g.custom!!, both)
+        assertTrue(GroupReport(p, g.copy(custom = both)).coverage()!!.let { it.missing.isEmpty() && it.doubled.isEmpty() })
     }
 
     @Test fun copyingToAGroupWithOtherDays() {

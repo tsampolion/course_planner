@@ -6,6 +6,7 @@ How to use this file:
 
 - **Nothing here is approved yet.** Build an entry only when the owner asks for it in a session. Several entries change the pacing engine, which `CLAUDE.md` treats as a contract ("Engine parity is the contract"), so they need explicit sign-off.
 - When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and remove the entry from this file.
+- Entry 2 (Tidy and Fit) is built and recorded in [`TIDY_FIT_BRIEF.md`](TIDY_FIT_BRIEF.md).
 - Entry 3 (save status) is built and recorded in [`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md); its number is not reused, so the other entries keep theirs.
 - Entries 2 to 9 come from the usability audit of 25 October 2026. That audit was read-only and covered 0.4.1.3 and 0.4.2.0. Every finding was checked again against 0.4.4.0. Findings keep their audit IDs (F01 to F19) and open decisions keep theirs (I1 to I6), so they can be traced.
 - The audit's visual, accessibility and streamlining findings (F09 to F12 and F16 to F18, with I1, I3, I4 and I5) are now in the approved [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md) and [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md). This file keeps the parts that change data, the engine, storage or output, which those briefs do not cover.
@@ -133,65 +134,6 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 8. **Display:** is a "Focus: Grammar" tag with "—" in the other columns enough, or should block lessons be shaded like test lessons?
 9. **Relation to pinned lessons:** fixing the pages of a single future lesson was left out of 1.5.0 (`docs/LESSON_PAGES_BRIEF.md`, "Out of scope"). A one-lesson focus block covers part of that idea. Is that enough, or is a separate "plan this lesson's pages" still wanted?
 
-## 2. Hand-edited lessons survive Tidy and Fit to term (F01, F02)
-
-**Status:** proposed (audit P1, Source, high confidence). Not approved. It changes engine behaviour, so it needs the owner's sign-off. It brings the custom-plan repairs into line with the CLAUDE.md rule "Never rewrite the teacher's work … never change a `touched` lesson".
-
-### The problem
-
-**Tidy (F01).** `CustomPlan.tidy` in `engine/Custom.kt:236-250` filters the core pages of every lesson, touched or not (lines 242-246). `touched` (or a note) only stops a lesson from being deleted once it is empty (line 247). So a lesson where the teacher deliberately repeated page 1 loses the repeat.
-
-- `CustomPlanTest.tidyTakesOutPagesThatNeedNoTeaching` (`CustomPlanTest.kt:227-239`) requires that cleanup after `editLesson`. The test encodes the policy that contradicts CLAUDE.md.
-- **Removed books.** Tidy builds its page sets from the effective plan (`forGroup`, `engine/GroupOverrides.kt:17`). So every hand-placed page of a book the group has dropped is removed, supplementary books included.
-- This contradicts `coverage()` (`Custom.kt:72-75`: those pages "are listed, never removed").
-- The Stale warning that lists them offers Tidy as its fix (`ui/NavUi.kt:393-396`). No test runs `tidy()` with `removedBooks`; `GroupOverridesTest.kt:104-112` only checks coverage.
-
-**Fit to term (F02).** `fitToTerm` (`Custom.kt:257-272`):
-
-- An overflow lesson survives only if it holds supplementary pages, and then only those (line 263). Any other lesson past the term, touched or not, loses its id, note and `touched`.
-- Its core pages come back only through the page pool. So `repaceFrom`'s own touched guard (line 203) never sees them.
-- When every lesson in the term is touched, the overflow's core pages are merged into the last touched lesson (lines 269-271), which changes a touched lesson.
-- `repaceCustomPlanToFit` (`ui/PacerViewModel.kt:759-763`) chains fit and re-pace.
-- The entries are the Overflow warning's "Fit to term" and the Behind warning's "re-pace to fit" (`ui/NavUi.kt:371-388`).
-- No test covers a touched or noted overflow lesson, or the all-touched merge.
-
-Undo can recover all of this, but undo does not excuse a surprise rewrite.
-
-### Proposal
-
-- **Tidy** first reserves every touched lesson's pages, notes, `inLesson`, `replacementBase` and identity. It then removes repeats and stale or out-of-book pages from untouched lessons only. A repeat inside a touched lesson stays.
-- Stale pages of a removed book stay, as `coverage()` promises. The Stale warning stays until the teacher edits that lesson. Its fix opens the lesson rather than Tidy.
-- **Fit to term** fits only generated (untouched) lessons. A touched lesson past the term stays unchanged and stays past the term. Fit never merges pages into a touched lesson.
-- When no safe fit exists, the Overflow warning stays and says why ("3 lessons you edited are after the term ends").
-- The fix should also preview what will change ("Fits 4 lessons; 2 you edited stay as they are").
-
-### Alternative
-
-Show each affected manual lesson and let the teacher edit or release it explicitly, for example "Let Tidy change this lesson". General Tidy is never treated as permission. A preview that does allow manual rewrites would be a separate product decision, and is not recommended.
-
-### Acceptance
-
-- Every touched lesson (pages, note, `inLesson`, `replacementBase`, id) is equal before and after Tidy, Fit and Fit plus re-pace.
-- This holds even for an overflow that is entirely touched, and for a term where every lesson is touched.
-- Untouched duplicates of pages reserved by a manual lesson are still removed.
-- Every core page is accounted for once. Leftover warnings are accurate. One Undo restores the whole input.
-- Supplementary metadata stays correct.
-- New engine tests: `tidyKeepsTouchedLessons`, `tidyKeepsRemovedBookPages`, `fitKeepsTouchedOverflow`, `fitNeverMergesIntoTouched`, `fitWithNoSafeSlotKeepsTheWarning`.
-- `CustomPlanTest.kt:227` is revised with the owner, and all parity and extension tests stay green.
-- On a device, run the warning flow end to end.
-
-### Risk and dependencies
-
-- **Risk:** high, because duplicate precedence and supplementary placements must stay right.
-- **Complexity:** medium.
-- **Rollback:** revert the engine change. No migration is needed. Never use a rollback to rewrite stored manual content.
-- **Depends on:** nothing. Do it before broad UX work (see [Order of work](#order-of-work)).
-
-### Open questions
-
-1. **(I2)** When a manual lesson blocks a repair, does preservation win and leave the warning (recommended)? Or should an explicit per-lesson override exist, naming exactly what it will change?
-2. Should the Stale warning's fix open the affected lessons, or offer "Remove these pages" as its own, clearly named action?
-
 ## 4. One "today" for the engine too (F08, rest of B0)
 
 **Status:** proposed (audit P2). Part B (0.4.3.0) fixed the screens but not the engine. Not approved.
@@ -251,7 +193,7 @@ Also: a test that `planFor` follows the ViewModel's `today`, and a device run at
 
 - The pages taught from that book stay stored in `DoneLesson.pages` (`model/GroupBooks.kt:15-21`), but no cell shows them. A teacher may think the work vanished.
 - "Add back" brings them back.
-- `GroupOverridesTest.removedBookKeepsDoneHistory` (`:83-95`) checks storage, not the visible rows.
+- `GroupOverridesTest.removedBookKeepsDoneHistory` (`:83-95`) checks storage, not the visible rows. This entry extends it to assert the rendered done rows.
 - Print covers only the lessons still to come, so print loses nothing.
 
 **F19.** Schema 15 (book `type`, group `removedBooks` and `bookDue`) has no codec test.
@@ -470,15 +412,12 @@ Warn or block at export when the file would be over the import limit. This is a 
 
 ### Coverage gaps to close with tests
 
-- Preservation in Tidy and Fit (entry 2).
 - Failed writes and retry ([`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md)).
 - Midnight across screens (entry 4).
 - Rendered history and schema-15 codec round trips (entry 5).
 - Shared-control semantics (UI audit X12, X13).
 - Process and sheet restoration (streamlining S4).
 - Printable scopes (entry 7) and large-backup round trips (entry 8).
-
-`CustomPlanTest`'s current Tidy expectation is not proof of the preservation contract; entry 2 reviews it.
 
 What the existing tests do not prove:
 
@@ -495,7 +434,6 @@ What the existing tests do not prove:
 
 - Unit tests check the engine and the models. Nothing checks the screens: that Done is there and works, that every control has a TalkBack name, or that large text keeps the important parts on screen.
 - So every pull request asks the owner to check by hand on a phone. A screen bug fixed once can come back unnoticed.
-- The 16 platform codec tests (`app/src/androidTest`) never run in CI.
 
 ### Proposal
 
@@ -507,7 +445,7 @@ What the existing tests do not prove:
   - a failed save shows its notice (entry 3);
   - every control on group home has a name;
   - 200% text keeps today's pages.
-- **CI (owner's choice):** run them with Gradle Managed Devices, which is built into the Android Gradle Plugin (no extra dependency). This also runs the 16 codec tests. Each CI run gets about 5 to 10 minutes slower.
+- **CI:** they run in the `device-tests` job, which already runs the 16 codec tests on a Gradle Managed Device (0.4.4.7). New tests there make that job somewhat longer.
 
 ### Alternative
 
@@ -527,7 +465,6 @@ How screens look. That stays with `scripts/device-check.sh` and the owner's eyes
 ### Open questions
 
 1. Approve `ui-test-junit4` and `ui-test-manifest` as test-only dependencies?
-2. Run them in CI on every pull request, only on `main`, or locally only? Recommended: every pull request, once there are more than a handful.
 
 ## Order of work
 
@@ -546,7 +483,7 @@ The UI/UX audit and streamlining briefs were approved in 0.4.4.2 (58). What is l
 The recommended sequence keeps data safety ahead of layout work, and each layout area is touched once. Each step is its own pull request with its own version bump; re-check `main` before each one.
 
 1. ~~Entry 3, save status~~ (0.4.4.6, `SAVE_STATUS_BRIEF.md`).
-2. **Entry 2**, Tidy and Fit preservation. It needs the owner's engine sign-off, and must land before UI PR 1 adds a "Fix" to the progress strip (streamlining D1), so that a more visible fix can't rewrite manual lessons.
+2. ~~Entry 2, Tidy and Fit preservation~~ (0.4.4.8, `TIDY_FIT_BRIEF.md`).
 3. **Entry 4**, one today for the engine. Do it before UI PR 3, because Home's today list depends on it.
 4. **Entry 5**, history and schema-15 tests. Do it before UI PR 2 reworks the ledger rows (gutters, edges).
 5. **UI PR 1**, group home and the hero. It includes F09: the pages wrap at any width (audit G1).
@@ -558,5 +495,12 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 11. **UI PRs 7 and 8**, Stats and Work; Settings, welcome and empty states.
 12. **Entries 7 and 8**, print and backup. They can go any time, as separate pull requests. Entry 7 goes before or with streamlining M3.
 13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
+
+Test clean-up rides these steps rather than a separate audit (the suite has no duplicate tests, but some lock in wrong behaviour or check storage instead of what the teacher sees):
+
+- Entry 2 revises `CustomPlanTest.tidyTakesOutPagesThatNeedNoTeaching`.
+- Entry 5 extends `GroupOverridesTest.removedBookKeepsDoneHistory`.
+- Entry 6 updates `HomeModelTest` (on-pace count) and `ScreensModelTest`.
+- Entries 3 to 8 add the missing cases listed in each one.
 
 Entry 10 (UI tests) can start with step 1: once it is approved, each later step adds tests for what it touches. Entry 1 (focus blocks) has no slot; build it only when asked. Do not start a parallel navigation or design system.

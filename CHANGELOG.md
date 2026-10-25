@@ -25,13 +25,37 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
-## [0.4.4.7] - 2026-10-25
+## [0.4.4.9] - 2026-10-25
 
 ### Added
 
 - `docs/NAVIGATION.md`: a map of every control in the app (359 interactions over 13 screens and 50 sheets, menus, dialogs and panels). For each it gives the gesture, when it shows, and what it opens or changes, with the message and Undo it leaves. It opens with a screen graph and the navigation findings.
 - `CLAUDE.md` and `docs/STREAMLINING_BRIEF.md` point UI and streamlining work at the map and ask for it to be kept current.
 - `docs/UI_AUDIT_BRIEF.md`: the map's findings join the audit as X16–X21 (unreachable routes, deletes with no confirmation, the two custom-plan outcomes, the revision sheet that opens by itself, silent Undo clearing, day-off long-press), each placed in a fix pull request.
+
+## [0.4.4.8] - 2026-10-25
+
+### Changed
+
+- **Tidy** and **Fit to term** no longer change a lesson you edited. Tidy only cleans the lessons you haven't touched, and a page you placed by hand wins over an untouched lesson's copy of it. Fit to term only moves lessons you haven't touched, and a lesson you edited that falls after the term stays there, with its note. Pages of a book you removed from the group are never taken out of a lesson.
+- When nothing can move, the Overflow warning stays and says why. If the Doubled or Stale warning is about a lesson you edited, its button is now **Open lesson** instead of Tidy.
+
+### Fixed
+
+- Fit to term no longer merges pages into the last lesson when every lesson in the term is yours, and re-pacing no longer drops untouched lessons past the term when there is no free lesson to take their pages.
+
+## [0.4.4.7] - 2026-10-25
+
+### Changed
+
+- `CLAUDE.md` has two test rules:
+  - a new test checks what the teacher sees or what is saved;
+  - a behaviour change updates the tests that lock in the old behaviour, never deletes them.
+- `docs/PLANNED_FEATURES.md`'s Order of work says which steps carry the test clean-up.
+
+### Added
+
+- CI runs the 16 platform tests (`app/src/androidTest`, real `org.json` codec round trips) on a Gradle Managed Device in a new `device-tests` job, so releases wait for them too. Run them locally with `./gradlew pixel6Api33DebugAndroidTest`.
 
 ## [0.4.4.6] - 2026-10-25
 
@@ -889,6 +913,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.9]: https://github.com/tsampolion/course_planner/compare/v0.4.4.8...v0.4.4.9
+[0.4.4.8]: https://github.com/tsampolion/course_planner/compare/v0.4.4.7...v0.4.4.8
 [0.4.4.7]: https://github.com/tsampolion/course_planner/compare/v0.4.4.6...v0.4.4.7
 [0.4.4.6]: https://github.com/tsampolion/course_planner/compare/v0.4.4.5...v0.4.4.6
 [0.4.4.5]: https://github.com/tsampolion/course_planner/compare/v0.4.4.4...v0.4.4.5

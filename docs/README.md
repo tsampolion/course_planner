@@ -33,6 +33,7 @@ Each one records why a feature was built, and starts with a `Status:` line.
 - [UNITS_BRIEF.md](UNITS_BRIEF.md): optional linked book units, group overrides and revisions.
 - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases and its release contract.
 - [SAVE_STATUS_BRIEF.md](SAVE_STATUS_BRIEF.md): the save result, the lasting "not saved" notice, Retry, Export a copy and Try reading again.
+- [TIDY_FIT_BRIEF.md](TIDY_FIT_BRIEF.md): Tidy and Fit to term leave the teacher's hand-edited lessons and removed-book pages alone.
 - [UI_AUDIT_BRIEF.md](UI_AUDIT_BRIEF.md): the UI/UX audit: findings per screen, proposed design-rule changes and the order of the fix pull requests.
 - [STREAMLINING_BRIEF.md](STREAMLINING_BRIEF.md): each screen's start, purpose, next step and end, and what to remove, merge or move.
 

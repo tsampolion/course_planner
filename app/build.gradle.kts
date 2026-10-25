@@ -13,8 +13,8 @@ android {
         // 26 gives java.time without core-library desugaring and adaptive icons without PNG fallbacks.
         minSdk = 26
         targetSdk = 35
-        versionCode = 63
-        versionName = "0.4.4.7"
+        versionCode = 65
+        versionName = "0.4.4.9"
         testInstrumentationRunner = "gr.edusuite.pacer.data.ExtraLessonCodecTest"
     }
 
@@ -36,6 +36,20 @@ android {
                 storePassword = password
                 keyAlias = "release"
                 keyPassword = password
+            }
+        }
+    }
+
+    // The platform tests (app/src/androidTest) run on this Gradle Managed Device in CI:
+    // ./gradlew pixel6Api33DebugAndroidTest. "aosp-atd" is the headless image made for automated tests.
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel6Api33") {
+                    device = "Pixel 6"
+                    apiLevel = 33
+                    systemImageSource = "aosp-atd"
+                }
             }
         }
     }
