@@ -8,6 +8,7 @@ The root `README.md` and `CLAUDE.md` are the entry points. This folder holds the
 
 ## Rules and reference
 
+- [STRING_INVENTORY.md](STRING_INVENTORY.md): every string the app shows, says or prints, grouped by screen, with a blank column for the owner's proposed wording.
 - [PACER_ACCENT_CONTRAST.md](PACER_ACCENT_CONTRAST.md): measured contrast pairs for all four Bone/Saffron sets (3.8.0, D13). The shared suite guide remains on the previous palette.
 - [BRIEF.md](BRIEF.md): the original port brief and the feature-parity checklist.
 - [EDUSUITE_STYLE_GUIDE.md](EDUSUITE_STYLE_GUIDE.md): the shared EduSuite look. A copy of the canonical guide.
@@ -39,4 +40,4 @@ Each one records why a feature was built. The code and `CLAUDE.md` describe the 
 
 ## Not yet approved
 
-- [PLANNED_FEATURES.md](PLANNED_FEATURES.md): specified features that wait for the owner's go-ahead.
+- [PLANNED_FEATURES.md](PLANNED_FEATURES.md): specified features that wait for the owner's go-ahead, including the front-end redesign audit (§6) and the streamlining pass (§7).

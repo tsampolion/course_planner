@@ -5,24 +5,47 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Versioning for this app:
+Version numbers were `MAJOR.MINOR.PATCH` up to 4.1.0. From 0.4.1.1 they have four parts, `0.MAJOR.MINOR.PATCH`, and 4.1.0 is written 0.4.1.0 in this file. The git tags and GitHub releases before 0.4.1.1 keep their old names (`v4.1.0`, `v4.0.0`, …); the compare links below still point at them.
 
-- **MAJOR**: a change that breaks existing saved plans or the import from the web page, or that changes scheduling results on purpose
-- **MINOR**: a new feature that keeps existing plans working
-- **PATCH**: bug fixes, performance or size improvements, and changes to documentation, licensing, build or CI that leave the app working as before
+Versioning for this app (format `0.A.B.C`):
+
+- **A** (the second number): a change that breaks old saved files or changes scheduling results on purpose. Rare.
+- **B**: a new feature, including redesign work.
+- **C**: fixes, documentation, copy changes, build or CI changes and polish that leave the app working as before.
+- The leading `0` becomes `1` only when the owner says the app is ready for others.
 
 Every pull request bumps the version:
 
-1. Choose MAJOR, MINOR or PATCH using the rules above.
-2. Set `versionName` in `app/build.gradle.kts` to `X.Y.Z` (always three parts) and increase `versionCode` by one.
-3. Add a `## [X.Y.Z] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom.
-4. After the merge, the `Release` workflow tags the merge commit `vX.Y.Z` and publishes a GitHub release with that section as notes and the APK attached. It only runs once CI passes.
+1. Choose A, B or C using the rules above.
+2. Set `versionName` in `app/build.gradle.kts` to `0.A.B.C` (always four parts, starting `0.`) and increase `versionCode` by one.
+3. Add a `## [0.A.B.C] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom.
+4. After the merge, the `Release` workflow tags the merge commit `v0.A.B.C` and publishes a GitHub release with that section as notes and the APK attached. It only runs once CI passes.
 
 Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
-## [4.1.0] - 2026-10-24
+## [0.4.1.1] - 2026-10-25
+
+### Added
+
+- The update check reads four-part versions (`0.X.Y.Z`) as well as the old three-part ones. A build is never offered an older release, and every old three-part version counts as newer than any `0.x.y.z`.
+- CI runs lint on every build.
+- `docs/STRING_INVENTORY.md` lists every word the app shows, says or prints, grouped by screen, with a blank column for proposed wording. Planned features gain the front-end redesign audit and the streamlining pass.
+
+### Changed
+
+- Versions are now written `0.MAJOR.MINOR.PATCH`, and the release workflow accepts only that form. Past entries below are relabelled to match (4.1.0 is now 0.4.1.0); the old tags and releases keep their names.
+- The bump rules are stricter and are recorded at the top of this file and in `CLAUDE.md`.
+
+### Fixed
+
+- A read error on the saved plans file (for example a momentary storage fault) no longer moves it aside as if it were corrupt. The app leaves the file alone, does not save over it, and says so once; closing and reopening the app tries again. Only a file whose content cannot be parsed is set aside.
+
+**Installing:** installed copies of 4.1.0 and earlier can't read four-part versions, so they will not offer this build. Install 0.4.1.1 by hand once. From the next release on, updates arrive in the app as before.
+
+
+## [0.4.1.0] - 2026-10-24
 
 ### Added
 
@@ -41,7 +64,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 - The app now has the `INTERNET` permission, used only for the update check. It sends nothing but the request itself.
 
-## [4.0.0] - 2026-10-24
+## [0.4.0.0] - 2026-10-24
 
 ### Added
 
@@ -60,7 +83,7 @@ Keep `[Unreleased]` empty between pull requests.
   keeps immediate banking. This intentional scheduling change requires a major
   version; existing manually planned lesson content remains intact.
 
-## [3.11.0] - 2026-10-24
+## [0.3.11.0] - 2026-10-24
 
 ### Added
 
@@ -79,7 +102,7 @@ Keep `[Unreleased]` empty between pull requests.
 - Work transitions, press feedback and segmented selection use motion tokens
   with reduced-motion support.
 
-## [3.10.0] - 2026-10-23
+## [0.3.10.0] - 2026-10-23
 
 ### Added
 
@@ -92,7 +115,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 - Combines handoff phases E and F in one release. Group settings remains in the tablet detail pane, and large-text controls retain their existing reflow and touch targets.
 
-## [3.9.0] - 2026-10-23
+## [0.3.9.0] - 2026-10-23
 
 ### Added
 
@@ -107,13 +130,13 @@ Keep `[Unreleased]` empty between pull requests.
 - My plan actions move to the group menu: re-pace untouched lessons, adjust catch-up, copy and delete. The source switch labels the plan currently in use.
 - Combines handoff phases C and D in one release. Existing schema 10 files, pinned extra lessons, palettes and fixed menu corners remain supported.
 
-## [3.8.1] - 2026-10-23
+## [0.3.8.1] - 2026-10-23
 
 ### Fixed
 
 - Dropdown popups use fixed 12dp corners rather than a percentage-rounded pill, keeping the first and last option labels visible in book selectors and action menus, including at large text sizes.
 
-## [3.8.0] - 2026-10-22
+## [0.3.8.0] - 2026-10-22
 
 ### Added
 
@@ -126,7 +149,7 @@ Keep `[Unreleased]` empty between pull requests.
 - The in-app logo follows the selected palette. Static launcher artwork and the first-frame background follow Bone. The shared suite guide remains unchanged and shows the previous palette; other suite apps may adopt these later.
 
 
-## [3.7.0] - 2026-10-22
+## [0.3.7.0] - 2026-10-22
 
 ### Added
 
@@ -135,7 +158,7 @@ Keep `[Unreleased]` empty between pull requests.
 - Extra labels in the ledger, Print and TSV, and warnings when a whole-lesson test or the date range excludes a saved extra and returns its pages to the remaining plan.
 - JSON schema 10 stores extras while continuing to read older backups.
 
-## [3.6.2] - 2026-10-22
+## [0.3.6.2] - 2026-10-22
 
 ### Fixed
 
@@ -151,7 +174,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 - Catch-up preservation through re-pacing, taught lessons, manual edits, copying and supplementary-page saves, with parity when no boost is saved. Real JSON round-trips and re-pacing after reopening were checked separately.
 
-## [3.6.1] - 2026-10-22
+## [0.3.6.1] - 2026-10-22
 
 ### Fixed
 
@@ -163,7 +186,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 - Custom plans preserve proposed dates and pages when created with Greek holidays, and still list their days off. Repeated re-pacing preserves lesson dates and holiday rows after modern and legacy imports.
 
-## [3.6.0] - 2026-10-21
+## [0.3.6.0] - 2026-10-21
 
 The redesign's large text and tablet layout (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR6 and PR7 together). The background pattern was dropped at the owner's request, so there is none.
 
@@ -180,7 +203,7 @@ The redesign's large text and tablet layout (`docs/superpowers/plans/2026-10-21-
 
 - With large text, the "Done" and "Pages taught" buttons on today's lesson go full width under it, and each lesson row, day off and ledger row puts its date over its pages instead of beside them.
 
-## [3.5.0] - 2026-10-21
+## [0.3.5.0] - 2026-10-21
 
 The redesign's other screens (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR5).
 
@@ -201,7 +224,7 @@ The redesign's other screens (`docs/superpowers/plans/2026-10-21-app-redesign.md
 
 - The tile grids on Classes, Class and Pacing overview, and the year picker's radio list with its per-year ⋮ (rename and delete now act on the open year).
 
-## [3.4.0] - 2026-10-21
+## [0.3.4.0] - 2026-10-21
 
 The redesign's group screen, Plan and Stats (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR4).
 
@@ -225,7 +248,7 @@ The redesign's group screen, Plan and Stats (`docs/superpowers/plans/2026-10-21-
 - Print on the School year screen: it is in a group's ⋮ menu, which starts with that group and can print whole classes instead.
 - The Schedule heading with Copy and Share (now in ⋮), the Term weeks and Tips sections on the page, and the custom plan's coverage bars.
 
-## [3.3.0] - 2026-10-21
+## [0.3.3.0] - 2026-10-21
 
 The redesign's Home (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR3).
 
@@ -247,7 +270,7 @@ The redesign's Home (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR3).
 
 - Home's tile grid and its year chip. Tests and Homework open from the Class screen, Days off and the year from School year.
 
-## [3.2.0] - 2026-10-21
+## [0.3.2.0] - 2026-10-21
 
 The redesign's navigation (`docs/superpowers/plans/2026-10-21-app-redesign.md`, PR2).
 
@@ -270,7 +293,7 @@ The redesign's navigation (`docs/superpowers/plans/2026-10-21-app-redesign.md`, 
 - The warning banners and the status chip on a group's Plan tab, and the fix chips on the custom-plan card; their fixes are in the Warnings sheet.
 - The group title's dropdown, replaced by the group switcher.
 
-## [3.1.0] - 2026-10-21
+## [0.3.1.0] - 2026-10-21
 
 The first part of the approved redesign (`docs/PACER_DESIGN.md`): new colours, figures and touch targets. Screens keep
 their layouts; navigation, Home and the group screen change in later releases.
@@ -288,13 +311,13 @@ their layouts; navigation, Home and the group screen change in later releases.
 - Six lesson-kind edge tokens (`edgeTest`, `edgeDayOff`, `edgeEdited`, `edgeHand`, `edgeFree`, `edgeSupp`), light and dark, ready for the lesson list redesign.
 - `ContrastTest` checks the shared light values against the style guide and the accent, the dark set and the edges against the Course Pacer contrast table (`docs/PACER_ACCENT_CONTRAST.md`).
 
-## [2.10.1] - 2026-10-21
+## [0.2.10.1] - 2026-10-21
 
 ### Documentation
 
 - The approved app redesign: its design (`docs/superpowers/specs/2026-10-21-app-redesign-design.md`), its plan in seven releases (`docs/superpowers/plans/2026-10-21-app-redesign.md`), Course Pacer's own design language (`docs/PACER_DESIGN.md`), before/after pictures (`docs/images/redesign/`) and the product record (`PRODUCT.md`). The app itself is unchanged.
 
-## [2.10.0] - 2026-10-20
+## [0.2.10.0] - 2026-10-20
 
 ### Added
 
@@ -307,7 +330,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 
 - The saved file is version 8: books can be supplementary, and custom lessons remember which books count in them and the core pages to restore. Older files still load.
 
-## [2.9.0] - 2026-10-20
+## [0.2.9.0] - 2026-10-20
 
 ### Added
 
@@ -320,7 +343,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 
 - The saved file is version 7: a class may store its own left-behind threshold. Older files still load, with a threshold of 2 lessons.
 
-## [2.8.0] - 2026-10-20
+## [0.2.8.0] - 2026-10-20
 
 ### Added
 
@@ -333,7 +356,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 
 - The saved file is version 6: classes may name a lead book, and books may list unit start pages. Older files still load, with no lead book.
 
-## [2.7.0] - 2026-10-20
+## [0.2.7.0] - 2026-10-20
 
 ### Added
 
@@ -353,7 +376,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 - The saved file is version 5: each group may carry its custom plan. Older files and the web page's export still load, as groups without one.
 - Implementation plan for custom plans in `docs/superpowers/plans/2026-10-20-custom-plans.md`, linked from the design spec.
 
-## [2.6.1] - 2026-10-20
+## [0.2.6.1] - 2026-10-20
 
 ### Changed
 
@@ -364,7 +387,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 
 - Finished feedback notes, UI brief, plans and checklists from `docs/`.
 
-## [2.6.0] - 2026-10-20
+## [0.2.6.0] - 2026-10-20
 
 ### Changed
 
@@ -377,14 +400,14 @@ their layouts; navigation, Home and the group screen change in later releases.
 
 - Design and brief for the next features: custom plans built from the proposed one, a lead book, and pace and left-behind warnings with catch-up (`docs/CUSTOM_PLANS_BRIEF.md`, `docs/superpowers/specs/2026-10-20-custom-plans-roadmap-design.md`, `docs/PLANNED_FEATURES.md` §3–5).
 
-## [2.5.0] - 2026-10-18
+## [0.2.5.0] - 2026-10-18
 
 ### Changed
 
 - Home's tiles fill the screen: the grid has as many 160dp columns as the width fits (two on a phone held upright, four in landscape, up to six on a tablet), each tile dropping into the shortest column. The 480dp cap is gone; the next-lesson tile stays at most 560dp wide so its text stays readable. At 200% font or under 360dp the grid is one column, as before.
 - Turning the phone no longer restarts the screen, so the tiles glide to their new places (`Motion.settle`) when the column count changes. With animations removed they jump there.
 
-## [2.4.1] - 2026-10-18
+## [0.2.4.1] - 2026-10-18
 
 ### Changed
 
@@ -392,7 +415,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 - The EduSuite style guide describes a Home tile grid whose column count follows the screen width, with tiles gliding to new places when it changes, and keeps the suite line in Settings → About. The grid itself follows in 2.5.0.
 - Design spec and implementation plan for the Home and Settings rework in `docs/superpowers/`.
 
-## [2.4.0] - 2026-10-17
+## [0.2.4.0] - 2026-10-17
 
 ### Changed
 
@@ -408,7 +431,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 - A JVM guard against hardcoded UI copy, including checks that catch interpolated prose and accessibility labels while permitting documented internal keys and data formats.
 - Material Symbols source attribution and the Apache 2.0 licence in `third_party/material-symbols`.
 
-## [2.3.0] - 2026-10-17
+## [0.2.3.0] - 2026-10-17
 
 ### Changed
 
@@ -420,7 +443,7 @@ their layouts; navigation, Home and the group screen change in later releases.
 - Tests and homework use swipe rows and add sheets. Test dates start from the selected group's next lesson, homework starts at its current book position, and past tests are collapsed.
 - Settings, the welcome guide and the unreadable-file notice follow the suite look. About includes the font and AndroidX credits.
 
-## [2.2.0] - 2026-10-17
+## [0.2.2.0] - 2026-10-17
 
 The EduSuite look, part two: a new Home that shows the open school year at a glance, and deletes that happen at once with Undo instead of asking first. Plans and schedules are unchanged.
 
@@ -434,7 +457,7 @@ The EduSuite look, part two: a new Home that shows the open school year at a gla
 - **Swipe to remove.** Days off, tests and homework rows can be swiped away (from the right), with Undo. A long press and TalkBack's actions offer the same, and the × stays.
 - **Short adds open from the bottom of the screen**: a new class, a book, and a day off, whose To date and "Applies to" sit under More options.
 
-## [2.1.0] - 2026-10-17
+## [0.2.1.0] - 2026-10-17
 
 The EduSuite look, part one: Course Pacer's colours, type and shapes now follow the EduSuite style guide, the same base as Course Invoicer's, with teal as Course Pacer's own colour. The screens keep their layout; Home and the other screens are redesigned in the next releases. Plans and schedules are unchanged.
 
@@ -450,7 +473,7 @@ The EduSuite look, part one: Course Pacer's colours, type and shapes now follow 
 
 - The Outfit typeface (SIL Open Font License 1.1), bundled as one 110 KB variable font. Its licence is in `third_party/outfit/OFL.txt` and is named in `LICENSE`.
 
-## [2.0.0] - 2026-10-17
+## [0.2.0.0] - 2026-10-17
 
 Course Pacer joins the **EduSuite** apps, with Course Invoicer. This release changes the app's id, so it installs as a new app beside the old one: move your school years over with Export and Import (below). The schedules, the saved file's format and the rest of the app are unchanged; the new EduSuite look follows in the next releases.
 
@@ -470,7 +493,7 @@ Course Pacer joins the **EduSuite** apps, with Course Invoicer. This release cha
 
 - **EduSuite style guide** (`docs/EDUSUITE_STYLE_GUIDE.md`), a copy of the canonical guide shared with Course Invoicer, and Course Pacer's accent contrast ratios (`docs/PACER_ACCENT_CONTRAST.md`). The README links Course Invoicer.
 
-## [1.8.0] - 2026-10-16
+## [0.1.8.0] - 2026-10-16
 
 A new look: the app now uses EduInvoiceApp's colours, so the two apps look alike. Plans, schedules and settings are unchanged.
 
@@ -481,7 +504,7 @@ A new look: the app now uses EduInvoiceApp's colours, so the two apps look alike
 - On every phone, warnings stay red and "Fits" stays green whatever the wallpaper, and the launcher icon and the logo on Home are EduInvoiceApp's blue. Android 13 and later can still tint the icon to the wallpaper with themed icons.
 - All text keeps at least 4.5:1 contrast with its background (WCAG AA), in both themes, with the app's own colours or the wallpaper's. "Fits" uses a slightly darker green than EduInvoiceApp's so it stays readable on panels. Where a wallpaper's tinted background would make tags, the next-step card and days off hard to read, they use a neutral one.
 
-## [1.7.3] - 2026-10-16
+## [0.1.7.3] - 2026-10-16
 
 CI only. The app is the same as 1.7.2.
 
@@ -490,7 +513,7 @@ CI only. The app is the same as 1.7.2.
 - The release signing secrets now sit in a GitHub Environment, `release`, that only `main` may use. Builds of other branches and pull requests no longer get them, so a branch's own build files can't reach the signing key; they're signed with the debug key and never publish, as pull requests from forks already were.
 - The Android workflow's token is read-only (`permissions: contents: read`).
 
-## [1.7.2] - 2026-10-16
+## [0.1.7.2] - 2026-10-16
 
 The smaller fixes from the 1.6.0 audit.
 
@@ -502,7 +525,7 @@ The smaller fixes from the 1.6.0 audit.
 - A plan that fits exactly no longer says "Short by 0.00 lessons… 0 fewer pages", a rounding slip in pages-per-lesson arithmetic (21 pages at 1.4 a lesson came out as 15.000000000000002 lessons).
 - Running the Release workflow by hand fetches the APK from that commit's Android run. If there isn't one, it stops instead of publishing a release without its APK, which a later run couldn't fix because the tag would exist. Tick **allow_no_apk** to publish without one on purpose.
 
-## [1.7.1] - 2026-10-15
+## [0.1.7.1] - 2026-10-15
 
 Fixes from a full audit of 1.6.0: crashes and freezes from unusual numbers, number fields that saved the wrong value, one-tap deletions, and past lessons coming back after a calendar change.
 
@@ -521,7 +544,7 @@ Fixes from a full audit of 1.6.0: crashes and freezes from unusual numbers, numb
 
 - The build uses `androidResources.localeFilters` in place of the deprecated `resourceConfigurations`. The APK still ships English only.
 
-## [1.7.0] - 2026-10-15
+## [0.1.7.0] - 2026-10-15
 
 A fresh install now starts empty, with a short guide, instead of a made-up sample year.
 
@@ -536,7 +559,7 @@ A fresh install now starts empty, with a short guide, instead of a made-up sampl
 - **"Next step" cards** on empty screens say what to do next: create a school year on Home, add a class on the year and Classes screens, add books (or a group) on the class screen, and add books before a group's schedule can show pages. Each card goes away once its step is done.
 - **A note on every group's schedule** saying the schedule is plain arithmetic (each book's pages spread evenly over the lessons left), that it can't know how the class is really doing, and that teachers should go by what they actually teach and record it. It also appears under each group's heading on the printed sheet (Print or save PDF), but not in Copy or Share.
 
-## [1.6.0] - 2026-10-15
+## [0.1.6.0] - 2026-10-15
 
 Back up your school years to a file and bring them back. Uninstalling the app deletes its school years, so export before you uninstall or change phones.
 
@@ -550,7 +573,7 @@ Back up your school years to a file and bring them back. Uninstalling the app de
 - Import refuses a file it can't read, one with no school years, and one from a newer version of the app, and says why. Nothing changes on the phone.
 - `docs/BACKUP_BRIEF.md` records the decisions.
 
-## [1.5.3] - 2026-10-15
+## [0.1.5.3] - 2026-10-15
 
 **The first release signed with the permanent key. Installing it needs one last uninstall, which deletes the school years on that phone. Every release after it installs as an update and keeps them.** Before you uninstall, note each year's dates, classes, books and positions so you can type them in again. 1.5.2 below describes the change; it was never published.
 
@@ -558,7 +581,7 @@ Back up your school years to a file and bring them back. Uninstalling the app de
 
 - CI read no certificate from the release APK, so 1.5.2 stopped at the certificate check and wasn't published. The check took the newest `apksigner` on GitHub's runners, which prints certificates in another format. Both workflows now use build-tools 35.0.0, the version the build uses, and accept either format. If `apksigner` prints no certificate, the check now fails on every branch and shows its output, instead of passing a debug-signed build without one.
 
-## [1.5.2] - 2026-10-15 (not published)
+## [0.1.5.2] - 2026-10-15 (not published)
 
 **Installing this release needs one last uninstall, which deletes the school years on that phone. Every release after it installs as an update and keeps them.** Before you uninstall, note each year's dates, classes, books and positions so you can type them in again.
 
@@ -572,13 +595,13 @@ Back up your school years to a file and bring them back. Uninstalling the app de
 
 - `docs/SIGNING_BRIEF.md`: the decisions for the release key, and who does each step.
 
-## [1.5.1] - 2026-10-15
+## [0.1.5.1] - 2026-10-15
 
 ### Added
 
 - `docs/PLANNED_FEATURES.md` gains a second entry: signing every release with one permanent key, so each new release installs over the last and keeps your school years. Today every release is signed with a different key, so updating means uninstalling, which deletes the saved years. The entry sets out the process step by step, from creating and backing up the key on the owner's computer to the checks before and after the first signed release.
 
-## [1.5.0] - 2026-10-15
+## [0.1.5.0] - 2026-10-15
 
 Record the pages a lesson actually covered when it didn't go to plan.
 
@@ -594,19 +617,19 @@ Record the pages a lesson actually covered when it didn't go to plan.
 - The saved file is version 4: a done lesson can carry an `edited` flag. Version 1 to 3 files and the web page's export still load.
 - Ticking lessons that went to plan works as before, and schedules with no edited lessons are unchanged.
 
-## [1.4.2] - 2026-10-15
+## [0.1.4.2] - 2026-10-15
 
 ### Fixed
 
 - Deleting a school year was hard to find: its button sat at the bottom of School year settings, below every day off. Each year on Home now has a ⋮ button (or long-press the year) with Rename and Delete, and the button in School year settings sits under the year's name and dates. Deleting still asks first, and Home offers Undo.
 
-## [1.4.1] - 2026-10-15
+## [0.1.4.1] - 2026-10-15
 
 ### Fixed
 
 - The app opts in to Android's predictive back. Back inside the app works as before; on Android 15 and later, the back gesture from Home previews the launcher before the app closes. The "OnBackInvokedCallback is not enabled" warning no longer appears in the log on every back.
 
-## [1.4.0] - 2026-10-15
+## [0.1.4.0] - 2026-10-15
 
 Lessons can be ticked as done, schedules can show one month at a time, and printing lets you choose classes and margins.
 
@@ -626,7 +649,7 @@ Lessons can be ticked as done, schedules can show one month at a time, and print
 - The saved file is version 3: each group stores its done lessons. Version 1 and 2 files and the web page's export still load.
 - Copy, Share and Print cover the lessons still to come.
 
-## [1.3.0] - 2026-10-10
+## [0.1.3.0] - 2026-10-10
 
 The app is now called Course Pacer, and plans are organised as school years that hold classes. Existing plans move over on first launch and schedule exactly as before.
 
@@ -653,7 +676,7 @@ The app is now called Course Pacer, and plans are organised as school years that
 
 - The Plans and Schedules screens, and the Home button grid. Their features moved to the screens above.
 
-## [1.2.0] - 2026-10-10
+## [0.1.2.0] - 2026-10-10
 
 Home is now a minimal launcher: the logo, the app's name, the open plan, and a button for each part of the app. Scheduling results and the saved file format don't change.
 
@@ -668,7 +691,7 @@ Home is now a minimal launcher: the logo, the app's name, the open plan, and a b
 - Home has no top bar. The plan switcher and the overflow menu are gone; their actions moved to Plans, and Print or save PDF and Settings are buttons on Home.
 - Switching plans keeps you on the screen you were on, closing only an open group. A group restored on launch reopens over Schedules, so back returns there.
 
-## [1.1.0] - 2026-10-10
+## [0.1.1.0] - 2026-10-10
 
 The app now opens on a home screen, each part of a plan has its own screen, and there is a settings screen. Scheduling results and the saved file format don't change.
 
@@ -688,13 +711,13 @@ The app now opens on a home screen, each part of a plan has its own screen, and 
 - New plans take their lesson length and pace from Settings. The defaults match the sample plan (75 minutes, 4 pages), so nothing changes until you edit them.
 - "Add Greek public holidays" is disabled until the term has both dates.
 
-## [1.0.2] - 2026-10-10
+## [0.1.0.2] - 2026-10-10
 
 ### Added
 
 - `Release` GitHub Actions workflow. When the Android workflow passes on `main`, it reads `versionName`, creates the `vX.Y.Z` tag and a GitHub release if they don't exist yet, uses this file's section for that version as the release notes, and attaches the release APK. It can also be run manually with a commit SHA to tag an older merge.
 
-## [1.0.1] - 2026-10-10
+## [0.1.0.1] - 2026-10-10
 
 Changes since the `v1.0.0` tag: documentation, licensing and the version format. The app itself doesn't change.
 
@@ -711,7 +734,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - `versionName` follows SemVer exactly: `1.0` became `1.0.0`, and is now `1.0.1` (`versionCode` 2).
 - The README now says that CI runs on every push and on manual dispatch, as well as on pull requests.
 
-## [1.0.0] - 2026-10-10
+## [0.1.0.0] - 2026-10-10
 
 ### Added
 
@@ -726,53 +749,54 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v4.0.0...HEAD
-[4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0
-[4.0.0]: https://github.com/tsampolion/course_planner/compare/v3.11.0...v4.0.0
-[3.11.0]: https://github.com/tsampolion/course_planner/compare/v3.10.0...v3.11.0
-[3.10.0]: https://github.com/tsampolion/course_planner/compare/v3.9.0...v3.10.0
-[3.9.0]: https://github.com/tsampolion/course_planner/compare/v3.8.1...v3.9.0
-[3.8.1]: https://github.com/tsampolion/course_planner/compare/v3.8.0...v3.8.1
-[3.8.0]: https://github.com/tsampolion/course_planner/compare/v3.7.0...v3.8.0
-[3.7.0]: https://github.com/tsampolion/course_planner/compare/v3.6.2...v3.7.0
-[3.6.2]: https://github.com/tsampolion/course_planner/compare/v3.6.1...v3.6.2
-[3.6.1]: https://github.com/tsampolion/course_planner/compare/v3.6.0...v3.6.1
-[3.6.0]: https://github.com/tsampolion/course_planner/compare/v3.5.0...v3.6.0
-[3.5.0]: https://github.com/tsampolion/course_planner/compare/v3.4.0...v3.5.0
-[3.4.0]: https://github.com/tsampolion/course_planner/compare/v3.3.0...v3.4.0
-[3.3.0]: https://github.com/tsampolion/course_planner/compare/v3.2.0...v3.3.0
-[3.2.0]: https://github.com/tsampolion/course_planner/compare/v3.1.0...v3.2.0
-[3.1.0]: https://github.com/tsampolion/course_planner/compare/v2.10.1...v3.1.0
-[2.10.1]: https://github.com/tsampolion/course_planner/compare/v2.10.0...v2.10.1
-[2.10.0]: https://github.com/tsampolion/course_planner/compare/v2.9.0...v2.10.0
-[2.9.0]: https://github.com/tsampolion/course_planner/compare/v2.8.0...v2.9.0
-[2.8.0]: https://github.com/tsampolion/course_planner/compare/v2.7.0...v2.8.0
-[2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.1...v2.7.0
-[2.6.1]: https://github.com/tsampolion/course_planner/compare/v2.6.0...v2.6.1
-[2.6.0]: https://github.com/tsampolion/course_planner/compare/v2.5.0...v2.6.0
-[2.5.0]: https://github.com/tsampolion/course_planner/compare/v2.4.1...v2.5.0
-[2.4.1]: https://github.com/tsampolion/course_planner/compare/v2.4.0...v2.4.1
-[2.4.0]: https://github.com/tsampolion/course_planner/compare/v2.3.0...v2.4.0
-[2.3.0]: https://github.com/tsampolion/course_planner/compare/v2.2.0...v2.3.0
-[2.2.0]: https://github.com/tsampolion/course_planner/compare/v2.1.0...v2.2.0
-[2.1.0]: https://github.com/tsampolion/course_planner/compare/v2.0.0...v2.1.0
-[2.0.0]: https://github.com/tsampolion/course_planner/compare/v1.8.0...v2.0.0
-[1.8.0]: https://github.com/tsampolion/course_planner/compare/v1.7.3...v1.8.0
-[1.7.3]: https://github.com/tsampolion/course_planner/compare/v1.7.2...v1.7.3
-[1.7.2]: https://github.com/tsampolion/course_planner/compare/v1.7.1...v1.7.2
-[1.7.1]: https://github.com/tsampolion/course_planner/compare/v1.7.0...v1.7.1
-[1.7.0]: https://github.com/tsampolion/course_planner/compare/v1.6.0...v1.7.0
-[1.6.0]: https://github.com/tsampolion/course_planner/compare/v1.5.3...v1.6.0
-[1.5.3]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.3
-[1.5.2]: https://github.com/tsampolion/course_planner/pull/12
-[1.5.1]: https://github.com/tsampolion/course_planner/compare/v1.5.0...v1.5.1
-[1.5.0]: https://github.com/tsampolion/course_planner/compare/v1.4.2...v1.5.0
-[1.4.2]: https://github.com/tsampolion/course_planner/compare/v1.4.1...v1.4.2
-[1.4.1]: https://github.com/tsampolion/course_planner/compare/v1.4.0...v1.4.1
-[1.4.0]: https://github.com/tsampolion/course_planner/compare/v1.3.0...v1.4.0
-[1.3.0]: https://github.com/tsampolion/course_planner/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/tsampolion/course_planner/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/tsampolion/course_planner/compare/v1.0.2...v1.1.0
-[1.0.2]: https://github.com/tsampolion/course_planner/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/tsampolion/course_planner/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/tsampolion/course_planner/releases/tag/v1.0.0
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.1.1...HEAD
+[0.4.1.1]: https://github.com/tsampolion/course_planner/compare/v4.1.0...v0.4.1.1
+[0.4.1.0]: https://github.com/tsampolion/course_planner/compare/v4.0.0...v4.1.0
+[0.4.0.0]: https://github.com/tsampolion/course_planner/compare/v3.11.0...v4.0.0
+[0.3.11.0]: https://github.com/tsampolion/course_planner/compare/v3.10.0...v3.11.0
+[0.3.10.0]: https://github.com/tsampolion/course_planner/compare/v3.9.0...v3.10.0
+[0.3.9.0]: https://github.com/tsampolion/course_planner/compare/v3.8.1...v3.9.0
+[0.3.8.1]: https://github.com/tsampolion/course_planner/compare/v3.8.0...v3.8.1
+[0.3.8.0]: https://github.com/tsampolion/course_planner/compare/v3.7.0...v3.8.0
+[0.3.7.0]: https://github.com/tsampolion/course_planner/compare/v3.6.2...v3.7.0
+[0.3.6.2]: https://github.com/tsampolion/course_planner/compare/v3.6.1...v3.6.2
+[0.3.6.1]: https://github.com/tsampolion/course_planner/compare/v3.6.0...v3.6.1
+[0.3.6.0]: https://github.com/tsampolion/course_planner/compare/v3.5.0...v3.6.0
+[0.3.5.0]: https://github.com/tsampolion/course_planner/compare/v3.4.0...v3.5.0
+[0.3.4.0]: https://github.com/tsampolion/course_planner/compare/v3.3.0...v3.4.0
+[0.3.3.0]: https://github.com/tsampolion/course_planner/compare/v3.2.0...v3.3.0
+[0.3.2.0]: https://github.com/tsampolion/course_planner/compare/v3.1.0...v3.2.0
+[0.3.1.0]: https://github.com/tsampolion/course_planner/compare/v2.10.1...v3.1.0
+[0.2.10.1]: https://github.com/tsampolion/course_planner/compare/v2.10.0...v2.10.1
+[0.2.10.0]: https://github.com/tsampolion/course_planner/compare/v2.9.0...v2.10.0
+[0.2.9.0]: https://github.com/tsampolion/course_planner/compare/v2.8.0...v2.9.0
+[0.2.8.0]: https://github.com/tsampolion/course_planner/compare/v2.7.0...v2.8.0
+[0.2.7.0]: https://github.com/tsampolion/course_planner/compare/v2.6.1...v2.7.0
+[0.2.6.1]: https://github.com/tsampolion/course_planner/compare/v2.6.0...v2.6.1
+[0.2.6.0]: https://github.com/tsampolion/course_planner/compare/v2.5.0...v2.6.0
+[0.2.5.0]: https://github.com/tsampolion/course_planner/compare/v2.4.1...v2.5.0
+[0.2.4.1]: https://github.com/tsampolion/course_planner/compare/v2.4.0...v2.4.1
+[0.2.4.0]: https://github.com/tsampolion/course_planner/compare/v2.3.0...v2.4.0
+[0.2.3.0]: https://github.com/tsampolion/course_planner/compare/v2.2.0...v2.3.0
+[0.2.2.0]: https://github.com/tsampolion/course_planner/compare/v2.1.0...v2.2.0
+[0.2.1.0]: https://github.com/tsampolion/course_planner/compare/v2.0.0...v2.1.0
+[0.2.0.0]: https://github.com/tsampolion/course_planner/compare/v1.8.0...v2.0.0
+[0.1.8.0]: https://github.com/tsampolion/course_planner/compare/v1.7.3...v1.8.0
+[0.1.7.3]: https://github.com/tsampolion/course_planner/compare/v1.7.2...v1.7.3
+[0.1.7.2]: https://github.com/tsampolion/course_planner/compare/v1.7.1...v1.7.2
+[0.1.7.1]: https://github.com/tsampolion/course_planner/compare/v1.7.0...v1.7.1
+[0.1.7.0]: https://github.com/tsampolion/course_planner/compare/v1.6.0...v1.7.0
+[0.1.6.0]: https://github.com/tsampolion/course_planner/compare/v1.5.3...v1.6.0
+[0.1.5.3]: https://github.com/tsampolion/course_planner/compare/v1.5.1...v1.5.3
+[0.1.5.2]: https://github.com/tsampolion/course_planner/pull/12
+[0.1.5.1]: https://github.com/tsampolion/course_planner/compare/v1.5.0...v1.5.1
+[0.1.5.0]: https://github.com/tsampolion/course_planner/compare/v1.4.2...v1.5.0
+[0.1.4.2]: https://github.com/tsampolion/course_planner/compare/v1.4.1...v1.4.2
+[0.1.4.1]: https://github.com/tsampolion/course_planner/compare/v1.4.0...v1.4.1
+[0.1.4.0]: https://github.com/tsampolion/course_planner/compare/v1.3.0...v1.4.0
+[0.1.3.0]: https://github.com/tsampolion/course_planner/compare/v1.2.0...v1.3.0
+[0.1.2.0]: https://github.com/tsampolion/course_planner/compare/v1.1.0...v1.2.0
+[0.1.1.0]: https://github.com/tsampolion/course_planner/compare/v1.0.2...v1.1.0
+[0.1.0.2]: https://github.com/tsampolion/course_planner/compare/v1.0.1...v1.0.2
+[0.1.0.1]: https://github.com/tsampolion/course_planner/compare/v1.0.0...v1.0.1
+[0.1.0.0]: https://github.com/tsampolion/course_planner/releases/tag/v1.0.0

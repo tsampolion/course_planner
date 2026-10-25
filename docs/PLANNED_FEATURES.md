@@ -137,3 +137,40 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 ## 5. Pace and left-behind warnings with catch-up
 
 **Status:** approved on 2026-10-20, see [`docs/CUSTOM_PLANS_BRIEF.md`](CUSTOM_PLANS_BRIEF.md). Shipped in 2.9.0.
+
+## 6. Front-end redesign audit with taste-skill
+
+**Status:** proposed (from the owner's 4.1.0 audit). Not approved; build it only when the owner asks. Redesign work counts as a B-level change (a new feature) in the version rules.
+
+### The problem
+
+The app can look generic, and the Saffron/Bone palette is not always applied the way the design intends: some objects that should read as primary are neutral, and some screens drift from the shared look.
+
+### Proposal
+
+1. Run the taste-skill UI/UX audit over every screen, in both themes, on a phone and a tablet, at normal and large text.
+2. Record the findings per screen in a brief: what is generic, what breaks the palette or `docs/PACER_DESIGN.md`, and what to change.
+3. Fix screen by screen, one pull request per group of related screens, with tokens only (`Tokens.kt`, `Space`, `Shape`) and the existing contrast checks kept green.
+
+### Questions to settle first
+
+- Which screens come first (group home and Plan are the most used)?
+- Does the audit change `docs/PACER_DESIGN.md`, or only apply it?
+- Who checks each result on a phone? Layout can't be run on a device in the build environment.
+
+## 7. Streamlining: a clear start, purpose, path and end for every screen
+
+**Status:** proposed (from the owner's 4.1.0 audit). Not approved. It follows after the current feature work, and after the front-end audit above if both go ahead.
+
+### The problem
+
+Some screens make the teacher work out what they are for, how to leave them, or what to do next. Menus, sheets and settings have grown one feature at a time.
+
+### Proposal
+
+Go through every screen and answer four questions: where does the teacher arrive from, what is this screen for, what is the next step, and how does it end (done, back, undo)? Remove or merge steps that don't earn their place, and make the main action of each screen obvious. Wording changes wait for the owner's filled-in [`STRING_INVENTORY.md`](STRING_INVENTORY.md).
+
+### Questions to settle first
+
+- Which flows matter most: first run, daily use (Done, pages taught) or term set-up?
+- Is it allowed to remove features, or only to move them?
