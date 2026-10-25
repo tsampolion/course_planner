@@ -144,7 +144,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             }
         }
         item(key = "groups") {
-            Column {
+            SectionColumn {
                 SectionHead(stringResource(R.string.class_groups), action = stringResource(R.string.class_add), onAction = vm::addGroup)
                 if (plan.groups.isEmpty()) Hint(stringResource(R.string.class_add_a_group_for_each_set_of_students_taught_from_these_books))
                 else RowGroup {
@@ -156,7 +156,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             }
         }
         item(key = "books") {
-            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            SectionColumn {
                 SectionHead(stringResource(R.string.class_books), action = stringResource(R.string.class_add), onAction = { addingBook = true })
                 if (plan.books.isEmpty()) Hint(stringResource(R.string.class_no_books_yet))
                 else RowGroup {
@@ -176,7 +176,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             }
         }
         item(key = "more") {
-            Column {
+            SectionColumn {
                 SectionHead(stringResource(R.string.work_title))
                 Hint(stringResource(R.string.work_moved))
                 RowGroup {

@@ -75,6 +75,7 @@ import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.MAX_PAGE
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Pacer
+import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -99,7 +100,7 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
             .padding(start = Space.l, end = Space.l, top = Space.l, bottom = padding.calculateBottomPadding() + Space.xxl),
-        verticalArrangement = Arrangement.spacedBy(Space.l),
+        verticalArrangement = Arrangement.spacedBy(Rhythm.section),
     ) {
         VerdictHeading(shown)
         if (report.group.custom != null) SegmentedToggle(
