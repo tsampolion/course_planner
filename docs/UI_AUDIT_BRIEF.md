@@ -1,6 +1,6 @@
 # UI/UX audit and redesign
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fixes not started: each fix pull request below needs the owner's go-ahead, one at a time.
+Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fix PR 1 (Group home and the hero, 0.4.5.0) is built; its owner decisions are open in the PR. The others need the owner's go-ahead, one at a time.
 
 This brief records the taste-skill UI/UX audit (`PLANNED_FEATURES.md` §2 until 0.4.4.2), what it found per screen, and the order of the fix pull requests. Its companion is [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md), which covers each screen's start, purpose, next step and end.
 
@@ -46,11 +46,11 @@ Design specificity: the bones are Course Pacer's own (the ledger rows, kind edge
 
 | # | Finding | Seen | Severity |
 |---|---|---|---|
-| X1 | **Saffron light marks under 3:1.** The progress bar fill (accent on surfaceContainer, 1.41:1), the done tick's fill (accent on surface, 1.73:1) and the update dot on ☰ (1.73:1) carry meaning but fail WCAG 1.4.11. Bone and both dark sets pass. | code | P1 |
+| X1 | *(progress bar, 0.4.5.0; done tick with Plan, update dot with the menu)* **Saffron light marks under 3:1.** The progress bar fill (accent on surfaceContainer, 1.41:1), the done tick's fill (accent on surface, 1.73:1) and the update dot on ☰ (1.73:1) carry meaning but fail WCAG 1.4.11. Bone and both dark sets pass. | code | P1 |
 | X2 | **Two kinds, one edge.** Worksheet lessons and supplementary pages both use `edgeSupp`, so the edge can't tell them apart (D8 promises one edge per kind). | code | P2 |
 | X3 | **Edges change meaning with the mode.** In Saffron, *edited* is green in light and saffron in dark; *free* is mustard in light and green in dark. Saffron light's test edge equals `warn`, so a test reads as a problem. | code | P2 |
 | X4 | **The design doc contradicts itself.** Its Tokens section says the Home next-lesson and group today panels are neutral; its group home section and the owner's decision say the hero is accent-filled. The code follows the decision on group home and Plan, and the neutral rule on Home. | code | P2 |
-| X5 | **Neutral pills are hard to see.** Group home's pills and Classes chips are `surfaceContainer` on `paper`: 1.08:1 in Bone light, about 1.1–1.4:1 elsewhere. They read as text, not buttons. | phone | P2 |
+| X5 | *(0.4.5.0)* **Neutral pills are hard to see.** Group home's pills and Classes chips are `surfaceContainer` on `paper`: 1.08:1 in Bone light, about 1.1–1.4:1 elsewhere. They read as text, not buttons. | phone | P2 |
 | X6 | **Hidden actions.** Group settings' book options, the hero's pages, Stats' Pace needed (Own pace) and a book's pace track (set position) work only by long-press or an unmarked tap. Hints have to tell people to long-press. | code | P2 |
 | X7 | **Three sheet frames.** `HomeSheet` and `SheetFrame` (Material bottom sheets) and `WorkSheetFrame` (a dialog drawn as a sheet) open, close and end differently: no button, a filled Done that only closes, or ✕ plus Save. | code | P2 |
 | X8 | **Leftover components.** `ListItemRow`, `AddButton`, `Heading`, `CardRow` and `RemoveButton` in `Components.kt` are unused; `Section` (Settings) and `SectionHead` + `RowGroup` (list screens) do the same job two ways. | code | P3 |
@@ -76,12 +76,12 @@ Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral
 
 | # | Finding | Seen | Severity |
 |---|---|---|---|
-| G1 | **Today's pages aren't the biggest thing.** The hero shows the date in `titleMedium` and the pages in `bodyLarge` on one line that cuts off with "…". With three books ("SB 38–40 · WB 20–21 · GB 40–41") the most important text may be cut on a narrow phone. | phone | P1 |
-| G2 | **Tapping the pages records what was taught, with no sign that it can.** No icon, underline or chevron. | code | P2 |
-| G3 | **The pills sit under Due soon.** With four homework rows the four pills (Plan first) may start below the first screen on a phone. | phone | P2 |
-| G4 | **"Short by 2 lessons" leads to Stats, not to the fix.** The fix is behind the warning icon in the top bar (see the streamlining brief). | code | P2 |
-| G5 | Progress strip bar fails 3:1 in Saffron light (X1). | code | P1 |
-| G6 | In Saffron dark and Bone dark the hero is a large light fill on a dark ground; check it doesn't glare at night. | phone | P3 |
+| G1 | *(0.4.5.0)* **Today's pages aren't the biggest thing.** The hero shows the date in `titleMedium` and the pages in `bodyLarge` on one line that cuts off with "…". With three books ("SB 38–40 · WB 20–21 · GB 40–41") the most important text may be cut on a narrow phone. | phone | P1 |
+| G2 | *(0.4.5.0)* **Tapping the pages records what was taught, with no sign that it can.** No icon, underline or chevron. | code | P2 |
+| G3 | *(0.4.5.0)* **The pills sit under Due soon.** With four homework rows the four pills (Plan first) may start below the first screen on a phone. | phone | P2 |
+| G4 | *(0.4.5.0)* **"Short by 2 lessons" leads to Stats, not to the fix.** The fix is behind the warning icon in the top bar (see the streamlining brief). | code | P2 |
+| G5 | *(0.4.5.0)* Progress strip bar fails 3:1 in Saffron light (X1). | code | P1 |
+| G6 | *(0.4.5.0)* In Saffron dark and Bone dark the hero is a large light fill on a dark ground; check it doesn't glare at night. | phone | P3 |
 
 **G1 in detail (usability audit F09).**
 

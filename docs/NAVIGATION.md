@@ -572,9 +572,11 @@ flowchart LR
 | --- | --- | --- | --- |
 | Today / Next · lesson N box | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Opens the lesson menu for that lesson. |
 | Done (in the box) | Tap | The shown plan is the one in use | Marks the lesson done with a drawn tick. Undo: “Lesson marked done” |
-| Pages taught (tap the pages in the box) | Tap | Today or past lesson | ↑ Opens [Pages taught on Fri 23 Oct](#pages-taught). Opens Pages taught for it. |
+| Pages taught (tap the pages in the box, shown with an edit icon) | Tap | Today or past lesson | ↑ Opens [Pages taught on Fri 23 Oct](#pages-taught). Opens Pages taught for it. TalkBack: a named “Pages taught” action on the pages. |
+| Homework (in the box) | Tap |  | ↑ Opens [Add homework](#assignment) for that lesson. The same action as the lesson menu's Add homework…. |
 | Homework due today / set today lines | Shows |  | Under the box. |
-| Progress strip (Lesson N of M · status) | Tap |  | → Screen [Stats](#stats). Opens Stats (read as “Open book stats”). |
+| Progress strip (Lesson N of M · status, a pacing line per book) | Tap |  | → Screen [Stats](#stats). Opens Stats (read as “Open book stats”). |
+| Fix (beside the progress strip) | Tap | The group is short and Warnings has a lateness fix | ↑ Opens the Warnings sheet, as the top bar's warning button does. The sheet's repairs keep hand-edited lessons. |
 | Unit progress strip | Shows | Units on | Unit N of M, a bar per unit, pages left per book. |
 | Pace track (compact) | Tap | Books, units off | → Screen [Stats](#stats). Opens Stats. |
 | Due soon: an assignment row | Tap |  | → Screen [Work](#work). Opens Work. |
