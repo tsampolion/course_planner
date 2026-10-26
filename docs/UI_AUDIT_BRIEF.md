@@ -78,7 +78,7 @@ Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral
 |---|---|---|---|
 | G1 | *(0.4.5.0)* **Today's pages aren't the biggest thing.** The hero shows the date in `titleMedium` and the pages in `bodyLarge` on one line that cuts off with "…". With three books ("SB 38–40 · WB 20–21 · GB 40–41") the most important text may be cut on a narrow phone. | phone | P1 |
 | G2 | *(0.4.5.0)* **Tapping the pages records what was taught, with no sign that it can.** No icon, underline or chevron. | code | P2 |
-| G3 | *(0.4.5.0)* **The pills sit under Due soon.** With four homework rows the four pills (Plan first) may start below the first screen on a phone. | phone | P2 |
+| G3 | *(declined by the owner: the pills stay at the bottom)* **The pills sit under Due soon.** With four homework rows the four pills (Plan first) may start below the first screen on a phone. | phone | P2 |
 | G4 | *(0.4.5.0)* **"Short by 2 lessons" leads to Stats, not to the fix.** The fix is behind the warning icon in the top bar (see the streamlining brief). | code | P2 |
 | G5 | *(0.4.5.0)* Progress strip bar fails 3:1 in Saffron light (X1). | code | P1 |
 | G6 | *(0.4.5.0)* In Saffron dark and Bone dark the hero is a large light fill on a dark ground; check it doesn't glare at night. | phone | P3 |

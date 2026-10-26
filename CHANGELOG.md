@@ -29,11 +29,11 @@ Keep `[Unreleased]` empty between pull requests.
 
 ### Changed
 
-- Group home, first redesign step (UI audit PR 1). Today's pages are the hero's headline: one book per line in large tabular figures, wrapping instead of cutting off, with an edit icon and a named "Pages taught" action for TalkBack. The hero has a visible Homework button.
-- The four page pills are outlined (a 1px stroke that reaches 3:1) and sit directly under the progress strip.
-- The progress strip draws a thin pacing line per book, ending where the group is, with the lead book's tick. A short group shows a Fix beside the strip that opens Warnings.
+- Group home, first redesign step (UI audit PR 1). The lesson box keeps its size. A Homework button sits under Done in the same shape and opens Add homework for today's lesson. Today's pages keep their size, wrap to two lines beside the buttons and show an edit icon; TalkBack gets a named "Pages taught" action on them.
+- The four page pills are outlined (a 1px stroke that reaches 3:1). They stay at the bottom.
+- A short group shows a round Fix button beside the progress strip, which opens Warnings.
 - Progress fills use a new `mark` token that reaches 3:1 in Saffron light (it was the saffron fill at 1.41:1). `ContrastTest` covers it.
-- `PACER_DESIGN.md` records the accent-filled hero, `mark` and outlined pills. The done tick in the lesson ledger still uses the fill accent; Plan's redesign changes it.
+- `PACER_DESIGN.md` records `mark` and outlined pills. The done tick in the lesson ledger still uses the fill accent; Plan's redesign changes it.
 
 ## [0.4.4.11] - 2026-10-26
 

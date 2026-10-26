@@ -7,6 +7,8 @@ import androidx.compose.animation.core.snap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -63,7 +65,6 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
                 }
             }
         }
-        item { GroupHomePills(onOpen = onOpen) }
         if (report.plan.books.isNotEmpty() && unitProgress(report.plan, report.group).isEmpty()) item {
             RowGroup { Column(Modifier.padding(horizontal = Space.l, vertical = Space.m)) { PaceTrack(report, compact = true) { onOpen(GroupDestination.STATS) } } }
         }
@@ -80,6 +81,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
                 }
             }
         }
+        item { GroupHomePills(onOpen = onOpen) }
     }
 }
 
@@ -115,12 +117,17 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
                 Text(text, style = MaterialTheme.typography.titleSmall.merge(Figures), color = if (line.status == ProgressStatus.SHORT) c.warn else c.ink, modifier = Modifier.weight(1f))
                 if (onFix == null) Chevron()
             }
-            // The pacing lines are the mark; with no core book there is nothing to draw one for, so the overall bar stays.
-            if (report.plan.books.any { !it.supplementary }) PacingLines(report)
-            else LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
+            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
         }
         // D1: a short group's repair is one tap away; the sheet it opens offers only repairs that keep the teacher's lessons.
-        if (onFix != null) TertiaryButton(fixLabel, onFix, Modifier.semantics { contentDescription = fixDescription })
+        if (onFix != null) Box(
+            Modifier.size(48.dp).clickable(onClickLabel = fixDescription, role = Role.Button, onClick = onFix).semantics { contentDescription = fixDescription },
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(Modifier.size(40.dp).clip(CircleShape).background(c.accentSoft), contentAlignment = Alignment.Center) {
+                Text(fixLabel, style = MaterialTheme.typography.labelLarge, color = c.onAccentSoft)
+            }
+        }
     }
 }
 

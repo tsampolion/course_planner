@@ -1,6 +1,6 @@
 # Streamlining
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). D1, D3 and G3 are built in 0.4.5.0 (D2 waits for PR 3). The rest ride the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), and every removal needs the owner's yes.
+Status: approved 2026-10-25; audit done (stage 1, this brief). D1 and D3 are built in 0.4.5.0; the owner declined G3 (D2 waits for PR 3). The rest ride the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), and every removal needs the owner's yes.
 
 This brief records the streamlining pass (`PLANNED_FEATURES.md` §3 until 0.4.4.2). For every screen it answers four questions: where the teacher arrives from, what the screen is for, what the next step is, and how it ends (done, back, undo). It then lists what to remove, merge or move.
 
