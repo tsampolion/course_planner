@@ -69,7 +69,7 @@ The palette is saved outside undo and changes the whole Compose theme immediatel
 | edgeFree | `#896900` | `#D8C26A` | `#896900` | `#9FC98E` |
 | edgeSupp | `#414700` | `#E0DDD0` | `#414700` | `#E0DDD0` |
 
-The launcher icon and first-frame window background are static and always Bone (the background follows light/dark). Saffron users see that neutral Bone background only until Compose draws; it contains no launch text. The in-app logo follows the chosen palette, using accent and onAccent. The Home next-lesson and Group today panels are neutral so the accent stays concentrated in small controls.
+The launcher icon and first-frame window background are static and always Bone (the background follows light/dark). Saffron users see that neutral Bone background only until Compose draws; it contains no launch text. The in-app logo follows the chosen palette, using accent and onAccent. Today's lesson is the accent fill wherever it is the screen's focal point (group home and Plan; Home's today block follows with its redesign).
 
 Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distance is at least 60. Every set excludes violet/indigo. `docs/PACER_ACCENT_CONTRAST.md` lists all measured pairs. ![Palette swatches, not app screenshots](images/palettes.svg)
 
@@ -171,3 +171,11 @@ Download/See all changes, automatic-check switch, Check now feedback and one
 installed-version line. Debug builds retain About's version and hide Updates.
 Use the existing Material components, Outfit, Bone/Saffron roles and large-text
 layout. Native runtime/screenshot checks remain pending without a device.
+
+## Group home redesign (0.4.5.0)
+
+Owner-approved proposals from [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md):
+
+- **Today's lesson is the accent fill** wherever it is the focal point (proposal 1).
+- **Marks on light paper use `mark`** (proposal 3): progress fills and ticks never use the fill accent where it falls under 3:1. `mark` is the accent in Bone and in both dark sets, and `accentText` in Saffron light; `ContrastTest` checks it against paper, surface and surfaceContainer.
+- **Pills have a visible edge** (proposal 6): a transparent pill with a 1px `outline` stroke, which reaches 3:1 against the ground.

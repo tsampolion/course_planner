@@ -99,3 +99,7 @@ internal fun progressLine(report: GroupReport): ProgressLine {
     }
     return ProgressLine(if (left == 0) done else done + 1, total, status, shortBy, if (total == 0) 0f else done.toFloat() / total)
 }
+
+/** D1: the progress strip offers Fix only while the group is short and the Warnings sheet has a lateness repair to open (those repairs never change a touched lesson). */
+internal fun showsFix(status: ProgressStatus, warnings: List<GroupWarning>): Boolean =
+    status == ProgressStatus.SHORT && warnings.any { it is GroupWarning.Behind }

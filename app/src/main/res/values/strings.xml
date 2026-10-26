@@ -618,6 +618,9 @@
     <string name="today_next_label">Next · lesson %1$d</string>
     <string name="today_done">Done</string>
     <string name="today_pages_taught">Pages taught</string>
+    <string name="today_homework">Homework</string>
+    <string name="progress_fix">Fix</string>
+    <string name="progress_fix_description">Fix. Opens Warnings</string>
     <string name="custom_line_title">Start from this schedule and make it yours.</string>
     <string name="custom_line_body">The proposed plan stays as your fallback.</string>
     <string name="custom_line_create">Create</string>

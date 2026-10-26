@@ -4,7 +4,7 @@ Pacer owns Bone & green and Saffron & ink (D13, 3.8.0), each in light and dark m
 
 Ratios are WCAG 2.x, rounded to two decimals, computed from `ui/theme/Tokens.kt`. Text pairs reach 4.5:1; outlines and lesson-kind edges reach 3:1. `ContrastTest` checks the rules across all four sets. The legacy tile field names now hold sage, neutral, mist and warm-earth tones rather than lilac or pink.
 
-SaffronLight accent is a **fill only**: its contrast on paper is below 3:1. Links, icons, field focus and other foreground controls use `accentText` (the existing `onAccentSoft` token). Material primary stays the fill accent. Date picker internals use a readable local primary, and snackbar inversePrimary uses the other mode’s accentText. Home’s next-lesson panel and the group’s today panel use neutral surfaces to keep accent coverage small. Behind keeps its word and pill shape as well as a rust/red tone.
+SaffronLight accent is a **fill only**: its contrast on paper is below 3:1. Links, icons, field focus and other foreground controls use `accentText` (the existing `onAccentSoft` token). Material primary stays the fill accent. Date picker internals use a readable local primary, and snackbar inversePrimary uses the other mode’s accentText. Progress fills and ticks use `mark` (the accent, or `accentText` in Saffron light), which reaches 3:1 on every ground. Behind keeps its word and pill shape as well as a rust/red tone.
 
 ## BoneLight
 

@@ -34,6 +34,8 @@ data class Tokens(
     val onAccent: Long,
     val accentSoft: Long,
     val onAccentSoft: Long,
+    // Progress fills and ticks: the accent where it reaches 3:1 on surfaceContainer, accentText on Saffron light.
+    val mark: Long,
     // Course Pacer's lesson-kind edges (PACER_DESIGN.md D8): at least 3:1 on surface.
     val edgeTest: Long,
     val edgeDayOff: Long,
@@ -55,7 +57,7 @@ data class Tokens(
             onWarn = 0xFFF4F2EC, warnSoft = 0xFFE9DCD0, onWarnSoft = 0xFF542811,
             ok = 0xFF37622F, onOk = 0xFFF4F2EC, okSoft = 0xFFD9E1CF,
             onOkSoft = 0xFF233C1E, accent = 0xFF3F6B34, onAccent = 0xFFF4F2EC,
-            accentSoft = 0xFFD9E3D0, onAccentSoft = 0xFF253F1F, edgeTest = 0xFF994B39,
+            accentSoft = 0xFFD9E3D0, onAccentSoft = 0xFF253F1F, mark = 0xFF3F6B34, edgeTest = 0xFF994B39,
             edgeDayOff = 0xFF7D766C, edgeEdited = 0xFF3F6B34, edgeHand = 0xFF2D6C84,
             edgeFree = 0xFF896900, edgeSupp = 0xFF414700,
         )
@@ -69,7 +71,7 @@ data class Tokens(
             onWarn = 0xFF3A1206, warnSoft = 0xFF432B21, onWarnSoft = 0xFFF8CBB6,
             ok = 0xFF9FC98E, onOk = 0xFF0F1A0C, okSoft = 0xFF2C3F29,
             onOkSoft = 0xFFCEE7C0, accent = 0xFF9FC98E, onAccent = 0xFF0F1A0C,
-            accentSoft = 0xFF2D4129, onAccentSoft = 0xFFD4E8C8, edgeTest = 0xFFD77D60,
+            accentSoft = 0xFF2D4129, onAccentSoft = 0xFFD4E8C8, mark = 0xFF9FC98E, edgeTest = 0xFFD77D60,
             edgeDayOff = 0xFF89908D, edgeEdited = 0xFF9FC98E, edgeHand = 0xFF77B2C2,
             edgeFree = 0xFFD8C26A, edgeSupp = 0xFFE0DDD0,
         )
@@ -83,7 +85,7 @@ data class Tokens(
             onWarn = 0xFFFFFFFF, warnSoft = 0xFFF0DED4, onWarnSoft = 0xFF5F2416,
             ok = 0xFF315F40, onOk = 0xFFFFFFFF, okSoft = 0xFFDEE8D9,
             onOkSoft = 0xFF1D4028, accent = 0xFFF0BF1A, onAccent = 0xFF0D2A1C,
-            accentSoft = 0xFFF4E7AE, onAccentSoft = 0xFF344522, edgeTest = 0xFF9A2F24,
+            accentSoft = 0xFFF4E7AE, onAccentSoft = 0xFF344522, mark = 0xFF344522, edgeTest = 0xFF9A2F24,
             edgeDayOff = 0xFF738078, edgeEdited = 0xFF315F40, edgeHand = 0xFF2D6C84,
             edgeFree = 0xFF896900, edgeSupp = 0xFF414700,
         )
@@ -97,7 +99,7 @@ data class Tokens(
             onWarn = 0xFF3A1206, warnSoft = 0xFF43291D, onWarnSoft = 0xFFF8CBB6,
             ok = 0xFFA1CAA3, onOk = 0xFF102719, okSoft = 0xFF283F2D,
             onOkSoft = 0xFFD7EACF, accent = 0xFFF2C94C, onAccent = 0xFF0E1A14,
-            accentSoft = 0xFF423C1E, onAccentSoft = 0xFFF1E2A8, edgeTest = 0xFFD77D60,
+            accentSoft = 0xFF423C1E, onAccentSoft = 0xFFF1E2A8, mark = 0xFFF2C94C, edgeTest = 0xFFD77D60,
             edgeDayOff = 0xFF828A85, edgeEdited = 0xFFF2C94C, edgeHand = 0xFF77B2C2,
             edgeFree = 0xFF9FC98E, edgeSupp = 0xFFE0DDD0,
         )

@@ -38,6 +38,7 @@ class ContrastTest {
         val t=Tokens.SaffronLight; assertTrue(ratio(t.accent,t.paper)<3)
         for (text in listOf(t.ink,t.muted,t.warn,t.ok,t.accentText)) assertNotEquals(t.accent,text)
     }
+    @Test fun progressMarksMeetNonTextContrast() { for ((name,t,_) in allSets()) for (ground in listOf(t.paper,t.surface,t.surfaceContainer)) assertTrue("$name mark on ${ground.toString(16)}",ratio(t.mark,ground)>=3) }
     @Test fun edgesAreDistinctWithinASet() { for ((name,t,_) in allSets()) {
         val es=edges(t); assertEquals(6,es.toSet().size)
         for(i in es.indices) for(j in 0 until i) assertTrue("$name edges $i/$j",sqrt(rgb(es[i]).zip(rgb(es[j])).sumOf { (a,b)->(a-b).pow(2) })>=60)

@@ -123,6 +123,8 @@ fun GroupScreen(
     val canTick = groupPageCanTick(report, page, showMine)
     var planning by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var catchingUp by rememberSaveable(g.id) { mutableStateOf(false) }
+    // Group home's Fix opens the same Warnings sheet as the top bar's warning button.
+    var fixOpen by rememberSaveable(g.id) { mutableStateOf(false) }
     var folding by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     // An active custom plan that fits every page into the term already answers the warnings.
     val handled = remember(report) { report.custom != null && report.coverage()?.ok == true && (report.shortfallCoverage()?.complete != false) }
@@ -216,6 +218,7 @@ fun GroupScreen(
             GroupPage.HOME -> GroupHome(report, next, today, actions, bodyPadding,
                 onDone = { next?.let { toggleHaptic(true); vm.toggleLesson(g.id, it.date); undoToast(context.getString(R.string.group_lesson_done)) } },
                 onPagesTaught = { editingDate = next?.date?.toString() },
+                onFix = { fixOpen = true },
                 onOpen = { vm.goTo(it.screen(g.id)) })
             GroupPage.WORK -> WorkScreen(report, vm, bodyPadding, undoToast)
             GroupPage.STATS -> GroupStats(report, vm, bodyPadding, seenTips, onOwnPaceApplied = { changed(it, context.getString(R.string.custom_created)) })
@@ -428,7 +431,7 @@ fun GroupScreen(
         )
     }
 
-    if (warningsOpen) {
+    if (warningsOpen || fixOpen) {
         val warnings = remember(report) { groupWarnings(report) }
         WarningsSheet(report, warnings, WarningFixes(
             units = { issue ->
@@ -443,7 +446,7 @@ fun GroupScreen(
             tidy = { changed(vm.tidyCustomPlan(g.id), context.getString(R.string.custom_tidied)) },
             extra = { extraDate = it.toString() },
             openLesson = { id -> showMine = true; planning = "L$id" },
-        ), onWarningsClose)
+        ), { fixOpen = false; onWarningsClose() })
     }
     if (catchingUp) CatchUpSheet(report, { boost ->
         val didChange = vm.applyCatchUp(g.id, boost)

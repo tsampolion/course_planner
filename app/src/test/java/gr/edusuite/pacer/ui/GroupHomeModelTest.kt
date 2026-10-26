@@ -144,6 +144,15 @@ class GroupHomeModelTest {
         assertEquals(0, line.lesson)
         assertEquals(0f, line.fraction, 0f)
     }
+    @Test fun fixShowsOnlyForAShortGroupWithALatenessWarning() {
+        val behind = listOf<GroupWarning>(GroupWarning.Behind(2, 10))
+        assertTrue(showsFix(ProgressStatus.SHORT, behind))
+        assertFalse(showsFix(ProgressStatus.ON_PACE, behind))
+        assertFalse(showsFix(ProgressStatus.UNMEASURED, behind))
+        // Short, but a custom plan already answers it (no Behind warning): nothing to fix from here.
+        assertFalse(showsFix(ProgressStatus.SHORT, emptyList()))
+        assertFalse(showsFix(ProgressStatus.SHORT, listOf(GroupWarning.Missing(1))))
+    }
     @Test fun destinationsOpenTheirScreens() {
         assertEquals(Screen.GroupSettings("g"), GroupDestination.SETTINGS.screen("g"))
         assertEquals(Screen.Group("g", GroupPage.STATS), GroupDestination.STATS.screen("g"))

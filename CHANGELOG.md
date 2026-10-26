@@ -25,6 +25,16 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.5.0] - 2026-10-26
+
+### Changed
+
+- Group home, first redesign step (UI audit PR 1). The lesson box keeps its size. A Homework button sits under Done in the same shape and opens Add homework for today's lesson. Today's pages are one step smaller than the date, wrap to two lines beside the buttons and show an edit icon; TalkBack gets a named "Pages taught" action on them.
+- The four page pills are outlined (a 1px stroke that reaches 3:1). They stay at the bottom.
+- A short group shows a round Fix button beside the progress strip, which opens Warnings.
+- Progress fills use a new `mark` token that reaches 3:1 in Saffron light (it was the saffron fill at 1.41:1). `ContrastTest` covers it.
+- `PACER_DESIGN.md` records `mark` and outlined pills. The done tick in the lesson ledger still uses the fill accent; Plan's redesign changes it.
+
 ## [0.4.4.11] - 2026-10-26
 
 ### Fixed
@@ -934,6 +944,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.5.0]: https://github.com/tsampolion/course_planner/compare/v0.4.4.11...v0.4.5.0
 [0.4.4.11]: https://github.com/tsampolion/course_planner/compare/v0.4.4.10...v0.4.4.11
 [0.4.4.10]: https://github.com/tsampolion/course_planner/compare/v0.4.4.9...v0.4.4.10
 [0.4.4.9]: https://github.com/tsampolion/course_planner/compare/v0.4.4.8...v0.4.4.9

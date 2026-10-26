@@ -25,7 +25,7 @@ internal fun UnitProgressStrip(report: GroupReport) {
     val progress = unitProgress(report.plan, report.group)
     if (progress.isEmpty()) return
     val motion = animationsEnabled()
-    val fillColor = Pacer.colors.accent
+    val fillColor = Pacer.colors.mark
     val completed = progress.count { it.complete }
     var previousCompleted by remember(report.group.id) { mutableIntStateOf(completed) }
     val revisionPulse = remember(report.group.id) { Animatable(1f) }
