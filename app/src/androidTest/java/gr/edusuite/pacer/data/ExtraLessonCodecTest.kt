@@ -114,7 +114,8 @@ class ExtraLessonCodecTest : Instrumentation() {
 
     /** One class with every schema-15 field set: book types, a removed book, a group's own finish-by date. */
     private fun schema15(): AppData {
-        val g = Group("g", "G", setOf(MONDAY), date, removedBooks = setOf("gb"), bookDue = mapOf("sb" to date.plusDays(20)),
+        // `from` is the day after the done lesson, where reading a file settles it.
+        val g = Group("g", "G", setOf(MONDAY), date.plusDays(1), removedBooks = setOf("gb"), bookDue = mapOf("sb" to date.plusDays(20)),
             extraBooks = setOf("o"), pos = mapOf("sb" to 4, "gb" to 3),
             unitRevisions = listOf(UnitRevision(0, RevisionKind.NONE)),
             done = listOf(DoneLesson(date, mapOf("sb" to listOf(1, 2, 3), "wb" to listOf(1), "gb" to listOf(1, 2)), edited = true)),
