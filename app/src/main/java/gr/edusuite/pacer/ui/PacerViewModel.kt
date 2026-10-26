@@ -203,15 +203,6 @@ class PacerViewModel(
         revisionPrompts.open(UnitRevisionTarget(data.activeClass, groupId, unitIndex))
         _unitRevision.value = revisionPrompts.current
     }
-    private fun offerUnitRevision(classId: String, groupId: String, before: Group) {
-        val y = data.year ?: return
-        val c = y.classes.firstOrNull { it.id == classId } ?: return
-        val g = c.groups.firstOrNull { it.id == groupId } ?: return
-        val p = y.planFor(c, today.value)
-        val old = pendingUnitRevisions(p, before).toSet()
-        revisionPrompts.offer(pendingUnitRevisions(p, g).filter { it !in old }.map { UnitRevisionTarget(classId, groupId, it) })
-        _unitRevision.value = revisionPrompts.current
-    }
     fun saveUnitRevision(target: UnitRevisionTarget, kind: RevisionKind, date: LocalDate?, pages: Map<String, List<Int>>, title: String): Boolean {
         val y = data.year ?: return false
         val c = y.classes.firstOrNull { it.id == target.classId } ?: return false
@@ -711,7 +702,6 @@ class PacerViewModel(
         val g = plan.groups.firstOrNull { it.id == groupId } ?: return false
         val next = change(GroupReport(plan, g), g)
         val changed = editGroup(groupId) { next }
-        if (changed && next.done != g.done) offerUnitRevision(data.activeClass, groupId, g)
         return changed
     }
 
@@ -847,7 +837,6 @@ class PacerViewModel(
     fun markNextLessonDoneIn(classId: String, groupId: String): Boolean {
         val before = data.year?.classes?.firstOrNull { it.id == classId }?.groups?.firstOrNull { it.id == groupId } ?: return false
         val changed = editYear { it.markNextLessonDone(classId, groupId, today.value) }
-        if (changed) offerUnitRevision(classId, groupId, before)
         return changed
     }
 

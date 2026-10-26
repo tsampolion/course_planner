@@ -71,7 +71,8 @@ internal fun UnitProgressStrip(report: GroupReport) {
 internal fun UnitRevisionRow(report: GroupReport, vm: PacerViewModel, index: Int) {
     val revision = report.group.unitRevisions.firstOrNull { it.unitIndex == index }
     LedgerRow(stringResource(R.string.units_revision_title, index + 1),
-        detail = if (revision == null) stringResource(R.string.units_revision_add) else if (revision.kind == gr.edusuite.pacer.model.RevisionKind.NONE) stringResource(R.string.units_revision_none) else
+        detail = if (revision == null && index in pendingUnitRevisions(report.plan, report.group)) stringResource(R.string.units_revision_prompt, index + 1)
+        else if (revision == null) stringResource(R.string.units_revision_add) else if (revision.kind == gr.edusuite.pacer.model.RevisionKind.NONE) stringResource(R.string.units_revision_none) else
             report.group.assignments.firstOrNull { it.id == revision.assignmentId }?.due?.toString() ?: stringResource(R.string.units_revision_unscheduled)) {
         TertiaryButton(stringResource(if (revision == null) R.string.units_revision_add else R.string.class_edit), { vm.openUnitRevision(report.group.id, index) })
     }
