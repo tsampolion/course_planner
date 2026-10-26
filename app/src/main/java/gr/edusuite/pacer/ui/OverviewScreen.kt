@@ -76,7 +76,11 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
                     val open = lc.shown.classId in opened
                     SectionColumn(Modifier.animateItem()) {
                         ClassHead(lc.shown, if (lc.onPace.isEmpty()) null else {
-                            { TertiaryButton(if (open) stringResource(R.string.overview_hide_on_pace) else pluralStringResource(R.plurals.overview_on_pace_link, lc.onPace.size, lc.onPace.size), { opened = if (open) opened - lc.shown.classId else opened + lc.shown.classId }, color = Pacer.colors.accentText) }
+                            { TertiaryButton(if (open) stringResource(R.string.overview_hide_on_pace) else when {
+                                lc.setUp == 0 -> pluralStringResource(R.plurals.overview_on_pace_link, lc.onPace.size, lc.onPace.size)
+                                lc.setUp == lc.onPace.size -> stringResource(R.string.home_set_up_needed, lc.setUp)
+                                else -> stringResource(R.string.home_on_pace_set_up, lc.onPace.size - lc.setUp, lc.setUp)
+                            }, { opened = if (open) opened - lc.shown.classId else opened + lc.shown.classId }, color = Pacer.colors.accentText) }
                         })
                         GroupRows(lc.shown.copy(groups = if (open) (lc.shown.groups + lc.onPace) else lc.shown.groups), vm, selected)
                     }

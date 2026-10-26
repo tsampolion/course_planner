@@ -1,7 +1,17 @@
 package gr.edusuite.pacer.ui
 
 import android.content.Context
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import gr.edusuite.pacer.engine.fmtShort
+import gr.edusuite.pacer.engine.short
+import gr.edusuite.pacer.ui.theme.Motion
+import gr.edusuite.pacer.ui.theme.MotionSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -86,15 +96,12 @@ fun SchoolYear.dates(context: Context): String {
     return if (s != null && e != null) context.getString(R.string.home_date_range, s.fmt(), e.fmt()) else context.getString(R.string.home_dates_missing)
 }
 
-/** "Mon 19 Oct": the next lesson's date when it isn't today. */
-private fun LocalDate.barDate(): String = format(DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault()))
-
 /** Today on the Home header, such as "Wednesday 21 October". */
 private val HEADER_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.getDefault())
 
 /**
- * The start screen (docs/PACER_DESIGN.md D3, D4): "Hello, name" over today's date and the open year, the next-lesson
- * bar with Done, the Classes card and the Pacing overview board. With no years it offers to create the first one.
+ * The start screen (docs/PACER_DESIGN.md D3, D4): "Hello, name" over today's date and the open year, the Pacing
+ * overview board and the next tests and worksheets. With no years it offers to create the first one.
  * With [welcome], the welcome guide opens over it. [undoToast] shows a snackbar with Undo.
  */
 @Composable
@@ -144,9 +151,8 @@ fun HomeScreen(
                     action = stringResource(R.string.home_add_class) to { vm.open(Screen.Classes) },
                 )
             } else {
-                NextLessonBar(year, today, vm, undoToast)
-                ClassesCard(year, vm)
                 PacingBoard(year, vm)
+                UpcomingCard(year, vm)
             }
         }
     }
@@ -186,64 +192,6 @@ private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: ((
     }
 }
 
-/**
- * The next-lesson bar: the year's next lesson on a neutral surface, with an accent Done button. Tapping the bar opens the group. Its
- * label says "today" with how many of today's lessons are left, the date, or that the lesson is overdue. A year with
- * no lesson left gets a neutral bar that opens Pacing overview.
- */
-@Composable
-private fun NextLessonBar(year: SchoolYear, today: LocalDate, vm: PacerViewModel, undoToast: (String) -> Unit) {
-    val context = LocalContext.current
-    val press = remember { MutableInteractionSource() }
-    val next = remember(year, today) { nextLesson(year, today) }
-    val count = remember(year, today) { lessonsToday(year, today) }
-    val c = Pacer.colors
-    if (next == null) {
-        Tile(c.surfaceContainer, contentColor = c.ink, onClick = { vm.goTo(Screen.Overview) }) {
-            Text(stringResource(R.string.home_no_lessons), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.home_overview_hint), style = MaterialTheme.typography.bodySmall, color = c.muted)
-        }
-        return
-    }
-    val large = rememberLargeText()
-    val label = when {
-        next.overdue -> stringResource(R.string.home_next_overdue, next.date.barDate())
-        next.date == today -> stringResource(R.string.home_next_today, count.left, count.total)
-        else -> stringResource(R.string.home_next_on, next.date.barDate())
-    }
-    val done: @Composable (Modifier) -> Unit = { m ->
-        Button(
-            onClick = {
-                vm.markNextLessonDoneIn(next.classId, next.groupId)
-                undoToast(context.getString(R.string.home_lesson_done))
-            },
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(containerColor = c.accent, contentColor = c.onAccent),
-            interactionSource = press,
-            modifier = m.pressFeedback(press).heightIn(min = 48.dp),
-        ) {
-            AppIcon(AppIcons.Check, Modifier.padding(end = Space.s))
-            Text(stringResource(R.string.home_done), style = MaterialTheme.typography.labelLarge)
-        }
-    }
-    Tile(c.surface, contentColor = c.ink, onClick = { vm.openGroup(next.classId, next.groupId) }) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(label, style = MaterialTheme.typography.labelMedium.merge(Figures), modifier = Modifier.semantics { heading() })
-                Text(
-                    stringResource(R.string.home_pair, next.className.ifBlank { context.getString(R.string.home_class) }, next.groupName.ifBlank { context.getString(R.string.home_group) }),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                // Book names and pages read as a sentence, so they stay in sans.
-                Text(next.what.ifBlank { context.getString(R.string.home_no_pages) }, style = MaterialTheme.typography.bodySmall)
-                if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
-            }
-            if (!large) done(Modifier.padding(start = Space.s))
-        }
-        if (large) done(Modifier.fillMaxWidth().padding(top = Space.s))
-    }
-}
-
 /** A card on Home: surface, the large corners, a title row with an optional link at its end. */
 @Composable
 private fun HomeCard(title: String, link: String?, onLink: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
@@ -254,41 +202,6 @@ private fun HomeCard(title: String, link: String?, onLink: () -> Unit, content: 
                 if (link != null) TertiaryButton(link, onLink, color = Pacer.colors.accentText)
             }
             content()
-        }
-    }
-}
-
-/** The Classes card: a scrolling row of class chips (name over its group count) and "All N ›" to Classes. */
-@Composable
-private fun ClassesCard(year: SchoolYear, vm: PacerViewModel) {
-    val context = LocalContext.current
-    val n = year.classes.size
-    // Large text: the chips wait behind one row.
-    if (rememberLargeText()) {
-        Surface(
-            onClick = { vm.goTo(Screen.Classes) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-            shape = MaterialTheme.shapes.large, color = Pacer.colors.surface, contentColor = Pacer.colors.ink,
-        ) {
-            Text(stringResource(R.string.home_classes_link), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.m))
-        }
-        return
-    }
-    HomeCard(stringResource(R.string.home_classes), stringResource(R.string.home_all_classes, n), { vm.goTo(Screen.Classes) }) {
-        LazyRow(contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-            items(year.classes, key = { it.id }) { k ->
-                Surface(
-                    onClick = { vm.openClass(k.id) },
-                    shape = MaterialTheme.shapes.medium,
-                    color = Pacer.colors.surfaceContainer,
-                    contentColor = Pacer.colors.ink,
-                    modifier = Modifier.heightIn(min = 48.dp).widthIn(max = 200.dp),
-                ) {
-                    Column(Modifier.padding(horizontal = Space.m, vertical = Space.s)) {
-                        Text(k.name.ifBlank { context.getString(R.string.home_class) }, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(pluralStringResource(R.plurals.home_groups_count, k.groups.size, k.groups.size), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted)
-                    }
-                }
-            }
         }
     }
 }
@@ -308,6 +221,7 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
     val large = rememberLargeText()
     val board = if (large) full.behindOnly().rows else full
     val onPace = if (large) full.behindOnly().onPace else 0
+    val setUp = if (large) full.behindOnly().setUp else 0
     val perLine = if (large) 1 else 2
     Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = Pacer.colors.surface, contentColor = Pacer.colors.ink) {
         Column(Modifier.padding(start = Space.l, end = Space.l, top = Space.m, bottom = Space.xs), verticalArrangement = Arrangement.spacedBy(Space.s)) {
@@ -345,7 +259,12 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
                 }
             }
             if (large) TertiaryButton(
-                if (onPace > 0) pluralStringResource(R.plurals.home_groups_on_pace, onPace, onPace) else stringResource(R.string.home_see_all),
+                when {
+                    onPace > 0 && setUp > 0 -> stringResource(R.string.home_on_pace_set_up, onPace, setUp)
+                    setUp > 0 -> stringResource(R.string.home_set_up_needed, setUp)
+                    onPace > 0 -> pluralStringResource(R.plurals.home_groups_on_pace, onPace, onPace)
+                    else -> stringResource(R.string.home_see_all)
+                },
                 { vm.goTo(Screen.Overview) }, Modifier.fillMaxWidth(), color = Pacer.colors.accentText,
             ) else Row(verticalAlignment = Alignment.CenterVertically) {
                 Legend(Modifier.weight(1f))
@@ -362,11 +281,12 @@ private fun BoardCellView(className: String, cell: BoardCell, modifier: Modifier
     val c = Pacer.colors
     val group = cell.groupName.ifBlank { context.getString(R.string.home_group) }
     val short = cell.short ?: 0
-    val spoken = when {
+    val status = when {
         cell.short == null -> stringResource(R.string.home_cell, className, group)
         short > 0 -> pluralStringResource(R.plurals.home_cell_short, short, className, group, short)
         else -> stringResource(R.string.home_cell_on_pace, className, group)
     }
+    val spoken = if (cell.today) stringResource(R.string.home_cell_spoken_today, status) else status
     val open = stringResource(R.string.home_open_group)
     Surface(
         onClick = onClick,
@@ -379,27 +299,88 @@ private fun BoardCellView(className: String, cell: BoardCell, modifier: Modifier
             onClick(open) { onClick(); true }
         },
     ) {
-        Box(Modifier.padding(horizontal = Space.s, vertical = Space.s), contentAlignment = Alignment.Center) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = Space.s, vertical = Space.s), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 if (cell.behind) stringResource(R.string.home_cell_behind, group, short) else group,
                 style = MaterialTheme.typography.labelMedium.merge(Figures),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            if (cell.today) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                BlinkingDot(if (cell.behind) c.onWarn else c.accentText)
+                Text(stringResource(R.string.home_cell_today), style = MaterialTheme.typography.labelSmall)
+            }
         }
     }
 }
 
-/** The board's key: an outlined square for on pace and a rust one for behind. The cells say it in words for TalkBack. */
+/** The board's key, each swatch drawn like its cell (on-pace cells have no outline): a neutral square for on pace, a rust one for behind and the blinking dot for a lesson today. The cells say it in words for TalkBack. */
 @Composable
 private fun Legend(modifier: Modifier) {
     val c = Pacer.colors
     Row(modifier.clearAndSetSemantics { }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-        Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(c.surfaceContainer).border(1.dp, c.outline, MaterialTheme.shapes.extraSmall))
+        Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(c.surfaceContainer))
         Text(stringResource(R.string.status_on_pace), style = MaterialTheme.typography.labelSmall, color = c.muted)
         Spacer(Modifier.width(Space.s))
         Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(c.warn))
         Text(stringResource(R.string.home_legend_behind), style = MaterialTheme.typography.labelSmall, color = c.muted, maxLines = 2)
+        Spacer(Modifier.width(Space.s))
+        Box(Modifier.size(6.dp).clip(CircleShape).background(c.accentText))
+        Text(stringResource(R.string.home_cell_today), style = MaterialTheme.typography.labelSmall, color = c.muted)
+    }
+}
+
+/**
+ * The dot before "Today" on a board cell. It fades out and in a few times when Home opens, then stays lit; with
+ * animations off it never moves.
+ */
+@Composable
+private fun BlinkingDot(color: Color) {
+    val motion = animationsEnabled()
+    val fade = remember { Animatable(1f) }
+    LaunchedEffect(motion) {
+        if (!motion) { fade.snapTo(1f); return@LaunchedEffect }
+        repeat(BLINKS) {
+            fade.animateTo(0.2f, Motion.work(MotionSpec.Step.PACE))
+            fade.animateTo(1f, Motion.work(MotionSpec.Step.PACE))
+        }
+    }
+    Box(Modifier.size(6.dp).graphicsLayer { alpha = fade.value }.clip(CircleShape).background(color))
+}
+
+private const val BLINKS = 3
+
+/** The next tests and worksheets across the year. Tapping one opens its class's Tests & worksheets. Nothing to show means no card. */
+@Composable
+private fun UpcomingCard(year: SchoolYear, vm: PacerViewModel) {
+    val today = rememberToday()
+    val items = remember(year, today) { upcoming(year, today) }
+    if (items.isEmpty()) return
+    val context = LocalContext.current
+    val c = Pacer.colors
+    HomeCard(stringResource(R.string.home_upcoming), null, {}) {
+        items.forEach { item ->
+            val where = listOfNotNull(item.className.ifBlank { context.getString(R.string.home_class) }, item.groupName?.ifBlank { context.getString(R.string.home_group) }).joinToString(" · ")
+            val kind = stringResource(if (item.kind == UpcomingKind.WORKSHEET) R.string.home_kind_worksheet else R.string.home_kind_test)
+            val day = stringResource(R.string.home_upcoming_when, item.date.dayOfWeek.short(), item.date.fmtShort())
+            val title = item.title.ifBlank { kind }
+            val open = stringResource(R.string.home_open_tests)
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .clickable(onClickLabel = open, role = Role.Button) { vm.openTests(item.classId) }
+                    .padding(horizontal = Space.l, vertical = Space.xs)
+                    .semantics(mergeDescendants = true) { contentDescription = "$kind, $title, $day, $where" },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Space.m),
+            ) {
+                Text(day, style = MaterialTheme.typography.labelLarge.merge(Figures), modifier = Modifier.widthIn(min = 72.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(where, style = MaterialTheme.typography.labelSmall, color = c.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Text(kind, style = MaterialTheme.typography.labelSmall, color = c.onAccentSoft, modifier = Modifier.clip(CircleShape).background(c.accentSoft).padding(horizontal = Space.s, vertical = Space.xs))
+            }
+        }
     }
 }
 
@@ -443,8 +424,13 @@ internal fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismis
         CommitField(name, { name = it }, stringResource(R.string.home_name), placeholder = draft.name)
         DateField(start, { startText = it?.toString() }, stringResource(R.string.home_starts))
         DateField(end, { endText = it?.toString() }, stringResource(R.string.home_ends))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(colors = androidx.compose.material3.CheckboxDefaults.colors(checkedColor = Pacer.colors.accentText, checkmarkColor = Pacer.colors.paper), checked = holidays, onCheckedChange = { toggle(it); holidays = it })
+        // One row, so the words toggle it as well as the box (Role.Checkbox; the box itself is not a second target).
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(value = holidays, role = Role.Checkbox, onValueChange = { toggle(it); holidays = it }),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(colors = androidx.compose.material3.CheckboxDefaults.colors(checkedColor = Pacer.colors.accentText, checkmarkColor = Pacer.colors.paper), checked = holidays, onCheckedChange = null)
+            Spacer(Modifier.width(Space.m))
             Text(stringResource(R.string.home_holidays), style = MaterialTheme.typography.bodyMedium)
         }
     }

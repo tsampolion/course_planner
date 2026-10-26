@@ -454,6 +454,12 @@ class PacerViewModel(
         publish(data, Nav.push(_state.value.stack, Screen.YearSettings))
     }
 
+    /** Opens a class's Tests & worksheets, from Home's card. */
+    fun openTests(classId: String) {
+        if (classId != data.activeClass) publish(data.copy(activeClass = classId))
+        open(Screen.Tests)
+    }
+
     fun openClass(id: String) {
         if (id != data.activeClass) publish(data.copy(activeClass = id))
         open(Screen.Class)
@@ -874,13 +880,6 @@ class PacerViewModel(
         val c = plan.groups.firstOrNull { it.id == from }?.custom ?: return false
         val target = plan.groups.firstOrNull { it.id == to } ?: return false
         return editGroup(to) { it.copy(custom = plan.copyCustomPlan(c, target)) }
-    }
-
-    /** Home's Mark done: the same rule as [markNextLessonDone], for a group of any class in the open year. */
-    fun markNextLessonDoneIn(classId: String, groupId: String): Boolean {
-        val before = data.year?.classes?.firstOrNull { it.id == classId }?.groups?.firstOrNull { it.id == groupId } ?: return false
-        val changed = editYear { it.markNextLessonDone(classId, groupId, today.value) }
-        return changed
     }
 
     // ---- assignments -------------------------------------------------------

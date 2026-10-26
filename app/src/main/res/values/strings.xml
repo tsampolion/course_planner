@@ -243,6 +243,15 @@
     <string name="home_cell">%1$s %2$s</string>
     <string name="home_cell_on_pace">%1$s %2$s, on pace</string>
     <string name="home_open_group">Open group</string>
+    <string name="home_cell_today">Today</string>
+    <string name="home_cell_spoken_today">%1$s, has a lesson today</string>
+    <string name="home_on_pace_set_up">%1$d on pace · %2$d set-up needed ›</string>
+    <string name="home_set_up_needed">%1$d set-up needed ›</string>
+    <string name="home_upcoming">Tests &amp; worksheets</string>
+    <string name="home_kind_test">Test</string>
+    <string name="home_kind_worksheet">Worksheet</string>
+    <string name="home_upcoming_when">%1$s %2$s</string>
+    <string name="home_open_tests">Open tests and worksheets</string>
     <string name="home_add_first_class">Add your first class</string>
     <string name="home_first_class_hint">A class holds its books, lesson days and groups. Add one and its next lesson shows here.</string>
     <string name="home_add_class">Add a class</string>

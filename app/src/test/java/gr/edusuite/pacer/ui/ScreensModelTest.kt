@@ -84,8 +84,10 @@ class ScreensModelTest {
         val l = largeOverview(classes + OverviewClass("c3", "C", listOf(g("X", 0, "2026-10-22", "c3"))) + OverviewClass("c4", "Empty", emptyList()))
         assertEquals(listOf("c1", "c2"), l.classes.map { it.shown.classId })
         assertEquals(listOf(listOf("Tue–Thu"), listOf("Thu–Sat", "Mon–Wed")), l.classes.map { c -> c.shown.groups.map { it.name } })
-        // B Junior: Wed–Fri on pace and mon–Wed unmeasured sit behind its "on pace" link.
+        // B Junior: Wed–Fri on pace and mon–Wed unmeasured sit behind its link, which counts only one as on pace.
         assertEquals(listOf("Wed–Fri", "mon–Wed"), l.classes.first().onPace.map { it.name })
+        assertEquals(1, l.classes.first().setUp)
+        assertEquals(0, l.classes.last().setUp)
         assertEquals(emptyList<OverviewGroup>(), l.classes.last().onPace)
         assertEquals(listOf("c3"), l.allOnPace.map { it.classId })
     }
