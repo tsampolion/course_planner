@@ -153,6 +153,13 @@ class GroupHomeModelTest {
         assertFalse(showsFix(ProgressStatus.SHORT, emptyList()))
         assertFalse(showsFix(ProgressStatus.SHORT, listOf(GroupWarning.Missing(1))))
     }
+    @Test fun heroPagesGoTwoBooksToALine() {
+        assertEquals(listOf("SB 38–40"), heroPageLines(listOf("SB 38–40")))
+        assertEquals(listOf("SB 38–40 · WB1 20–21"), heroPageLines(listOf("SB 38–40", "WB1 20–21")))
+        assertEquals(listOf("SB 38–40 · WB1 20–21", "GB 20–21"), heroPageLines(listOf("SB 38–40", "WB1 20–21", "GB 20–21")))
+        assertEquals(listOf("SB 38–40 · WB1 20–21", "GB 38–40 · R 1–2"), heroPageLines(listOf("SB 38–40", "WB1 20–21", "GB 38–40", "R 1–2")))
+        assertEquals(emptyList<String>(), heroPageLines(listOf("", " ")))
+    }
     @Test fun destinationsOpenTheirScreens() {
         assertEquals(Screen.GroupSettings("g"), GroupDestination.SETTINGS.screen("g"))
         assertEquals(Screen.Group("g", GroupPage.STATS), GroupDestination.STATS.screen("g"))

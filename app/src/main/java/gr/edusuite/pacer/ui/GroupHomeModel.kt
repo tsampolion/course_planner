@@ -103,3 +103,6 @@ internal fun progressLine(report: GroupReport): ProgressLine {
 /** D1: the progress strip offers Fix only while the group is short and the Warnings sheet has a lateness repair to open (those repairs never change a touched lesson). */
 internal fun showsFix(status: ProgressStatus, warnings: List<GroupWarning>): Boolean =
     status == ProgressStatus.SHORT && warnings.any { it is GroupWarning.Behind }
+
+/** The hero's pages in lines of up to two books each: two books are one line, three are two lines, four are two and two. */
+internal fun heroPageLines(books: List<String>): List<String> = books.filter { it.isNotBlank() }.chunked(2).map { it.joinToString(" · ") }
