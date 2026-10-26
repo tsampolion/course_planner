@@ -4,6 +4,8 @@ import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.seedYear
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -65,5 +67,40 @@ class BackupTest {
         val result = addYears(emptyList(), listOf(year("a", "Y"), year("a", "Y")))
         assertEquals(listOf("Y", "Y (imported)"), result.map { it.name })
         assertTrue(result[0].id != result[1].id)
+    }
+
+    private fun text(n: Int) = ByteArrayInputStream("a".repeat(n).encodeToByteArray())
+
+    @Test fun aFileAtTheLimitIsReadAndOneByteOverIsRefused() {
+        assertEquals(BoundedText.Text("a".repeat(100)), readBoundedText(text(100), limit = 100))
+        assertEquals(BoundedText.TooLarge(101, 100), readBoundedText(text(101), limit = 100))
+    }
+
+    @Test fun aDeclaredSizeOverTheLimitIsRefusedWithoutReading() {
+        val untouched = object : InputStream() { override fun read(): Int = error("must not read") }
+        assertEquals(BoundedText.TooLarge(500, 100), readBoundedText(untouched, declaredSize = 500, limit = 100))
+    }
+
+    @Test fun aWrongDeclaredSizeDoesNotLetALargeFileThrough() {
+        assertEquals(BoundedText.TooLarge(101, 100), readBoundedText(text(101), declaredSize = 10, limit = 100))
+    }
+
+    @Test fun theByteOrderMarkIsDroppedAndGreekTextSurvives() {
+        val bytes = "\uFEFF{\"name\":\"Επανάληψη\"}".encodeToByteArray()
+        assertEquals(BoundedText.Text("{\"name\":\"Επανάληψη\"}"), readBoundedText(ByteArrayInputStream(bytes)))
+    }
+
+    @Test fun theLimitCoversTheOldOneAndTheSizeShownRoundsUp() {
+        assertTrue(MAX_IMPORT_BYTES > 5L * 1024 * 1024)
+        assertEquals(1L, megabytes(1))
+        assertEquals(5L, megabytes(5L * 1024 * 1024))
+        assertEquals(6L, megabytes(5L * 1024 * 1024 + 1))
+        assertEquals(50L, megabytes(MAX_IMPORT_BYTES))
+    }
+
+    @Test fun anOversizedFileIsNotTheGenericUnreadableResult() {
+        val big = ImportResult.TooLarge(60L * 1024 * 1024, MAX_IMPORT_BYTES)
+        assertNotEquals(ImportResult.Unreadable, big)
+        assertEquals("60 MB; the limit is 50 MB", "${megabytes(big.bytes)} MB; the limit is ${megabytes(big.limit)} MB")
     }
 }

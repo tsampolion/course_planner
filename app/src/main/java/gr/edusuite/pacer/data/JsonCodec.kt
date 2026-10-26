@@ -90,6 +90,8 @@ object JsonCodec {
         ImportResult.Unreadable
     } catch (e: StackOverflowError) {
         ImportResult.Unreadable
+    } catch (e: OutOfMemoryError) {
+        ImportResult.Unreadable
     }
 
     /** Sanitise legacy endpoints before expanding ranges, then clean the new page maps. */

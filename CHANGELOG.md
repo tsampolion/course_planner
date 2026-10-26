@@ -25,6 +25,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.6.2] - 2026-10-26
+
+### Fixed
+
+- A large backup made by the app can be imported again. The 5 MiB limit is now 50 MiB and the file is read in a stream, so a huge or endless file is still refused without using up memory. A file over the limit says "This backup is too large to open (N MB; the limit is M MB)." instead of "Couldn't read that file".
+
 ## [0.4.6.1] - 2026-10-26
 
 ### Fixed
@@ -963,6 +969,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.6.2]: https://github.com/tsampolion/course_planner/compare/v0.4.6.1...v0.4.6.2
 [0.4.6.1]: https://github.com/tsampolion/course_planner/compare/v0.4.6.0...v0.4.6.1
 [0.4.6.0]: https://github.com/tsampolion/course_planner/compare/v0.4.5.0...v0.4.6.0
 [0.4.5.0]: https://github.com/tsampolion/course_planner/compare/v0.4.4.11...v0.4.5.0

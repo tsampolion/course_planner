@@ -837,6 +837,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `settings_save_error` | Couldn't save the file. Try another place. |  |  |
 | `settings_import_empty` | That file holds no school years. |  |  |
 | `settings_import_newer` | That file comes from a newer version of %1$s. Update the app, then import it. |  | Has placeholders |
+| `settings_import_too_large` | This backup is too large to open (%1$d MB; the limit is %2$d MB). |  | Has placeholders |
 | `settings_import_unreadable` | Couldn't read that file. Choose one exported from %1$s or from the Coursebook Pacer web page. |  | Has placeholders |
 | `settings_name_separator` | ", " |  |  |
 | `settings_no_years` | There are no school years on this phone yet. |  |  |

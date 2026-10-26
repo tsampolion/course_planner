@@ -1,6 +1,6 @@
 # Task: Export and import school years
 
-Status: shipped in 1.6.0. [`ARCHITECTURE.md`](ARCHITECTURE.md) describes the current app.
+Status: shipped in 1.6.0; the size limit and round-trip contract were reworked in 0.4.6.2. [`ARCHITECTURE.md`](ARCHITECTURE.md) describes the current app.
 
 This is the follow-up agreed while settling the signing key (`docs/SIGNING_BRIEF.md`), with the answers to its questions folded in. Version 1.6.0 was built from it.
 
@@ -30,7 +30,9 @@ A teacher can save every school year to a file of their choice and read that fil
 - The file must be a Course Pacer export or `plans.json` of any version (1 to 4), or the web page's export (the flat `plans` list, which goes through `migratePlans` as on launch).
 - A file whose `version` is newer than the app's is refused ("comes from a newer version of Course Pacer; update the app first"), because re-saving it here would drop what this version doesn't know.
 - A file with no school years is refused.
-- A file that isn't JSON, or isn't in one of those shapes, is refused with a message. So is a file over 5 MB, which can't be an export and would only waste memory.
+- A file that isn't JSON, or isn't in one of those shapes, is refused with a message.
+- **Round trip.** Anything this version exports, it imports. The supported scale was set from synthetic data (3 school years of 8 classes of 15 groups, each group with a 120-lesson custom plan: about 8 MB, above the old 5 MiB limit), which a platform test encodes with the real codec and reads back with nothing missing.
+- **Size bound.** The file is streamed in chunks and refused once it passes 50 MiB (`MAX_IMPORT_BYTES`), or at once when the picker reports a larger size, so a huge or endless file never fills memory. An oversized file gets its own message ("This backup is too large to open (N MB; the limit is M MB)."), not "unreadable". The limit is about six times the synthetic scale above.
 - Refusing never changes anything on the phone.
 
 ## What to build

@@ -33,7 +33,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.data.ImportResult
 import gr.edusuite.pacer.data.JsonCodec
-import gr.edusuite.pacer.data.MAX_IMPORT_BYTES
+import gr.edusuite.pacer.data.BoundedText
+import gr.edusuite.pacer.data.megabytes
+import gr.edusuite.pacer.data.readBoundedText
 import gr.edusuite.pacer.data.backupFileName
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.PaletteChoice
@@ -43,7 +45,6 @@ import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Figures
 import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
-import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -171,6 +172,7 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
                 is ImportResult.Years -> importing = result.years
                 ImportResult.NoYears -> toast(context.getString(R.string.settings_import_empty))
                 ImportResult.Newer -> toast(context.getString(R.string.settings_import_newer, context.getString(R.string.app_name)))
+                is ImportResult.TooLarge -> toast(context.getString(R.string.settings_import_too_large, megabytes(result.bytes), megabytes(result.limit)))
                 ImportResult.Unreadable -> toast(context.getString(R.string.settings_import_unreadable, context.getString(R.string.app_name)))
             }
         }
@@ -233,23 +235,22 @@ internal fun writeFile(context: Context, uri: Uri, bytes: ByteArray): Boolean = 
     requireNotNull(out).use { it.write(bytes) }
 }.isSuccess
 
-/** Reads at most [MAX_IMPORT_BYTES]; anything larger can't be an export. */
+/** Reads at most [MAX_IMPORT_BYTES], streamed; a larger file is refused with its own result instead of "unreadable". */
 private fun readFile(context: Context, uri: Uri): ImportResult {
     try {
-        val input = context.contentResolver.openInputStream(uri) ?: return ImportResult.Unreadable
-        val bytes = input.use { s ->
-            val out = ByteArrayOutputStream()
-            val buf = ByteArray(8192)
-            while (true) {
-                val n = s.read(buf)
-                if (n < 0) break
-                out.write(buf, 0, n)
-                if (out.size() > MAX_IMPORT_BYTES) return ImportResult.Unreadable
+        val declared = runCatching {
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { c ->
+                if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else null
             }
-            out.toByteArray()
+        }.getOrNull()
+        val input = context.contentResolver.openInputStream(uri) ?: return ImportResult.Unreadable
+        return when (val read = input.use { readBoundedText(it, declared) }) {
+            is BoundedText.TooLarge -> ImportResult.TooLarge(read.bytes, read.limit)
+            is BoundedText.Text -> JsonCodec.readImport(read.value)
         }
-        return JsonCodec.readImport(bytes.decodeToString().removePrefix("\uFEFF"))
     } catch (e: Exception) {
+        return ImportResult.Unreadable
+    } catch (e: OutOfMemoryError) {
         return ImportResult.Unreadable
     }
 }

@@ -309,6 +309,7 @@
     <string name="settings_save_error">Couldn\'t save the file. Try another place.</string>
     <string name="settings_import_empty">That file holds no school years.</string>
     <string name="settings_import_newer">That file comes from a newer version of %1$s. Update the app, then import it.</string>
+    <string name="settings_import_too_large">This backup is too large to open (%1$d MB; the limit is %2$d MB).</string>
     <string name="settings_import_unreadable">Couldn\'t read that file. Choose one exported from %1$s or from the Coursebook Pacer web page.</string>
     <string name="settings_name_separator">", "</string>
     <string name="settings_no_years">There are no school years on this phone yet.</string>

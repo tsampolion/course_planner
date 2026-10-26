@@ -7,6 +7,7 @@ How to use this file:
 - **Nothing here is approved yet.** Build an entry only when the owner asks for it in a session. Several entries change the pacing engine, which `CLAUDE.md` treats as a contract ("Engine parity is the contract"), so they need explicit sign-off.
 - When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and remove the entry from this file.
 - Entry 2 (Tidy and Fit) is built and recorded in [`TIDY_FIT_BRIEF.md`](TIDY_FIT_BRIEF.md).
+- Entry 8 (backup) is built and recorded in [`BACKUP_BRIEF.md`](BACKUP_BRIEF.md); its number is not reused.
 - Entry 7 (print) is built and recorded in [`PRINT_BRIEF.md`](PRINT_BRIEF.md); its number is not reused.
 - Entry 3 (save status) is built and recorded in [`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md); its number is not reused, so the other entries keep theirs.
 - Entry 4 (one today for the engine) is built and recorded in [`ONE_TODAY_BRIEF.md`](ONE_TODAY_BRIEF.md); its number is not reused either.
@@ -192,44 +193,6 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 - **F07:** low; the shared verdict is unchanged.
 - **Rollback:** three independent reverts, no data change.
 
-## 8. Every backup can be restored (F13)
-
-**Status:** proposed (audit P2, Source; no file above 5 MiB tested). Not approved.
-
-### The problem
-
-- Export writes `JsonCodec.encode(data)` with no size limit (`ui/SettingsScreen.kt:153-165`, `PacerViewModel.kt:473`).
-- Import refuses anything above `MAX_IMPORT_BYTES` (5 MiB, `data/Backup.kt:19`) and shows the generic "unreadable" message (`SettingsScreen.kt:246,173`).
-- So a large but valid backup made by the app cannot be restored by the same version.
-
-### Proposal
-
-- A round-trip contract: anything this version exports, it can import.
-- Choose the supported scale from synthetic data, for example several years of eight classes and fifteen groups each.
-- Raise or replace the limit with a bounded, streamed read using platform APIs only. Keep a bound so that a huge or junk file is still refused without exhausting memory.
-- Give an oversized file its own clear message rather than "unreadable".
-
-### Alternative
-
-Warn or block at export when the file would be over the import limit. This is a stopgap only: it leaves large records without full transfer.
-
-### Acceptance
-
-- Small, boundary-sized and above-the-old-limit files encoded by the real codec round-trip with nothing missing.
-- Oversized or junk input stays bounded. Settings stay out of backups.
-- Add, Replace all, Undo and cancellation are checked.
-
-### Risk and dependencies
-
-- **Risk:** high for backup compatibility and memory.
-- **Complexity:** medium to high.
-- **No new dependency** without the owner's approval.
-- **Rollback:** keep old-file compatibility. Document limits rather than quietly downgrading backups.
-
-### Open questions
-
-1. **(I6)** What scale must backups support? Recommended: same-version exports always import, with bounded memory, at a scale set from synthetic data. A warning-only cap is only a temporary fallback.
-
 ## 9. Device and accessibility check pass
 
 **Status:** proposed. Not approved. It is a verification pass, not an app change. `scripts/device-check.sh` (0.4.4.5) already automates the theme, text-size, width and process-death screenshots for whichever screen is open; the palette, TalkBack and midnight checks stay manual. Its results feed the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), whose own phone checks are the short form of this matrix.
@@ -272,7 +235,6 @@ Warn or block at export when the file would be over the import limit. This is a 
 - Midnight across screens: the engine side is covered (`PacerViewModelTest.midnightMovesPlansBankingAndRevisionDatesTogether`); the Compose screens are not.
 - Shared-control semantics (UI audit X12, X13).
 - Process and sheet restoration (streamlining S4).
-- Large-backup round trips (entry 8).
 
 What the existing tests do not prove:
 
@@ -348,7 +310,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 9. **UI PR 5**, one sheet frame. It includes F18's draft rule (streamlining S4) and the shared Picker and SwitchRow semantics (audit X12, X13).
 10. **UI PR 6**, set-up screens. It includes F17 (audit C2, streamlining S2) and entry 6's range and day-off checks.
 11. **UI PRs 7 and 8**, Stats and Work; Settings, welcome and empty states.
-12. ~~Entry 7, print~~ (0.4.6.1, `PRINT_BRIEF.md`). **Entry 8**, backup, can go any time as its own pull request.
+12. ~~Entry 7, print~~ (0.4.6.1, `PRINT_BRIEF.md`). ~~Entry 8, backup~~ (0.4.6.2, `BACKUP_BRIEF.md`).
 13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
 
 Test clean-up rides these steps rather than a separate audit (the suite has no duplicate tests, but some lock in wrong behaviour or check storage instead of what the teacher sees):
