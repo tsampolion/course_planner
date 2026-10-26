@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
@@ -42,7 +43,8 @@ import java.time.LocalDate
 
 @Composable
 internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, actions: LessonActions,
-    padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onOpen: (GroupDestination) -> Unit) {
+    padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onFix: () -> Unit, onOpen: (GroupDestination) -> Unit) {
+    val fixable = remember(report) { showsFix(progressLine(report).status, groupWarnings(report)) }
     LazyColumn(contentPadding = PaddingValues(start = Space.l, end = Space.l,
         top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Rhythm.section)) {
@@ -57,7 +59,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
         item {
             RowGroup {
                 Column(Modifier.padding(Space.m), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                    ProgressStrip(report) { onOpen(GroupDestination.STATS) }
+                    ProgressStrip(report, onFix.takeIf { fixable }) { onOpen(GroupDestination.STATS) }
                     if (unitProgress(report.plan, report.group).isNotEmpty()) UnitProgressStrip(report)
                 }
             }
@@ -84,7 +86,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
 
 /** One line of progress, "Lesson 14 of 40 · On pace", over a thin bar. Tapping it opens Stats for the details. */
 @Composable
-internal fun ProgressStrip(report: GroupReport, onOpen: () -> Unit) {
+internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onOpen: () -> Unit) {
     val line = remember(report) { progressLine(report) }
     val c = Pacer.colors
     val fill = c.mark
@@ -102,16 +104,24 @@ internal fun ProgressStrip(report: GroupReport, onOpen: () -> Unit) {
     }
     val heading = stringResource(R.string.work_progress)
     val open = stringResource(R.string.work_open_stats)
-    Column(
-        Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClickLabel = open, role = Role.Button, onClick = onOpen)
-            .semantics(mergeDescendants = true) { contentDescription = "$heading. $text" },
-        verticalArrangement = Arrangement.spacedBy(Space.s),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text, style = MaterialTheme.typography.titleSmall.merge(Figures), color = if (line.status == ProgressStatus.SHORT) c.warn else c.ink, modifier = Modifier.weight(1f))
-            Chevron()
+    val fixLabel = stringResource(R.string.progress_fix)
+    val fixDescription = stringResource(R.string.progress_fix_description)
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            Modifier.weight(1f).heightIn(min = 48.dp).clickable(onClickLabel = open, role = Role.Button, onClick = onOpen)
+                .semantics(mergeDescendants = true) { contentDescription = "$heading. $text" },
+            verticalArrangement = Arrangement.spacedBy(Space.s),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text, style = MaterialTheme.typography.titleSmall.merge(Figures), color = if (line.status == ProgressStatus.SHORT) c.warn else c.ink, modifier = Modifier.weight(1f))
+                if (onFix == null) Chevron()
+            }
+            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
         }
-        LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
+        // D1: a short group's repair is one tap away; the sheet it opens offers only repairs that keep the teacher's lessons.
+        if (onFix != null) TextButton(onClick = onFix, modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = fixDescription }) {
+            Text(fixLabel, style = MaterialTheme.typography.labelLarge, color = c.accentText)
+        }
     }
 }
 
