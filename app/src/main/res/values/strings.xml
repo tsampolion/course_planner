@@ -188,8 +188,6 @@
     <string name="group_no_before_due">No lesson before due</string>
     <string name="group_no_measure">No teaching lessons to measure yet.</string>
     <string name="group_set_pace">Set a sustainable pace on the class screen to see the verdict.</string>
-    <string name="group_day_off">Day off: %1$s</string>
-    <string name="group_no_on_day">No lesson on %1$s</string>
     <string name="group_tab_plan">Plan</string>
     <string name="group_tab_stats">Stats</string>
     <string name="group_tips">Tips</string>
@@ -621,6 +619,8 @@
     <string name="today_homework">Homework</string>
     <string name="menu_this_lesson">This lesson</string>
     <string name="menu_my_plan">My plan</string>
+    <string name="component_pick_month">Choose month</string>
+    <string name="extra_taught_day">That day is already taught</string>
     <string name="menu_edit_my_plan">Edit my plan</string>
     <string name="progress_fix">Fix</string>
     <string name="progress_fix_description">Fix. Opens Warnings</string>

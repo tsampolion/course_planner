@@ -523,7 +523,7 @@ private fun RoundTick(done: Boolean, enabled: Boolean, onToggle: () -> Unit) {
  * muted text at full contrast, never faded.
  */
 @Composable
-internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (label: String) -> Unit)? = null) {
+internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (label: String) -> Unit)? = null, selected: Boolean = false) {
     val c = Pacer.colors
     var menu by rememberSaveable(l.date.toString()) { mutableStateOf(false) }
     val items = lessonMenu(l, actions)
@@ -564,7 +564,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
     Box {
         Column {
             Row(
-                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.surface)
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (selected) c.accentSoft else c.surface)
                     .lessonNode(description, l.done, if (actions.canTick) ({ actions.toggle(l.date) }) else null, items) { menu = true },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -601,7 +601,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun SlimRow(entry: Entry, actions: LessonActions) {
+internal fun SlimRow(entry: Entry, actions: LessonActions, selected: Boolean = false) {
     val c = Pacer.colors
     val lesson = (entry as? Entry.Item)?.lesson
     val large = rememberLargeText()
@@ -637,7 +637,7 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
     Box {
         Column {
             Row(
-                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.surface).heightIn(min = 48.dp).then(
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (selected) c.accentSoft else c.surface).heightIn(min = 48.dp).then(
                     if (lesson != null) Modifier.lessonNode(spoken, lesson.done, if (actions.canTick) ({ actions.toggle(lesson.date) }) else null, items) { menu = true }
                     else Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { longPress() }) }
                         .clearAndSetSemantics {
