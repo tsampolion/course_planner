@@ -83,6 +83,7 @@ data class PacerColors(
     val onOkSoft: Color,
     val accent: Color,
     val accentText: Color,
+    val mark: Color,
     val onAccent: Color,
     val accentSoft: Color,
     val onAccentSoft: Color,
@@ -101,7 +102,7 @@ internal fun colorsFor(t: Tokens) = PacerColors(
     tilePink = c(t.tilePink), onTile = c(t.onTile), onTileMuted = c(t.onTileMuted),
     warn = c(t.warn), onWarn = c(t.onWarn), warnSoft = c(t.warnSoft), onWarnSoft = c(t.onWarnSoft),
     ok = c(t.ok), onOk = c(t.onOk), okSoft = c(t.okSoft), onOkSoft = c(t.onOkSoft),
-    accent = c(t.accent), accentText = c(t.accentText), onAccent = c(t.onAccent), accentSoft = c(t.accentSoft), onAccentSoft = c(t.onAccentSoft),
+    accent = c(t.accent), accentText = c(t.accentText), mark = c(t.mark), onAccent = c(t.onAccent), accentSoft = c(t.accentSoft), onAccentSoft = c(t.onAccentSoft),
     edgeTest = c(t.edgeTest), edgeDayOff = c(t.edgeDayOff), edgeEdited = c(t.edgeEdited), edgeHand = c(t.edgeHand),
     edgeFree = c(t.edgeFree), edgeSupp = c(t.edgeSupp),
 )
