@@ -77,6 +77,7 @@ import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.closedDates
 import gr.edusuite.pacer.engine.collapse
+import gr.edusuite.pacer.engine.notTaught
 import gr.edusuite.pacer.engine.eventsOn
 import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.short
