@@ -188,7 +188,7 @@ Route graph: Home is the root. From it: Classes → Class → Group home → Pla
 
 ### Home
 
-The open year's dashboard (`PACER_DESIGN.md` D3, D4): "Hello, *name*" (`Settings.name`) over today's date and the year, the next-lesson bar with Done, the Classes card (a `LazyRow` of class chips and "All N ›"), and the `PacingBoard` (one cell per group by class, rust "−N" only for groups behind, each cell one TalkBack item). Its figures come from `HomeModel.kt` (`nextLesson`, `lessonsToday`, `pacingBoard`), plain Kotlin and unit-tested.
+The open year's dashboard (`PACER_DESIGN.md` D3, D4): "Hello, *name*" (`Settings.name`) over today's date and the year, the `PacingBoard` (one cell per group by class, groups most behind first like Pacing overview, rust "−N" only for groups behind, a blinking dot and "Today" when the group has a lesson today, each cell one TalkBack item) and the card of the next tests and worksheets. Its figures come from `HomeModel.kt` (`pacingBoard`, `behindOnly`, `upcoming`), plain Kotlin and unit-tested. Large text keeps only the groups behind; groups with nothing to measure are "set-up needed", never "on pace". Home has no Done: lessons tick themselves ([`AUTO_TICK_BRIEF.md`](AUTO_TICK_BRIEF.md)).
 
 ### Group screens
 

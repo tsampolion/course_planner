@@ -25,6 +25,24 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.8.0] - 2026-10-26
+
+### Added
+
+- Home marks the groups that have a lesson today: a small dot and "Today" under the group's name on the Pacing overview board. The dot blinks three times when Home opens, then stays lit; with animations off it never moves. The legend has the same dot.
+- A Tests & worksheets card under the board shows the next four tests and worksheets across the year, with date, class and group. Tapping a row opens that class's Tests & worksheets. The card is hidden when nothing is scheduled.
+
+### Changed
+
+- The board lists the groups of each class the way Pacing overview does, most behind first.
+- Home no longer has the next-lesson bar with Done or the Classes card. Lessons tick themselves (0.4.7.0), the board's cells open the groups, and the menu lists the classes.
+- The board's legend swatch for "on pace" has no outline, like the cells.
+- In New school year, the words "Add the Greek public holidays as days off" toggle the box too, and TalkBack reads the row as one checkbox.
+
+### Fixed
+
+- At large text, a group with nothing to measure yet (a class with no books) is no longer counted as on pace on Home or on Pacing overview. The link says "set-up needed" for those groups.
+
 ## [0.4.7.0] - 2026-10-26
 
 ### Added
@@ -982,6 +1000,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.8.0]: https://github.com/tsampolion/course_planner/compare/v0.4.7.0...v0.4.8.0
 [0.4.7.0]: https://github.com/tsampolion/course_planner/compare/v0.4.6.2...v0.4.7.0
 [0.4.6.2]: https://github.com/tsampolion/course_planner/compare/v0.4.6.1...v0.4.6.2
 [0.4.6.1]: https://github.com/tsampolion/course_planner/compare/v0.4.6.0...v0.4.6.1
