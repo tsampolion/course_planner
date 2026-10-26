@@ -23,6 +23,7 @@ class NoHardcodedTextTest {
         "LessonLedger.kt" to setOf("EEEE d MMMM"),
         "SupplementaryUi.kt" to setOf("replace", "answers", "asking", "k", "s"),
         "GroupStats.kt" to setOf("%.1f", "MMMM yyyy"),
+        "AutoTickUi.kt" to setOf("%.1f"),
         "HomeScreen.kt" to setOf("EEE d MMM", "EEEE d MMMM"),
         "PacerApp.kt" to setOf("screen", "text/plain"),
         "Motion.kt" to setOf("figure", "press"),
