@@ -367,7 +367,7 @@ internal fun Lesson.kind(supplementary: List<Boolean>): LessonKind = when {
 private fun LessonKind.edge(): Color = when (this) {
     LessonKind.PLAIN -> Color.Transparent
     LessonKind.TEST -> Pacer.colors.edgeTest
-    LessonKind.WORKSHEET -> Pacer.colors.edgeSupp
+    LessonKind.WORKSHEET -> Pacer.colors.edgeWorksheet
     LessonKind.DAY_OFF -> Pacer.colors.edgeDayOff
     LessonKind.EDITED -> Pacer.colors.edgeEdited
     LessonKind.HAND -> Pacer.colors.edgeHand

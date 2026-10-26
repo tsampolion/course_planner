@@ -43,6 +43,8 @@ data class Tokens(
     val edgeHand: Long,
     val edgeFree: Long,
     val edgeSupp: Long,
+    // A worksheet lesson has an edge of its own; every kind keeps its hue family in light and dark (ContrastTest).
+    val edgeWorksheet: Long,
 ) {
     /** A readable foreground for links, focus and controls; saffron itself is a fill. */
     val accentText: Long get() = onAccentSoft
@@ -59,7 +61,7 @@ data class Tokens(
             onOkSoft = 0xFF233C1E, accent = 0xFF3F6B34, onAccent = 0xFFF4F2EC,
             accentSoft = 0xFFD9E3D0, onAccentSoft = 0xFF253F1F, mark = 0xFF3F6B34, edgeTest = 0xFF994B39,
             edgeDayOff = 0xFF7D766C, edgeEdited = 0xFF3F6B34, edgeHand = 0xFF2D6C84,
-            edgeFree = 0xFF896900, edgeSupp = 0xFF414700,
+            edgeFree = 0xFF896900, edgeSupp = 0xFF414700, edgeWorksheet = 0xFFBD7728,
         )
 
         val BoneDark = Tokens(
@@ -73,7 +75,7 @@ data class Tokens(
             onOkSoft = 0xFFCEE7C0, accent = 0xFF9FC98E, onAccent = 0xFF0F1A0C,
             accentSoft = 0xFF2D4129, onAccentSoft = 0xFFD4E8C8, mark = 0xFF9FC98E, edgeTest = 0xFFD77D60,
             edgeDayOff = 0xFF89908D, edgeEdited = 0xFF9FC98E, edgeHand = 0xFF77B2C2,
-            edgeFree = 0xFFD8C26A, edgeSupp = 0xFFE0DDD0,
+            edgeFree = 0xFFD8C26A, edgeSupp = 0xFF7CA823, edgeWorksheet = 0xFFA86623,
         )
 
         val SaffronLight = Tokens(
@@ -85,9 +87,9 @@ data class Tokens(
             onWarn = 0xFFFFFFFF, warnSoft = 0xFFF0DED4, onWarnSoft = 0xFF5F2416,
             ok = 0xFF315F40, onOk = 0xFFFFFFFF, okSoft = 0xFFDEE8D9,
             onOkSoft = 0xFF1D4028, accent = 0xFFF0BF1A, onAccent = 0xFF0D2A1C,
-            accentSoft = 0xFFF4E7AE, onAccentSoft = 0xFF344522, mark = 0xFF344522, edgeTest = 0xFF9A2F24,
+            accentSoft = 0xFFF4E7AE, onAccentSoft = 0xFF344522, mark = 0xFF344522, edgeTest = 0xFFB04A2A,
             edgeDayOff = 0xFF738078, edgeEdited = 0xFF315F40, edgeHand = 0xFF2D6C84,
-            edgeFree = 0xFF896900, edgeSupp = 0xFF414700,
+            edgeFree = 0xFF896900, edgeSupp = 0xFF414700, edgeWorksheet = 0xFF6E412A,
         )
 
         val SaffronDark = Tokens(
@@ -100,8 +102,8 @@ data class Tokens(
             ok = 0xFFA1CAA3, onOk = 0xFF102719, okSoft = 0xFF283F2D,
             onOkSoft = 0xFFD7EACF, accent = 0xFFF2C94C, onAccent = 0xFF0E1A14,
             accentSoft = 0xFF423C1E, onAccentSoft = 0xFFF1E2A8, mark = 0xFFF2C94C, edgeTest = 0xFFD77D60,
-            edgeDayOff = 0xFF828A85, edgeEdited = 0xFFF2C94C, edgeHand = 0xFF77B2C2,
-            edgeFree = 0xFF9FC98E, edgeSupp = 0xFFE0DDD0,
+            edgeDayOff = 0xFF828A85, edgeEdited = 0xFF9FC98E, edgeHand = 0xFF77B2C2,
+            edgeFree = 0xFFD8C26A, edgeSupp = 0xFF7CA823, edgeWorksheet = 0xFFA85D23,
         )
 
         fun of(palette: PaletteChoice, dark: Boolean): Tokens = when (palette) {

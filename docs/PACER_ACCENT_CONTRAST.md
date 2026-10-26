@@ -54,6 +54,7 @@ SaffronLight accent is a **fill only**: its contrast on paper is below 3:1. Link
 | edgeHand | surface | 5.23 |
 | edgeFree | surface | 4.59 |
 | edgeSupp | surface | 8.82 |
+| edgeWorksheet | surface | 3.22 |
 | oppositeMode.accentText (snackbar action) | ink | 12.57 |
 
 ## BoneDark
@@ -103,7 +104,8 @@ SaffronLight accent is a **fill only**: its contrast on paper is below 3:1. Link
 | edgeEdited | surface | 8.16 |
 | edgeHand | surface | 6.49 |
 | edgeFree | surface | 8.61 |
-| edgeSupp | surface | 11.22 |
+| edgeSupp | surface | 5.44 |
+| edgeWorksheet | surface | 3.34 |
 | oppositeMode.accentText (snackbar action) | ink | 8.93 |
 
 ## SaffronLight
@@ -145,12 +147,13 @@ SaffronLight accent is a **fill only**: its contrast on paper is below 3:1. Link
 | onTileMuted | tilePink | 5.97 |
 | outline | paper | 3.75 |
 | outline | surface | 4.13 |
-| edgeTest | surface | 7.48 |
+| edgeTest | surface | 5.44 |
 | edgeDayOff | surface | 4.13 |
 | edgeEdited | surface | 7.39 |
 | edgeHand | surface | 5.85 |
 | edgeFree | surface | 5.14 |
 | edgeSupp | surface | 9.88 |
+| edgeWorksheet | surface | 8.56 |
 | oppositeMode.accentText (snackbar action) | ink | 11.86 |
 
 Fill-only accent on paper: **1.57:1** (excluded from the text pairs).
@@ -199,10 +202,11 @@ Fill-only accent on paper: **1.57:1** (excluded from the text pairs).
 | outline | surface | 4.50 |
 | edgeTest | surface | 5.31 |
 | edgeDayOff | surface | 4.50 |
-| edgeEdited | surface | 10.05 |
+| edgeEdited | surface | 8.52 |
 | edgeHand | surface | 6.78 |
-| edgeFree | surface | 8.52 |
-| edgeSupp | surface | 11.72 |
+| edgeFree | surface | 9.00 |
+| edgeSupp | surface | 5.68 |
+| edgeWorksheet | surface | 3.23 |
 | oppositeMode.accentText (snackbar action) | ink | 9.04 |
 
 The static launcher uses BoneLight paper on BoneLight accent in both modes; the window background uses the matching Bone mode before Compose draws. Full device, large-text and tablet visual verification remains pending in the cloud environment.
