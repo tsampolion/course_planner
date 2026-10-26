@@ -85,7 +85,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
 internal fun ProgressStrip(report: GroupReport, onOpen: () -> Unit) {
     val line = remember(report) { progressLine(report) }
     val c = Pacer.colors
-    val fill = c.accent
+    val fill = c.mark
     val motion = animationsEnabled()
     val fraction by animateFloatAsState(line.fraction, if (motion) Motion.work(MotionSpec.Step.PACE) else snap())
     val verdict = when (line.status) {

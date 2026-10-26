@@ -263,7 +263,7 @@ internal fun PaceTrack(report: GroupReport, compact: Boolean = false, onOpen: (S
             TrackRow(
                 b.name, if (b.id == plan.lead) stringResource(R.string.stats_lead_book) else null,
                 stringResource(R.string.stats_page_of, pos.coerceAtMost(b.last), b.last), through, tick,
-                if (late != null) c.warn else c.accent, listOfNotNull(under, due).joinToString(" · "), if (late != null || st.crammed) c.warn else c.muted,
+                if (late != null) c.warn else c.mark, listOfNotNull(under, due).joinToString(" · "), if (late != null || st.crammed) c.warn else c.muted,
                 Modifier.clickable(onClickLabel = openLabel) { onOpen(b.id) }.then(
                     if (planDescription != null) Modifier.clearAndSetSemantics {
                         contentDescription = "${b.name}. $planDescription. $under"
