@@ -160,7 +160,7 @@ fun GroupScreen(
     val actions = remember(lessons, g.id, plan.books, canTick, customActions) {
         LessonActions(
             bookNames = plan.books.map { it.name },
-            shortNames = bookLabels(plan.books),
+            shortNames = classBookLabels(report.classBooks, plan.books),
             bookIds = plan.books.map { it.id },
             supplementary = plan.books.map { it.supplementary },
             addSupplementary = if (planSupplementary) { l -> planning = l.lessonId?.let { "L$it" } ?: "S${l.slot}" } else null,
