@@ -46,4 +46,9 @@ class ExtraLessonUiTest {
         assertTrue(html.contains("1–2"))
         assertTrue(html.contains("Extra"))
     }
+
+    @Test fun customPlanActionsAreTheMyPlanSectionAndTheRestIsTheLesson() {
+        val plan = setOf(MenuItemKind.PLAN_LESSON, MenuItemKind.ADD_BEFORE, MenuItemKind.MOVE_EARLIER, MenuItemKind.MOVE_LATER, MenuItemKind.REPACE, MenuItemKind.REMOVE)
+        MenuItemKind.entries.forEach { assertEquals(it.toString(), if (it in plan) MenuSection.MY_PLAN else MenuSection.LESSON, it.section()) }
+    }
 }

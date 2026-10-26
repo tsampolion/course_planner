@@ -619,6 +619,9 @@
     <string name="today_done">Done</string>
     <string name="today_pages_taught">Pages taught</string>
     <string name="today_homework">Homework</string>
+    <string name="menu_this_lesson">This lesson</string>
+    <string name="menu_my_plan">My plan</string>
+    <string name="menu_edit_my_plan">Edit my plan</string>
     <string name="progress_fix">Fix</string>
     <string name="progress_fix_description">Fix. Opens Warnings</string>
     <string name="custom_line_title">Start from this schedule and make it yours.</string>

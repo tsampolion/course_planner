@@ -233,7 +233,10 @@ internal class CustomActions(
 )
 
 /** One entry of a lesson's menu, which TalkBack offers too while it is [enabled]. [divider] draws a line above it. */
-internal class MenuItem(val label: String, val enabled: Boolean = true, val divider: Boolean = false, val run: () -> Unit)
+internal class MenuItem(val label: String, val enabled: Boolean = true, val divider: Boolean = false, val section: MenuSection = MenuSection.LESSON, val run: () -> Unit)
+
+/** Where an item sits in the long-press menu: about the lesson itself, or editing the custom plan (behind one item). */
+internal enum class MenuSection { LESSON, MY_PLAN }
 
 /**
  * Everything a lesson offers, shared by the long-press menu and TalkBack. Future lessons offer planned pages;
@@ -272,12 +275,12 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
                 MenuItemKind.EDIT_EXTRA -> add(MenuItem(editExtra) { actions.editExtra(l) })
                 MenuItemKind.DELETE_EXTRA -> add(MenuItem(deleteExtra) { actions.deleteExtra(l) })
                 MenuItemKind.ADD_SUPPLEMENTARY -> if (addSupp != null) suppLabels.forEach { label -> add(MenuItem(label) { addSupp(l) }) }
-                MenuItemKind.PLAN_LESSON -> if (ca != null) add(MenuItem(planIt, divider = isNotEmpty()) { ca.plan(l) })
-                MenuItemKind.ADD_BEFORE -> if (ca != null) add(MenuItem(addBefore) { ca.addBefore(l) })
-                MenuItemKind.MOVE_EARLIER -> if (ca != null) add(MenuItem(earlier, enabled = l.index > 0) { ca.move(l, l.index - 1) })
-                MenuItemKind.MOVE_LATER -> if (ca != null) add(MenuItem(later, enabled = l.index < ca.last) { ca.move(l, l.index + 1) })
-                MenuItemKind.REPACE -> if (ca != null) add(MenuItem(repace) { ca.repace(l) })
-                MenuItemKind.REMOVE -> if (ca != null) add(MenuItem(remove) { ca.remove(l) })
+                MenuItemKind.PLAN_LESSON -> if (ca != null) add(MenuItem(planIt, section = kind.section()) { ca.plan(l) })
+                MenuItemKind.ADD_BEFORE -> if (ca != null) add(MenuItem(addBefore, section = kind.section()) { ca.addBefore(l) })
+                MenuItemKind.MOVE_EARLIER -> if (ca != null) add(MenuItem(earlier, enabled = l.index > 0, section = kind.section()) { ca.move(l, l.index - 1) })
+                MenuItemKind.MOVE_LATER -> if (ca != null) add(MenuItem(later, enabled = l.index < ca.last, section = kind.section()) { ca.move(l, l.index + 1) })
+                MenuItemKind.REPACE -> if (ca != null) add(MenuItem(repace, section = kind.section()) { ca.repace(l) })
+                MenuItemKind.REMOVE -> if (ca != null) add(MenuItem(remove, section = kind.section()) { ca.remove(l) })
                 MenuItemKind.RECORD_TAUGHT -> add(MenuItem(edit, divider = isNotEmpty()) { actions.edit(l) })
                 MenuItemKind.DONE_UP_TO -> add(MenuItem(upTo, enabled = actions.canUpTo(l.date)) { actions.upTo(l.date) })
                 MenuItemKind.NOT_DONE_FROM -> add(MenuItem(notFrom, enabled = actions.canNotFrom(l.date)) { actions.notFrom(l.date) })
@@ -286,15 +289,36 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     }
 }
 
-/** The menu a long-press opens: the same items TalkBack offers as custom actions. */
+/**
+ * The menu a long-press opens: the same items TalkBack offers as custom actions. With a custom plan it has two parts,
+ * "This lesson" and "My plan", and the plan's actions sit behind one "Edit my plan" item.
+ */
 @Composable
 internal fun LessonMenu(expanded: Boolean, items: List<MenuItem>, onDismiss: () -> Unit) {
+    val lesson = items.filter { it.section == MenuSection.LESSON }
+    val plan = items.filter { it.section == MenuSection.MY_PLAN }
+    var editingPlan by remember(expanded) { mutableStateOf(false) }
+    val row = @Composable { item: MenuItem -> DropdownMenuItem(text = { Text(item.label) }, enabled = item.enabled, onClick = { onDismiss(); item.run() }) }
     PacerDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        items.forEach { item ->
-            if (item.divider) HorizontalDivider(color = Pacer.colors.line)
-            DropdownMenuItem(text = { Text(item.label) }, enabled = item.enabled, onClick = { onDismiss(); item.run() })
+        if (plan.isEmpty()) {
+            items.forEach { item ->
+                if (item.divider) HorizontalDivider(color = Pacer.colors.line)
+                row(item)
+            }
+        } else {
+            MenuHeading(stringResource(R.string.menu_this_lesson))
+            lesson.forEach { row(it) }
+            HorizontalDivider(color = Pacer.colors.line)
+            MenuHeading(stringResource(R.string.menu_my_plan))
+            if (editingPlan) plan.forEach { row(it) }
+            else DropdownMenuItem(text = { Text(stringResource(R.string.menu_edit_my_plan)) }, trailingIcon = { Chevron() }, onClick = { editingPlan = true })
         }
     }
+}
+
+@Composable
+private fun MenuHeading(text: String) {
+    Text(text, style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.xs))
 }
 
 /**
