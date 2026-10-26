@@ -1,6 +1,6 @@
 # UI/UX audit and redesign
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fix PR 1 (Group home and the hero, 0.4.5.0) is built; its owner decisions are open in the PR. The others need the owner's go-ahead, one at a time.
+Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fix PR 1 (Group home and the hero, 0.4.5.0) and PR 2 (Plan, 0.4.6.0) are built. The others need the owner's go-ahead, one at a time.
 
 This brief records the taste-skill UI/UX audit (`PLANNED_FEATURES.md` §2 until 0.4.4.2), what it found per screen, and the order of the fix pull requests. Its companion is [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md), which covers each screen's start, purpose, next step and end.
 
@@ -47,26 +47,26 @@ Design specificity: the bones are Course Pacer's own (the ledger rows, kind edge
 | # | Finding | Seen | Severity |
 |---|---|---|---|
 | X1 | *(progress bar, 0.4.5.0; done tick with Plan, update dot with the menu)* **Saffron light marks under 3:1.** The progress bar fill (accent on surfaceContainer, 1.41:1), the done tick's fill (accent on surface, 1.73:1) and the update dot on ☰ (1.73:1) carry meaning but fail WCAG 1.4.11. Bone and both dark sets pass. | code | P1 |
-| X2 | **Two kinds, one edge.** Worksheet lessons and supplementary pages both use `edgeSupp`, so the edge can't tell them apart (D8 promises one edge per kind). | code | P2 |
-| X3 | **Edges change meaning with the mode.** In Saffron, *edited* is green in light and saffron in dark; *free* is mustard in light and green in dark. Saffron light's test edge equals `warn`, so a test reads as a problem. | code | P2 |
+| X2 | *(0.4.6.0)* **Two kinds, one edge.** Worksheet lessons and supplementary pages both use `edgeSupp`, so the edge can't tell them apart (D8 promises one edge per kind). | code | P2 |
+| X3 | *(0.4.6.0)* **Edges change meaning with the mode.** In Saffron, *edited* is green in light and saffron in dark; *free* is mustard in light and green in dark. Saffron light's test edge equals `warn`, so a test reads as a problem. | code | P2 |
 | X4 | **The design doc contradicts itself.** Its Tokens section says the Home next-lesson and group today panels are neutral; its group home section and the owner's decision say the hero is accent-filled. The code follows the decision on group home and Plan, and the neutral rule on Home. | code | P2 |
 | X5 | *(0.4.5.0)* **Neutral pills are hard to see.** Group home's pills and Classes chips are `surfaceContainer` on `paper`: 1.08:1 in Bone light, about 1.1–1.4:1 elsewhere. They read as text, not buttons. | phone | P2 |
 | X6 | **Hidden actions.** Group settings' book options, the hero's pages, Stats' Pace needed (Own pace) and a book's pace track (set position) work only by long-press or an unmarked tap. Hints have to tell people to long-press. | code | P2 |
 | X7 | **Three sheet frames.** `HomeSheet` and `SheetFrame` (Material bottom sheets) and `WorkSheetFrame` (a dialog drawn as a sheet) open, close and end differently: no button, a filled Done that only closes, or ✕ plus Save. | code | P2 |
 | X8 | **Leftover components.** `ListItemRow`, `AddButton`, `Heading`, `CardRow` and `RemoveButton` in `Components.kt` are unused; `Section` (Settings) and `SectionHead` + `RowGroup` (list screens) do the same job two ways. | code | P3 |
-| X9 | **Same job, different controls.** Previous/next week uses arrow text buttons; previous/next month uses chevron pills. Day-off rows have a ⋮ with Remove only and a long-press menu with Edit and Delete. | code | P3 |
+| X9 | *(week and month controls, 0.4.6.0)* **Same job, different controls.** Previous/next week uses arrow text buttons; previous/next month uses chevron pills. Day-off rows have a ⋮ with Remove only and a long-press menu with Edit and Delete. | code | P3 |
 | X10 | **Tablet widths.** Home caps at 640dp and the welcome page at 560dp; list screens, Stats and sheets stretch to the full pane. | phone | P3 |
 | X11 | **Generic surfaces.** Taste-skill flags a greeting header with a logo, a tinted circle with an icon for empty states, numbered circles for steps and rows of equal grey buttons as kit habits. Bone light's warm paper with rust also matches its "cream with terracotta" pattern; the brand keeps it, so rust stays for *behind* only. | code | P3 |
 | X12 | **Picker has an unnamed second node** (usability audit F10). `Picker` (`ui/Components.kt:360-389`) is a labelled read-only field with a separate clickable overlay (`Role.DropdownList`) that has no name or value. TalkBack meets two items, and the menu items show no selected state. Seven consumers, among them the lead book, book type, "Applies to", units and homework content. Fix: one merged named node (label, choice, role), or Material 3's `ExposedDropdownMenuBox`. | code | P2 |
 | X13 | **Switch labels are separate nodes** (F11). `SwitchRow` (`ui/ClassScreens.kt:402-411`, six consumers) and Work's "Takes a lesson" switch (`WorkScreen.kt:186-190`) have a label that is neither part of the switch's node nor a touch target. H6 is the same pattern on a checkbox. Fix: `toggleable(role = Role.Switch)` on the row, with the child callback null. | code | P2 |
-| X14 | **Book labels shift between groups and screens** (I5). Lesson rows use type labels (SB, WB1, WB2); Stats and Print use full names. Labels are recomputed per group, so a group that drops WB1 shows its other workbook as WB while sibling groups show WB2. Recommended: one stable class-wide abbreviation in compact views, full names in Print and Stats, and the full name always for TalkBack. | code | P3 |
+| X14 | *(0.4.6.0)* **Book labels shift between groups and screens** (I5). Lesson rows use type labels (SB, WB1, WB2); Stats and Print use full names. Labels are recomputed per group, so a group that drops WB1 shows its other workbook as WB while sibling groups show WB2. Recommended: one stable class-wide abbreviation in compact views, full names in Print and Stats, and the full name always for TalkBack. | code | P3 |
 | X15 | **Wider window, narrower panes** (F12). Layout follows the whole window (`ui/Layout.kt:22-35`). At 840dp the 320dp permanent drawer arrives (`NavUi.kt:176`) on top of the 40/60 split (`PacerApp.kt:293,303`), so the panes drop from about 336/503dp at 839dp to 208/312dp. Proposal: show the permanent drawer only when both panes keep a minimum width (for example 320 and 360dp). Check at 599, 600, 839, 840 and 1024dp. | phone | P2 |
 | X16 | **Two routes nobody can reach.** `Screen.Tests` and `Screen.Homework` (`MovedWorkScreen`) keep titles, Undo and problem lists, but no control opens them; they only link on to each group's Work, as Class already does. Proposal: remove the routes (owner's yes). | code | P3 |
 | X17 | **Deletes with no confirmation.** Delete this school year, Delete this class and Delete group act on one tap; the Undo message is the only way back, and it closes after a later edit. Proposal: one confirm step for the three, or a longer-lived Undo. | code | P2 |
 | X18 | **One action, two outcomes.** Create on Plan makes a custom plan with an Undo message; Make a custom plan in ⋮ (large text) shows a plain message with no Undo. | code | P3 |
-| X19 | **A sheet opens by itself.** Ticking the last lesson of a unit (Plan's tick or Home's Done) opens the unit revision sheet unasked, mid-class. Proposal: a quiet prompt on the row or Home tile that opens it. | code | P2 |
+| X19 | *(Plan, 0.4.6.0; Home's quiet prompt with PR 3)* **A sheet opens by itself.** Ticking the last lesson of a unit (Plan's tick or Home's Done) opens the unit revision sheet unasked, mid-class. Proposal: a quiet prompt on the row or Home tile that opens it. | code | P2 |
 | X20 | **Undo history clears silently.** Creating or switching a school year empties Undo, and the bar's Undo count drops to 0 without a word. | code | P3 |
-| X21 | **Long-press means different things on a day off.** On Plan it offers only Add extra lesson…; in Group settings it offers Edit and Delete; on School year it offers Remove (X9's pattern). | code | P3 |
+| X21 | *(Plan unchanged; Group settings and School year with PR 6)* **Long-press means different things on a day off.** On Plan it offers only Add extra lesson…; in Group settings it offers Edit and Delete; on School year it offers Remove (X9's pattern). | code | P3 |
 
 Bone and Saffron dark use green-tinted grounds (D1). Taste-skill prefers neutral darks; the brief keeps D1, as the brand decided.
 
@@ -101,12 +101,12 @@ Acceptance: every range is visible at 320dp, on a 360dp phone and in a 312dp pan
 
 | # | Finding | Seen | Severity |
 |---|---|---|---|
-| P1 | **Today's lesson shows twice in Weekly view.** The day strip starts on the group's next lesson (`report.lessons.first`), and the row under the strip repeats the lesson already in the hero (breaks "one fact, one place"). | code | P1 |
-| P2 | **Three rows of controls before the list:** Weekly/Monthly, My plan/Proposed and the day strip or month arrows, plus Add extra lesson. Taste-skill's rule: the first list row starts in the top 60% of a phone screen. | phone | P2 |
-| P3 | **Tapping a day off adds an extra lesson.** A slim day-off row's tap opens Add extra lesson, which a teacher won't expect. | code | P2 |
-| P4 | A whole-lesson test is a slim muted row in `bodySmall`, quieter than an ordinary lesson. | phone | P3 |
-| P5 | Lesson rows use a 96dp date column, ledger rows 112dp, so dates don't line up between screens. | code | P3 |
-| P6 | Lesson menus run to 15 items (homework, extras, custom-plan moves, recording). | code | P3 |
+| P1 | *(0.4.6.0)* **Today's lesson shows twice in Weekly view.** The day strip starts on the group's next lesson (`report.lessons.first`), and the row under the strip repeats the lesson already in the hero (breaks "one fact, one place"). | code | P1 |
+| P2 | *(0.4.6.0)* **Three rows of controls before the list:** Weekly/Monthly, My plan/Proposed and the day strip or month arrows, plus Add extra lesson. Taste-skill's rule: the first list row starts in the top 60% of a phone screen. | phone | P2 |
+| P3 | *(0.4.6.0)* **Tapping a day off adds an extra lesson.** A slim day-off row's tap opens Add extra lesson, which a teacher won't expect. | code | P2 |
+| P4 | *(0.4.6.0)* A whole-lesson test is a slim muted row in `bodySmall`, quieter than an ordinary lesson. | phone | P3 |
+| P5 | *(0.4.6.0)* Lesson rows use a 96dp date column, ledger rows 112dp, so dates don't line up between screens. | code | P3 |
+| P6 | *(0.4.6.0)* Lesson menus run to 15 items (homework, extras, custom-plan moves, recording). | code | P3 |
 
 ### Home
 

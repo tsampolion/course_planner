@@ -202,7 +202,7 @@ Fill-only accent on paper: **1.57:1** (excluded from the text pairs).
 | outline | surface | 4.50 |
 | edgeTest | surface | 5.31 |
 | edgeDayOff | surface | 4.50 |
-| edgeEdited | surface | 8.52 |
+| edgeEdited | surface | 8.73 |
 | edgeHand | surface | 6.78 |
 | edgeFree | surface | 9.00 |
 | edgeSupp | surface | 5.68 |

@@ -102,7 +102,7 @@ data class Tokens(
             ok = 0xFFA1CAA3, onOk = 0xFF102719, okSoft = 0xFF283F2D,
             onOkSoft = 0xFFD7EACF, accent = 0xFFF2C94C, onAccent = 0xFF0E1A14,
             accentSoft = 0xFF423C1E, onAccentSoft = 0xFFF1E2A8, mark = 0xFFF2C94C, edgeTest = 0xFFD77D60,
-            edgeDayOff = 0xFF828A85, edgeEdited = 0xFF9FC98E, edgeHand = 0xFF77B2C2,
+            edgeDayOff = 0xFF828A85, edgeEdited = 0xFFA1CAA3, edgeHand = 0xFF77B2C2,
             edgeFree = 0xFFD8C26A, edgeSupp = 0xFF7CA823, edgeWorksheet = 0xFFA85D23,
         )
 

@@ -384,8 +384,8 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 2. ~~Entry 2, Tidy and Fit preservation~~ (0.4.4.8, `TIDY_FIT_BRIEF.md`).
 3. ~~Entry 4, one today for the engine~~ (0.4.4.10, `ONE_TODAY_BRIEF.md`).
 4. ~~Entry 5, history and schema-15 tests~~ (0.4.4.11, `REMOVED_BOOK_HISTORY_BRIEF.md`).
-5. **UI PR 1**, group home and the hero. It includes F09: the pages wrap at any width (audit G1).
-6. **UI PR 2**, Plan. It includes the book-label decision (I5, audit X14).
+5. ~~**UI PR 1**, group home and the hero~~ (0.4.5.0).
+6. ~~**UI PR 2**, Plan~~ (0.4.6.0, includes the book-label decision, I5).
 7. **UI PR 3**, Home today. It includes F16 (audit H1) and entry 6's F07 fix.
 8. **UI PR 4**, menu and top bar.
 9. **UI PR 5**, one sheet frame. It includes F18's draft rule (streamlining S4) and the shared Picker and SwitchRow semantics (audit X12, X13).
