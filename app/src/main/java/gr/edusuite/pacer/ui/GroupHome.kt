@@ -6,7 +6,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -60,6 +62,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
                 }
             }
         }
+        item { GroupHomePills(onOpen = onOpen) }
         if (report.plan.books.isNotEmpty() && unitProgress(report.plan, report.group).isEmpty()) item {
             RowGroup { Column(Modifier.padding(horizontal = Space.l, vertical = Space.m)) { PaceTrack(report, compact = true) { onOpen(GroupDestination.STATS) } } }
         }
@@ -76,7 +79,6 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
                 }
             }
         }
-        item { GroupHomePills(onOpen = onOpen) }
     }
 }
 
@@ -113,7 +115,7 @@ internal fun ProgressStrip(report: GroupReport, onOpen: () -> Unit) {
     }
 }
 
-/** The four page pills: Plan, Work, Stats, Settings. 2×2 on phones, one row on tablets, one column at large text. */
+/** The four page pills: Plan, Work, Stats, Settings, outlined so they read as buttons (X5). 2×2 on phones, one row on tablets, one column at large text. */
 @Composable
 internal fun GroupHomePills(showPlan: Boolean = true, onOpen: (GroupDestination) -> Unit) {
     val pills = listOf(
@@ -136,7 +138,8 @@ private fun HomePill(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     val interaction = remember { MutableInteractionSource() }
     Button(
         onClick = onClick, interactionSource = interaction, shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Pacer.colors.ink),
+        border = BorderStroke(1.dp, Pacer.colors.outline),
         modifier = modifier.heightIn(min = 48.dp).pressFeedback(interaction),
     ) { Text(text, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center) }
 }
