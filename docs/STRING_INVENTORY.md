@@ -307,6 +307,8 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `group_schedule` | %1$s · schedule |  | Has placeholders |
 | `group_tick_hint` | Tick a lesson once it's taught. Long-press a lesson to change the pages it covered, to mark everything up to it, or to undo from it. |  |  |
 | `group_book_pages` | %1$s: %2$s |  | Has placeholders |
+| `ledger_retired_pages` | %1$s %2$s (not in plan) |  | Has placeholders |
+| `ledger_retired_spoken` | %1$s: %2$s, no longer in the group's plan |  | Has placeholders |
 | `group_book_number` | Book %1$d |  | Has placeholders |
 | `group_pages_hint` | Pages taught from each book, like 5-8, 10. Leave a book empty if you taught none. Pages left out go back into the schedule, and extra pages come off later lessons.%1$s |  | Has placeholders |
 | `group_saving_marks_done` | " Saving marks the lesson done." |  |  |

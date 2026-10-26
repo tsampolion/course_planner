@@ -1,6 +1,8 @@
 package gr.edusuite.pacer.engine
 
 import gr.edusuite.pacer.model.*
+import gr.edusuite.pacer.ui.HistoricBook
+import gr.edusuite.pacer.ui.lessonsOf
 import java.time.DayOfWeek.MONDAY
 import java.time.LocalDate
 import org.junit.Assert.*
@@ -89,6 +91,19 @@ class GroupOverridesTest {
         // The lesson already taught is still not a lesson to teach, and its pages in the kept book stay taught.
         assertFalse(d("2027-03-01") in report.lessons)
         assertEquals((3..20).toList(), two.remainingPages(removed, b))
+        // The done row names the dropped book and its pages; the future rows and their cells do not.
+        val rows = lessonsOf(report)
+        val past = rows.first { it.done }
+        assertEquals(listOf("1–2"), past.cells.take(1))
+        assertEquals(1, past.cells.size)
+        assertEquals(listOf(HistoricBook("b2", "Workbook", "1")), past.history)
+        assertTrue(rows.filter { !it.done }.all { it.history.isEmpty() && it.cells.size == 1 })
+        // Added back, the book is a column again and no longer history.
+        val shown = lessonsOf(GroupReport(two, removed.copy(removedBooks = emptySet()))).first { it.done }
+        assertEquals(listOf("1–2", "1"), shown.cells)
+        assertTrue(shown.history.isEmpty())
+        // A group that never dropped a book has no history rows at all.
+        assertTrue(lessonsOf(GroupReport(two, g.copy(done = listOf(taught)))).all { it.history.isEmpty() })
         // Added back, the book resumes where the group was.
         val back = removed.copy(removedBooks = emptySet())
         assertEquals((2..12).toList(), two.remainingPages(back, b2))

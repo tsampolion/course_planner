@@ -588,7 +588,7 @@ flowchart LR
 <a id="plan"></a>
 ### Plan
 
-*Screen* · reached from [Go to a page](#page-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row's edge colour shows its kind: test, worksheet, day off, edited, by hand, free, supplementary.
+*Screen* · reached from [Go to a page](#page-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row's edge colour shows its kind: test, worksheet, day off, edited, by hand, free, supplementary. A taught lesson also lists, greyed and marked “(not in plan)”, pages taught from a book the group has since dropped; TalkBack says the book is no longer in the plan.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
