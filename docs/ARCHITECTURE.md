@@ -153,7 +153,7 @@ Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHAN
 - `saveProblem` (`NotSaved`, `ReadLocked`, `LockedWithEdits`) drives `SaveNotice`, a lasting snackbar outside the toast queue with Retry or Try reading again, and Export a copy. `retryRead` reads without unlocking; it replaces the data in memory and unlocks only if nothing was edited since launch (`SAVE_STATUS_BRIEF.md`).
 - Only content that can't be parsed (including nesting deep enough to overflow the stack) is moved to the first free `plans.json.bad`, `plans.json.bad-2`, … (never overwriting one). The app starts empty too, with a one-time notice (`SetAsideDialog`) that offers to save a copy where the teacher can reach it.
 
-`SettingsStore` keeps `Settings` in SharedPreferences (`settings.xml`), outside undo. Export and import (`BACKUP_BRIEF.md`) write and read the same JSON through the system file pickers: `JsonCodec.readImport` refuses newer versions and junk, and `addYears` in `Backup.kt` (plain Kotlin, unit-tested) gives clashing years a new id or name.
+`SettingsStore` keeps `Settings` in SharedPreferences (`settings.xml`), outside undo. Export and import (`BACKUP_BRIEF.md`) write and read the same JSON through the system file pickers: `JsonCodec.readImport` refuses newer versions and junk, `readBoundedText` in `Backup.kt` streams the file and refuses one over `MAX_IMPORT_BYTES` (50 MiB, its own "too large" message) so a huge file cannot fill memory, and `addYears` in `Backup.kt` (plain Kotlin, unit-tested) gives clashing years a new id or name.
 
 `data_extraction_rules.xml` backs up `plans.json` and `settings.xml`. A new stored file must be added there.
 

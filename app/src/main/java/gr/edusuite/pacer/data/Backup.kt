@@ -2,6 +2,8 @@ package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.newId
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.time.LocalDate
 
 /** What reading a file chosen for import gave. Only [Years] changes anything, and only once the teacher picks Add or Replace all. */
@@ -11,12 +13,45 @@ sealed interface ImportResult {
     data object NoYears : ImportResult
     /** Written by a newer version of the app; re-saving it here would drop what this version doesn't know. */
     data object Newer : ImportResult
-    /** Not JSON, not in a shape the app reads, or too large to be an export. */
+    /** Not JSON or not in a shape the app reads. */
     data object Unreadable : ImportResult
+    /** Over [MAX_IMPORT_BYTES]. [bytes] is the file's size when the picker told us, else how much was read before stopping. */
+    data class TooLarge(val bytes: Long, val limit: Long) : ImportResult
 }
 
-/** Larger files can't be exports, so they aren't read into memory. */
-const val MAX_IMPORT_BYTES = 5 * 1024 * 1024
+/**
+ * The most a file chosen for import may hold. A backup this version exports is far smaller (several school years of
+ * eight classes and fifteen groups each come to a few MiB), so the bound only stops a huge or junk file from filling memory.
+ */
+const val MAX_IMPORT_BYTES = 50L * 1024 * 1024
+
+/** What reading a file's text within a size bound gave. */
+sealed interface BoundedText {
+    data class Text(val value: String) : BoundedText
+    data class TooLarge(val bytes: Long, val limit: Long) : BoundedText
+}
+
+/**
+ * Reads [input] as UTF-8 without a byte-order mark, stopping once it passes [limit]. [declaredSize] (from the picker,
+ * when it knows) refuses an oversized file before any byte is read. Memory stays within about the limit.
+ */
+fun readBoundedText(input: InputStream, declaredSize: Long? = null, limit: Long = MAX_IMPORT_BYTES): BoundedText {
+    if (declaredSize != null && declaredSize > limit) return BoundedText.TooLarge(declaredSize, limit)
+    val out = ByteArrayOutputStream(minOf(declaredSize ?: 8192L, limit, 1L shl 20).toInt().coerceAtLeast(16))
+    val buf = ByteArray(8192)
+    var total = 0L
+    while (true) {
+        val n = input.read(buf)
+        if (n < 0) break
+        total += n
+        if (total > limit) return BoundedText.TooLarge(total, limit)
+        out.write(buf, 0, n)
+    }
+    return BoundedText.Text(out.toString(Charsets.UTF_8.name()).removePrefix("\uFEFF"))
+}
+
+/** Whole megabytes (MiB), rounded up, for the size shown in "too large" messages. */
+fun megabytes(bytes: Long): Long = (bytes + 1024 * 1024 - 1) / (1024 * 1024)
 
 /** The name the "Save to" picker suggests for an export. */
 fun backupFileName(date: LocalDate): String = "course-pacer-$date.json"

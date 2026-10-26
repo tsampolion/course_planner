@@ -391,7 +391,7 @@ flowchart LR
 | Palette cards (Bone / Saffron) | Tap |  | Edit. Chooses the palette. |
 | New classes: Class defaults | Tap |  | ↑ Opens [New class defaults](#class-defaults). Opens the defaults sheet. |
 | Export… | Tap | At least one year | Leaves app. Opens the system Save dialog with a dated .json name. Message: “Saved name to folder” |
-| Import… | Tap |  | Leaves app [Import N school years?](#import). Opens the system file picker; a readable file opens the import dialog. |
+| Import… | Tap |  | Leaves app [Import N school years?](#import). Opens the system file picker; a readable file opens the import dialog. A file over 50 MiB shows “This backup is too large to open (N MB; the limit is M MB).” |
 | Getting started | Tap |  | ↑ Opens [Welcome to Course Pacer](#welcome). Opens the welcome guide. |
 | Show tips again | Tap |  | Brings back every tip you closed. Message: “Tips will show again” |
 | About | Shows |  | Version, storage note, suite and credits. |
@@ -410,7 +410,7 @@ flowchart LR
 <a id="import"></a>
 ### Import N school years?
 
-*Dialog* · reached from [Settings](#app-settings). Names up to five years from the file. Unreadable, empty or newer files show a message instead.
+*Dialog* · reached from [Settings](#app-settings). Names up to five years from the file. Unreadable, empty, newer or oversized files show a message instead.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |

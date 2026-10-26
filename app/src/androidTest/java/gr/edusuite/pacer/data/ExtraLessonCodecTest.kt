@@ -38,6 +38,10 @@ class ExtraLessonCodecTest : Instrumentation() {
             "unknownBookTypeReadsAsUnclassified" to ::testUnknownBookTypeReadsAsUnclassified,
             "malformedRemovedBooksAndBookDueEntriesAreDropped" to ::testMalformedRemovedBooksAndBookDueEntriesAreDropped,
             "newerSchemaIsRefusedAndNotDecodedAsCurrent" to ::testNewerSchemaIsRefusedAndNotDecodedAsCurrent,
+            "smallBackupRoundTrips" to BackupRoundTripChecks::smallBackupRoundTrips,
+            "aBackupAboveTheOldLimitRoundTripsWithNothingMissing" to BackupRoundTripChecks::aBackupAboveTheOldLimitRoundTripsWithNothingMissing,
+            "aBackupExactlyAtTheLimitReadsAndOneByteOverIsRefused" to BackupRoundTripChecks::aBackupExactlyAtTheLimitReadsAndOneByteOverIsRefused,
+            "junkAndEndlessInputStayBounded" to BackupRoundTripChecks::junkAndEndlessInputStayBounded,
         )
         var failures = 0
         checks.forEachIndexed { i, (name, run) ->
