@@ -144,6 +144,7 @@ fun GroupScreen(
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var homeworkDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var homeworkId by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    var notTaughtDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     val editing = lessons.firstOrNull { it.date.toString() == editingDate }
     val customActions = remember(shown, g.id) {
         val c = shown.custom ?: return@remember null
@@ -180,6 +181,7 @@ fun GroupScreen(
             addHomework = { homeworkDate = it.date.toString(); homeworkId = null },
             editHomework = { homeworkId = it.id; homeworkDate = null },
             deleteHomework = { changed(vm.removeAssignment(g.id, it.id), context.getString(R.string.work_deleted)) },
+            notTaught = { notTaughtDate = it.date.toString() },
         )
     }
     // Filter the calendar view before partitioning so headers and the initial list index agree.
@@ -220,7 +222,10 @@ fun GroupScreen(
                 onDone = { next?.let { toggleHaptic(true); vm.toggleLesson(g.id, it.date); undoToast(context.getString(R.string.group_lesson_done)) } },
                 onPagesTaught = { editingDate = next?.date?.toString() },
                 onFix = { fixOpen = true },
-                onOpen = { vm.goTo(it.screen(g.id)) })
+                onOpen = { vm.goTo(it.screen(g.id)) },
+                yesterday = lessons.firstOrNull { it.done && it.date == today.minusDays(1) },
+                onYesterdayEdit = { editingDate = it.date.toString() },
+                onYesterdayNotTaught = { notTaughtDate = it.date.toString() })
             GroupPage.WORK -> WorkScreen(report, vm, bodyPadding, undoToast)
             GroupPage.STATS -> GroupStats(report, vm, bodyPadding, seenTips, onOwnPaceApplied = { changed(it, context.getString(R.string.custom_created)) })
             GroupPage.PLAN -> AnimatedContent(targetState = grouping to selectedMonth,
@@ -466,6 +471,10 @@ fun GroupScreen(
         }, { folding = null })
     }
 
+    notTaughtDate?.let { ds ->
+        val date = LocalDate.parse(ds)
+        NotTaughtDialog(report, date, { vm.lessonNotTaught(g.id, date); undoToast(context.getString(R.string.group_not_taught_done)) }, { notTaughtDate = null })
+    }
     editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it); undoToast(context.getString(R.string.group_saved)) }, { editingDate = null }) }
 }
 

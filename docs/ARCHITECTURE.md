@@ -42,6 +42,7 @@ The schedule must match the original web page row for row. Lesson *i* ends at `r
 
 - Ticking lessons in order equals the web page's `afterNextLesson` repeated (`markingDoneInOrderMatchesTheOldRule`). `markDoneUpTo` ticks one lesson at a time for that reason.
 - Ticking also moves `Group.from` to the day after the last lesson ticked in order (`settleNextLesson`), and unticking moves it back, so a later calendar edit can't bring past dates back as lessons.
+- Lessons tick themselves when their day has passed (`settlePast`, `AutoTick.kt`, [`AUTO_TICK_BRIEF.md`](AUTO_TICK_BRIEF.md)). `PacerViewModel` applies it on launch, resume, midnight and every published edit, outside the undo stack, from `Settings.autoTickFrom`. A lesson recorded with no pages (`recordNotTaught`, `DoneLesson.notTaught`) is the one that didn't happen.
 - A done lesson can hold the pages actually taught instead of the planned ones (`recordLesson`, `DoneLesson.edited`, `LESSON_PAGES_BRIEF.md`). The same two rules apply to them, and the allocation rule doesn't change.
 
 ### Custom plans

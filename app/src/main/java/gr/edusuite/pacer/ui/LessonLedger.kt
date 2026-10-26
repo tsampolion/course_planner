@@ -133,6 +133,8 @@ internal data class Lesson(
     val unitLessons: Int = 0,
     /** Done lessons only: pages taught from books the group no longer uses. They are never part of [cells]. */
     val history: List<HistoricBook> = emptyList(),
+    /** Done with no pages taught: the lesson didn't happen, and its pages went back to the lessons left. */
+    val notTaught: Boolean = false,
 )
 
 /** A book the group dropped (or never selected) that still has pages taught in a done lesson. */
@@ -152,7 +154,7 @@ internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<
             g.assignments.any { it.id == revision.assignmentId && it.due == d.date && it.takesLesson }
         }
         val blocked = revision || (d.pages.isEmpty() && events.any { it.consumes })
-        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked && d.pages.isEmpty()) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, history = dropped.mapNotNull { b -> d.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { HistoricBook(b.id, b.name, collapse(it)) } }, extraId = g.extras.firstOrNull { it.date == d.date }?.id, assignments = assignmentsOn(g, d.date))
+        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked && d.pages.isEmpty()) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, notTaught = d.notTaught, history = dropped.mapNotNull { b -> d.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { HistoricBook(b.id, b.name, collapse(it)) } }, extraId = g.extras.firstOrNull { it.date == d.date }?.id, assignments = assignmentsOn(g, d.date))
     }
     val custom = report.custom
     val places = custom?.lessons?.withIndex()?.associate { (i, l) -> l.id to (i to l.touched) }.orEmpty()
@@ -220,6 +222,8 @@ internal class LessonActions(
     val addHomework: (Lesson) -> Unit = {},
     val editHomework: (Assignment) -> Unit = {},
     val deleteHomework: (Assignment) -> Unit = {},
+    /** Asks whether the lesson didn't happen, and records it as not taught. */
+    val notTaught: (Lesson) -> Unit = {},
 )
 
 /** What a lesson of a custom plan offers. [last] is the plan's last place. */
@@ -258,6 +262,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     val edit = stringResource(R.string.group_edit_pages_menu)
     val upTo = stringResource(R.string.group_done_up_to)
     val notFrom = stringResource(R.string.group_not_done_from)
+    val notTaught = stringResource(R.string.group_not_taught_menu)
     val addHomework = stringResource(R.string.homework_add)
     val work = homeworkForLesson(l)
     val workNames = homeworkActionNames(work, actions.bookIds, actions.shortNames).mapIndexed { i, text ->
@@ -265,7 +270,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     }
     val editHomework = workNames.map { stringResource(R.string.homework_edit_named, it) }
     val deleteHomework = workNames.map { stringResource(R.string.homework_delete_named, it) }
-    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(rememberToday()), hasCustomPlan = ca != null, canTick = actions.canTick)
+    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(rememberToday()), hasCustomPlan = ca != null, canTick = actions.canTick, ticksItself = l.date.isBefore(rememberToday()))
     return buildList {
         kinds.forEach { kind ->
             when (kind) {
@@ -282,6 +287,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
                 MenuItemKind.REPACE -> if (ca != null) add(MenuItem(repace, section = kind.section()) { ca.repace(l) })
                 MenuItemKind.REMOVE -> if (ca != null) add(MenuItem(remove, section = kind.section()) { ca.remove(l) })
                 MenuItemKind.RECORD_TAUGHT -> add(MenuItem(edit, divider = isNotEmpty()) { actions.edit(l) })
+                MenuItemKind.NOT_TAUGHT -> add(MenuItem(notTaught) { actions.notTaught(l) })
                 MenuItemKind.DONE_UP_TO -> add(MenuItem(upTo, enabled = actions.canUpTo(l.date)) { actions.upTo(l.date) })
                 MenuItemKind.NOT_DONE_FROM -> add(MenuItem(notFrom, enabled = actions.canNotFrom(l.date)) { actions.notFrom(l.date) })
             }
@@ -467,7 +473,7 @@ internal fun spokenLesson(l: Lesson, actions: LessonActions): String {
         if (l.extraId != null) add(stringResource(R.string.extra_label))
         if (l.free) add(stringResource(R.string.custom_free))
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
-        if (l.edited) add(stringResource(R.string.group_edited))
+        if (l.notTaught) add(stringResource(R.string.group_not_taught)) else if (l.edited) add(stringResource(R.string.group_edited))
         addAll(homeworkSummaries(l, actions))
         if (l.differs.isNotEmpty()) add(stringResource(R.string.custom_differs))
         l.proposed?.let { add(stringResource(R.string.custom_proposed_line, it)) }
@@ -536,7 +542,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
         if (l.extraId != null) add(stringResource(R.string.extra_label))
         if (l.free) add(stringResource(R.string.custom_free))
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
-        if (l.edited) add(stringResource(R.string.group_edited))
+        if (l.notTaught) add(stringResource(R.string.group_not_taught)) else if (l.edited) add(stringResource(R.string.group_edited))
         suppPages(l, actions).forEach { (i, text) ->
             val where = if (l.done) null else stringResource(if (actions.bookIds.getOrNull(i) in l.inLesson) R.string.supp_in_lesson else R.string.supp_on_top)
             add(listOfNotNull(stringResource(R.string.ledger_supp, text), where).joinToString(" · "))

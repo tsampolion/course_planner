@@ -157,6 +157,26 @@
     <string name="group_done_up_to">Done up to here</string>
     <string name="group_not_done_from">Not done from here</string>
     <string name="group_edited">Edited</string>
+    <string name="group_not_taught">Not taught</string>
+    <string name="group_not_taught_menu">Lesson didn\'t happen</string>
+    <string name="group_not_taught_done">Lesson recorded as not taught</string>
+    <string name="not_taught_title">Lesson didn\'t happen?</string>
+    <string name="not_taught_body">%1$s won\'t count as taught. Its pages move to the lessons left.</string>
+    <string name="not_taught_pace">Pages a lesson: %1$s to %2$s</string>
+    <string name="not_taught_confirm">Lesson didn\'t happen</string>
+    <string name="yesterday_taught">Yesterday: taught as planned</string>
+    <string name="yesterday_edited">Yesterday: pages recorded</string>
+    <string name="yesterday_not_taught">Yesterday: not taught</string>
+    <string name="yesterday_change">Change</string>
+    <string name="past_lessons_title">Past lessons</string>
+    <string name="past_lessons_body">These lessons are before today and were never ticked. From now on a lesson counts as taught when its day has passed. Should these count too?</string>
+    <string name="past_lessons_row">%1$s · %2$s</string>
+    <plurals name="past_lessons_count">
+        <item quantity="one">%d lesson</item>
+        <item quantity="other">%d lessons</item>
+    </plurals>
+    <string name="past_lessons_tick">Yes, treat them as taught</string>
+    <string name="past_lessons_leave">Leave them as they are</string>
     <string name="group_done">Done</string>
     <string name="group_save">Save</string>
     <string name="group_none">none</string>

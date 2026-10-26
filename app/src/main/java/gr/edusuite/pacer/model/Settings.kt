@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.model
 
+import java.time.LocalDate
 import gr.edusuite.pacer.update.Update
 import gr.edusuite.pacer.update.storedUpdate
 
@@ -58,6 +59,11 @@ data class Settings(
     val lastUpdateCheck: Long = 0L,
     /** The newest release found and not yet installed, or null. */
     val availableUpdate: Update? = null,
+    /**
+     * Lessons dated before this day tick themselves once they have passed, from it onward (`docs/AUTO_TICK_BRIEF.md`).
+     * Null until the teacher has answered the first-launch question about lessons left unticked in the past.
+     */
+    val autoTickFrom: LocalDate? = null,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(

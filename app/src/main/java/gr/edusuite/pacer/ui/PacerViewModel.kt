@@ -48,6 +48,10 @@ import gr.edusuite.pacer.engine.unmarkLessonsFrom
 import gr.edusuite.pacer.engine.greekHolidays
 import gr.edusuite.pacer.engine.markDone
 import gr.edusuite.pacer.engine.markDoneUpTo
+import gr.edusuite.pacer.engine.UntickedGroup
+import gr.edusuite.pacer.engine.recordNotTaught
+import gr.edusuite.pacer.engine.settlePast
+import gr.edusuite.pacer.engine.unticked
 import gr.edusuite.pacer.engine.recordLesson
 import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.model.AppData
@@ -142,6 +146,42 @@ class PacerViewModel(
     /** Re-reads the date: on resume, at midnight, and when the system changes the date or time zone. */
     fun refreshToday() {
         _today.value = dateNow()
+        settleNow()
+    }
+
+    private val _pastLessons = MutableStateFlow<List<UntickedGroup>?>(null)
+    /** The groups with lessons left unticked in the past, while the first-launch question is open. Null otherwise. */
+    val pastLessons: StateFlow<List<UntickedGroup>?> = _pastLessons.asStateFlow()
+
+    /**
+     * Lessons tick themselves once their day has passed (`docs/AUTO_TICK_BRIEF.md`). Until the teacher has answered the
+     * first-launch question nothing is ticked; a year with no lesson left unticked in the past never needs to ask.
+     * Ticking this way is not an undo step: it is what the schedule says, not an edit.
+     */
+    private fun settleNow() {
+        val year = data.year ?: return
+        if (_settings.value.autoTickFrom == null) {
+            val left = year.unticked(_today.value)
+            if (left.isEmpty()) editSettings { it.copy(autoTickFrom = AUTO_TICK_ALL) } else _pastLessons.value = left
+            if (left.isNotEmpty()) return
+        }
+        _pastLessons.value = null
+        val next = settled(data)
+        if (next != data) publish(next)
+    }
+
+    /** [d] with the open year's past lessons ticked, as far as the teacher's first-launch answer allows. */
+    private fun settled(d: AppData): AppData {
+        val from = _settings.value.autoTickFrom ?: return d
+        val year = d.year ?: return d
+        val next = year.settlePast(_today.value, from)
+        return if (next === year) d else d.copy(years = d.years.map { if (it.id == year.id) next else it })
+    }
+
+    /** Answers the first-launch question: tick every past lesson, or leave the ones already there and tick from today on. */
+    fun answerPastLessons(tickThem: Boolean) {
+        editSettings { it.copy(autoTickFrom = if (tickThem) AUTO_TICK_ALL else _today.value) }
+        settleNow()
     }
 
     private val _state = MutableStateFlow(withDefaultYear(loaded.data).let { d -> stateFor(d, Nav.launch, 0) })
@@ -273,7 +313,7 @@ class PacerViewModel(
 
     /** Opening another year or class, by hand or through undo, closes the screens that showed the old one. */
     private fun publish(proposed: AppData, stack: List<Screen> = _state.value.stack) {
-        val next = withDefaultYear(proposed)
+        val next = settled(withDefaultYear(proposed))
         val s = when {
             next.activeYear != data.activeYear -> Nav.afterYearSwitch(stack)
             next.activeClass != data.activeClass -> Nav.afterClassSwitch(stack)
@@ -705,6 +745,9 @@ class PacerViewModel(
         return changed
     }
 
+    /** Records the lesson on [date] as not taught: it counts as done with no pages, and its pages move to later lessons. */
+    fun lessonNotTaught(groupId: String, date: LocalDate) = editLessons(groupId) { r, g -> r.recordNotTaught(date) ?: g }
+
     /** Ticks or unticks the lesson on [date] on its own. */
     fun toggleLesson(groupId: String, date: LocalDate) = editLessons(groupId) { r, g ->
         if (g.done.any { it.date == date }) r.plan.unmarkLesson(g, date) else r.markDone(setOf(date))
@@ -929,6 +972,8 @@ class PacerViewModel(
     }
 
     private companion object {
+        /** [gr.edusuite.pacer.model.Settings.autoTickFrom] when every past lesson may be ticked. */
+        val AUTO_TICK_ALL: LocalDate = LocalDate.of(1970, 1, 1)
         const val COALESCE_MS = 1200L
         const val UNDO_LIMIT = 60
         const val SAVE_DEBOUNCE_MS = 400L
