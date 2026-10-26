@@ -9,6 +9,7 @@ How to use this file:
 - Entry 2 (Tidy and Fit) is built and recorded in [`TIDY_FIT_BRIEF.md`](TIDY_FIT_BRIEF.md).
 - Entry 3 (save status) is built and recorded in [`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md); its number is not reused, so the other entries keep theirs.
 - Entry 4 (one today for the engine) is built and recorded in [`ONE_TODAY_BRIEF.md`](ONE_TODAY_BRIEF.md); its number is not reused either.
+- Entry 5 (removed books keep their taught history; schema-15 tests) is built and recorded in [`REMOVED_BOOK_HISTORY_BRIEF.md`](REMOVED_BOOK_HISTORY_BRIEF.md); its number is not reused either.
 - Entries 2 to 9 come from the usability audit of 25 October 2026. That audit was read-only and covered 0.4.1.3 and 0.4.2.0. Every finding was checked again against 0.4.4.0. Findings keep their audit IDs (F01 to F19) and open decisions keep theirs (I1 to I6), so they can be traced.
 - The audit's visual, accessibility and streamlining findings (F09 to F12 and F16 to F18, with I1, I3, I4 and I5) are now in the approved [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md) and [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md). This file keeps the parts that change data, the engine, storage or output, which those briefs do not cover.
 - Most of entries 2 to 8 fix existing behaviour rather than add features. They wait here because they need the owner's go-ahead, and some need an engine decision.
@@ -134,60 +135,6 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 7. **"Reset all positions":** keep blocks (recommended) or clear them too?
 8. **Display:** is a "Focus: Grammar" tag with "—" in the other columns enough, or should block lessons be shaded like test lessons?
 9. **Relation to pinned lessons:** fixing the pages of a single future lesson was left out of 1.5.0 (`docs/LESSON_PAGES_BRIEF.md`, "Out of scope"). A one-lesson focus block covers part of that idea. Is that enough, or is a separate "plan this lesson's pages" still wanted?
-
-## 5. Removed books keep their taught history; tests for schema 15 (F04, F19)
-
-**Status:** proposed (audit P2). It completes Part D's own acceptance ("taught history kept"). Not approved.
-
-### The problem
-
-**F04.** When a group drops a book (`Group.removedBooks`), `forGroup` filters it out (`engine/GroupOverrides.kt:17`). Done rows show only the effective plan's books (`ui/LessonLedger.kt:148`).
-
-- The pages taught from that book stay stored in `DoneLesson.pages` (`model/GroupBooks.kt:15-21`), but no cell shows them. A teacher may think the work vanished.
-- "Add back" brings them back.
-- `GroupOverridesTest.removedBookKeepsDoneHistory` (`:83-95`) checks storage, not the visible rows. This entry extends it to assert the rendered done rows.
-- Print covers only the lessons still to come, so print loses nothing.
-
-**F19.** Schema 15 (book `type`, group `removedBooks` and `bookDue`) has no codec test.
-
-- The only platform codec suite, `app/src/androidTest/.../data/ExtraLessonCodecTest.kt`, stops at schema 13.
-- JVM tests never call `JsonCodec`.
-- `BookTypeTest.schema14LoadsGuessedTypes` tests the type helper, not migration.
-- So the code that writes (`JsonCodec.kt:162-163,264`) and reads (`:226-227,279`) schema 15 is unproven against real `org.json`.
-
-### Proposal
-
-- Done rows get a historical book projection: the effective books, plus any book that has taught pages in that row, labelled as no longer in the group's plan.
-- The future rows and the pacing omit the book, as now.
-- Extend the platform codec suite with:
-  - a schema-14 → 15 migration (types guessed from names, no overrides)
-  - a schema-15 round trip with every new field
-  - an unknown `type` value
-  - malformed `removedBooks` and `bookDue` entries
-  - a file newer than `VERSION`, which must be refused
-
-### Alternative
-
-A "past lesson details" view that lists every book taught, retired ones included, without changing the row columns.
-
-### Acceptance
-
-- A removed book's taught pages and note show with the right book identity, and future rows omit it.
-- "Add back" and Undo are stable.
-- Tests check the rendered model's cells and the spoken text.
-- Codec tests compare every relevant field: touched, done, pairs, units, `removedBooks`, `bookDue`, `type`.
-- With no overrides there is no semantic change.
-- The codec tests run against real platform JSON, on CI or a device. If an approved JVM JSON test dependency is ever wanted, that needs the owner's approval.
-
-### Risk and dependencies
-
-- **Risk:** medium to high for the column mapping. A removed book must never re-enter future pacing. Low for the tests.
-- **Rollback:** a presentation-only revert. Keep the schema-15 reader and the stored fields.
-- **Coordination:** Part C (0.4.4.0) has since added `differs` to `Lesson` in the same `lessonsOf` function. The new projection must keep the `differingBooks` indices aligned with the columns it shows.
-
-### Open questions
-
-1. Should the retired book be a greyed column in done rows, or a line under the row ("Also taught: Grammar 12–14")?
 
 ## 6. Setup checks that match the rest of the app (F05, F06, F07)
 
@@ -366,7 +313,6 @@ Warn or block at export when the file would be over the import limit. This is a 
 
 - Failed writes and retry ([`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md)).
 - Midnight across screens: the engine side is covered (`PacerViewModelTest.midnightMovesPlansBankingAndRevisionDatesTogether`); the Compose screens are not.
-- Rendered history and schema-15 codec round trips (entry 5).
 - Shared-control semantics (UI audit X12, X13).
 - Process and sheet restoration (streamlining S4).
 - Printable scopes (entry 7) and large-backup round trips (entry 8).
@@ -437,7 +383,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 1. ~~Entry 3, save status~~ (0.4.4.6, `SAVE_STATUS_BRIEF.md`).
 2. ~~Entry 2, Tidy and Fit preservation~~ (0.4.4.8, `TIDY_FIT_BRIEF.md`).
 3. ~~Entry 4, one today for the engine~~ (0.4.4.10, `ONE_TODAY_BRIEF.md`).
-4. **Entry 5**, history and schema-15 tests. Do it before UI PR 2 reworks the ledger rows (gutters, edges).
+4. ~~Entry 5, history and schema-15 tests~~ (0.4.4.11, `REMOVED_BOOK_HISTORY_BRIEF.md`).
 5. **UI PR 1**, group home and the hero. It includes F09: the pages wrap at any width (audit G1).
 6. **UI PR 2**, Plan. It includes the book-label decision (I5, audit X14).
 7. **UI PR 3**, Home today. It includes F16 (audit H1) and entry 6's F07 fix.
@@ -451,7 +397,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 Test clean-up rides these steps rather than a separate audit (the suite has no duplicate tests, but some lock in wrong behaviour or check storage instead of what the teacher sees):
 
 - Entry 2 revises `CustomPlanTest.tidyTakesOutPagesThatNeedNoTeaching`.
-- Entry 5 extends `GroupOverridesTest.removedBookKeepsDoneHistory`.
+- ~~Entry 5 extends `GroupOverridesTest.removedBookKeepsDoneHistory`.~~ Done in 0.4.4.11.
 - Entry 6 updates `HomeModelTest` (on-pace count) and `ScreensModelTest`.
 - Entries 3 to 8 add the missing cases listed in each one.
 

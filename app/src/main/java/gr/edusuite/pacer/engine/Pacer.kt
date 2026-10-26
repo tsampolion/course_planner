@@ -233,6 +233,8 @@ enum class Source {
  */
 class GroupReport(base: Plan, val group: Group, val source: Source = Source.ACTIVE) {
     val plan: Plan = base.forGroup(group)
+    /** The class's own book list, before this group's removals, so past lessons can still name a book it dropped. */
+    internal val classBooks: List<Book> = base.books
     /** The custom plan the rows follow, or null for the proposed plan. */
     val custom: CustomPlan? = when (source) {
         Source.PROPOSED -> null

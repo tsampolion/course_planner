@@ -130,7 +130,12 @@ internal data class Lesson(
     val unitIndex: Int? = null,
     val unitLesson: Int = 0,
     val unitLessons: Int = 0,
+    /** Done lessons only: pages taught from books the group no longer uses. They are never part of [cells]. */
+    val history: List<HistoricBook> = emptyList(),
 )
+
+/** A book the group dropped (or never selected) that still has pages taught in a done lesson. */
+internal data class HistoricBook(val id: String, val name: String, val pages: String)
 
 /**
  * Done lessons and the lessons still to come, in date order and numbered together. With [compare], each lesson of
@@ -139,13 +144,14 @@ internal data class Lesson(
 internal fun lessonsOf(report: GroupReport, compare: GroupReport? = null): List<Lesson> {
     val plan = report.plan
     val g = report.group
+    val dropped = report.classBooks.filter { !g.usesBook(it) }
     val done = g.done.map { d ->
         val events = plan.eventsOn(g, d.date)
         val revision = g.unitRevisions.any { revision ->
             g.assignments.any { it.id == revision.assignmentId && it.due == d.date && it.takesLesson }
         }
         val blocked = revision || (d.pages.isEmpty() && events.any { it.consumes })
-        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked && d.pages.isEmpty()) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, extraId = g.extras.firstOrNull { it.date == d.date }?.id, assignments = assignmentsOn(g, d.date))
+        Lesson(0, d.date, events, blocked, plan.books.map { b -> if (blocked && d.pages.isEmpty()) "" else collapse(d.pages[b.id].orEmpty()) }, done = true, edited = d.edited, history = dropped.mapNotNull { b -> d.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { HistoricBook(b.id, b.name, collapse(it)) } }, extraId = g.extras.firstOrNull { it.date == d.date }?.id, assignments = assignmentsOn(g, d.date))
     }
     val custom = report.custom
     val places = custom?.lessons?.withIndex()?.associate { (i, l) -> l.id to (i to l.touched) }.orEmpty()
@@ -431,6 +437,7 @@ internal fun spokenLesson(l: Lesson, actions: LessonActions): String {
             if (supp && cell == collapse(emptyList())) return@forEachIndexed
             add(stringResource(R.string.group_book_pages, actions.bookNames.getOrNull(i) ?: stringResource(R.string.group_book_number, i + 1), cell))
         }
+        l.history.forEach { add(stringResource(R.string.ledger_retired_spoken, it.name, it.pages)) }
         if (l.extraId != null) add(stringResource(R.string.extra_label))
         if (l.free) add(stringResource(R.string.custom_free))
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
@@ -509,7 +516,16 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
         }
     }
     // A free lesson with only a note reads as its note.
-    val main = if (l.note.isNotEmpty() && l.cells.withIndex().all { (i, cell) -> actions.supplementary.getOrElse(i) { false } || cell == collapse(emptyList()) }) AnnotatedString(l.note) else pagesText
+    val core = if (l.note.isNotEmpty() && l.cells.withIndex().all { (i, cell) -> actions.supplementary.getOrElse(i) { false } || cell == collapse(emptyList()) }) AnnotatedString(l.note) else pagesText
+    // Books the group dropped after teaching from them: greyed and labelled, after the books it still uses.
+    val retired = l.history.map { stringResource(R.string.ledger_retired_pages, it.name, it.pages) }
+    val main = if (retired.isEmpty()) core else buildAnnotatedString {
+        append(core)
+        retired.forEach { text ->
+            if (length > 0) append(" · ")
+            withStyle(SpanStyle(color = c.muted)) { append(text) }
+        }
+    }
     Box {
         Column {
             Row(
