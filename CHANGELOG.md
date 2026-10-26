@@ -25,6 +25,16 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.4.11] - 2026-10-26
+
+### Fixed
+
+- A book a group dropped no longer vanishes from its done lessons. Past rows show the pages taught from it in grey, labelled "(not in plan)", and TalkBack says the book is no longer in the group's plan. Future rows, pacing, Print and Today leave the book out as before, and "Add back" brings it back as a normal book. A group with no dropped books looks exactly as it did.
+
+### Changed
+
+- The platform codec suite (`ExtraLessonCodecTest`) now covers schema 15: the 14 to 15 migration, a round trip of book `type`, `removedBooks` and `bookDue` with touched, done, pairs and units, an unknown `type`, malformed `removedBooks` and `bookDue` entries, and a file newer than the app's schema. `GroupOverridesTest.removedBookKeepsDoneHistory` now checks the done rows the Plan shows. `docs/REMOVED_BOOK_HISTORY_BRIEF.md` records the rules.
+
 ## [0.4.4.10] - 2026-10-25
 
 ### Fixed
@@ -924,6 +934,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.4.11]: https://github.com/tsampolion/course_planner/compare/v0.4.4.10...v0.4.4.11
 [0.4.4.10]: https://github.com/tsampolion/course_planner/compare/v0.4.4.9...v0.4.4.10
 [0.4.4.9]: https://github.com/tsampolion/course_planner/compare/v0.4.4.8...v0.4.4.9
 [0.4.4.8]: https://github.com/tsampolion/course_planner/compare/v0.4.4.7...v0.4.4.8

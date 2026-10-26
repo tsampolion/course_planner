@@ -90,7 +90,7 @@ A catch-up plan saves its chosen `catchUpBoost`. Re-pacing keeps that policy whi
 
 - All book indices belong to `report.plan`, never a raw class catalogue.
 - Direct remaining and banked pages also honour membership and additive skips.
-- A default book can be left out of one group (`Group.removedBooks`, `withBookRemoved`: never the last paced book). The group keeps its taught pages and positions, so adding the book back resumes where it was; hand-placed pages of it stay in their custom lessons and count as stale in the warnings. Only default books are removed; optional ones are selected.
+- A default book can be left out of one group (`Group.removedBooks`, `withBookRemoved`: never the last paced book). The group keeps its taught pages and positions, so adding the book back resumes where it was; hand-placed pages of it stay in their custom lessons and count as stale in the warnings. Only default books are removed; optional ones are selected. Done lessons still show pages taught from a book the group dropped: `lessonsOf` puts them in `Lesson.history`, not in `cells`, so pacing and the book indices never see them ([`REMOVED_BOOK_HISTORY_BRIEF.md`](REMOVED_BOOK_HISTORY_BRIEF.md)).
 - A group can set its own finish-by date for a book (`Group.bookDue`). `forGroup` makes it the book's `due`, replacing the class's, and clamps it to the group's end.
 - Unselected or removed leads fall back to no lead for that group.
 - With no overrides, pacing is unchanged.
