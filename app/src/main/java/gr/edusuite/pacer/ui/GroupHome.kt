@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
@@ -121,9 +120,7 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
             else LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
         }
         // D1: a short group's repair is one tap away; the sheet it opens offers only repairs that keep the teacher's lessons.
-        if (onFix != null) TextButton(onClick = onFix, modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = fixDescription }) {
-            Text(fixLabel, style = MaterialTheme.typography.labelLarge, color = c.accentText)
-        }
+        if (onFix != null) TertiaryButton(fixLabel, onFix, Modifier.semantics { contentDescription = fixDescription })
     }
 }
 
