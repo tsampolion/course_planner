@@ -195,6 +195,11 @@ fun PacerApp(vm: PacerViewModel) {
         val group = (screen as? Screen.Group)?.let { s -> plan?.groups?.firstOrNull { it.id == s.id } }
         if (plan == null || group == null) null else GroupReport(plan, group)
     }
+    val canPrint = remember(screen, ui.data, today) {
+        val y = ui.data.year
+        val g = groupReport?.group
+        y != null && g != null && PrintScopes.available(y, today, ui.data.activeClass, g.id).isNotEmpty()
+    }
     val warnings = remember(groupReport) { groupReport?.let(::groupWarnings).orEmpty() }
     // Pacing overview's warning button counts the year's problems instead (decision 7).
     val yearProblems = remember(screen, ui.data.year, today) { if (screen == Screen.Overview) ui.data.year?.let { Nav.problems(it, today).size } ?: 0 else 0 }
@@ -218,6 +223,7 @@ fun PacerApp(vm: PacerViewModel) {
             },
             share = { share(context, "${report.plan.name} — ${report.group.name}", report.asTsv()) },
             print = { printing = true },
+            canPrint = canPrint,
             open = { groupSheet = it },
             customPlan = if (large && report.group.custom == null && report.rows.isNotEmpty()) ({
                 vm.createCustomPlan(report.group.id)

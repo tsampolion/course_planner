@@ -7,6 +7,7 @@ How to use this file:
 - **Nothing here is approved yet.** Build an entry only when the owner asks for it in a session. Several entries change the pacing engine, which `CLAUDE.md` treats as a contract ("Engine parity is the contract"), so they need explicit sign-off.
 - When an entry is picked up, ask its open questions first, write a `docs/<NAME>_BRIEF.md` with the answers folded in (as `docs/LESSON_PAGES_BRIEF.md` does), and remove the entry from this file.
 - Entry 2 (Tidy and Fit) is built and recorded in [`TIDY_FIT_BRIEF.md`](TIDY_FIT_BRIEF.md).
+- Entry 7 (print) is built and recorded in [`PRINT_BRIEF.md`](PRINT_BRIEF.md); its number is not reused.
 - Entry 3 (save status) is built and recorded in [`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md); its number is not reused, so the other entries keep theirs.
 - Entry 4 (one today for the engine) is built and recorded in [`ONE_TODAY_BRIEF.md`](ONE_TODAY_BRIEF.md); its number is not reused either.
 - Entry 5 (removed books keep their taught history; schema-15 tests) is built and recorded in [`REMOVED_BOOK_HISTORY_BRIEF.md`](REMOVED_BOOK_HISTORY_BRIEF.md); its number is not reused either.
@@ -191,50 +192,6 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 - **F07:** low; the shared verdict is unchanged.
 - **Rollback:** three independent reverts, no data change.
 
-## 7. Print that fits the page and never comes out blank (F14, F15)
-
-**Status:** proposed (audit P2, Source; no PDF rendered). Not approved. It changes printed output only, never pacing.
-
-### The problem
-
-**F14.** `ui/PrintSheet.kt` sets `table{width:100%}` (line 53) and `white-space:nowrap` on every cell, notes included (line 55). It adds one column per book (lines 74-100). It has no `table-layout`, wrapping or scaling. Many books or long notes overflow A4 portrait.
-
-**F15.** `ui/PrintDialog.kt:53`:
-
-- The Group and Class scopes are always enabled.
-- Year only checks that classes exist.
-- `PrintSheet` skips reports with no rows (`:63-65`).
-
-So a finished group, or a year with nothing left, opens the system print dialog on a blank page.
-
-### Proposal
-
-- Notes and event labels wrap. Date and page columns get reserved widths.
-- A strategy for many books: landscape above a book count, or split tables that repeat the date on each part.
-- One shared "printable" check, used by every scope. A scope with nothing to print is disabled with a reason ("No lessons left to print"). Test-only schedules stay printable.
-
-### Alternative
-
-- For F14: always offer landscape.
-- For F15: print a short "No lessons left" summary page, if the owner prefers having a page.
-
-### Acceptance
-
-- PDFs with 1, 4 and 8 books, at every margin, with long Greek names and notes and multi-page breaks, keep every cell readable.
-- Empty or completed groups and years, mixed scopes, test-only schedules and a cancelled print all give an intentional result. No blank job.
-- Eligible output matches the current report.
-- Check the real PDF preview and output, not only the HTML.
-
-### Risk
-
-- **Fits with:** streamlining M3 adds Print to Class and School year. Land the shared printable check first, or with it, so the new entry points never print a blank page.
-- Medium for the format, low for eligibility.
-- **Rollback:** a print-only revert.
-
-### Open questions
-
-1. Is a page with "No lessons left" useful to keep on paper, or should the scope just be disabled?
-
 ## 8. Every backup can be restored (F13)
 
 **Status:** proposed (audit P2, Source; no file above 5 MiB tested). Not approved.
@@ -315,7 +272,7 @@ Warn or block at export when the file would be over the import limit. This is a 
 - Midnight across screens: the engine side is covered (`PacerViewModelTest.midnightMovesPlansBankingAndRevisionDatesTogether`); the Compose screens are not.
 - Shared-control semantics (UI audit X12, X13).
 - Process and sheet restoration (streamlining S4).
-- Printable scopes (entry 7) and large-backup round trips (entry 8).
+- Large-backup round trips (entry 8).
 
 What the existing tests do not prove:
 
@@ -391,7 +348,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 9. **UI PR 5**, one sheet frame. It includes F18's draft rule (streamlining S4) and the shared Picker and SwitchRow semantics (audit X12, X13).
 10. **UI PR 6**, set-up screens. It includes F17 (audit C2, streamlining S2) and entry 6's range and day-off checks.
 11. **UI PRs 7 and 8**, Stats and Work; Settings, welcome and empty states.
-12. **Entries 7 and 8**, print and backup. They can go any time, as separate pull requests. Entry 7 goes before or with streamlining M3.
+12. ~~Entry 7, print~~ (0.4.6.1, `PRINT_BRIEF.md`). **Entry 8**, backup, can go any time as its own pull request.
 13. **UI PR 9**, polish and record. Run entry 9's full matrix first. It includes F12, the tablet panes (audit X15).
 
 Test clean-up rides these steps rather than a separate audit (the suite has no duplicate tests, but some lock in wrong behaviour or check storage instead of what the teacher sees):

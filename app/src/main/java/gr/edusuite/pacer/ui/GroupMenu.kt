@@ -90,6 +90,8 @@ internal class GroupMenu(
     val hasRows: Boolean, val copy: () -> Unit, val share: () -> Unit, val print: () -> Unit, val open: (GroupSheet) -> Unit,
     /** Large text: "Make a custom plan", which the Plan tab's line offers otherwise. Null when there is nothing to offer. */
     val customPlan: (() -> Unit)? = null,
+    /** Whether any Print scope has lessons to print; the entry is hidden when none has. */
+    val canPrint: Boolean = true,
 )
 
 /** A section's name in the ⋮ menu: not a target, a heading for TalkBack. */
@@ -111,7 +113,7 @@ internal fun GroupMenuButton(menu: GroupMenu) {
             MenuHeading(stringResource(R.string.menu_share_print))
             DropdownMenuItem(text = { Text(stringResource(R.string.group_copy)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.ContentCopy) }, onClick = { open = false; menu.copy() })
             DropdownMenuItem(text = { Text(stringResource(R.string.group_share)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.Share) }, onClick = { open = false; menu.share() })
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
+            if (menu.canPrint) DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
             HorizontalDivider()
             MenuHeading(stringResource(R.string.group_tab_plan))
             menu.customPlan?.let { make ->

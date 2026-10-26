@@ -26,15 +26,26 @@ object PrintSheet {
     // The print job reads the WebView after this call returns; keep it alive until the next job.
     private var webView: WebView? = null
 
+    /** More books than this and the sheet turns landscape, so each book column keeps a readable width. */
+    const val MAX_PORTRAIT_BOOKS = 4
+
+    /** Whether any printed group has more book columns than a portrait page holds. One print job has one orientation. */
+    fun landscape(plans: List<Plan>): Boolean = plans.any { plan ->
+        plan.groups.any { g -> GroupReport(plan, g).let { it.rows.isNotEmpty() && it.outputColumns().size > MAX_PORTRAIT_BOOKS } }
+    }
+
     fun print(context: Context, title: String, plans: List<Plan>, margin: PrintMargin = PrintMargin.NORMAL) {
         val html = html(plans, margin)
+        val attributes = PrintAttributes.Builder().apply {
+            if (landscape(plans)) setMediaSize(PrintAttributes.MediaSize.ISO_A4.asLandscape())
+        }.build()
         val view = WebView(context)
         webView = view
         view.webViewClient = object : WebViewClient() {
             override fun onPageFinished(v: WebView, url: String?) {
                 val pm = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
                 val name = "$title schedule"
-                pm.print(name, v.createPrintDocumentAdapter(name), PrintAttributes.Builder().build())
+                pm.print(name, v.createPrintDocumentAdapter(name), attributes)
             }
         }
         view.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
@@ -43,16 +54,21 @@ object PrintSheet {
     private fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     fun html(plans: List<Plan>, margin: PrintMargin = PrintMargin.NORMAL): String = buildString {
-        append("<!doctype html><html><head><meta charset=\"utf-8\"><style>@page{margin:${margin.mm}mm}")
+        val wide = landscape(plans)
+        append("<!doctype html><html><head><meta charset=\"utf-8\"><style>@page{margin:${margin.mm}mm")
+        if (wide) append(";size:landscape")
+        append("}")
         append(
             """
             body{font:10pt sans-serif;color:#000;margin:0}
             h3{font:600 14pt Georgia,serif;margin:0 0 2px}
             .meta{font:9pt monospace;color:#333;margin-bottom:4px}
             .note{font:italic 8pt sans-serif;color:#555;margin-bottom:8px}
-            table{border-collapse:collapse;width:100%;border:1px solid #aaa}
+            table{border-collapse:collapse;width:100%;table-layout:fixed;border:1px solid #aaa}
             th{text-align:left;font-size:8pt;letter-spacing:.06em;text-transform:uppercase;color:#333;padding:4px 8px;border-bottom:1px solid #aaa}
-            td{padding:3px 8px;border-bottom:1px solid #ddd;white-space:nowrap}
+            td{padding:3px 8px;border-bottom:1px solid #ddd}
+            th,td{overflow-wrap:anywhere}
+            col.n{width:9mm} col.date{width:38mm} col.note{width:30%}
             td.pg,td.n{font-family:monospace}
             tr.brk td{background:#efefef;font-size:8pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
             tr.ev td{background:#eee}
@@ -72,7 +88,10 @@ object PrintSheet {
             val notes = r.rows.any { it.note.isNotEmpty() }
             // Every core book, and a supplementary book only when this group's table uses it.
             val cols = r.outputColumns()
-            append("<table><thead><tr><th>#</th><th>Date</th>")
+            append("<table><colgroup><col class=n><col class=date>")
+            cols.forEach { append("<col>") }
+            if (notes) append("<col class=note>")
+            append("</colgroup><thead><tr><th>#</th><th>Date</th>")
             cols.forEach { append("<th>").append(esc(r.plan.books[it].name)).append("</th>") }
             if (notes) append("<th>Note</th>")
             append("</tr></thead><tbody>")

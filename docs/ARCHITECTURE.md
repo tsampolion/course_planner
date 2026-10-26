@@ -216,7 +216,7 @@ The list screens use the ledger rows in `Rows.kt` (`SectionHead`, `RowGroup`, `L
 
 ### Print
 
-`PrintSheet` renders HTML into a `WebView` for `PrintManager`. `PrintDialog` chooses this group, its class or the year.
+`PrintSheet` renders HTML into a `WebView` for `PrintManager`: fixed table layout with reserved number, date and note columns, wrapping text, and landscape when a group prints more than four book columns. `PrintDialog` chooses this group, its class or the year, offering only the scopes `PrintScopes` finds printable (a group is printable when its report has rows); the group menu hides Print when none is. See `PRINT_BRIEF.md`.
 
 ## Theme and tokens
 

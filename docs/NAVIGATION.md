@@ -881,7 +881,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Copy | Tap | Has lessons | Leaves app. Copies the schedule as a table. Message: “Copied. Paste into a spreadsheet or Word. (before Android 13)” |
 | Share | Tap | Has lessons | Leaves app. Opens the Android share sheet with the schedule. |
-| Print | Tap |  | ↑ Opens [Print or save PDF](#print). Opens Print or save PDF. |
+| Print | Tap | Some scope has lessons to print | ↑ Opens [Print or save PDF](#print). Opens Print or save PDF. |
 | Make a custom plan | Tap | Large text, no custom plan | Creates one from the proposed plan. Message: “Custom plan created (no Undo here)” |
 | Re-pace untouched lessons | Tap | Has a custom plan | Re-spreads pages over lessons you haven't changed by hand. Undo: “Plan re-paced” |
 | Copy to… | Tap | Custom plan and other groups | ↑ Opens [Copy to…](#copy-to). Opens the list of the class's other groups. |
@@ -916,9 +916,9 @@ flowchart LR
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| This group / Every group in class / Every group this year | Choose |  | What to print. |
+| This group / Every group in class / Every group this year | Choose | That scope has lessons to print | What to print. A scope with nothing left is not listed. |
 | Margins: Narrow / Normal / Wide | Toggle |  | Margin on every side; each group starts a new page. |
-| Print | Tap |  | Leaves app. Hands the sheet to the Android print dialog (print or save as PDF). |
+| Print | Tap | A scope is listed | Leaves app. Hands the sheet to the Android print dialog (print or save as PDF), landscape when a group has more than four book columns. |
 | Cancel | Tap |  | Closes. Closes. |
 
 <a id="warnings"></a>

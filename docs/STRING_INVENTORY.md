@@ -781,7 +781,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | --- | --- | --- | --- |
 | `print_title` | Print or save PDF |  |  |
 | `print_print` | Print |  |  |
-| `print_none` | No classes yet. |  |  |
+| `print_none` | No lessons left to print. |  |  |
 | `print_class` | Class |  |  |
 | `print_margins` | Margins |  |  |
 | `print_margin_hint` | %1$s: %2$d mm on every side. Each group starts on a new page; the system print dialog then offers paper size, orientation and Save as PDF. |  | Has placeholders |

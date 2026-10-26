@@ -247,7 +247,7 @@
     <string name="home_pair">%1$s · %2$s</string>
     <string name="print_title">Print or save PDF</string>
     <string name="print_print">Print</string>
-    <string name="print_none">No classes yet.</string>
+    <string name="print_none">No lessons left to print.</string>
     <string name="print_class">Class</string>
     <string name="print_margins">Margins</string>
     <string name="print_margin_hint">%1$s: %2$d mm on every side. Each group starts on a new page; the system print dialog then offers paper size, orientation and Save as PDF.</string>
