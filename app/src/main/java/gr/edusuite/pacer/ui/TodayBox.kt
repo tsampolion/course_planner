@@ -187,7 +187,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
 }
 
 /**
- * Today's pages at their usual size. Beside the buttons they wrap to two lines; at large text they take the full width, with
+ * Today's pages one step below the date (14sp). Beside the buttons they wrap to two lines; at large text they take the full width, with
  * supplementary books on their own lines. An edit icon shows when tapping records what was taught; TalkBack reads the full
  * book names and gets a named "Pages taught" action.
  */
@@ -207,7 +207,7 @@ private fun PagesLine(next: Lesson, actions: LessonActions, onEdit: (() -> Unit)
         },
         horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.CenterVertically,
     ) {
-        val style = MaterialTheme.typography.bodyLarge.merge(Figures)
+        val style = MaterialTheme.typography.bodyMedium.merge(Figures)
         if (compact) Text((listOf(core) + supp).filter { it.isNotBlank() }.joinToString(" · "), style = style, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         else Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
             if (core.isNotBlank()) Text(core, style = style)

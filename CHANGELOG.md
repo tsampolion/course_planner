@@ -29,7 +29,7 @@ Keep `[Unreleased]` empty between pull requests.
 
 ### Changed
 
-- Group home, first redesign step (UI audit PR 1). The lesson box keeps its size. A Homework button sits under Done in the same shape and opens Add homework for today's lesson. Today's pages keep their size, wrap to two lines beside the buttons and show an edit icon; TalkBack gets a named "Pages taught" action on them.
+- Group home, first redesign step (UI audit PR 1). The lesson box keeps its size. A Homework button sits under Done in the same shape and opens Add homework for today's lesson. Today's pages are one step smaller than the date, wrap to two lines beside the buttons and show an edit icon; TalkBack gets a named "Pages taught" action on them.
 - The four page pills are outlined (a 1px stroke that reaches 3:1). They stay at the bottom.
 - A short group shows a round Fix button beside the progress strip, which opens Warnings.
 - Progress fills use a new `mark` token that reaches 3:1 in Saffron light (it was the saffron fill at 1.41:1). `ContrastTest` covers it.
