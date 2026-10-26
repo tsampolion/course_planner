@@ -102,8 +102,9 @@ class PacerViewModelTest {
     }
 
     private class FakeSettings : SettingsPort {
-        override fun load() = Settings()
-        override fun save(s: Settings) = Unit
+        var saved = Settings()
+        override fun load() = saved
+        override fun save(s: Settings) { saved = s }
     }
 
     private inner class Rig(locked: Boolean = false, start: AppData? = null) {
@@ -113,9 +114,10 @@ class PacerViewModelTest {
         val dispatcher = ManualDispatcher()
         var time = 0L
         var date = d("2026-10-24")
+        val settings = FakeSettings()
         val vm = PacerViewModel(
             PlanStore(file, { disk }, { it.hashCode().toString() }),
-            FakeSettings(),
+            settings,
             UpdateChecker({ null }, "0.4.2.0", enabled = false),
             CoroutineScope(SupervisorJob() + dispatcher),
             dispatcher,
@@ -134,6 +136,75 @@ class PacerViewModelTest {
         assertEquals(d("2026-10-24"), r.vm.today.value)
         r.vm.refreshToday()
         assertEquals(d("2026-10-25"), r.vm.today.value)
+    }
+
+    private fun nextLessonDate(r: Rig): LocalDate {
+        val plan = r.vm.state.value.data.plan(r.vm.today.value)!!
+        return GroupReport(plan, plan.groups.single()).rows.first().date
+    }
+
+    @Test fun pastLessonsAreAskedAboutBeforeAnythingIsTicked() {
+        val r = Rig()
+        r.vm.refreshToday()
+        val asked = r.vm.pastLessons.value!!.single()
+        assertTrue(asked.count > 0)
+        assertTrue(r.group.done.isEmpty())
+        assertEquals(null, r.settings.saved.autoTickFrom)
+    }
+
+    @Test fun yesTicksEveryLessonBeforeTodayAndNothingElse() {
+        val r = Rig()
+        r.vm.refreshToday()
+        r.vm.answerPastLessons(true)
+        assertEquals(null, r.vm.pastLessons.value)
+        assertTrue(r.group.done.isNotEmpty())
+        assertTrue(r.group.done.all { it.date.isBefore(d("2026-10-24")) })
+        assertFalse(nextLessonDate(r).isBefore(d("2026-10-24")))
+        assertEquals(0, r.undoDepth)
+    }
+
+    @Test fun leavingThemAloneKeepsTheOldBacklogByHand() {
+        val r = Rig()
+        r.vm.refreshToday()
+        r.vm.answerPastLessons(false)
+        assertEquals(d("2026-10-24"), r.settings.saved.autoTickFrom)
+        r.date = d("2026-11-03")
+        r.vm.refreshToday()
+        assertTrue(r.group.done.isEmpty())
+    }
+
+    @Test fun aLessonTicksItselfWhenItsDayHasPassedAndNotBefore() {
+        val r = Rig()
+        r.date = d("2026-08-30")
+        r.vm.refreshToday()
+        assertEquals(null, r.vm.pastLessons.value)
+        r.date = d("2026-09-07")
+        r.vm.refreshToday()
+        assertTrue(r.group.done.isEmpty())
+        r.date = d("2026-09-08")
+        r.vm.refreshToday()
+        assertEquals(listOf(d("2026-09-07")), r.group.done.map { it.date })
+        assertEquals(0, r.undoDepth)
+        // Undoing an edit never un-ticks a lesson whose day has passed.
+        assertTrue(r.vm.markNextLessonDone("g1"))
+        r.vm.undo()
+        assertEquals(listOf(d("2026-09-07")), r.group.done.map { it.date })
+    }
+
+    @Test fun aLessonThatDidntHappenIsDoneWithNoPagesAndIsNotADayOff() {
+        val r = Rig()
+        r.date = d("2026-08-30")
+        r.vm.refreshToday()
+        r.date = d("2026-09-07")
+        r.vm.refreshToday()
+        assertTrue(r.vm.lessonNotTaught("g1", d("2026-09-07")))
+        val done = r.group.done.single()
+        assertEquals(d("2026-09-07"), done.date)
+        assertTrue(done.pages.isEmpty() && done.edited)
+        assertEquals(year.closures, r.years.single().closures)
+        val plan = r.vm.state.value.data.plan(r.vm.today.value)!!
+        assertEquals(100, plan.remainingPages(plan.groups.single(), sb).size)
+        assertTrue(nextLessonDate(r).isAfter(d("2026-09-07")))
     }
 
     @Test fun midnightMovesPlansBankingAndRevisionDatesTogether() {

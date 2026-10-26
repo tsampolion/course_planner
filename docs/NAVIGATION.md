@@ -567,6 +567,7 @@ flowchart LR
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
+| Yesterday line (“Yesterday: taught as planned”, “pages recorded” or “not taught”) | Tap Change | Yesterday's lesson is done | Opens a menu: Record what I taught… (↑ [Pages taught](#pages-taught)) and Lesson didn't happen (asks first, then records it with no pages and moves its pages to later lessons; Undo: “Lesson recorded as not taught”). |
 | Today / Next · lesson N box | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Opens the lesson menu for that lesson. |
 | Done (in the box, the dark button) | Tap | The shown plan is the one in use | Marks the lesson done with a drawn tick. Undo: “Lesson marked done” |
 | Pages taught (tap the pages in the box, shown with an edit icon) | Tap | Today or past lesson | ↑ Opens [Pages taught on Fri 23 Oct](#pages-taught). Opens Pages taught for it. TalkBack: a named “Pages taught” action on the pages. |
@@ -648,9 +649,20 @@ flowchart LR
 | Re-pace from here | Tap | Custom plan lesson | Spreads the remaining pages again from this lesson, keeping lessons changed by hand. Undo: “Plan re-paced” |
 | Remove lesson | Tap | Custom plan lesson | Removes it; its pages join the next lesson. Undo: “Lesson removed; its pages joined the next one” |
 | Record what I taught… | Tap | Today or past | ↑ Opens [Pages taught on Fri 23 Oct](#pages-taught). Opens Pages taught. |
+| Lesson didn't happen | Tap | Today or past lesson that is not a test, extra or already not taught | Asks first, with the pages a lesson before and after. Confirming records it as taught with no pages: no day off is added and its pages move to the lessons left. Undo: “Lesson recorded as not taught” |
 | Done up to here | Tap | Greyed when nothing up to this date is open | Marks every lesson up to this one done. Undo: “Lessons marked done” |
-| Not done from here | Tap | Greyed when nothing from this date is done | Marks this and later lessons not done. Undo: “Lessons marked not done” |
+| Not done from here | Tap | Today or a later lesson; greyed when nothing from this date is done | Marks this and later lessons not done. Undo: “Lessons marked not done” |
 | Tap outside / Back | Back |  | Closes. Closes the menu. |
+
+<a id="past-lessons"></a>
+### Past lessons
+
+*Dialog* · opens once over any screen, after an update, when lessons before today were never ticked. It has no dismiss.
+
+| Control | Gesture | When | What happens |
+| --- | --- | --- | --- |
+| Yes, treat them as taught | Tap |  | Ticks every past lesson as planned, and from now on lessons tick themselves when their day has passed. |
+| Leave them as they are | Tap |  | Keeps the old lessons to tick by hand (Done on group home); lessons from today on tick themselves. |
 
 <a id="pages-taught"></a>
 ### Pages taught on Fri 23 Oct

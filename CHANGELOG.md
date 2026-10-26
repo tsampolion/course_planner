@@ -25,6 +25,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.7.0] - 2026-10-26
+
+### Added
+
+- Lessons tick themselves. A lesson counts as taught when its day has passed (at midnight, so today's lesson stays open all day). Done still works and still ticks a lesson early.
+- A first-launch question about lessons you had left unticked in the past: tick them as taught, or leave them as they are to tick by hand. Until you answer, nothing is ticked.
+- "Lesson didn't happen" in a lesson's menu for today and earlier lessons. It asks first, shows the pages a lesson before and after, and records the lesson as taught with no pages. It adds no day off; its pages move to the lessons left. The Plan row says "Not taught".
+- A Yesterday line on group home shows how yesterday's lesson was counted, with Change to record the pages taught or that it didn't happen.
+
+### Changed
+
+- "Not done from here" is no longer offered for lessons before today, since they tick themselves again.
+
 ## [0.4.6.2] - 2026-10-26
 
 ### Fixed
@@ -969,6 +982,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.7.0]: https://github.com/tsampolion/course_planner/compare/v0.4.6.2...v0.4.7.0
 [0.4.6.2]: https://github.com/tsampolion/course_planner/compare/v0.4.6.1...v0.4.6.2
 [0.4.6.1]: https://github.com/tsampolion/course_planner/compare/v0.4.6.0...v0.4.6.1
 [0.4.6.0]: https://github.com/tsampolion/course_planner/compare/v0.4.5.0...v0.4.6.0

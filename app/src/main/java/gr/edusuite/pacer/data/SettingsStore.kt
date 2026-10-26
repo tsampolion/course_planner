@@ -7,6 +7,7 @@ import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.ClassOrder
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
+import java.time.LocalDate
 
 /** What the view model needs from the preferences, so tests can supply their own. */
 interface SettingsPort {
@@ -38,6 +39,7 @@ class SettingsStore(context: Context) : SettingsPort {
         name = prefs.getString(NAME, null).orEmpty(),
         // A copy: the set SharedPreferences returns must not be changed or kept.
         seenTips = prefs.getStringSet(TIPS, null)?.toSet().orEmpty(),
+        autoTickFrom = runCatching { LocalDate.parse(prefs.getString(AUTO_TICK_FROM, null)) }.getOrNull(),
     ).sanitised()
 
     override fun save(s: Settings) {
@@ -64,6 +66,7 @@ class SettingsStore(context: Context) : SettingsPort {
             .putBoolean(WELCOME, s.welcomeSeen)
             .putString(NAME, s.name)
             .putStringSet(TIPS, s.seenTips.toSet())
+            .apply { if (s.autoTickFrom == null) remove(AUTO_TICK_FROM) else putString(AUTO_TICK_FROM, s.autoTickFrom.toString()) }
             .apply()
     }
 
@@ -93,5 +96,7 @@ class SettingsStore(context: Context) : SettingsPort {
         const val WELCOME = "welcomeSeen"
         const val NAME = "name"
         const val TIPS = "seenTips"
+        /** The first day lessons tick themselves from; absent until the first-launch question is answered. */
+        const val AUTO_TICK_FROM = "autoTickFrom"
     }
 }

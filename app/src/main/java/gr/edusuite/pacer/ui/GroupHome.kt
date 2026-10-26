@@ -44,11 +44,13 @@ import java.time.LocalDate
 
 @Composable
 internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, actions: LessonActions,
-    padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onFix: () -> Unit, onOpen: (GroupDestination) -> Unit) {
+    padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onFix: () -> Unit, onOpen: (GroupDestination) -> Unit,
+    yesterday: Lesson? = null, onYesterdayEdit: (Lesson) -> Unit = {}, onYesterdayNotTaught: (Lesson) -> Unit = {}) {
     val fixable = remember(report) { showsFix(progressLine(report).status, groupWarnings(report)) }
     LazyColumn(contentPadding = PaddingValues(start = Space.l, end = Space.l,
         top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Rhythm.section)) {
+        if (yesterday != null) item { YesterdayLine(yesterday, { onYesterdayEdit(yesterday) }, { onYesterdayNotTaught(yesterday) }) }
         item {
             TodayBox(next, today, actions, onDone, onPagesTaught) {
                 val due = report.group.assignments.filter { it.type == AssignmentType.HOMEWORK && it.due == today && next?.date != today }

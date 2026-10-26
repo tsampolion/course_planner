@@ -134,6 +134,7 @@ fun PacerApp(vm: PacerViewModel) {
     val settings by vm.settings.collectAsState()
     val update by vm.update.collectAsState()
     val setAside by vm.setAside.collectAsState()
+    val pastLessons by vm.pastLessons.collectAsState()
     val saveProblem by vm.saveProblem.collectAsState()
     val screen = ui.screen
     val context = LocalContext.current
@@ -371,6 +372,7 @@ fun PacerApp(vm: PacerViewModel) {
         if (year != null && cls != null && group != null) androidx.compose.runtime.key(target) { UnitRevisionSheet(GroupReport(year.planFor(cls, today), group), target, vm, undoToast) }
     }
     setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
+    if (setAside == null) pastLessons?.let { PastLessonsDialog(it, { vm.answerPastLessons(true) }, { vm.answerPastLessons(false) }) }
 }
 
 @Composable

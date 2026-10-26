@@ -42,4 +42,15 @@ class LessonMenuModelTest {
         assertFalse(MenuItemKind.REMOVE in items)
         assertFalse(MenuItemKind.MOVE_EARLIER in items)
     }
+
+    @Test fun pastLessonOffersNotTaughtOnceAndNoNotDoneWhenItTicksItself() {
+        val past = lessonMenuItems(lesson.copy(done = true), isPast = true, hasCustomPlan = false, canTick = true, ticksItself = true)
+        assertTrue(MenuItemKind.NOT_TAUGHT in past)
+        assertFalse(MenuItemKind.NOT_DONE_FROM in past)
+        val again = lessonMenuItems(lesson.copy(done = true, notTaught = true), isPast = true, hasCustomPlan = false, canTick = true, ticksItself = true)
+        assertFalse(MenuItemKind.NOT_TAUGHT in again)
+        val future = lessonMenuItems(lesson, isPast = false, hasCustomPlan = false, canTick = true)
+        assertFalse(MenuItemKind.NOT_TAUGHT in future)
+        assertTrue(MenuItemKind.NOT_DONE_FROM in future)
+    }
 }

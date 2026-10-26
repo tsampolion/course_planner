@@ -7,7 +7,7 @@ import gr.edusuite.pacer.engine.fmt
 
 internal enum class MenuItemKind {
     ADD_SUPPLEMENTARY, PLAN_LESSON, ADD_BEFORE, MOVE_EARLIER, MOVE_LATER, REPACE, REMOVE,
-    RECORD_TAUGHT, DONE_UP_TO, NOT_DONE_FROM, EDIT_EXTRA, DELETE_EXTRA,
+    RECORD_TAUGHT, NOT_TAUGHT, DONE_UP_TO, NOT_DONE_FROM, EDIT_EXTRA, DELETE_EXTRA,
     ADD_HOMEWORK, EDIT_HOMEWORK, DELETE_HOMEWORK,
 }
 
@@ -31,8 +31,8 @@ internal fun homeworkActionNames(work: List<Assignment>, bookIds: List<String>, 
         if (detail.isBlank()) "" else "${i + 1}. $detail"
     }
 
-/** [isPast] includes today. Both the long-press menu and TalkBack use this choice of actions. */
-internal fun lessonMenuItems(lesson: Lesson, isPast: Boolean, hasCustomPlan: Boolean, canTick: Boolean): List<MenuItemKind> = buildList {
+/** [isPast] includes today; [ticksItself] is a lesson before today, which ticks itself, so there is no "not done" for it. Both the long-press menu and TalkBack use this choice of actions. */
+internal fun lessonMenuItems(lesson: Lesson, isPast: Boolean, hasCustomPlan: Boolean, canTick: Boolean, ticksItself: Boolean = false): List<MenuItemKind> = buildList {
     add(MenuItemKind.ADD_HOMEWORK)
     if (homeworkForLesson(lesson).isNotEmpty()) {
         add(MenuItemKind.EDIT_HOMEWORK)
@@ -55,8 +55,9 @@ internal fun lessonMenuItems(lesson: Lesson, isPast: Boolean, hasCustomPlan: Boo
     }
     if (canTick) {
         if (isPast) add(MenuItemKind.RECORD_TAUGHT)
+        if (isPast && !lesson.notTaught && !lesson.blocked && lesson.extraId == null && lesson.events.isEmpty()) add(MenuItemKind.NOT_TAUGHT)
         add(MenuItemKind.DONE_UP_TO)
-        add(MenuItemKind.NOT_DONE_FROM)
+        if (!ticksItself) add(MenuItemKind.NOT_DONE_FROM)
     }
 }
 
