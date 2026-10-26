@@ -153,6 +153,13 @@ class GroupHomeModelTest {
         assertFalse(showsFix(ProgressStatus.SHORT, emptyList()))
         assertFalse(showsFix(ProgressStatus.SHORT, listOf(GroupWarning.Missing(1))))
     }
+    @Test fun pacingLinesHaveOneLinePerCoreBookWithinTheBook() {
+        val r = report(emptyList())
+        val lines = pacingLines(r)
+        assertEquals(r.plan.books.count { !it.supplementary }, lines.size)
+        lines.forEach { assertTrue(it.fraction in 0f..1f); assertTrue(it.tick == null || it.tick in 0f..1f) }
+        assertEquals(r.plan.books.filter { !it.supplementary }.map { it.id == r.plan.lead }, lines.map { it.lead })
+    }
     @Test fun destinationsOpenTheirScreens() {
         assertEquals(Screen.GroupSettings("g"), GroupDestination.SETTINGS.screen("g"))
         assertEquals(Screen.Group("g", GroupPage.STATS), GroupDestination.STATS.screen("g"))

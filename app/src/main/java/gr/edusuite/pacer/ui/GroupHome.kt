@@ -116,7 +116,9 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
                 Text(text, style = MaterialTheme.typography.titleSmall.merge(Figures), color = if (line.status == ProgressStatus.SHORT) c.warn else c.ink, modifier = Modifier.weight(1f))
                 if (onFix == null) Chevron()
             }
-            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
+            // The pacing lines are the mark; with no core book there is nothing to draw one for, so the overall bar stays.
+            if (report.plan.books.any { !it.supplementary }) PacingLines(report)
+            else LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
         }
         // D1: a short group's repair is one tap away; the sheet it opens offers only repairs that keep the teacher's lessons.
         if (onFix != null) TextButton(onClick = onFix, modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = fixDescription }) {
