@@ -53,8 +53,9 @@ class HomeModelTest {
     }
 
     @Test fun groupsWithNothingToMeasureComeLastAndTiesKeepTheClassOrder() {
-        val noBooks = seed.copy(classes = listOf(sample.copy(books = emptyList())))
-        val cells = pacingBoard(noBooks, TEST_TODAY).single().cells
+        // No pace to measure against, so no verdict.
+        val noPace = seed.copy(classes = listOf(sample.copy(pace = 0.0)))
+        val cells = pacingBoard(noPace, TEST_TODAY).single().cells
         assertTrue(cells.all { it.short == null })
         assertEquals(listOf("ga", "gb"), cells.map { it.groupId })
     }
