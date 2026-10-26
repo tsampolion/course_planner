@@ -36,6 +36,7 @@ Each one records why a feature was built, and starts with a `Status:` line.
 - [TIDY_FIT_BRIEF.md](TIDY_FIT_BRIEF.md): Tidy and Fit to term leave the teacher's hand-edited lessons and removed-book pages alone.
 - [ONE_TODAY_BRIEF.md](ONE_TODAY_BRIEF.md): every plan the app builds reads the view model's one "today", so banking and revision dates follow midnight with the screens.
 - [REMOVED_BOOK_HISTORY_BRIEF.md](REMOVED_BOOK_HISTORY_BRIEF.md): done lessons still show pages taught from a book the group dropped, and the schema-15 codec tests.
+- [PRINT_BRIEF.md](PRINT_BRIEF.md): the printed sheet wraps and turns landscape for many books, and Print offers only scopes with lessons.
 - [UI_AUDIT_BRIEF.md](UI_AUDIT_BRIEF.md): the UI/UX audit: findings per screen, proposed design-rule changes and the order of the fix pull requests.
 - [STREAMLINING_BRIEF.md](STREAMLINING_BRIEF.md): each screen's start, purpose, next step and end, and what to remove, merge or move.
 

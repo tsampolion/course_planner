@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,24 +42,24 @@ fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss:
     val segment = rememberSegmentHaptic()
     val onlyClass = only?.let { (c, _) -> year.classes.firstOrNull { it.id == c } }
     val onlyGroup = only?.let { (_, g) -> onlyClass?.groups?.firstOrNull { it.id == g } }
-    var scope by rememberSaveable(only) { mutableStateOf(if (onlyGroup != null) PrintScope.GROUP else PrintScope.YEAR) }
+    // Only scopes with something to print are offered, so Print never hands over a blank job.
+    val available = remember(year, today, only) { PrintScopes.available(year, today, only?.first, only?.second) }
+    var picked by rememberSaveable(only) { mutableStateOf<PrintScope?>(null) }
+    val scope = picked?.takeIf { it in available } ?: available.firstOrNull()
     var margin by rememberSaveable { mutableStateOf(PrintMargin.NORMAL) }
     val className = onlyClass?.name?.ifBlank { null } ?: stringResource(R.string.print_class)
-    val choices = buildList {
-        if (onlyClass != null && onlyGroup != null) add(PrintScope.GROUP to stringResource(R.string.print_only_group, className, onlyGroup.name))
-        if (onlyClass != null) add(PrintScope.CLASS to stringResource(R.string.print_whole_class, className))
-        add(PrintScope.YEAR to stringResource(R.string.print_whole_year))
+    val choices = available.map { s ->
+        s to when (s) {
+            PrintScope.GROUP -> stringResource(R.string.print_only_group, className, onlyGroup?.name.orEmpty())
+            PrintScope.CLASS -> stringResource(R.string.print_whole_class, className)
+            PrintScope.YEAR -> stringResource(R.string.print_whole_year)
+        }
     }
     AddDialogFrame(
         stringResource(R.string.print_title),
-        canAdd = scope != PrintScope.YEAR || year.classes.isNotEmpty(),
+        canAdd = scope != null,
         onAdd = {
-            val plans = when {
-                scope == PrintScope.GROUP && onlyClass != null && onlyGroup != null -> listOf(year.planFor(onlyClass, today).copy(groups = listOf(onlyGroup)))
-                scope == PrintScope.CLASS && onlyClass != null -> listOf(year.planFor(onlyClass, today))
-                else -> year.classes.map { year.planFor(it, today) }
-            }
-            PrintSheet.print(context, year.name, plans, margin)
+            if (scope != null) PrintSheet.print(context, year.name, PrintScopes.plans(year, today, scope, only?.first, only?.second), margin)
         },
         onDismiss = onDismiss,
         confirm = stringResource(R.string.print_print),
@@ -66,7 +67,7 @@ fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss:
         Column(Modifier.selectableGroup()) {
             choices.forEach { (s, label) ->
                 Row(
-                    Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = scope == s, role = Role.RadioButton) { segment(); scope = s },
+                    Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = scope == s, role = Role.RadioButton) { segment(); picked = s },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RadioButton(selected = scope == s, onClick = null, colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = Pacer.colors.accentText))
@@ -74,7 +75,7 @@ fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss:
                 }
             }
         }
-        if (scope == PrintScope.YEAR && year.classes.isEmpty()) Hint(stringResource(R.string.print_none))
+        if (available.isEmpty()) Hint(stringResource(R.string.print_none))
         Eyebrow(stringResource(R.string.print_margins))
         SegmentedToggle(PrintMargin.entries.map { it.localizedLabel() }, PrintMargin.entries.indexOf(margin), { margin = PrintMargin.entries[it] })
         Hint(stringResource(R.string.print_margin_hint, margin.localizedLabel(), margin.mm))

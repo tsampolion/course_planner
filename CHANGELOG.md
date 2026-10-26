@@ -25,6 +25,13 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.6.1] - 2026-10-26
+
+### Fixed
+
+- Print no longer opens a blank page. The Print dialog lists only the choices that have lessons left (this group, its class, the year), the group menu hides Print when none has, and a schedule with only tests still prints.
+- The printed sheet fits the page. Notes and event labels wrap, the number, date and note columns keep a fixed width, and a group with more than four books prints in landscape.
+
 ## [0.4.6.0] - 2026-10-26
 
 ### Changed
@@ -956,6 +963,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.6.1]: https://github.com/tsampolion/course_planner/compare/v0.4.6.0...v0.4.6.1
 [0.4.6.0]: https://github.com/tsampolion/course_planner/compare/v0.4.5.0...v0.4.6.0
 [0.4.5.0]: https://github.com/tsampolion/course_planner/compare/v0.4.4.11...v0.4.5.0
 [0.4.4.11]: https://github.com/tsampolion/course_planner/compare/v0.4.4.10...v0.4.4.11

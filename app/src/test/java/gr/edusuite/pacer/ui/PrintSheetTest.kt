@@ -5,7 +5,11 @@ import java.time.LocalDate
 import java.time.DayOfWeek
 import org.junit.Assert.assertTrue
 import gr.edusuite.pacer.model.seedPlan
+import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.engine.editLesson
+import gr.edusuite.pacer.engine.toCustomPlan
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class PrintSheetTest {
@@ -42,4 +46,46 @@ class PrintSheetTest {
         assertTrue(html.contains("<td class=pg>2–3</td>"))
     }
 
+
+    private fun withBooks(n: Int): Plan {
+        val base = seedPlan()
+        val books = (1..n).map { Book("b$it", "Βιβλίο μαθητή $it", 1, 60) }
+        return base.copy(books = books, groups = base.groups.map { it.copy(extraBooks = emptySet()) })
+    }
+
+    @Test fun oneAndFourBooksStayPortraitAndEightTurnLandscape() {
+        listOf(1, 4).forEach {
+            val html = PrintSheet.html(listOf(withBooks(it)))
+            assertFalse("$it books", html.contains("size:landscape"))
+        }
+        val eight = PrintSheet.html(listOf(withBooks(8)))
+        assertTrue(eight.contains("size:landscape"))
+        assertTrue(PrintSheet.landscape(listOf(withBooks(5))))
+        assertFalse(PrintSheet.landscape(listOf(withBooks(4))))
+    }
+
+    @Test fun theTableReservesColumnsAndTextWraps() {
+        val html = PrintSheet.html(listOf(withBooks(8)))
+        assertTrue(html.contains("table-layout:fixed"))
+        assertFalse(html.contains("white-space:nowrap"))
+        assertTrue(html.contains("overflow-wrap:anywhere"))
+        val first = html.substringAfter("<colgroup>").substringBefore("</colgroup>")
+        // number, date and one column per book; no note column without notes
+        assertEquals(2 + 8, first.split("<col").size - 1)
+        assertTrue(first.startsWith("<col class=n><col class=date>"))
+        assertEquals(8, html.substringBefore("</thead>").split("<section>")[1].split("<th>Βιβλίο").size - 1)
+    }
+
+    @Test fun longGreekNotesGetTheirOwnWrappingColumn() {
+        val plan = withBooks(4)
+        val long = "Επανάληψη των ασκήσεων γραμματικής και προετοιμασία για το διαγώνισμα της επόμενης εβδομάδας ".repeat(3)
+        val first = plan.groups.first()
+        val custom = GroupReport(plan, first).toCustomPlan()
+        val edited = custom.editLesson(custom.lessons.first().id, custom.lessons.first().pages, long)
+        val withNote = plan.copy(groups = listOf(first.copy(custom = edited)))
+        val html = PrintSheet.html(listOf(withNote))
+        assertTrue(html.contains("<col class=note>"))
+        assertTrue(html.contains("<th>Note</th>"))
+        assertTrue(html.contains(long.trim()))
+    }
 }
