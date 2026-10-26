@@ -64,8 +64,6 @@ flowchart LR
 - **Tests & worksheets and Homework are unreachable.** Both are still routes with titles and Undo, but no control opens them; they only link to each group's Work page, as Class already does.
 - **Deletes have no confirmation.** Deleting a school year, a class or a group happens at once; Undo in the message is the only way back.
 - **Make a custom plan differs by place.** Create on Plan gives an Undo message; the ⋮ item (large text only) gives a plain message.
-- **The unit revision sheet opens by itself** when ticking (on Plan or Home) finishes a unit.
-- **A day-off row's long-press** offers only Add extra lesson….
 - **Creating or switching a school year clears Undo history.**
 - **Home is the only root.** Launch ignores the saved group; groups swap rather than stack.
 
@@ -202,7 +200,6 @@ flowchart LR
 | Add a class | Tap | Year without classes | → Screen [Classes](#classes). Opens Classes. |
 | Next lesson tile (Class · Group, Next · today · N of M left / overdue / date) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. |
 | Done (on the tile) | Tap |  | Marks that group's next lesson done. Undo: “Lesson marked done” |
-| Done, when it finishes a unit | Automatic | Book units on | ↑ Opens [Unit N revision](#unit-revision). The unit revision sheet opens to plan the unit's revision. |
 | “No lessons left this term” tile | Tap |  | → Screen [Pacing overview](#overview). Opens Pacing overview. |
 | Classes card: All N › | Tap |  | → Screen [Classes](#classes). Opens Classes. |
 | Classes card: a class chip | Tap |  | → Screen [Class](#class). Opens that class. |
@@ -571,9 +568,9 @@ flowchart LR
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Today / Next · lesson N box | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Opens the lesson menu for that lesson. |
-| Done (in the box) | Tap | The shown plan is the one in use | Marks the lesson done with a drawn tick. Undo: “Lesson marked done” |
+| Done (in the box, the dark button) | Tap | The shown plan is the one in use | Marks the lesson done with a drawn tick. Undo: “Lesson marked done” |
 | Pages taught (tap the pages in the box, shown with an edit icon) | Tap | Today or past lesson | ↑ Opens [Pages taught on Fri 23 Oct](#pages-taught). Opens Pages taught for it. TalkBack: a named “Pages taught” action on the pages. |
-| Homework (under Done, in the box) | Tap |  | ↑ Opens [Add homework](#assignment) for that lesson. The same action as the lesson menu's Add homework…. |
+| Homework (under Done, in the box, the light button) | Tap |  | ↑ Opens [Add homework](#assignment) for that lesson. The same action as the lesson menu's Add homework…. |
 | Homework due today / set today lines | Shows |  | Under the box. |
 | Progress strip (Lesson N of M · status) | Tap |  | → Screen [Stats](#stats). Opens Stats (read as “Open book stats”). |
 | Fix (round button beside the progress strip) | Tap | The group is short and Warnings has a lateness fix | ↑ Opens the Warnings sheet, as the top bar's warning button does. The sheet's repairs keep hand-edited lessons. |
@@ -588,14 +585,15 @@ flowchart LR
 <a id="plan"></a>
 ### Plan
 
-*Screen* · reached from [Go to a page](#page-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row's edge colour shows its kind: test, worksheet, day off, edited, by hand, free, supplementary. A taught lesson also lists, greyed and marked “(not in plan)”, pages taught from a book the group has since dropped; TalkBack says the book is no longer in the plan.
+*Screen* · reached from [Go to a page](#page-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row starts with a gutter (the day number over the weekday) and an edge colour that shows its kind: test, worksheet, day off, edited, by hand, free, supplementary. A taught lesson also lists, greyed and marked “(not in plan)”, pages taught from a book the group has since dropped; TalkBack says the book is no longer in the plan.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Weekly view / Monthly view | Toggle |  | Edit. Switches the grouping; remembered for every group. |
-| Weekly: Previous week / Next week, or swipe the day strip | Swipe |  | View. Pages the week strip. |
-| Weekly: a day in the strip | Tap |  | View. Shows that day under the strip: its lesson row, “Day off: reason” or “No lesson on date”. |
-| Weekly: Add extra lesson… / Edit extra lesson… | Tap | Selected day not taught | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet for that date. |
+| Weekly: the round ‹ › buttons, or swipe the day strip | Tap |  | View. Pages the week strip by one week. |
+| Weekly: the week label (dates, with the month under them) | Tap |  | ↑ Opens [Month picker](#month-menu). Jumps the strip to the first week of the month. |
+| Weekly: a day in the strip | Tap |  | View. Scrolls the list to that day's row (or the next listed day) and highlights it. The strip opens on the lesson after the one in the box. |
+| Weekly: + at the end of the strip | Tap |  | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet for the selected day; on a taught day it says “That day is already taught”. |
 | Monthly: Previous month / Next month | Tap |  | View. Moves a month with a slide. |
 | Monthly: the month name | Tap |  | ↑ Opens [Month picker](#month-menu). Opens a menu of the term's months. |
 | N earlier lessons › / Hide earlier lessons | Tap |  | View. Shows or folds taught lessons. |
@@ -606,10 +604,10 @@ flowchart LR
 | A lesson row: the round tick | Tap | Shown plan in use | Marks done or not done. TalkBack: the row is a checkbox. Undo: “Lesson updated” |
 | A lesson row | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). A ring draws around your finger, then the lesson menu opens. TalkBack offers the same items as actions. |
 | A custom-plan lesson's ⠿ grip | Drag | Custom plan shown | Drag up or down; the others make room. Release to move it, or cancel to drop it back. Undo: “Lesson moved” |
-| A test or worksheet row (slim) | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Takes the lesson; has the tick and the lesson menu. |
-| A day-off row (slim) | Long-press |  | ↑ Opens [Day-off row menu](#day-off-menu). A one-item menu: Add extra lesson…. |
-| Unit N revision row: Add a revision / Edit | Tap | After a unit's last lesson | ↑ Opens [Unit N revision](#unit-revision). Opens the unit revision sheet. |
-| Ticking the last lesson of a unit | Automatic | Units on | ↑ Opens [Unit N revision](#unit-revision). The unit revision sheet opens by itself. |
+| A test or worksheet row (as tall as a lesson, kind in bold) | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Takes the lesson; has the tick and the lesson menu. |
+| A day-off row (slim) | Tap |  | Nothing happens. |
+| A day-off row (slim) | Long-press |  | ↑ Opens [Day-off row menu](#day-off-menu). A one-item menu: Add extra lesson…. Once added, the day is a lesson row whose menu has Edit extra lesson… and Delete extra lesson. |
+| Unit N revision row: Add a revision / Edit (a finished unit with no decision asks “Unit N is finished. Plan its revision?”) | Tap | After a unit's last lesson | ↑ Opens [Unit N revision](#unit-revision). Opens the unit revision sheet; finishing a unit never opens it by itself. |
 | Tip: Long-press a lesson… · Got it | Tap |  | Edit. Hides the tip until Show tips again. |
 | Tablet: Work · Stats · Group settings rows | Tap | 600dp and wider, where Plan stands in for group home | → Screen [Work](#work). The group home links, at the top of Plan. |
 
@@ -634,7 +632,7 @@ flowchart LR
 <a id="lesson-menu"></a>
 ### Lesson menu
 
-*Menu* · reached from [Group home](#group-home), [Plan](#plan). Long-press a lesson in Plan (weekly or monthly), its Today box, or the selected day under the week strip. Items appear only where they apply; tick items need the plan in use.
+*Menu* · reached from [Group home](#group-home), [Plan](#plan). Long-press a lesson in Plan (weekly or monthly), its Today box, or the selected day under the week strip. Items appear only where they apply; tick items need the plan in use. With a custom plan the menu has two parts, This lesson and My plan; the plan's items (planned pages, add before, move, re-pace, remove) sit behind Edit my plan ›. TalkBack lists every item.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -964,7 +962,7 @@ flowchart LR
 <a id="unit-revision"></a>
 ### Unit N revision
 
-*Sheet* · reached from [Home](#home), [Plan](#plan), [Warnings · Class · Group](#warnings). Full height with ✕. Opens from a revision row, the Warnings sheet, or by itself when a unit's last lesson is ticked.
+*Sheet* · reached from [Home](#home), [Plan](#plan), [Warnings · Class · Group](#warnings). Full height with ✕. Opens from a revision row or the Warnings sheet.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |

@@ -39,7 +39,7 @@ internal fun assignmentTitle(a: Assignment): String = a.title.ifBlank { assignme
 internal fun assignmentEdge(type: AssignmentType) = when (type) {
     AssignmentType.HOMEWORK -> Pacer.colors.edgeHand
     AssignmentType.TEST -> Pacer.colors.edgeTest
-    AssignmentType.WORKSHEET -> Pacer.colors.edgeSupp
+    AssignmentType.WORKSHEET -> Pacer.colors.edgeWorksheet
 }
 
 @Composable

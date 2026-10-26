@@ -138,7 +138,8 @@ fun GroupScreen(
         }
     }
     val today = rememberToday()
-    var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.firstOrNull() ?: today).toString()) }
+    // The strip starts on the lesson after the one in the box, which the day strip would otherwise repeat.
+    var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.drop(1).firstOrNull() ?: report.lessons.firstOrNull() ?: today).toString()) }
     var extraDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var homeworkDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
@@ -160,7 +161,7 @@ fun GroupScreen(
     val actions = remember(lessons, g.id, plan.books, canTick, customActions) {
         LessonActions(
             bookNames = plan.books.map { it.name },
-            shortNames = bookLabels(plan.books),
+            shortNames = classBookLabels(report.classBooks, plan.books),
             bookIds = plan.books.map { it.id },
             supplementary = plan.books.map { it.supplementary },
             addSupplementary = if (planSupplementary) { l -> planning = l.lessonId?.let { "L$it" } ?: "S${l.slot}" } else null,
@@ -240,6 +241,15 @@ fun GroupScreen(
 
                 val planList = rememberLazyListState(initialFirstVisibleItemIndex = todayIndex)
                 LaunchedEffect(g.id, grouping, selectedMonth) { planList.scrollToItem(todayIndex) }
+                // Picking a day in the strip scrolls the list to its row (or the next one); the first pick is the opening state.
+                val chosen = LocalDate.parse(selectedDay)
+                val leading = (if (tablet) 1 else 0) + (if (earlierCount > 0) 1 else 0) + (if (earlierOpen) earlierWeeks.sumOf { 1 + it.items.size } else 0) + (if (showHero) 1 else 0) + 3
+                var pickedBefore by remember { mutableStateOf(false) }
+                LaunchedEffect(selectedDay) {
+                    if (!pickedBefore) { pickedBefore = true; return@LaunchedEffect }
+                    val target = if (next != null && !chosen.isAfter(next.date)) todayIndex else planRowIndex(leading, laterWeeks.map { s -> s.items.map { it.date } }, chosen)
+                    if (target != null) { if (motion) planList.animateScrollToItem(target) else planList.scrollToItem(target) }
+                }
                 LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = planList,
@@ -301,15 +311,9 @@ fun GroupScreen(
                             val start = plan.start
                             val end = plan.end
                             if (start != null && end != null) {
-                                DayStrip(start, end, LocalDate.parse(selectedDay), lessons.map { it.date }.toSet(), { selectedDay = it.toString() })
-                                val date = LocalDate.parse(selectedDay)
-                                val lesson = lessons.firstOrNull { it.date == date }
-                                if (lesson?.done != true) TertiaryButton(stringResource(if (lesson?.extraId == null) R.string.extra_add else R.string.extra_edit), { extraDate = date.toString() })
-                                if (lesson != null) EntryRow(Entry.Item(lesson), actions)
-                                else {
-                                    val closure = plan.closedDates(g.id)[date]
-                                    Hint(if (closure != null) stringResource(R.string.group_day_off, closure) else stringResource(R.string.group_no_on_day, date.fmt()))
-                                }
+                                DayStrip(start, end, chosen, lessons.map { it.date }.toSet(), { selectedDay = it.toString() }, onAdd = {
+                                    if (lessons.firstOrNull { it.date == chosen }?.done == true) toast(context.getString(R.string.extra_taught_day)) else extraDate = selectedDay
+                                })
                             }
                         }
                     }
@@ -355,9 +359,9 @@ fun GroupScreen(
                                         undoToast(context.getString(R.string.custom_moved))
                                     }
                                 },
-                            ) { grip -> LessonRow(ls, actions, grip) }
+                            ) { grip -> LessonRow(ls, actions, grip, selected = e.date == chosen) }
                         } else {
-                            Box(Modifier.animateItem()) { EntryRow(e, actions) }
+                            Box(Modifier.animateItem()) { EntryRow(e, actions, selected = e.date == chosen) }
                         }
                         unitWindows.filter { it.end == e.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                     }
@@ -473,8 +477,8 @@ private fun Entry.key(): String = when (this) {
 
 /** A ledger line: a lesson on one line, or a slim row for a day off or a test that takes the whole lesson. */
 @Composable
-private fun EntryRow(e: Entry, actions: LessonActions) {
-    if (e is Entry.Item && !e.lesson.blocked) LessonRow(e.lesson, actions) else SlimRow(e, actions)
+private fun EntryRow(e: Entry, actions: LessonActions, selected: Boolean = false) {
+    if (e is Entry.Item && !e.lesson.blocked) LessonRow(e.lesson, actions, selected = selected) else SlimRow(e, actions, selected)
 }
 
 /** Week sections of lines that don't move: a header, then a row per line. [tag] keeps keys apart above and below today. */
@@ -529,3 +533,18 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
     }
 }
 
+
+/**
+ * The LazyColumn position of the row for [date], or of the first listed day after it: [leading] items come first, then
+ * for each later section a header and its rows (their [sections] dates, in order). Null when no later day is listed.
+ */
+internal fun planRowIndex(leading: Int, sections: List<List<LocalDate>>, date: LocalDate): Int? {
+    var index = leading
+    for (days in sections) {
+        index += 1
+        val at = days.indexOfFirst { !it.isBefore(date) }
+        if (at >= 0) return index + at
+        index += days.size
+    }
+    return null
+}

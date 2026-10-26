@@ -46,20 +46,16 @@ internal fun SchoolYear.withUnitRevision(target: UnitRevisionTarget, revision: U
         if (group.id != target.groupId) group else group.withUnitRevision(revision, assignment)
     }) })
 
-/** Dismissal is session-only; persisted NONE decisions are filtered by pendingUnitRevisions. */
+/**
+ * The unit revision sheet opens only when the teacher asks for it (a revision row's button, or Warnings); finishing a
+ * unit never opens it by itself. Dismissing is session-only; persisted NONE decisions are filtered by pendingUnitRevisions.
+ */
 internal class UnitRevisionPrompts {
-    private val seen = mutableSetOf<UnitRevisionTarget>()
-    private val queue = ArrayDeque<UnitRevisionTarget>()
     var current: UnitRevisionTarget? = null
         private set
     fun open(target: UnitRevisionTarget) { current = target }
-    fun offer(targets: List<UnitRevisionTarget>) {
-        targets.filter { seen.add(it) }.forEach { target ->
-            if (current == null) current = target else queue.addLast(target)
-        }
-    }
     fun dismiss(target: UnitRevisionTarget) {
-        if (current == target) current = queue.removeFirstOrNull()
+        if (current == target) current = null
     }
 }
 

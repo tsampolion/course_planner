@@ -25,6 +25,18 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.6.0] - 2026-10-26
+
+### Changed
+
+- Plan, second redesign step (UI audit PR 2). Each lesson row starts with a day-number gutter of one width, and the rows keep their height. Whole-lesson tests and worksheets are as tall as lessons with the kind in bold. A day off ignores taps; a long-press still offers Add extra lesson.
+- One row for the week and the month: round chevrons step by week and the label opens the month picker. The day strip has a + pill that adds an extra lesson on the selected day. Picking a day scrolls the list to it and highlights it, and the strip starts on the lesson after the one in the box, so the duplicate row under the strip is gone.
+- The lesson menu, with a custom plan, has This lesson and My plan; the plan's actions are behind Edit my plan.
+- A book keeps its label in every group of the class ("WB2" stays "WB2" in a group that dropped "WB1").
+- Lesson kinds: worksheets get an ochre edge of their own, every kind keeps its hue in light and dark, and in Saffron light a test is no longer the warning colour.
+- Finishing a unit no longer opens the revision sheet; the unit's row on Plan asks "Unit N is finished. Plan its revision?".
+- The lesson box: Done is the dark button and Homework the light one, and the pages go two books to a line.
+
 ## [0.4.5.0] - 2026-10-26
 
 ### Changed
@@ -944,6 +956,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[0.4.6.0]: https://github.com/tsampolion/course_planner/compare/v0.4.5.0...v0.4.6.0
 [0.4.5.0]: https://github.com/tsampolion/course_planner/compare/v0.4.4.11...v0.4.5.0
 [0.4.4.11]: https://github.com/tsampolion/course_planner/compare/v0.4.4.10...v0.4.4.11
 [0.4.4.10]: https://github.com/tsampolion/course_planner/compare/v0.4.4.9...v0.4.4.10

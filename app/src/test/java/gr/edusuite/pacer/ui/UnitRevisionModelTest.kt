@@ -65,22 +65,17 @@ class UnitRevisionModelTest {
         assertEquals(a.id, changed.year!!.classes.last().groups.first().unitRevisions.single().assignmentId)
     }
 
-    @Test fun backDismissesOnlyForThisSessionAndBulkDoneQueuesEachUnitOnce() {
+    @Test fun theSheetOpensOnlyWhenAskedAndDismissOnlyClosesTheOneOpen() {
         val session = UnitRevisionPrompts()
         val first = UnitRevisionTarget("class", "group", 0)
         val second = first.copy(unitIndex = 1)
-        session.offer(listOf(first, second))
+        assertNull(session.current)
+        session.open(first)
+        assertEquals(first, session.current)
+        session.dismiss(second) // A closing animation of another sheet cannot dismiss this one.
         assertEquals(first, session.current)
         session.dismiss(first)
-        assertEquals(second, session.current)
-        session.dismiss(first) // Closing animation cannot dismiss the next sheet.
-        assertEquals(second, session.current)
-        session.dismiss(second)
-        session.offer(listOf(first, second))
         assertNull(session.current)
-        val restarted = UnitRevisionPrompts()
-        restarted.offer(listOf(first))
-        assertEquals(first, restarted.current)
     }
 
     @Test fun tickingDoneKeepsTheNextLessonsPositionWithinItsUnit() {

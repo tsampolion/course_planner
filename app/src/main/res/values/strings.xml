@@ -188,8 +188,6 @@
     <string name="group_no_before_due">No lesson before due</string>
     <string name="group_no_measure">No teaching lessons to measure yet.</string>
     <string name="group_set_pace">Set a sustainable pace on the class screen to see the verdict.</string>
-    <string name="group_day_off">Day off: %1$s</string>
-    <string name="group_no_on_day">No lesson on %1$s</string>
     <string name="group_tab_plan">Plan</string>
     <string name="group_tab_stats">Stats</string>
     <string name="group_tips">Tips</string>
@@ -619,6 +617,11 @@
     <string name="today_done">Done</string>
     <string name="today_pages_taught">Pages taught</string>
     <string name="today_homework">Homework</string>
+    <string name="menu_this_lesson">This lesson</string>
+    <string name="menu_my_plan">My plan</string>
+    <string name="component_pick_month">Choose month</string>
+    <string name="extra_taught_day">That day is already taught</string>
+    <string name="menu_edit_my_plan">Edit my plan</string>
     <string name="progress_fix">Fix</string>
     <string name="progress_fix_description">Fix. Opens Warnings</string>
     <string name="custom_line_title">Start from this schedule and make it yours.</string>
@@ -881,6 +884,7 @@
     <string name="units_revision_unscheduled">No future lesson is available. Your revision choice will be saved unscheduled; add a lesson or extend the term.</string>
     <string name="units_revision_remove">Remove revision</string>
     <string name="units_revision_add">Add a revision</string>
+    <string name="units_revision_prompt">Unit %1$d is finished. Plan its revision?</string>
     <string name="units_position">Unit %1$d of %2$d</string>
     <string name="units_lesson_position">Unit %1$d · lesson %2$d of %3$d</string>
     <string name="units_remaining">%1$s · %2$d pages left</string>

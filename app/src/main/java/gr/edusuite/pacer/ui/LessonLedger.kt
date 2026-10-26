@@ -71,6 +71,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.GroupReport
@@ -232,7 +233,10 @@ internal class CustomActions(
 )
 
 /** One entry of a lesson's menu, which TalkBack offers too while it is [enabled]. [divider] draws a line above it. */
-internal class MenuItem(val label: String, val enabled: Boolean = true, val divider: Boolean = false, val run: () -> Unit)
+internal class MenuItem(val label: String, val enabled: Boolean = true, val divider: Boolean = false, val section: MenuSection = MenuSection.LESSON, val run: () -> Unit)
+
+/** Where an item sits in the long-press menu: about the lesson itself, or editing the custom plan (behind one item). */
+internal enum class MenuSection { LESSON, MY_PLAN }
 
 /**
  * Everything a lesson offers, shared by the long-press menu and TalkBack. Future lessons offer planned pages;
@@ -271,12 +275,12 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
                 MenuItemKind.EDIT_EXTRA -> add(MenuItem(editExtra) { actions.editExtra(l) })
                 MenuItemKind.DELETE_EXTRA -> add(MenuItem(deleteExtra) { actions.deleteExtra(l) })
                 MenuItemKind.ADD_SUPPLEMENTARY -> if (addSupp != null) suppLabels.forEach { label -> add(MenuItem(label) { addSupp(l) }) }
-                MenuItemKind.PLAN_LESSON -> if (ca != null) add(MenuItem(planIt, divider = isNotEmpty()) { ca.plan(l) })
-                MenuItemKind.ADD_BEFORE -> if (ca != null) add(MenuItem(addBefore) { ca.addBefore(l) })
-                MenuItemKind.MOVE_EARLIER -> if (ca != null) add(MenuItem(earlier, enabled = l.index > 0) { ca.move(l, l.index - 1) })
-                MenuItemKind.MOVE_LATER -> if (ca != null) add(MenuItem(later, enabled = l.index < ca.last) { ca.move(l, l.index + 1) })
-                MenuItemKind.REPACE -> if (ca != null) add(MenuItem(repace) { ca.repace(l) })
-                MenuItemKind.REMOVE -> if (ca != null) add(MenuItem(remove) { ca.remove(l) })
+                MenuItemKind.PLAN_LESSON -> if (ca != null) add(MenuItem(planIt, section = kind.section()) { ca.plan(l) })
+                MenuItemKind.ADD_BEFORE -> if (ca != null) add(MenuItem(addBefore, section = kind.section()) { ca.addBefore(l) })
+                MenuItemKind.MOVE_EARLIER -> if (ca != null) add(MenuItem(earlier, enabled = l.index > 0, section = kind.section()) { ca.move(l, l.index - 1) })
+                MenuItemKind.MOVE_LATER -> if (ca != null) add(MenuItem(later, enabled = l.index < ca.last, section = kind.section()) { ca.move(l, l.index + 1) })
+                MenuItemKind.REPACE -> if (ca != null) add(MenuItem(repace, section = kind.section()) { ca.repace(l) })
+                MenuItemKind.REMOVE -> if (ca != null) add(MenuItem(remove, section = kind.section()) { ca.remove(l) })
                 MenuItemKind.RECORD_TAUGHT -> add(MenuItem(edit, divider = isNotEmpty()) { actions.edit(l) })
                 MenuItemKind.DONE_UP_TO -> add(MenuItem(upTo, enabled = actions.canUpTo(l.date)) { actions.upTo(l.date) })
                 MenuItemKind.NOT_DONE_FROM -> add(MenuItem(notFrom, enabled = actions.canNotFrom(l.date)) { actions.notFrom(l.date) })
@@ -285,15 +289,36 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     }
 }
 
-/** The menu a long-press opens: the same items TalkBack offers as custom actions. */
+/**
+ * The menu a long-press opens: the same items TalkBack offers as custom actions. With a custom plan it has two parts,
+ * "This lesson" and "My plan", and the plan's actions sit behind one "Edit my plan" item.
+ */
 @Composable
 internal fun LessonMenu(expanded: Boolean, items: List<MenuItem>, onDismiss: () -> Unit) {
+    val lesson = items.filter { it.section == MenuSection.LESSON }
+    val plan = items.filter { it.section == MenuSection.MY_PLAN }
+    var editingPlan by remember(expanded) { mutableStateOf(false) }
+    val row = @Composable { item: MenuItem -> DropdownMenuItem(text = { Text(item.label) }, enabled = item.enabled, onClick = { onDismiss(); item.run() }) }
     PacerDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        items.forEach { item ->
-            if (item.divider) HorizontalDivider(color = Pacer.colors.line)
-            DropdownMenuItem(text = { Text(item.label) }, enabled = item.enabled, onClick = { onDismiss(); item.run() })
+        if (plan.isEmpty()) {
+            items.forEach { item ->
+                if (item.divider) HorizontalDivider(color = Pacer.colors.line)
+                row(item)
+            }
+        } else {
+            MenuHeading(stringResource(R.string.menu_this_lesson))
+            lesson.forEach { row(it) }
+            HorizontalDivider(color = Pacer.colors.line)
+            MenuHeading(stringResource(R.string.menu_my_plan))
+            if (editingPlan) plan.forEach { row(it) }
+            else DropdownMenuItem(text = { Text(stringResource(R.string.menu_edit_my_plan)) }, trailingIcon = { Chevron() }, onClick = { editingPlan = true })
         }
     }
+}
+
+@Composable
+private fun MenuHeading(text: String) {
+    Text(text, style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted, modifier = Modifier.padding(horizontal = Space.l, vertical = Space.xs))
 }
 
 /**
@@ -367,7 +392,7 @@ internal fun Lesson.kind(supplementary: List<Boolean>): LessonKind = when {
 private fun LessonKind.edge(): Color = when (this) {
     LessonKind.PLAIN -> Color.Transparent
     LessonKind.TEST -> Pacer.colors.edgeTest
-    LessonKind.WORKSHEET -> Pacer.colors.edgeSupp
+    LessonKind.WORKSHEET -> Pacer.colors.edgeWorksheet
     LessonKind.DAY_OFF -> Pacer.colors.edgeDayOff
     LessonKind.EDITED -> Pacer.colors.edgeEdited
     LessonKind.HAND -> Pacer.colors.edgeHand
@@ -376,7 +401,8 @@ private fun LessonKind.edge(): Color = when (this) {
 }
 
 private val EdgeW = 4.dp
-private val DateW = 96.dp
+/** One width for the date gutter of every lesson row, day-off rows and tests included. */
+private val GutterW = 56.dp
 private val TickW = 48.dp
 
 /** A book's pages as a row shows them, "SB 38–40 · WB 20–21", with supplementary books left for the line under it. */
@@ -463,6 +489,15 @@ internal fun DrawingCheck(pulse: Int, tint: Color, modifier: Modifier) {
     })
 }
 
+/** The day number in figures over the weekday, the register-style gutter of every lesson row (it replaces the date text). */
+@Composable
+private fun DateGutter(date: LocalDate, color: Color) {
+    Column(Modifier.width(GutterW).padding(start = Space.s), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.titleMedium.merge(Figures), color = color)
+        Text(date.dayOfWeek.short().uppercase(), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted)
+    }
+}
+
 /** The round tick at a row's end: a 48dp target holding a 24dp ring, filled with a check once the lesson is done. */
 @Composable
 private fun RoundTick(done: Boolean, enabled: Boolean, onToggle: () -> Unit) {
@@ -488,7 +523,7 @@ private fun RoundTick(done: Boolean, enabled: Boolean, onToggle: () -> Unit) {
  * muted text at full contrast, never faded.
  */
 @Composable
-internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (label: String) -> Unit)? = null) {
+internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (label: String) -> Unit)? = null, selected: Boolean = false) {
     val c = Pacer.colors
     var menu by rememberSaveable(l.date.toString()) { mutableStateOf(false) }
     val items = lessonMenu(l, actions)
@@ -529,7 +564,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
     Box {
         Column {
             Row(
-                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.surface)
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (selected) c.accentSoft else c.surface)
                     .lessonNode(description, l.done, if (actions.canTick) ({ actions.toggle(l.date) }) else null, items) { menu = true },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -547,7 +582,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
                     Text(date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = ink)
                     details()
                 } else {
-                    Text(date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = ink, modifier = Modifier.width(DateW).padding(start = Space.m))
+                    DateGutter(l.date, ink)
                     Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(2.dp)) { details() }
                 }
                 if (grip != null) grip(stringResource(R.string.custom_drag, l.n))
@@ -560,12 +595,13 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
 }
 
 /**
- * A slim row for a day off or a whole-lesson test: the date and what the day holds, with its kind's edge and no lesson
- * number. A test still takes the lesson's tick and menu; a day off has none.
+ * A row for a day off or a whole-lesson test or worksheet: the gutter and what the day holds, with its kind's edge and no
+ * lesson number. A test or worksheet is as tall and as large as any lesson, with its kind in bold, and takes the lesson's
+ * tick and menu. A day off stays slim, has no tick, and does nothing when tapped: a long-press offers Add extra lesson.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun SlimRow(entry: Entry, actions: LessonActions) {
+internal fun SlimRow(entry: Entry, actions: LessonActions, selected: Boolean = false) {
     val c = Pacer.colors
     val lesson = (entry as? Entry.Item)?.lesson
     val large = rememberLargeText()
@@ -586,17 +622,26 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
         }
     }.orEmpty()
     val summary = listOf(text, pageSummary).filter { it.isNotBlank() }.joinToString(" · ")
+    // The kind word of a test or worksheet ("Test", "Worksheet") is the part before the first " · ".
+    val shown = if (lesson == null) AnnotatedString(summary) else buildAnnotatedString {
+        val cut = summary.indexOf(" · ").takeIf { it > 0 } ?: 0
+        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(summary.substring(0, cut)) }
+        append(summary.substring(cut))
+    }
     val homework = lesson?.let { homeworkSummaries(it, actions) }.orEmpty()
     val spoken = (listOf("${entry.date.format(SPOKEN_DATE)}. $summary") + homework).joinToString(". ")
+    val textStyle = if (lesson != null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodySmall
+    val textColor = if (lesson != null) (if (lesson.done) c.muted else c.ink) else c.muted
+    val pad = if (lesson != null) Space.m else Space.s
+    val longPress by rememberUpdatedState { menu = true }
     Box {
         Column {
             Row(
-                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.surface).heightIn(min = 48.dp).then(
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (selected) c.accentSoft else c.surface).heightIn(min = 48.dp).then(
                     if (lesson != null) Modifier.lessonNode(spoken, lesson.done, if (actions.canTick) ({ actions.toggle(lesson.date) }) else null, items) { menu = true }
-                    else Modifier.combinedClickable(onClick = { actions.addExtra(entry.date) }, onLongClick = { menu = true })
+                    else Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { longPress() }) }
                         .clearAndSetSemantics {
                             contentDescription = spoken
-                            onClick(addLabel) { actions.addExtra(entry.date); true }
                             onLongClick(addLabel) { menu = true; true }
                             customActions = listOf(CustomAccessibilityAction(addLabel) { actions.addExtra(entry.date); true })
                         },
@@ -605,14 +650,14 @@ internal fun SlimRow(entry: Entry, actions: LessonActions) {
             ) {
                 Box(Modifier.width(EdgeW).fillMaxHeight().padding(vertical = Space.xs).background(lesson?.kind(actions.supplementary)?.edge() ?: c.edgeDayOff))
                 val date = "${entry.date.dayOfWeek.short()} ${entry.date.fmtShort()}"
-                if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = Space.s, bottom = Space.s)) {
+                if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = pad, bottom = pad)) {
                     Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
-                    Text(summary, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                    Text(shown, style = textStyle, color = textColor)
                     if (lesson != null) HomeworkLines(lesson, actions)
                 } else {
-                    Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted, modifier = Modifier.width(DateW).padding(start = Space.m))
-                    Column(Modifier.weight(1f).padding(vertical = Space.s)) {
-                        Text(summary, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                    DateGutter(entry.date, if (lesson != null) textColor else c.muted)
+                    Column(Modifier.weight(1f).padding(vertical = pad)) {
+                        Text(shown, style = textStyle, color = textColor)
                         if (lesson != null) HomeworkLines(lesson, actions)
                     }
                 }

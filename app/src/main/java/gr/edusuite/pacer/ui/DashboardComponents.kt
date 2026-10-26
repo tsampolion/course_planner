@@ -39,6 +39,9 @@ import gr.edusuite.pacer.ui.theme.Pacer
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import kotlinx.coroutines.launch
@@ -130,7 +133,7 @@ fun DateBadge(date: LocalDate, modifier: Modifier = Modifier) {
 
 /** Seven accessible day pills per term week, paged horizontally. Dots distinguish today and lessons. */
 @Composable
-fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates: Set<LocalDate>, onSelect: (LocalDate) -> Unit, modifier: Modifier = Modifier, today: LocalDate = rememberToday()) {
+fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates: Set<LocalDate>, onSelect: (LocalDate) -> Unit, modifier: Modifier = Modifier, today: LocalDate = rememberToday(), onAdd: (() -> Unit)? = null) {
     val first = start.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
     val weeks = (ChronoUnit.WEEKS.between(first, end.coerceAtLeast(start)) + 1).toInt().coerceAtLeast(1)
     val initial = if (today in start..end) ChronoUnit.WEEKS.between(first, today).toInt().coerceIn(0, weeks - 1) else 0
@@ -142,18 +145,43 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
     val previousLabel = stringResource(R.string.component_previous_week)
     val nextLabel = stringResource(R.string.component_next_week)
     val todayLabel = stringResource(R.string.component_today)
+    val pickMonthLabel = stringResource(R.string.component_pick_month)
+    val addLabel = stringResource(R.string.extra_add)
     val lessonLabel = stringResource(R.string.component_lesson)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+      // One row: the chevrons step by week; the label says which week and month, and opens the term's months.
+      var pickMonth by remember { mutableStateOf(false) }
       Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        PaletteTextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage - 1) else pager.scrollToPage(pager.currentPage - 1) } }, enabled = pager.currentPage > 0,
-            modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = previousLabel }) { AppIcon(AppIcons.Back) }
+        PillIconButton(previousLabel, { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage - 1) else pager.scrollToPage(pager.currentPage - 1) } }, enabled = pager.currentPage > 0) { AppIcon(AppIcons.ChevronRight, modifier = Modifier.rotate(180f)) }
         val weekStart = first.plusWeeks(pager.currentPage.toLong())
-        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Eyebrow(stringResource(R.string.component_week_range, weekStart.fmtShort(), weekStart.plusDays(6).fmtShort())) }
-        PaletteTextButton(onClick = { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage + 1) else pager.scrollToPage(pager.currentPage + 1) } }, enabled = pager.currentPage < weeks - 1,
-            modifier = Modifier.size(Space.xl * 2).semantics { contentDescription = nextLabel }) { AppIcon(AppIcons.Forward) }
+        val monthName = { m: YearMonth -> m.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)) }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.clip(CircleShape).heightIn(min = 48.dp).clickable(onClickLabel = pickMonthLabel, role = Role.Button) { pickMonth = true }.padding(horizontal = Space.m),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+            ) {
+                Eyebrow(stringResource(R.string.component_week_range, weekStart.fmtShort(), weekStart.plusDays(6).fmtShort()))
+                Text(monthName(YearMonth.from(weekStart.plusDays(3))), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted)
+            }
+            PacerDropdownMenu(pickMonth, { pickMonth = false }) {
+                var month = YearMonth.from(start)
+                val last = YearMonth.from(end)
+                while (month <= last) {
+                    val option = month
+                    DropdownMenuItem(text = { Text(monthName(option)) }, onClick = {
+                        pickMonth = false
+                        val target = option.atDay(1).coerceAtLeast(start)
+                        scope.launch { pager.scrollToPage(ChronoUnit.WEEKS.between(first, target).toInt().coerceIn(0, weeks - 1)) }
+                    })
+                    month = month.plusMonths(1)
+                }
+            }
+        }
+        PillIconButton(nextLabel, { haptic(); scope.launch { if (motion) pager.animateScrollToPage(pager.currentPage + 1) else pager.scrollToPage(pager.currentPage + 1) } }, enabled = pager.currentPage < weeks - 1) { AppIcon(AppIcons.ChevronRight) }
       }
       BoxWithConstraints(Modifier.fillMaxWidth()) {
-      val dayWidth = ((maxWidth - Space.xs * 6) / 7).coerceAtLeast(if (fontScale >= 2f) Space.xxl * 2 else Space.xl * 2)
+      val slots = if (onAdd != null) 8 else 7
+      val dayWidth = ((maxWidth - Space.xs * (slots - 1)) / slots).coerceAtLeast(if (fontScale >= 2f) Space.xxl * 2 else Space.xl * 2)
       HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth(), key = { first.plusWeeks(it.toLong()).toString() }) { week ->
         val weekStart = first.plusWeeks(week.toLong())
         val index = ChronoUnit.DAYS.between(weekStart, selected).toInt()
@@ -189,6 +217,11 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
                         }
                     }
                 }
+                if (onAdd != null) Box(
+                    Modifier.width(dayWidth).height(measuredHeight).clip(CircleShape).background(Pacer.colors.accentSoft)
+                        .clickable(onClickLabel = addLabel, role = Role.Button) { haptic(); onAdd() }.semantics { contentDescription = addLabel },
+                    contentAlignment = Alignment.Center,
+                ) { CompositionLocalProvider(LocalContentColor provides Pacer.colors.onAccentSoft) { AppIcon(AppIcons.Add, Modifier.size(24.dp)) } }
             }
         }
       }

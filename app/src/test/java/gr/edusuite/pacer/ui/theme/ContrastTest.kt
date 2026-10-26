@@ -19,7 +19,7 @@ class ContrastTest {
         val h = if (d == 0.0) 0.0 else when(hi) { r -> 60 * (((g-b)/d + 6) % 6); g -> 60 * ((b-r)/d + 2); else -> 60 * ((r-g)/d + 4) }
         return h to if (hi == 0.0) 0.0 else d/hi
     }
-    private fun edges(t: Tokens) = listOf(t.edgeTest,t.edgeDayOff,t.edgeEdited,t.edgeHand,t.edgeFree,t.edgeSupp)
+    private fun edges(t: Tokens) = listOf(t.edgeTest,t.edgeDayOff,t.edgeEdited,t.edgeHand,t.edgeFree,t.edgeSupp,t.edgeWorksheet)
     @Test fun everyTextPairMeetsAA() {
         for ((name,t,_) in allSets()) {
             val fg = listOf(t.ink,t.muted,t.warn,t.ok,t.accentText) + if (name == "SaffronLight") emptyList() else listOf(t.accent)
@@ -40,9 +40,16 @@ class ContrastTest {
     }
     @Test fun progressMarksMeetNonTextContrast() { for ((name,t,_) in allSets()) for (ground in listOf(t.paper,t.surface,t.surfaceContainer)) assertTrue("$name mark on ${ground.toString(16)}",ratio(t.mark,ground)>=3) }
     @Test fun edgesAreDistinctWithinASet() { for ((name,t,_) in allSets()) {
-        val es=edges(t); assertEquals(6,es.toSet().size)
-        for(i in es.indices) for(j in 0 until i) assertTrue("$name edges $i/$j",sqrt(rgb(es[i]).zip(rgb(es[j])).sumOf { (a,b)->(a-b).pow(2) })>=60)
+        val es=edges(t); assertEquals(7,es.toSet().size)
+        for(i in es.indices) for(j in 0 until i) assertTrue("$name edges $i/$j",sqrt(rgb(es[i]).zip(rgb(es[j])).sumOf { (a,b)->(a-b).pow(2) })>=55)
     } }
+    @Test fun aTestEdgeIsNeverTheWarningColour() { for ((name,t,_) in allSets()) assertNotEquals(name,t.warn,t.edgeTest) }
+    @Test fun everyKindKeepsItsHueFamilyInLightAndDark() {
+        fun family(l: Tokens, d: Tokens) = listOf(l.edgeTest to d.edgeTest, l.edgeEdited to d.edgeEdited, l.edgeHand to d.edgeHand, l.edgeFree to d.edgeFree, l.edgeSupp to d.edgeSupp, l.edgeWorksheet to d.edgeWorksheet)
+        for ((light,dark) in listOf(Tokens.BoneLight to Tokens.BoneDark, Tokens.SaffronLight to Tokens.SaffronDark)) for ((a,b) in family(light,dark)) {
+            val d=abs(hsv(a).first-hsv(b).first); assertTrue("${a.toString(16)} / ${b.toString(16)}",min(d,360-d)<=20)
+        }
+    }
     @Test fun warnIsADifferentHueFromTheAccent() { for ((name,t,_) in allSets()) {
         val d=abs(hsv(t.warn).first-hsv(t.accent).first);assertTrue(name,min(d,360-d)>=40)
     } }

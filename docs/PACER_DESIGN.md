@@ -172,6 +172,14 @@ installed-version line. Debug builds retain About's version and hide Updates.
 Use the existing Material components, Outfit, Bone/Saffron roles and large-text
 layout. Native runtime/screenshot checks remain pending without a device.
 
+## Plan redesign (0.4.6.0)
+
+- **One hue per kind in every mode** (proposal 4): each lesson kind keeps its hue family between light and dark, a worksheet has an ochre edge of its own, and a test is never the warning colour. `ContrastTest` checks the families, the distinctness of the seven edges and the 3:1 contrast.
+- **Day-number gutters:** each lesson row starts with a gutter of one width: the day number in figures over the weekday. Rows keep their height; the kind edge is the only colour.
+- **Tests and worksheets are full lessons:** as tall and as large as any lesson, with the kind word in bold. A day off stays slim.
+- **Hero buttons:** Done is the strong (dark) button and Homework the light one in every mode. Both are 40dp so the box keeps its size. The hero's pages go two books to a line.
+- **Week and month controls** use round chevron pills, in one row with a label that opens the month picker.
+
 ## Group home redesign (0.4.5.0)
 
 Owner-approved proposals from [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md):

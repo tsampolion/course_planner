@@ -72,6 +72,16 @@ fun bookLabels(books: List<Book>): List<String> {
     }
 }
 
+/**
+ * [bookLabels] worked out over every book of the class, then picked for the books [planBooks] a group uses, so a book
+ * keeps its label in every group: a group that drops "WB1" still shows its other workbook as "WB2".
+ */
+fun classBookLabels(classBooks: List<Book>, planBooks: List<Book>): List<String> {
+    val byId = classBooks.map { it.id }.zip(bookLabels(classBooks)).toMap()
+    val own = bookLabels(planBooks)
+    return planBooks.mapIndexed { i, b -> byId[b.id] ?: own[i] }
+}
+
 /** How a week section is headed: "This week", "Next week", or only its dates. */
 enum class WeekLabel { THIS, NEXT, DATES }
 

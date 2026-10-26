@@ -93,6 +93,7 @@ data class PacerColors(
     val edgeHand: Color,
     val edgeFree: Color,
     val edgeSupp: Color,
+    val edgeWorksheet: Color,
 )
 
 internal fun colorsFor(t: Tokens) = PacerColors(
@@ -104,5 +105,5 @@ internal fun colorsFor(t: Tokens) = PacerColors(
     ok = c(t.ok), onOk = c(t.onOk), okSoft = c(t.okSoft), onOkSoft = c(t.onOkSoft),
     accent = c(t.accent), accentText = c(t.accentText), mark = c(t.mark), onAccent = c(t.onAccent), accentSoft = c(t.accentSoft), onAccentSoft = c(t.onAccentSoft),
     edgeTest = c(t.edgeTest), edgeDayOff = c(t.edgeDayOff), edgeEdited = c(t.edgeEdited), edgeHand = c(t.edgeHand),
-    edgeFree = c(t.edgeFree), edgeSupp = c(t.edgeSupp),
+    edgeFree = c(t.edgeFree), edgeSupp = c(t.edgeSupp), edgeWorksheet = c(t.edgeWorksheet),
 )

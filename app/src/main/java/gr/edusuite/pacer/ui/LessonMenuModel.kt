@@ -59,3 +59,10 @@ internal fun lessonMenuItems(lesson: Lesson, isPast: Boolean, hasCustomPlan: Boo
         add(MenuItemKind.NOT_DONE_FROM)
     }
 }
+
+/** The custom plan's actions sit in "My plan", behind one item; everything else is about the lesson itself. */
+internal fun MenuItemKind.section(): MenuSection = when (this) {
+    MenuItemKind.PLAN_LESSON, MenuItemKind.ADD_BEFORE, MenuItemKind.MOVE_EARLIER,
+    MenuItemKind.MOVE_LATER, MenuItemKind.REPACE, MenuItemKind.REMOVE -> MenuSection.MY_PLAN
+    else -> MenuSection.LESSON
+}

@@ -106,6 +106,15 @@ class GroupModelTest {
         ))
     }
 
+    @Test fun aBookKeepsItsLabelInEveryGroupOfTheClass() {
+        val wb1 = typed("a", BookType.WORKBOOK); val sb = typed("b", BookType.STUDENT); val wb2 = typed("c", BookType.WORKBOOK)
+        val all = listOf(wb1, sb, wb2)
+        assertEquals(listOf("WB1", "SB", "WB2"), classBookLabels(all, all))
+        // A group that dropped the first workbook still calls the other one WB2 (it was "WB" before).
+        assertEquals(listOf("SB", "WB2"), classBookLabels(all, listOf(sb, wb2)))
+        assertEquals(listOf("SB", "WB"), bookLabels(listOf(sb, wb2)))
+    }
+
     @Test fun repeatedTypesAreNumbered() {
         val books = listOf(typed("a", BookType.WORKBOOK), typed("b", BookType.STUDENT), typed("c", BookType.WORKBOOK))
         assertEquals(listOf("WB1", "SB", "WB2"), bookLabels(books))
