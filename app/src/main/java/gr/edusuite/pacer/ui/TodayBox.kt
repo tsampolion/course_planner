@@ -38,6 +38,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -121,8 +123,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
     // The lesson box is a fill, so the accent is a background here, never text.
     val fill = c.accent
     val hero = heroActions(next, actions.canTick)
-    val editLabel = stringResource(R.string.today_pages_taught)
-    val editPages = if (hero.canEditPages && !completing) Modifier.heightIn(min = 48.dp).clickable(onClickLabel = editLabel, role = Role.Button, onClick = onPagesTaught) else Modifier
+    val onEdit: (() -> Unit)? = if (hero.canEditPages && !completing) onPagesTaught else null
     Box(modifier) {
         Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = fill, contentColor = c.onAccent) {
             val info = @Composable { m: Modifier ->
@@ -135,14 +136,17 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                     Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall.merge(Figures))
                     if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
                     if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
-                    if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) {
-                        corePages(next, actions.shortNames, actions.supplementary).takeIf { it.isNotBlank() }?.let {
-                            Text(it, style = MaterialTheme.typography.bodyLarge.merge(Figures), modifier = editPages)
-                        }
-                        suppPages(next, actions).forEach { (_, text) -> Text(stringResource(R.string.ledger_supp, text), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
+                }
+            }
+            // The pages and the homework line sit outside the lesson node, which clears its children's semantics.
+            val details = @Composable {
+                Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    PagesHeadline(next, actions, onEdit)
+                    Column(Modifier.clearAndSetSemantics {}) {
+                        next.unitIndex?.let { Text(stringResource(R.string.units_lesson_position, it + 1, next.unitLesson, next.unitLessons), style = MaterialTheme.typography.bodySmall) }
+                        HomeworkLines(next, actions, c.onAccent)
                     }
-                    next.unitIndex?.let { Text(stringResource(R.string.units_lesson_position, it + 1, next.unitLesson, next.unitLessons), style = MaterialTheme.typography.bodySmall) }
-                    HomeworkLines(next, actions, c.onAccent)
+                    HomeworkAction(next, actions)
                 }
             }
             // Large text: the buttons go full width under the lesson instead of beside it.
@@ -163,6 +167,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
             }
             if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                 info(Modifier.fillMaxWidth())
+                details()
                 if (actions.canTick) buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally)
                 else Box(Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) { buttons(Modifier.fillMaxWidth(), Alignment.CenterHorizontally) }
                 footer?.invoke()
@@ -178,20 +183,64 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         Text(stringResource(R.string.today_done), style = MaterialTheme.typography.labelLarge)
                     }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f).then(editPages).clearAndSetSemantics {}) {
-                        if (!next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }) Text(
-                            (listOf(corePages(next, actions.shortNames, actions.supplementary)) + suppPages(next, actions).map { it.second }).filter { it.isNotBlank() }.joinToString(" · "),
-                            style = MaterialTheme.typography.bodyLarge.merge(Figures), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        )
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    PagesHeadline(next, actions, onEdit)
+                    Column(Modifier.clearAndSetSemantics {}) {
                         val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
-                        if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall)
                         HomeworkLines(next, actions, c.onAccent)
                     }
+                    HomeworkAction(next, actions)
                 }
                 footer?.invoke()
             }
         }
         LessonMenu(menu, items) { menu = false }
+    }
+}
+
+/**
+ * Today's pages as the hero's headline: one book per line in large tabular figures, wrapping instead of cutting off, with an edit
+ * icon when tapping records what was taught. TalkBack reads the full book names and gets a named "Pages taught" action.
+ */
+@Composable
+private fun PagesHeadline(next: Lesson, actions: LessonActions, onEdit: (() -> Unit)?) {
+    val shown = !next.blocked || next.cells.any { it.isNotBlank() && it != collapse(emptyList()) }
+    val core = if (shown) corePageParts(next, actions.shortNames, actions.supplementary).map { it.second } else emptyList()
+    val supp = if (shown) suppPages(next, actions).map { it.second } else emptyList()
+    if (core.isEmpty() && supp.isEmpty()) return
+    val spoken = ((if (shown) listOf(corePages(next, actions.bookNames, actions.supplementary)) else emptyList()) + supp).filter { it.isNotBlank() }.joinToString(". ")
+    val editLabel = stringResource(R.string.today_pages_taught)
+    val style = (if (core.size >= 4) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall).merge(Figures)
+    val tap = if (onEdit != null) Modifier.heightIn(min = 48.dp).clickable(onClickLabel = editLabel, role = Role.Button, onClick = onEdit) else Modifier
+    Row(
+        Modifier.fillMaxWidth().then(tap).clearAndSetSemantics {
+            contentDescription = spoken
+            if (onEdit != null) { role = Role.Button; onClick(editLabel) { onEdit(); true } }
+        },
+        horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.Top,
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+            core.forEach { Text(it, style = style) }
+            supp.forEach { Text(stringResource(R.string.ledger_supp, it), style = MaterialTheme.typography.bodySmall.merge(Figures)) }
+        }
+        if (onEdit != null) AppIcon(AppIcons.Edit, Modifier.size(20.dp).padding(top = Space.xs).alpha(.8f))
+    }
+}
+
+/** D3: adding homework for this lesson without the long-press menu. */
+@Composable
+private fun HomeworkAction(next: Lesson, actions: LessonActions) {
+    val c = Pacer.colors
+    val label = stringResource(R.string.homework_add)
+    OutlinedButton(
+        onClick = { actions.addHomework(next) }, shape = CircleShape,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = c.onAccent),
+        border = BorderStroke(1.dp, c.onAccent),
+        modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = label },
+    ) {
+        AppIcon(AppIcons.Homework, Modifier.size(18.dp))
+        Spacer(Modifier.width(Space.xs))
+        Text(stringResource(R.string.today_homework), style = MaterialTheme.typography.labelLarge)
     }
 }
