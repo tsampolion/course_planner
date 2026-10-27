@@ -43,7 +43,9 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -265,7 +267,8 @@ private fun DrawerClasses(
             is MenuRow.Heading -> Text(
                 row.name.ifBlank { stringResource(if (row.isClass) R.string.app_class else R.string.app_group) },
                 style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                modifier = indent.padding(horizontal = Space.l, vertical = Space.xs).semantics { heading() },
+                // Polite live region: drilling into a class or group announces its name, since the rows under it have just changed.
+                modifier = indent.padding(horizontal = Space.l, vertical = Space.xs).semantics { heading(); liveRegion = LiveRegionMode.Polite },
             )
             is MenuRow.ClassItem -> {
                 val description = pluralStringResource(R.plurals.home_groups_count, row.groups, row.groups)
