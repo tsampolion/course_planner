@@ -6,6 +6,8 @@ const val RELEASES_API = "https://api.github.com/repos/tsampolion/course_planner
 const val APK_URL_PREFIX = "https://github.com/tsampolion/course_planner/releases/download/"
 /** Only release pages from this repository are accepted. */
 const val PAGE_URL_PREFIX = "https://github.com/tsampolion/course_planner/releases/"
+/** The page shared with other teachers; it always shows the newest release. */
+const val RELEASE_LATEST_URL = PAGE_URL_PREFIX + "latest"
 /** Automatic checks are separated by one day. */
 const val CHECK_INTERVAL_MS = 86_400_000L
 /** Maximum number of nonempty release-note lines shown. */
@@ -43,6 +45,9 @@ fun parseVersion(s: String?): Version? {
 
 /** Whether latest is strictly newer. */
 fun isNewer(latest: Version, installed: Version): Boolean = latest > installed
+
+/** The text sent through the share sheet: the message, then the link on its own line. */
+fun shareText(message: String, url: String = RELEASE_LATEST_URL): String = "$message\n$url"
 
 /** Validated details of an available release. */
 data class Update(val version: String, val notes: String, val apkUrl: String, val pageUrl: String)

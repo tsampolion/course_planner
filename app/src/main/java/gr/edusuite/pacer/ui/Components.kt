@@ -406,7 +406,7 @@ fun RemoveButton(what: String, onClick: () -> Unit) {
 fun ListItemRow(title: String, detail: String, tag: String? = null, warn: Boolean = false, onRemove: () -> Unit) {
     ListGroup {
         Row(Modifier.fillMaxWidth().padding(start = Space.l, top = Space.xs, bottom = Space.xs), verticalAlignment = Alignment.CenterVertically) {
-            AppIcon(AppIcons.Info, Modifier.padding(end = Space.m))
+            AppIcon(icon, Modifier.padding(end = Space.m))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
@@ -482,7 +482,7 @@ fun ErrorBox(text: String, onFix: (() -> Unit)? = null) {
 
 /** A tappable row that opens another screen (§6 List row): a title, a muted summary, and a chevron. */
 @Composable
-fun LinkRow(title: String, detail: String, onClick: () -> Unit) {
+fun LinkRow(title: String, detail: String, icon: ImageVector = AppIcons.Info, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onClick).padding(horizontal = Space.l, vertical = Space.m),
         verticalAlignment = Alignment.CenterVertically,

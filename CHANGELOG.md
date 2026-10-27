@@ -25,6 +25,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.9.1] - 2026-10-27
+
+### Added
+
+- **Share Course Pacer** in Settings → About opens the share sheet with a short message and a link to the latest release, so you can send the app to another teacher. If no app can take it, the link is copied.
+
 ## [0.4.9.0] - 2026-10-27
 
 ### Added
@@ -1026,7 +1032,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.9.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.9.1...HEAD
+[0.4.9.1]: https://github.com/tsampolion/course_planner/compare/v0.4.9.0...v0.4.9.1
 [0.4.9.0]: https://github.com/tsampolion/course_planner/compare/v0.4.8.0...v0.4.9.0
 [0.4.8.0]: https://github.com/tsampolion/course_planner/compare/v0.4.7.0...v0.4.8.0
 [0.4.7.0]: https://github.com/tsampolion/course_planner/compare/v0.4.6.2...v0.4.7.0

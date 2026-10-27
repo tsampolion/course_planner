@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -574,11 +575,17 @@ private fun UndoSnackbar(data: SnackbarData, gate: UndoGate) {
     }
 }
 
-private fun share(context: Context, title: String, text: String) {
+/** Opens the system share sheet; false when no app can take the text. */
+internal fun share(context: Context, title: String, text: String): Boolean {
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_SUBJECT, title)
         putExtra(Intent.EXTRA_TEXT, text)
     }
-    context.startActivity(Intent.createChooser(send, title))
+    return try {
+        context.startActivity(Intent.createChooser(send, title))
+        true
+    } catch (e: ActivityNotFoundException) {
+        false
+    }
 }

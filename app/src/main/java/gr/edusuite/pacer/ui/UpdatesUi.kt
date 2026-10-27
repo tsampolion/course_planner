@@ -20,6 +20,8 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import gr.edusuite.pacer.R
+import gr.edusuite.pacer.update.RELEASE_LATEST_URL
+import gr.edusuite.pacer.update.shareText
 import gr.edusuite.pacer.ui.theme.Figures
 
 /** The available release, daily-check preference and explicit-check feedback. */
@@ -57,8 +59,21 @@ fun openLink(context: Context, url: String, toast: (String) -> Unit) {
     try {
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     } catch (e: ActivityNotFoundException) {
-        val clipboard = context.getSystemService(ClipboardManager::class.java)
-        clipboard?.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.updates_link_label), url))
+        copyLink(context, url)
         toast(context.getString(R.string.updates_no_browser))
+    }
+}
+
+private fun copyLink(context: Context, url: String) {
+    val clipboard = context.getSystemService(ClipboardManager::class.java)
+    clipboard?.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.updates_link_label), url))
+}
+
+/** Offers the app to another teacher through the share sheet, or copies the link when nothing can take it. */
+fun shareApp(context: Context, toast: (String) -> Unit) {
+    val title = context.getString(R.string.share_app_title)
+    if (!share(context, title, shareText(context.getString(R.string.share_app_message)))) {
+        copyLink(context, RELEASE_LATEST_URL)
+        toast(context.getString(R.string.share_app_copied))
     }
 }
