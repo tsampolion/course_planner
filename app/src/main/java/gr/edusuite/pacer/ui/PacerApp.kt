@@ -484,7 +484,7 @@ private fun ScreenBar(
         val lines = if (titled) titleLines(maxWidth.value, fontScale, title.length, if (fold) 1 else buttons, showMenu, switchable) else 1
         val line = MaterialTheme.typography
         val barHeight = if (lines > 1) with(LocalDensity.current) {
-            (line.labelMedium.lineHeight + line.titleLarge.lineHeight * lines).toDp() + Space.m * 2
+            line.labelMedium.lineHeight.toDp() + line.titleLarge.lineHeight.toDp() * lines + Space.m * 2
         } else TopAppBarDefaults.TopAppBarExpandedHeight
         TopAppBar(
             expandedHeight = barHeight,
