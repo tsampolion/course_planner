@@ -388,6 +388,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Import… | Tap |  | Leaves app [Import N school years?](#import). Opens the system file picker; a readable file opens the import dialog. A file over 50 MiB shows “This backup is too large to open (N MB; the limit is M MB).” |
 | Getting started | Tap |  | ↑ Opens [Welcome to Course Pacer](#welcome). Opens the welcome guide. |
 | Show tips again | Tap |  | Brings back every tip you closed. Message: “Tips will show again” |
+| About: Share Course Pacer | Tap |  | Leaves app. Opens the share sheet with a short message and the link to the latest release page. With no app to share to, copies the link. Message: “No app to share with. The download link was copied.” |
 | About | Shows |  | Version, storage note, suite and credits. |
 
 <a id="class-defaults"></a>

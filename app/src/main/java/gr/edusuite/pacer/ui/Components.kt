@@ -482,12 +482,12 @@ fun ErrorBox(text: String, onFix: (() -> Unit)? = null) {
 
 /** A tappable row that opens another screen (§6 List row): a title, a muted summary, and a chevron. */
 @Composable
-fun LinkRow(title: String, detail: String, onClick: () -> Unit) {
+fun LinkRow(title: String, detail: String, icon: ImageVector = AppIcons.Info, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onClick).padding(horizontal = Space.l, vertical = Space.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AppIcon(AppIcons.Info, Modifier.padding(end = Space.m))
+        AppIcon(icon, Modifier.padding(end = Space.m))
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(detail, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)

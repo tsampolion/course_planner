@@ -126,6 +126,7 @@ fun SettingsScreen(
         item(key = "about") {
             Section(stringResource(R.string.settings_about), modifier = Modifier.animateItem()) {
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.bodyLarge)
+                LinkRow(stringResource(R.string.share_app_title), stringResource(R.string.share_app_detail), AppIcons.Share) { shareApp(context, toast) }
                 if (!vm.updatesEnabled) Text(version, style = MaterialTheme.typography.bodyMedium.merge(Figures))
                 Hint(stringResource(R.string.settings_local_storage))
                 Hint(stringResource(R.string.settings_suite))

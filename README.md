@@ -35,7 +35,7 @@ Each line links to where the feature is explained: a decision record in `docs/` 
 - **Undo**: up to 60 steps within the open school year. [Edits and undo](docs/ARCHITECTURE.md#view-model-edits-and-undo)
 - **Backup**: export every school year to a file, import it or the web page's export. [Brief](docs/BACKUP_BRIEF.md)
 - **Two palettes**: Bone & green and Saffron & ink, light and dark. [Design](docs/PACER_DESIGN.md)
-- **Updates**: a daily check against GitHub releases, with **Download** in Settings. [Brief](docs/UPDATES_BRIEF.md)
+- **Updates**: a daily check against GitHub releases, with **Download** in Settings. [Brief](docs/UPDATES_BRIEF.md) **Share Course Pacer** in Settings → About sends another teacher a link to the latest release.
 
 School years and settings are saved on the device and included in Android backup and device-to-device transfer. Uninstalling deletes them, so export first.
 
