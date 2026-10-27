@@ -621,6 +621,7 @@
     <string name="switcher_title">Go to</string>
     <string name="switcher_open">Switch group</string>
     <string name="group_place_home">Group home</string>
+    <string name="nav_heading_count">%1$s · %2$s</string>
     <string name="nav_classes_groups">Classes &amp; Groups</string>
     <string name="nav_back_to">Back to %1$s</string>
     <string name="nav_current_page">Current page</string>

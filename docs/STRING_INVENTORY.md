@@ -38,6 +38,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `nav_hide_classes` | Hide classes and groups |  |  |
 | `nav_classes_groups` | Classes & Groups |  |  |
 | `nav_back_to` | Back to %1$s |  | Has placeholders |
+| `nav_heading_count` | %1$s · %2$s |  | Has placeholders: a class name and its group count |
 | `nav_current_page` | Current page |  |  |
 | `nav_pin` | Keep the menu open |  |  |
 | `nav_unpin` | Let the menu collapse |  |  |

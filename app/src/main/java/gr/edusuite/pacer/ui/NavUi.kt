@@ -1,6 +1,14 @@
 package gr.edusuite.pacer.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -152,6 +160,12 @@ fun AppDrawer(
     LaunchedEffect(opening) {
         if (opening) { val next = menuStateOnOpen(here); level = next.level; expanded = next.expanded }
     }
+    // With a hardware keyboard, Escape closes the modal menu; the sheet takes focus as it opens so the key reaches it.
+    val escape = remember { FocusRequester() }
+    LaunchedEffect(opening) { if (opening && !permanent) runCatching { escape.requestFocus() } }
+    val closeOnEscape = Modifier.focusRequester(escape).onPreviewKeyEvent { e ->
+        (e.key == Key.Escape && e.type == KeyEventType.KeyDown).also { if (it) onClose() }
+    }.focusable()
     val today = rememberToday()
     val status = remember(year, today) { year?.let { yearStatus(it, today) }.orEmpty() }
     val hits = remember(year, query) { year?.let { searchGroups(it, query) }.orEmpty() }
@@ -206,7 +220,7 @@ fun AppDrawer(
     }
     // A tablet at 840dp or wider can keep the menu open beside the screens; anywhere else it slides over them.
     if (permanent) PermanentDrawerSheet(Modifier.width(320.dp), drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) { content() }
-    else ModalDrawerSheet(drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) { content() }
+    else ModalDrawerSheet(closeOnEscape, drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) { content() }
 }
 
 /** The pin on a wide tablet's menu: pinned keeps it open beside the screens, unpinned lets it collapse behind ☰. */
@@ -265,7 +279,10 @@ private fun DrawerClasses(
                 DrawerRow(name, AppIcons.Back, false, { onLevel(row.to) }, indent.semantics { contentDescription = description }, accent = true)
             }
             is MenuRow.Heading -> Text(
-                row.name.ifBlank { stringResource(if (row.isClass) R.string.app_class else R.string.app_group) },
+                row.name.ifBlank { stringResource(if (row.isClass) R.string.app_class else R.string.app_group) }.let { name ->
+                    // A class shows how many groups it holds: "FCE · 2 groups".
+                    if (row.groups == null) name else stringResource(R.string.nav_heading_count, name, pluralStringResource(R.plurals.home_groups_count, row.groups, row.groups))
+                },
                 style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 // Polite live region: drilling into a class or group announces its name, since the rows under it have just changed.
                 modifier = indent.padding(horizontal = Space.l, vertical = Space.xs).semantics { heading(); liveRegion = LiveRegionMode.Polite },

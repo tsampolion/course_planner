@@ -82,7 +82,7 @@ flowchart LR
 | ⚠ N (class problems) | Tap | Class | ↑ Opens [Problems in this class](#class-problems). Opens Problems in this class. |
 | Undo / Undo (N) | Tap | Classes, Class, School year settings, Units and every group screen, while the bar has room. Greyed out at 0 | Edit. Steps back one edit. The number is how many steps are left. |
 | ⋮ More options | Tap | Group screens; on other screens only while the bar has folded Undo or warnings | ↑ Opens [⋮ Group menu](#group-menu). Opens the group menu; read as “More options, N warnings” while it holds a folded count. |
-| Folded Undo and warnings | Automatic | The title and the buttons don't fit (a long name, a narrow bar, large text) | View. Undo and ⚠ N move to the top of ⋮, which carries the warning count on a badge. The title is cut only when even that doesn't fit. |
+| Folded Undo and warnings | Automatic | The title and the buttons don't fit (a long name, a narrow bar, large text) | View. Undo and ⚠ N move to the top of ⋮, which carries the warning count on a badge. At large text, a title that still doesn't fit takes a second line and the bar grows to hold it; at the normal size it is cut with an ellipsis. |
 
 <a id="drawer"></a>
 ### ☰ Menu
@@ -92,7 +92,7 @@ flowchart LR
 **Classes & Groups** is the “You are here” list. It opens at the teacher's own place and shows one level at a time, each hiding the ones above it:
 
 - on Classes: the classes (with group counts) and All N classes;
-- on Class or Units: that class's Class settings and groups, under a back row to the classes;
+- on Class or Units: that class's Class settings and groups, under a back row to the classes and a heading that reads “FCE · 2 groups”;
 - on a group page: that group's five places, with the current one marked, under a back row to the class.
 
 Nested rows are indented and carry no icon. The row on the screen the teacher is on is highlighted and read as “Current page”. Moving inside Classes & Groups moves the list with the teacher; opening Home, Pacing overview, School year or Settings leaves a pinned menu as it was.
@@ -100,6 +100,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | 📌 Pin / unpin the menu | Tap | Window 840dp wide or more | Edit. Pinned keeps the menu open beside the screens. Unpinned collapses it behind ☰ and it slides over the screen like a phone's. Kept in Settings (`drawerPinned`). Read as “Keep the menu open” / “Let the menu collapse”. |
+| Escape (hardware keyboard) | Press | The menu is open as a drawer (below 840dp, or unpinned) | Closes. Closes the menu; a pinned menu has nothing to close. |
 | Find a class or group | Type | While a school year is open | View. Lists every group whose class and group names hold each word you type. Accents and case are ignored, so “Fce” finds “FCE”. Each hit shows its status. |
 | ✕ Clear search | Tap | While there is text | View. Empties the field and brings the menu items back. |
 | A search hit (Class · Group) | Tap |  | → Screen [Group home](#group-home). Opens that group's home, switching the open class if needed. |

@@ -211,7 +211,7 @@ sealed interface MenuRow {
     /** One step back up the list; [name] is what it goes back to, null for the list of classes. Doesn't leave the screen. */
     data class Up(val to: MenuLevel, val name: String?) : MenuRow
     /** The open class or group, over its rows. */
-    data class Heading(val name: String, val isClass: Boolean) : MenuRow
+    data class Heading(val name: String, val isClass: Boolean, val groups: Int? = null) : MenuRow
     /** Opens that class's groups in the list. */
     data class ClassItem(val classId: String, val name: String, val groups: Int) : MenuRow
     /** Opens the Classes screen. */
@@ -241,7 +241,7 @@ fun menuRows(year: SchoolYear, level: MenuLevel, screen: Screen, plansStandIn: B
         }
     }
     if (cl != null && level !is MenuLevel.Classes) {
-        return listOf(MenuRow.Up(MenuLevel.Classes, null), MenuRow.Heading(cl.name, isClass = true), MenuRow.ClassSettings(cl.id, screen == Screen.Class)) +
+        return listOf(MenuRow.Up(MenuLevel.Classes, null), MenuRow.Heading(cl.name, isClass = true, groups = cl.groups.size), MenuRow.ClassSettings(cl.id, screen == Screen.Class)) +
             cl.groups.map { MenuRow.GroupItem(cl.id, it.id, it.name, screen.groupId == it.id) }
     }
     return year.classes.map { MenuRow.ClassItem(it.id, it.name, it.groups.size) } +
@@ -257,13 +257,26 @@ fun yearShort(name: String): String {
 /** Width of an average character of the bar's title, in dp at the default text size. */
 private const val TITLE_CHAR_DP = 12f
 
+/** Width the title needs on [lines] lines, a few characters over when it wraps because a line breaks at a word. */
+private fun titleNeedDp(fontScale: Float, titleChars: Int, hasSwitcher: Boolean, lines: Int): Float {
+    val perLine = if (lines <= 1) titleChars.toFloat() else ceil(titleChars / lines.toFloat()) + 6f
+    return perLine * TITLE_CHAR_DP * fontScale + (if (hasSwitcher) 24f else 0f)
+}
+
+/** Width the title gets beside ☰ (absent on a tablet beside the permanent drawer) and [buttons] buttons. */
+private fun titleRoomDp(barDp: Float, buttons: Int, hasMenu: Boolean): Float = barDp - (if (hasMenu) 56f else 16f) - 48f * buttons - 16f
+
 /**
  * Whether the top bar should fold Undo and the warning button into ⋮ so the title keeps its room. [buttons] is how many
  * buttons follow the title now; [hasMenu] is false where ☰ isn't there (a tablet beside the permanent drawer). An estimate
  * from the title's length, the bar's width and the text size: close enough to decide, and never cuts a title that fits.
  */
-fun foldBarActions(barDp: Float, fontScale: Float, titleChars: Int, buttons: Int, hasMenu: Boolean, hasSwitcher: Boolean): Boolean {
-    val needs = titleChars * TITLE_CHAR_DP * fontScale + (if (hasSwitcher) 24f else 0f)
-    val room = barDp - (if (hasMenu) 56f else 16f) - 48f * buttons - 16f
-    return needs > room
-}
+fun foldBarActions(barDp: Float, fontScale: Float, titleChars: Int, buttons: Int, hasMenu: Boolean, hasSwitcher: Boolean): Boolean =
+    titleNeedDp(fontScale, titleChars, hasSwitcher, 1) > titleRoomDp(barDp, buttons, hasMenu)
+
+/**
+ * How many lines the title gets: two at large text when it doesn't fit on one beside the [buttons] that remain after any
+ * fold, otherwise one (a long title is then cut with an ellipsis). The bar grows to hold the second line.
+ */
+fun titleLines(barDp: Float, fontScale: Float, titleChars: Int, buttons: Int, hasMenu: Boolean, hasSwitcher: Boolean): Int =
+    if (largeText(fontScale) && titleNeedDp(fontScale, titleChars, hasSwitcher, 1) > titleRoomDp(barDp, buttons, hasMenu)) 2 else 1

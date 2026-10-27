@@ -161,7 +161,7 @@ class NavModelTest {
         val rows = menuRows(twoClasses, MenuLevel.Class("c1"), Screen.Class)
         assertEquals(
             listOf(
-                MenuRow.Up(MenuLevel.Classes, null), MenuRow.Heading("FCE", isClass = true), MenuRow.ClassSettings("c1", current = true),
+                MenuRow.Up(MenuLevel.Classes, null), MenuRow.Heading("FCE", isClass = true, groups = 2), MenuRow.ClassSettings("c1", current = true),
                 MenuRow.GroupItem("c1", "ga", "Group A", false), MenuRow.GroupItem("c1", "gb", "Group B", false),
             ),
             rows,
@@ -237,6 +237,16 @@ class NavModelTest {
         val title = "Group A".length
         assertTrue(!foldBarActions(360f, 1f, title, 3, hasMenu = true, hasSwitcher = true))
         assertTrue(foldBarActions(360f, 2f, title, 3, hasMenu = true, hasSwitcher = true))
+    }
+
+    @Test fun largeTextGivesALongTitleASecondLineAfterTheButtonsFold() {
+        val title = "Advanced Conversation Thursday".length
+        // 360dp at 200%: even with only ⋮ left the title doesn't fit on one line.
+        assertEquals(2, titleLines(360f, 2f, title, 1, hasMenu = true, hasSwitcher = true))
+        // At the normal size the same title is cut, never wrapped.
+        assertEquals(1, titleLines(360f, 1f, title, 1, hasMenu = true, hasSwitcher = true))
+        // A title that fits keeps one line at any size.
+        assertEquals(1, titleLines(360f, 2f, "A".length, 1, hasMenu = true, hasSwitcher = true))
     }
 
     @Test fun aWideBarNeverFolds() {

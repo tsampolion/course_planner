@@ -480,7 +480,14 @@ private fun ScreenBar(
         val foldable = warnings > 0 || undoDepth != null
         val buttons = (if (warnings > 0) 1 else 0) + (if (undoDepth != null) 1 else 0) + (if (groupMenu != null) 1 else 0)
         val fold = titled && foldable && foldBarActions(maxWidth.value, fontScale, title.length, buttons, showMenu, switchable)
+        // At large text a title that still doesn't fit, even with the buttons folded, takes a second line and the bar grows to hold it.
+        val lines = if (titled) titleLines(maxWidth.value, fontScale, title.length, if (fold) 1 else buttons, showMenu, switchable) else 1
+        val line = MaterialTheme.typography
+        val barHeight = if (lines > 1) with(LocalDensity.current) {
+            (line.labelMedium.lineHeight + line.titleLarge.lineHeight * lines).toDp() + Space.m * 2
+        } else TopAppBarDefaults.TopAppBarExpandedHeight
         TopAppBar(
+            expandedHeight = barHeight,
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             navigationIcon = {
                 if (showMenu) MenuButton(onMenu, menuBadge)
@@ -494,7 +501,7 @@ private fun ScreenBar(
                             Text(
                                 title,
                                 style = MaterialTheme.typography.titleLarge,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f, fill = false),
+                                maxLines = lines, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f, fill = false),
                             )
                             if (switchable) AppIcon(AppIcons.ArrowDropDown)
                         }
