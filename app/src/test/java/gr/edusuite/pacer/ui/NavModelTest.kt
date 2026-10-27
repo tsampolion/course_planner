@@ -94,21 +94,162 @@ class NavModelTest {
         assertEquals(wholeLessons(lag.lag.lessonsBehind), lag.lessons)
     }
 
-    @Test fun homeListsOtherGroups() {
+    // ---- the title switcher: one sheet for every group page -------------------------------
+
+    @Test fun switcherListsThePlacesInFixedOrderWithTheCurrentOneMarked() {
+        val order = listOf(GroupPlace.HOME, GroupPlace.PLAN, GroupPlace.WORK, GroupPlace.STATS, GroupPlace.SETTINGS)
+        val cases = mapOf(
+            Screen.Group("a") to GroupPlace.HOME,
+            Screen.Group("a", GroupPage.PLAN) to GroupPlace.PLAN,
+            Screen.Group("a", GroupPage.WORK) to GroupPlace.WORK,
+            Screen.Group("a", GroupPage.STATS) to GroupPlace.STATS,
+            Screen.GroupSettings("a") to GroupPlace.SETTINGS,
+        )
+        for ((screen, here) in cases) {
+            val pages = switcherPages(screen)
+            assertEquals("$screen", order, pages.map { it.place })
+            assertEquals("$screen", listOf(here), pages.filter { it.current }.map { it.place })
+        }
+    }
+
+    @Test fun onATabletGroupHomeCountsAsPlanAndIsNotListedTwice() {
+        val tablet = switcherPages(Screen.Group("a"), plansStandIn = true)
+        assertEquals(GroupPlace.PLAN, tablet.single { it.current }.place)
+        assertEquals(listOf(GroupPlace.PLAN, GroupPlace.WORK, GroupPlace.STATS, GroupPlace.SETTINGS), tablet.map { it.place })
+        assertEquals(GroupPlace.HOME, switcherPages(Screen.Group("a"), plansStandIn = false).single { it.current }.place)
+    }
+
+    @Test fun switcherOffersTheOpenClassesOtherGroupsAfterThePlaces() {
         val groups = listOf(group("a", "A"), group("b", "B"), group("c", "C"))
-        val entries = switcherEntries(Screen.Group("b"), groups) as SwitcherEntries.Groups
-        assertEquals(listOf("a", "c"), entries.others.map { it.id })
+        assertEquals(listOf("a", "c"), switcherGroups(groups, "b").map { it.id })
+        assertTrue(switcherGroups(listOf(group("a", "A")), "a").isEmpty())
     }
-    @Test fun nestedListsOtherThreePages() {
-        val groups = listOf(group("a", "A"), group("b", "B"))
-        val plan = switcherEntries(Screen.Group("a", GroupPage.PLAN), groups) as SwitcherEntries.Pages
-        assertEquals("a", plan.groupId)
-        assertEquals(listOf(GroupDestination.WORK, GroupDestination.STATS, GroupDestination.SETTINGS), plan.pages)
-        val settings = switcherEntries(Screen.GroupSettings("a"), groups) as SwitcherEntries.Pages
-        assertEquals(listOf(GroupDestination.PLAN, GroupDestination.WORK, GroupDestination.STATS), settings.pages)
+
+    @Test fun everyPlaceOpensItsOwnScreen() {
+        assertEquals(Screen.Group("g"), GroupPlace.HOME.screen("g"))
+        assertEquals(Screen.Group("g", GroupPage.PLAN), GroupPlace.PLAN.screen("g"))
+        assertEquals(Screen.Group("g", GroupPage.WORK), GroupPlace.WORK.screen("g"))
+        assertEquals(Screen.Group("g", GroupPage.STATS), GroupPlace.STATS.screen("g"))
+        assertEquals(Screen.GroupSettings("g"), GroupPlace.SETTINGS.screen("g"))
     }
-    @Test fun singleGroupHasNoOtherGroups() {
-        val entries = switcherEntries(Screen.Group("a"), listOf(group("a", "A"))) as SwitcherEntries.Groups
-        assertTrue(entries.others.isEmpty())
+
+    // ---- the ☰ menu: Classes & Groups opens where the teacher is --------------------------
+
+    private val fce = schoolClass("c1", "FCE", 4.0, listOf(group("ga", "Group A"), group("gb", "Group B")))
+    private val b1 = schoolClass("c2", "B1", 4.0, listOf(group("gc", "Group C")))
+    private val twoClasses = year(fce, b1)
+
+    @Test fun theMenuOpensAtTheScreenTheTeacherIsOn() {
+        assertEquals(MenuLevel.Group("c1", "ga"), menuLevelFor(Screen.Group("ga", GroupPage.PLAN), "c1"))
+        assertEquals(MenuLevel.Group("c1", "ga"), menuLevelFor(Screen.GroupSettings("ga"), "c1"))
+        assertEquals(MenuLevel.Class("c1"), menuLevelFor(Screen.Class, "c1"))
+        assertEquals(MenuLevel.Class("c1"), menuLevelFor(Screen.Units, "c1"))
+        assertEquals(MenuLevel.Classes, menuLevelFor(Screen.Classes, ""))
+        for (s in listOf(Screen.Home, Screen.Overview, Screen.YearSettings, Screen.Settings)) assertNull("$s", menuLevelFor(s, "c1"))
+    }
+
+    @Test fun theClassesLevelListsEveryClassThenAllClasses() {
+        val rows = menuRows(twoClasses, MenuLevel.Classes, Screen.Classes)
+        assertEquals(
+            listOf(MenuRow.ClassItem("c1", "FCE", 2), MenuRow.ClassItem("c2", "B1", 1), MenuRow.AllClasses(2, current = true)),
+            rows,
+        )
+        assertTrue(menuRows(year(), MenuLevel.Classes, Screen.Classes).isEmpty())
+    }
+
+    @Test fun aClassLevelHidesTheOtherClassesAndListsItsSettingsAndGroups() {
+        val rows = menuRows(twoClasses, MenuLevel.Class("c1"), Screen.Class)
+        assertEquals(
+            listOf(
+                MenuRow.Up(MenuLevel.Classes, null), MenuRow.Heading("FCE", isClass = true, groups = 2), MenuRow.ClassSettings("c1", current = true),
+                MenuRow.GroupItem("c1", "ga", "Group A", false), MenuRow.GroupItem("c1", "gb", "Group B", false),
+            ),
+            rows,
+        )
+        assertTrue(rows.none { it is MenuRow.ClassItem })
+    }
+
+    @Test fun aGroupLevelListsItsFivePlacesAndMarksTheOpenOne() {
+        val rows = menuRows(twoClasses, MenuLevel.Group("c1", "ga"), Screen.Group("ga", GroupPage.STATS))
+        assertEquals(MenuRow.Up(MenuLevel.Class("c1"), "FCE"), rows[0])
+        assertEquals(MenuRow.Heading("Group A", isClass = false), rows[1])
+        val places = rows.filterIsInstance<MenuRow.PlaceItem>()
+        assertEquals(GroupPlace.entries.toList(), places.map { it.place })
+        assertEquals(listOf(GroupPlace.STATS), places.filter { it.current }.map { it.place })
+        // Another group's page is not "here" for this group.
+        assertTrue(menuRows(twoClasses, MenuLevel.Group("c1", "gb"), Screen.Group("ga", GroupPage.STATS)).filterIsInstance<MenuRow.PlaceItem>().none { it.current })
+    }
+
+    @Test fun theWayUpFromEachLevelGoesOneStepUp() {
+        val group = menuRows(twoClasses, MenuLevel.Group("c1", "ga"), Screen.Group("ga")).first() as MenuRow.Up
+        assertEquals(MenuLevel.Class("c1"), group.to)
+        assertEquals("FCE", group.name)
+        val cls = menuRows(twoClasses, MenuLevel.Class("c1"), Screen.Class).first() as MenuRow.Up
+        assertEquals(MenuLevel.Classes, cls.to)
+        assertNull(cls.name)
+    }
+
+    @Test fun aDeletedClassOrGroupFallsBackToTheLevelAbove() {
+        assertEquals(menuRows(twoClasses, MenuLevel.Classes, Screen.Home), menuRows(twoClasses, MenuLevel.Class("gone"), Screen.Home))
+        assertEquals(menuRows(twoClasses, MenuLevel.Class("c1"), Screen.Home), menuRows(twoClasses, MenuLevel.Group("c1", "gone"), Screen.Home))
+        assertEquals(menuRows(twoClasses, MenuLevel.Classes, Screen.Home), menuRows(twoClasses, MenuLevel.Group("gone", "ga"), Screen.Home))
+    }
+
+    @Test fun onATabletTheGroupLevelMarksPlanForGroupHome() {
+        val places = menuRows(twoClasses, MenuLevel.Group("c1", "ga"), Screen.Group("ga"), plansStandIn = true).filterIsInstance<MenuRow.PlaceItem>()
+        assertEquals(listOf(GroupPlace.PLAN), places.filter { it.current }.map { it.place })
+        // Group home is shown as Plan there, so it is not offered as a second row.
+        assertTrue(places.none { it.place == GroupPlace.HOME })
+    }
+
+    @Test fun theListFollowsTheTeacherInsideItAndStaysPutOutsideIt() {
+        val open = MenuState(MenuLevel.Class("c1"), expanded = true)
+        // Moving to another group opens that group's places.
+        assertEquals(MenuState(MenuLevel.Group("c1", "gb"), true), open.followScreen(MenuLevel.Group("c1", "gb")))
+        // Opening Pacing overview or Settings leaves a pinned menu as it was, open or folded.
+        assertEquals(open, open.followScreen(null))
+        assertEquals(MenuState(MenuLevel.Classes, false), MenuState(MenuLevel.Classes, false).followScreen(null))
+    }
+
+    @Test fun eachTimeTheMenuOpensItStartsAtThePlaceOrFolded() {
+        assertEquals(MenuState(MenuLevel.Group("c1", "ga"), true), menuStateOnOpen(MenuLevel.Group("c1", "ga")))
+        assertEquals(MenuState(MenuLevel.Classes, false), menuStateOnOpen(null))
+    }
+
+    @Test fun longYearNamesAreShortenedForTheMenu() {
+        assertEquals("2026–27", yearShort("2026–2027"))
+        assertEquals("2026–27", yearShort("2026-2027"))
+        assertEquals("2026–27", yearShort("2026–27"))
+        assertEquals("Year 1", yearShort(" Year 1 "))
+        assertEquals("2026–27 Aut…", yearShort("2026–2027 Autumn term"))
+        assertEquals("A very long…", yearShort("A very long year name"))
+    }
+
+    // ---- the top bar keeps the title's room ------------------------------------------------
+
+    @Test fun aShortTitleKeepsAllTheButtonsAndALongOneFoldsThem() {
+        // 360dp phone, ☰ plus warnings, Undo and ⋮.
+        assertTrue(!foldBarActions(360f, 1f, "Group A".length, 3, hasMenu = true, hasSwitcher = true))
+        assertTrue(foldBarActions(360f, 1f, "Advanced Conversation Thursday".length, 3, hasMenu = true, hasSwitcher = true))
+    }
+
+    @Test fun largeTextFoldsTitlesThatFitAtTheNormalSize() {
+        val title = "Group A".length
+        assertTrue(!foldBarActions(360f, 1f, title, 3, hasMenu = true, hasSwitcher = true))
+        assertTrue(foldBarActions(360f, 2f, title, 3, hasMenu = true, hasSwitcher = true))
+    }
+
+    @Test fun largeTextGivesALongTitleASecondLineAfterTheButtonsFold() {
+        val title = "Advanced Conversation Thursday".length
+        // 360dp at 200%: even with only ⋮ left the title doesn't fit on one line.
+        assertEquals(2, titleLines(360f, 2f, title, 1, hasMenu = true, hasSwitcher = true))
+        // At the normal size the same title is cut, never wrapped.
+        assertEquals(1, titleLines(360f, 1f, title, 1, hasMenu = true, hasSwitcher = true))
+        // A title that fits keeps one line at any size.
+        assertEquals(1, titleLines(360f, 2f, "A".length, 1, hasMenu = true, hasSwitcher = true))
+    }
+
+    @Test fun aWideBarNeverFolds() {
+        assertTrue(!foldBarActions(900f, 1f, "Advanced Conversation Thursday".length, 3, hasMenu = false, hasSwitcher = true))
     }
 }

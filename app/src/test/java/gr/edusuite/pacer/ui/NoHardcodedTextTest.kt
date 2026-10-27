@@ -31,7 +31,7 @@ class NoHardcodedTextTest {
         "DashboardComponents.kt" to setOf("expand", "segment", "segment ink", "selected day", "MMMM yyyy"),
         "SettingsScreen.kt" to setOf("updates", "about", "application/json", "backup", "defaults", "help", "name", "theme", "wt", "w", "\\uFEFF"),
         "GroupModel.kt" to setOf("[^\\\\p{L}\\\\p{N}']+", "B", "book"),
-        "NavModel.kt" to setOf("\\\\p{Mn}+", "\\\\s+"),
+        "NavModel.kt" to setOf("\\\\p{Mn}+", "\\\\s+", "^(\\\\d{4})\\\\s*[-–—/]\\\\s*\\\\d{2}(\\\\d{2})\\\\b"),
         "SetAside.kt" to setOf("application/json", "course-pacer-unreadable-.json"),
         "SaveNotice.kt" to setOf("application/json", "course-pacer-.json"),
     )

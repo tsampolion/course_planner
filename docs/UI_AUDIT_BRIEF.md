@@ -1,6 +1,6 @@
 # UI/UX audit and redesign
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fix PR 1 (Group home and the hero, 0.4.5.0), PR 2 (Plan, 0.4.6.0) and PR 3 (Home today, 0.4.8.0) are built. The others need the owner's go-ahead, one at a time.
+Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fix PR 1 (Group home and the hero, 0.4.5.0), PR 2 (Plan, 0.4.6.0), PR 3 (Home today, 0.4.8.0) and PR 4 (Menu and top bar, 0.4.9.0) are built. The others need the owner's go-ahead, one at a time.
 
 This brief records the taste-skill UI/UX audit (`PLANNED_FEATURES.md` §2 until 0.4.4.2), what it found per screen, and the order of the fix pull requests. Its companion is [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md), which covers each screen's start, purpose, next step and end.
 
@@ -46,7 +46,7 @@ Design specificity: the bones are Course Pacer's own (the ledger rows, kind edge
 
 | # | Finding | Seen | Severity |
 |---|---|---|---|
-| X1 | *(progress bar, 0.4.5.0; done tick with Plan, update dot with the menu)* **Saffron light marks under 3:1.** The progress bar fill (accent on surfaceContainer, 1.41:1), the done tick's fill (accent on surface, 1.73:1) and the update dot on ☰ (1.73:1) carry meaning but fail WCAG 1.4.11. Bone and both dark sets pass. | code | P1 |
+| X1 | *(progress bar, 0.4.5.0; done tick with Plan; update dot **done 0.4.9.0**: it uses `mark`, 10.4:1 on the menu and 9.4:1 on the bar)* **Saffron light marks under 3:1.** The progress bar fill (accent on surfaceContainer, 1.41:1), the done tick's fill (accent on surface, 1.73:1) and the update dot on ☰ (1.73:1) carry meaning but fail WCAG 1.4.11. Bone and both dark sets pass. | code | P1 |
 | X2 | *(0.4.6.0)* **Two kinds, one edge.** Worksheet lessons and supplementary pages both use `edgeSupp`, so the edge can't tell them apart (D8 promises one edge per kind). | code | P2 |
 | X3 | *(0.4.6.0)* **Edges change meaning with the mode.** In Saffron, *edited* is green in light and saffron in dark; *free* is mustard in light and green in dark. Saffron light's test edge equals `warn`, so a test reads as a problem. | code | P2 |
 | X4 | **The design doc contradicts itself.** Its Tokens section says the Home next-lesson and group today panels are neutral; its group home section and the owner's decision say the hero is accent-filled. The code follows the decision on group home and Plan, and the neutral rule on Home. | code | P2 |
@@ -61,9 +61,9 @@ Design specificity: the bones are Course Pacer's own (the ledger rows, kind edge
 | X13 | **Switch labels are separate nodes** (F11). `SwitchRow` (`ui/ClassScreens.kt:402-411`, six consumers) and Work's "Takes a lesson" switch (`WorkScreen.kt:186-190`) have a label that is neither part of the switch's node nor a touch target. H6 is the same pattern on a checkbox. Fix: `toggleable(role = Role.Switch)` on the row, with the child callback null. | code | P2 |
 | X14 | *(0.4.6.0)* **Book labels shift between groups and screens** (I5). Lesson rows use type labels (SB, WB1, WB2); Stats and Print use full names. Labels are recomputed per group, so a group that drops WB1 shows its other workbook as WB while sibling groups show WB2. Recommended: one stable class-wide abbreviation in compact views, full names in Print and Stats, and the full name always for TalkBack. | code | P3 |
 | X15 | **Wider window, narrower panes** (F12). Layout follows the whole window (`ui/Layout.kt:22-35`). At 840dp the 320dp permanent drawer arrives (`NavUi.kt:176`) on top of the 40/60 split (`PacerApp.kt:293,303`), so the panes drop from about 336/503dp at 839dp to 208/312dp. Proposal: show the permanent drawer only when both panes keep a minimum width (for example 320 and 360dp). Check at 599, 600, 839, 840 and 1024dp. | phone | P2 |
-| X16 | **Two routes nobody can reach.** `Screen.Tests` and `Screen.Homework` (`MovedWorkScreen`) keep titles, Undo and problem lists, but no control opens them; they only link on to each group's Work, as Class already does. Proposal: remove the routes (owner's yes). | code | P3 |
+| X16 | **Done (0.4.9.0).** `Screen.Tests` and `Screen.Homework` (`MovedWorkScreen`) are removed. Home's tests card had opened Tests since 0.4.8.0, so its rows now open their group's Work page. | code | P3 |
 | X17 | **Deletes with no confirmation.** Delete this school year, Delete this class and Delete group act on one tap; the Undo message is the only way back, and it closes after a later edit. Proposal: one confirm step for the three, or a longer-lived Undo. | code | P2 |
-| X18 | **One action, two outcomes.** Create on Plan makes a custom plan with an Undo message; Make a custom plan in ⋮ (large text) shows a plain message with no Undo. | code | P3 |
+| X18 | **Done (0.4.9.0).** Make a custom plan in ⋮ (large text) gives the same Undo message as Create on Plan. | code | P3 |
 | X19 | *(Plan, 0.4.6.0; Home's quiet prompt with PR 3)* **A sheet opens by itself.** Ticking the last lesson of a unit (Plan's tick or Home's Done) opens the unit revision sheet unasked, mid-class. Proposal: a quiet prompt on the row or Home tile that opens it. | code | P2 |
 | X20 | **Undo history clears silently.** Creating or switching a school year empties Undo, and the bar's Undo count drops to 0 without a word. | code | P3 |
 | X21 | *(Plan unchanged; Group settings and School year with PR 6)* **Long-press means different things on a day off.** On Plan it offers only Add extra lesson…; in Group settings it offers Edit and Delete; on School year it offers Remove (X9's pattern). | code | P3 |
@@ -131,9 +131,9 @@ Lessons now tick themselves, so there is no overdue lesson to tick by mistake, a
 
 | # | Finding | Seen | Severity |
 |---|---|---|---|
-| N1 | **No way up but system Back** on Plan, Work, Stats, Group settings, Units and Class. The owner keeps ☰ everywhere; the menu should then show where you are and offer the way up (streamlining brief). | code | P2 |
-| N2 | The group menu shows the same sections on every group page, with a "Plan" heading that can be empty, and mixes items with and without icons. | code | P3 |
-| N3 | On a group, the top bar can hold ☰, a two-line title with a switcher arrow, warnings, Undo and ⋮. With a long group name the title is cut first. | phone | P3 |
+| N1 | **Done (0.4.9.0).** The menu's Classes & Groups list opens at the teacher's place (class, group or its pages) with the current page marked and a back row up. The owner kept the five main items fixed and chose no link on the context line and no recent groups. | code | P2 |
+| N2 | **Done (0.4.9.0).** The group menu shows only the sections that have items, Work leaves out the lesson sections, and every item has an icon. | code | P3 |
+| N3 | **Done (0.4.9.0).** When the title and buttons don't fit, Undo and the warnings fold into ⋮, which carries the count. | phone | P3 |
 
 ### Stats and Work
 
@@ -163,7 +163,7 @@ Lessons now tick themselves, so there is no overdue lesson to tick by mistake, a
 |---|---|---|---|
 | D1 | The three sheet frames end differently (X7). | code | P2 |
 | D2 | Print for the whole class or year is only reachable from one group's ⋮. | code | P3 |
-| D3 | The update dot on ☰ is near-invisible in Saffron light (X1); Settings' Updates section is clear. | code | P2 |
+| D3 | **Done (0.4.9.0).** The update dot uses `mark` (X1); Settings' Updates section was already clear. | code | P2 |
 | D4 | The welcome page is a numbered four-step list with accent circles (X11). | phone | P3 |
 | D5 | Warnings, Catch up and the group switcher follow the design. | code | none |
 
@@ -178,7 +178,7 @@ Lessons now tick themselves, so there is no overdue lesson to tick by mistake, a
 ## Proposed changes to `PACER_DESIGN.md` (each needs a yes)
 
 1. **Today's lesson is the accent fill wherever it is the screen's focal point** (group home, Plan, Home's today block), replacing the neutral-panel line (X4, H2).
-2. **D5, enhanced:** ☰ on every screen, and the menu opens with a "You are here" block: the open class and group, their pages, and the way up (N1).
+2. **D5, enhanced (approved 0.4.9.0, in a different form):** ☰ on every screen, and the menu's Classes & Groups list opens at the teacher's place with the current page marked and a back row up (N1).
 3. **Saffron light marks:** progress fills, ticks and dots use `ink` or `accentText`, never the fill accent, on light paper (X1).
 4. **One hue per kind in every mode,** and a worksheet edge of its own (X2, X3). `ContrastTest` gains a check that kinds keep their hue family across modes.
 5. **No action by long-press alone:** every long-press item also has a visible way in, as removal already does (X6).
@@ -206,7 +206,7 @@ Each is its own session and PR, approved by the owner one at a time. Redesign wo
 | 1 | **Group home and the hero** | G1–G6 (G1 includes F09), X1 (progress bar), X5 (pills), D-proposals 1, 3, 6, the pages headline and pacing lines | M |
 | 2 | **Plan** | P1–P6, X14, X2, X3, X9 (week and month controls), X19, X21, D-proposal 4, ledger gutters | L |
 | 3 | **Home today** | H1–H6 (with F16 and F07), D-proposal 7; needs a `HomeModel` change and tests | M |
-| 4 | **Menu and top bar** | N1–N3, D-proposal 2, X1 (update dot), X16, X18 | M |
+| 4 | **Menu and top bar** (built, 0.4.9.0) | N1–N3, D-proposal 2, X1 (update dot), X16, X18 | M |
 | 5 | **One sheet frame** | X7, D1, D2, X12, X13, F18 (streamlining S4); every sheet ends the same way | L |
 | 6 | **Set-up screens** | C1–C5 (with F17), X6 (Group settings), X17, X20, D-proposal 5; removals only with the owner's yes | L |
 | 7 | **Stats and Work** | S1–S3, W1 | S |

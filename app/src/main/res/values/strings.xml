@@ -6,7 +6,6 @@
     <string name="app_overview">Pacing overview</string>
     <string name="app_classes">Classes</string>
     <string name="app_class">Class</string>
-    <string name="app_tests">Tests &amp; worksheets</string>
     <string name="app_group">Group</string>
     <string name="app_undo">Undo</string>
     <string name="app_deleted">Deleted “%1$s”</string>
@@ -31,7 +30,6 @@
     <string name="class_homework_pages">%1$s %2$d–%3$d</string>
     <string name="class_set_on">Set %1$s</string>
     <string name="class_no_homework_group">None yet</string>
-    <string name="app_homework_short">Homework</string>
     <string name="class_problems_title">Problems in this class</string>
     <string name="class_book_guide">Add each coursebook with its first and last page, like Student\'s Book pp. 1–160. Each book is paced on its own. Then check each group\'s lesson days below and tap Open schedule.</string>
     <string name="class_add_the_books_you_teach_from">Add the books you teach from</string>
@@ -605,8 +603,8 @@
     <string name="nav_home">Home</string>
     <string name="nav_year">School year</string>
     <string name="nav_year_named">School year · %1$s</string>
-    <string name="nav_show_classes">Show classes</string>
-    <string name="nav_hide_classes">Hide classes</string>
+    <string name="nav_show_classes">Show classes and groups</string>
+    <string name="nav_hide_classes">Hide classes and groups</string>
     <string name="nav_class_group">%1$s · %2$s</string>
     <plurals name="nav_behind">
         <item quantity="one">%d behind</item>
@@ -620,10 +618,15 @@
         <item quantity="one">The class</item>
         <item quantity="other">All %d classes</item>
     </plurals>
-    <string name="switcher_title">Go to a group</string>
+    <string name="switcher_title">Go to</string>
     <string name="switcher_open">Switch group</string>
-    <string name="switcher_recent">Recent</string>
-    <string name="switcher_pages_title">Go to a page</string>
+    <string name="group_place_home">Group home</string>
+    <string name="nav_heading_count">%1$s · %2$s</string>
+    <string name="nav_classes_groups">Classes &amp; Groups</string>
+    <string name="nav_back_to">Back to %1$s</string>
+    <string name="nav_current_page">Current page</string>
+    <string name="nav_pin">Keep the menu open</string>
+    <string name="nav_unpin">Let the menu collapse</string>
     <string name="status_on_pace">On pace</string>
     <plurals name="status_short">
         <item quantity="one">Short by %d lesson</item>
@@ -666,6 +669,7 @@
     <string name="ledger_lesson_spoken">Lesson %1$d, %2$s. %3$s</string>
     <string name="ledger_mark_not_done">Mark not done</string>
     <string name="group_more">More options</string>
+    <string name="bar_more_warnings">%1$s, %2$s</string>
     <string name="group_print">Print</string>
     <string name="print_only_group">This group: %1$s · %2$s</string>
     <string name="print_whole_class">Every group in %1$s</string>

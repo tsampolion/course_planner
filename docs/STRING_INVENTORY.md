@@ -21,14 +21,12 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `app_overview` | Pacing overview |  |  |
 | `app_classes` | Classes |  |  |
 | `app_class` | Class |  |  |
-| `app_tests` | Tests & worksheets |  |  |
 | `app_group` | Group |  |  |
 | `app_undo` | Undo |  |  |
 | `app_deleted` | Deleted “%1$s” |  | Has placeholders |
 | `app_copied` | Copied. Paste into a spreadsheet or Word. |  |  |
 | `app_schedule` | Schedule |  |  |
 | `app_undo_steps` | one: Undo (%1$d) / other: Undo (%1$d) |  | Plural, Has placeholders |
-| `app_homework_short` | Homework |  |  |
 | `nav_menu` | Menu |  |  |
 | `nav_search` | Find a class or group |  |  |
 | `nav_clear_search` | Clear search |  |  |
@@ -36,16 +34,22 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `nav_home` | Home |  |  |
 | `nav_year` | School year |  |  |
 | `nav_year_named` | School year · %1$s |  | Has placeholders |
-| `nav_show_classes` | Show classes |  |  |
-| `nav_hide_classes` | Hide classes |  |  |
+| `nav_show_classes` | Show classes and groups |  |  |
+| `nav_hide_classes` | Hide classes and groups |  |  |
+| `nav_classes_groups` | Classes & Groups |  |  |
+| `nav_back_to` | Back to %1$s |  | Has placeholders |
+| `nav_heading_count` | %1$s · %2$s |  | Has placeholders: a class name and its group count |
+| `nav_current_page` | Current page |  |  |
+| `nav_pin` | Keep the menu open |  |  |
+| `nav_unpin` | Let the menu collapse |  |  |
+| `group_place_home` | Group home |  |  |
+| `bar_more_warnings` | %1$s, %2$s |  | Has placeholders |
 | `nav_class_group` | %1$s · %2$s |  | Has placeholders |
 | `nav_behind` | one: %d behind / other: %d behind |  | Plural, Has placeholders |
 | `nav_groups_behind` | one: %d group behind / other: %d groups behind |  | Plural, Has placeholders |
 | `nav_all_classes` | one: The class / other: All %d classes |  | Plural, Has placeholders |
-| `switcher_title` | Go to a group |  |  |
+| `switcher_title` | Go to |  |  |
 | `switcher_open` | Switch group |  |  |
-| `switcher_pages_title` | Go to a page |  |  |
-| `switcher_recent` | Recent |  |  |
 | `status_on_pace` | On pace |  |  |
 | `status_short` | one: Short by %d lesson / other: Short by %d lessons |  | Plural, Has placeholders |
 | `rows_options` | Options for %1$s |  | Has placeholders |

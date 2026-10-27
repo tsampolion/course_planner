@@ -1,6 +1,6 @@
 # Streamlining
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). D1 and D3 are built in 0.4.5.0; the owner declined G3 (D2 waits for PR 3). R3, P3 and D4 are built in 0.4.6.0. The rest ride the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), and every removal needs the owner's yes.
+Status: approved 2026-10-25; audit done (stage 1, this brief). D1 and D3 are built in 0.4.5.0; the owner declined G3 (D2 waits for PR 3). R3, P3 and D4 are built in 0.4.6.0. M1 and R2 are built in 0.4.9.0. The rest ride the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), and every removal needs the owner's yes.
 
 This brief records the streamlining pass (`PLANNED_FEATURES.md` §3 until 0.4.4.2). For every screen it answers four questions: where the teacher arrives from, what the screen is for, what the next step is, and how it ends (done, back, undo). It then lists what to remove, merge or move.
 
@@ -93,7 +93,7 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 | # | What | Why |
 |---|---|---|
 | R1 | Class's "Work" section with a link per group, and its "moved" hint | kept "for one release" in 3.11.0; Work is on every group home |
-| R2 | The old `Screen.Tests` and `Screen.Homework` routes (`MovedWorkScreen`) and their `NavTest` cases | same transition; nothing navigates to them (`ui/Nav.kt:23-24`, `PacerApp.kt:411-412`) and saved state can't restore them |
+| R2 | **Done (0.4.9.0).** The old `Screen.Tests` and `Screen.Homework` routes (`MovedWorkScreen`) and their `NavTest` cases | Home's tests rows now open their group's Work page; a saved view naming an old route opens Home |
 | R3 | The duplicate lesson row under Plan's day strip | it repeats the hero; the strip can scroll the list to the chosen day instead |
 | R4 | The Units switch and link inside the class settings sheet | Units has its own row (S3) |
 | R5 | Unused components (`ListItemRow`, `AddButton`, `Heading`, `CardRow`, `RemoveButton`) | dead code; no feature lost |
@@ -123,12 +123,7 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 
 ### The menu, enhanced (M1)
 
-The owner keeps ☰ on every screen. To give every screen a visible way up:
-
-- The menu opens with a **"You are here"** block: the open class, the open group with its pages (Home, Plan, Work, Stats, Settings), and the current one marked.
-- The small context line above each title ("2026–27 · FCE") becomes a link to its parent (the class, or the year).
-- Group pages keep the title switcher; it lists the group's pages first, then other groups, so one sheet serves both (today they are two sheets).
-- Recent groups, kept for the session today, appear in the menu under search.
+**Done (0.4.9.0), in the owner's form.** The owner keeps ☰ on every screen, and the menu's five main items keep one fixed order (Home, Pacing overview, Classes & Groups, School year, Settings). Classes & Groups opens at the teacher's place and drills down: classes, then one class's Class settings and groups, then one group's places (Group home, Plan, Work, Stats, Group settings), each level hiding the ones above it, with the current page marked and a back row up. The title switcher is one sheet: the group's places, then the class's other groups. Not built, by the owner's choice: a link on the small context line above the title, recent groups, and a search field in the switcher.
 
 ## Rules for every change
 

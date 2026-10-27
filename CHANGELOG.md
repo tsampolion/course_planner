@@ -25,6 +25,33 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.9.0] - 2026-10-27
+
+### Added
+
+- The ☰ menu's **Classes & Groups** opens where you are. On a group it shows that group's Group home, Plan, Work, Stats and Group settings with the current page marked; on a class, its Class settings and groups; on Classes, the classes. Tapping a class shows only its groups, and a back row goes up one level. The five main items keep one fixed order, each with an icon, and School year shows a short name ("2026–27").
+- On a tablet 840dp wide or more, a pin on the menu keeps it open beside the screens (as before) or lets it collapse behind ☰.
+- With a hardware keyboard, Escape closes the ☰ menu when it is a drawer (an unpinned tablet, or a phone).
+
+### Changed
+
+- The title switcher is one sheet for every group page: the group's pages (the one you are on ticked), then the class's other groups. It has no search field and no Recent list.
+- When a long title and the buttons don't fit, Undo and the warnings fold into ⋮, which carries the warning count, so the title keeps its room.
+- The ⋮ menu shows only the sections that have items, leaves out the plan and lesson sections on Work, and gives every item an icon.
+- At large text, a long title that still doesn't fit on one line takes a second line, and the top bar grows to hold it, instead of being cut.
+- Inside a class, the menu's heading reads "FCE · 2 groups".
+- The update dot on ☰ now reaches 3:1 on every palette (it was 1.73:1 in Saffron light).
+- Home's Tests & worksheets rows open their group's Work page.
+
+### Fixed
+
+- Make a custom plan in ⋮ (large text) gives the same Undo message as Create on Plan.
+
+### Removed
+
+- The unreachable Homework screen and the Tests & worksheets screen, which only listed each group's Work page. A saved view naming either opens Home.
+- The Recent list in the group switcher.
+
 ## [0.4.8.0] - 2026-10-26
 
 ### Added
@@ -999,7 +1026,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.2.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.9.0...HEAD
+[0.4.9.0]: https://github.com/tsampolion/course_planner/compare/v0.4.8.0...v0.4.9.0
 [0.4.8.0]: https://github.com/tsampolion/course_planner/compare/v0.4.7.0...v0.4.8.0
 [0.4.7.0]: https://github.com/tsampolion/course_planner/compare/v0.4.6.2...v0.4.7.0
 [0.4.6.2]: https://github.com/tsampolion/course_planner/compare/v0.4.6.1...v0.4.6.2

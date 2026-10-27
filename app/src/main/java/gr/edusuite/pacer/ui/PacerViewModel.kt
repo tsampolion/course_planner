@@ -199,15 +199,6 @@ class PacerViewModel(
     private val _saveProblem = MutableStateFlow(if (loaded.readFailed) SaveProblem.ReadLocked else null)
     val saveProblem: StateFlow<SaveProblem?> = _saveProblem.asStateFlow()
 
-    /** Groups opened this session, latest first, for the group switcher. Not saved: a new session starts empty. */
-    private val _recent = MutableStateFlow(recentAfter(emptyList(), _state.value))
-    val recent: StateFlow<List<GroupRef>> = _recent.asStateFlow()
-
-    private fun recentAfter(recent: List<GroupRef>, ui: UiState): List<GroupRef> {
-        val id = ui.screen.groupId ?: return recent
-        return Nav.recent(recent, GroupRef(ui.data.activeClass, id))
-    }
-
     private val _settings = MutableStateFlow(settingsStore.load().let { before ->
         updates.atLaunch(before).also { after -> if (after !== before) settingsStore.save(after) }
     })
@@ -320,7 +311,6 @@ class PacerViewModel(
             else -> stack
         }
         _state.value = stateFor(next, s, undoStack.size).copy(historyStep = historyStep)
-        _recent.value = recentAfter(_recent.value, _state.value)
         scheduleSave()
     }
 
@@ -391,7 +381,6 @@ class PacerViewModel(
         }
         again.setAside?.let { _setAside.value = it }
         _state.value = stateFor(withDefaultYear(again.data), Nav.launch, 0).copy(historyStep = historyStep)
-        _recent.value = recentAfter(emptyList(), _state.value)
     }
 
     /** The open year and class stay open if they still exist after the undo; otherwise the ones open at the time return. */
@@ -454,10 +443,14 @@ class PacerViewModel(
         publish(data, Nav.push(_state.value.stack, Screen.YearSettings))
     }
 
-    /** Opens a class's Tests & worksheets, from Home's card. */
-    fun openTests(classId: String) {
+    /**
+     * Opens the Work page of [groupId] in [classId], from Home's tests card; the class itself when it has no group
+     * (a class test with no group to show it in).
+     */
+    fun openWork(classId: String, groupId: String?) {
+        if (groupId == null) return openClass(classId)
         if (classId != data.activeClass) publish(data.copy(activeClass = classId))
-        open(Screen.Tests)
+        open(Screen.Group(groupId, GroupPage.WORK))
     }
 
     fun openClass(id: String) {
@@ -524,6 +517,9 @@ class PacerViewModel(
     fun setDefaultMins(v: Int) = editSettings { it.copy(lessonMins = v) }
     fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }
     fun setWelcomeSeen() = editSettings { it.copy(welcomeSeen = true) }
+
+    /** The pin on a wide tablet's menu: kept open beside the screens, or collapsed behind ☰. */
+    fun setDrawerPinned(v: Boolean) = editSettings { it.copy(drawerPinned = v) }
     fun setName(v: String) = editSettings { it.copy(name = v) }
     fun markHintSeen(id: String) = editSettings { Hints.markSeen(it, id) }
     fun showTipsAgain() = editSettings { Hints.reset(it) }

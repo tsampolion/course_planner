@@ -118,21 +118,9 @@ class NavTest {
     }
 
     @Test fun undoShowsOnlyWhereSchoolYearDataChanges() {
-        val with = listOf(Screen.Group("g"), Screen.Class, Screen.Classes, Screen.YearSettings, Screen.Tests, Screen.Homework)
+        val with = listOf(Screen.Group("g"), Screen.Class, Screen.Classes, Screen.YearSettings, Screen.Units)
         with.forEach { assertTrue("$it", it.showsUndo) }
         listOf(Screen.Settings, Screen.Overview, Screen.Home).forEach { assertFalse("$it", it.showsUndo) }
-    }
-
-    @Test fun recentGroupsPutTheLatestFirst() {
-        val a = GroupRef("c", "a")
-        val b = GroupRef("c", "b")
-        assertEquals(listOf(a), Nav.recent(emptyList(), a))
-        assertEquals(listOf(b, a), Nav.recent(listOf(a), b))
-        // Opening one again moves it to the front without repeating it.
-        assertEquals(listOf(a, b), Nav.recent(listOf(b, a), a))
-        val many = (1..10).fold(emptyList<GroupRef>()) { r, i -> Nav.recent(r, GroupRef("c", "g$i")) }
-        assertEquals(Nav.RECENT, many.size)
-        assertEquals(GroupRef("c", "g10"), many.first())
     }
 
     @Test fun screensKnowWhatTheyNeed() {
@@ -140,7 +128,7 @@ class NavTest {
         assertFalse(Screen.Settings.needsYear)
         assertTrue(Screen.Overview.needsYear)
         assertFalse(Screen.Classes.needsClass)
-        assertTrue(Screen.Tests.needsClass)
+        assertTrue(Screen.Units.needsClass)
         assertTrue(Screen.Group("g").needsYear && Screen.Group("g").needsClass)
     }
 
@@ -156,7 +144,7 @@ class NavTest {
     }
 
     @Test fun switchingClassOrYearClosesItsScreens() {
-        val tests = classStack + Screen.Tests
+        val tests = classStack + Screen.Units
         assertEquals(listOf(Screen.Home, Screen.Classes), Nav.afterClassSwitch(tests))
         assertEquals(listOf(Screen.Home, Screen.Overview), Nav.afterClassSwitch(listOf(Screen.Home, Screen.Overview, Screen.Group("g"))))
         assertEquals(home, Nav.afterYearSwitch(tests))
@@ -227,7 +215,7 @@ class NavTest {
     }
 
     @Test fun otherScreensStayOnePaneOnATablet() {
-        for (s in listOf(Screen.Home, Screen.Settings, Screen.YearSettings, Screen.Class, Screen.Tests, Screen.Homework)) {
+        for (s in listOf(Screen.Home, Screen.Settings, Screen.YearSettings, Screen.Class, Screen.Units)) {
             assertNull("$s", Nav.panes(listOf(Screen.Home, s), WindowLayout.EXPANDED))
         }
     }

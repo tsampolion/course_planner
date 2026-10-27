@@ -33,6 +33,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
@@ -64,11 +66,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -92,7 +96,12 @@ internal class GroupMenu(
     val customPlan: (() -> Unit)? = null,
     /** Whether any Print scope has lessons to print; the entry is hidden when none has. */
     val canPrint: Boolean = true,
+    /** The page the menu is on: Work has no lessons, so it leaves out the sections about them. */
+    val page: GroupPage = GroupPage.HOME,
 )
+
+/** Undo and the warning button, folded into ⋮ when the bar is too narrow for the title ([foldBarActions]). */
+internal class FoldedActions(val warnings: Int, val onWarnings: () -> Unit, val undoDepth: Int?, val onUndo: () -> Unit)
 
 /** A section's name in the ⋮ menu: not a target, a heading for TalkBack. */
 @Composable
@@ -101,40 +110,94 @@ private fun MenuHeading(text: String) {
         modifier = Modifier.padding(horizontal = Space.l, vertical = Space.s).semantics { heading() })
 }
 
-/** The group's ⋮, in sections: Share & print, Plan, Lessons and Help. Group settings is a pill on group home. */
 @Composable
-internal fun GroupMenuButton(menu: GroupMenu) {
+private fun sectionTitle(section: GroupMenuSection): String = stringResource(
+    when (section) {
+        GroupMenuSection.SHARE_PRINT -> R.string.menu_share_print
+        GroupMenuSection.PLAN -> R.string.group_tab_plan
+        GroupMenuSection.LESSONS -> R.string.menu_lessons
+        GroupMenuSection.HELP -> R.string.menu_help
+    },
+)
+
+/** Undo and the warnings, first in the menu while the bar has folded them. */
+@Composable
+private fun FoldedItems(folded: FoldedActions, close: () -> Unit) {
+    if (folded.warnings > 0) {
+        DropdownMenuItem(
+            text = { Text(pluralStringResource(R.plurals.warnings_count, folded.warnings, folded.warnings), color = Pacer.colors.warn) },
+            leadingIcon = { AppIcon(AppIcons.Warning) }, onClick = { close(); folded.onWarnings() },
+        )
+    }
+    folded.undoDepth?.let { depth ->
+        DropdownMenuItem(
+            text = { Text(if (depth > 0) pluralStringResource(R.plurals.app_undo_steps, depth, depth) else stringResource(R.string.app_undo)) },
+            enabled = depth > 0, leadingIcon = { AppIcon(AppIcons.Undo) }, onClick = { close(); folded.onUndo() },
+        )
+    }
+}
+
+/**
+ * The bar's ⋮. On a group it holds the schedule's tools, in the sections that apply to the page (never a heading over
+ * nothing), every item with an icon. While the bar has folded Undo and the warnings ([folded]) they come first and the
+ * button carries the warning count; on any other screen it is just those two.
+ */
+@Composable
+internal fun GroupMenuButton(menu: GroupMenu?, folded: FoldedActions? = null) {
     var open by remember { mutableStateOf(false) }
     var copying by remember { mutableStateOf(false) }
-    val available = groupMenuItems(menu.hasRows, menu.hasCustom, menu.others.size, menu.large)
+    val available = menu?.let { m ->
+        groupMenuItems(m.hasRows, m.hasCustom, m.others.size, m.large, m.catchUp).filter { it != GroupMenuItem.PRINT || m.canPrint }
+    }.orEmpty()
+    val sections = menu?.let { groupMenuSections(available, it.page) }.orEmpty()
+    val warnings = folded?.warnings ?: 0
+    val more = stringResource(R.string.group_more)
+    val label = if (warnings > 0) stringResource(R.string.bar_more_warnings, more, pluralStringResource(R.plurals.warnings_count, warnings, warnings)) else more
+    val c = Pacer.colors
     Box {
-        PillIconButton(stringResource(R.string.group_more), { open = true }) { AppIcon(AppIcons.MoreVert) }
+        PillIconButton(label, { open = true }) {
+            BadgedBox(
+                badge = { if (warnings > 0) Badge(containerColor = c.warn, contentColor = c.onWarn) { Text("$warnings") } },
+                modifier = Modifier.clearAndSetSemantics {},
+            ) { AppIcon(AppIcons.MoreVert) }
+        }
         PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            MenuHeading(stringResource(R.string.menu_share_print))
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_copy)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.ContentCopy) }, onClick = { open = false; menu.copy() })
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_share)) }, enabled = menu.hasRows, leadingIcon = { AppIcon(AppIcons.Share) }, onClick = { open = false; menu.share() })
-            if (menu.canPrint) DropdownMenuItem(text = { Text(stringResource(R.string.group_print)) }, leadingIcon = { AppIcon(AppIcons.Print) }, onClick = { open = false; menu.print() })
-            HorizontalDivider()
-            MenuHeading(stringResource(R.string.group_tab_plan))
-            menu.customPlan?.let { make ->
-                DropdownMenuItem(text = { Text(stringResource(R.string.group_make_custom_plan)) }, leadingIcon = { AppIcon(AppIcons.Edit) }, onClick = { open = false; make() })
+            val close = { open = false }
+            if (folded != null) {
+                FoldedItems(folded, close)
+                if (sections.isNotEmpty()) HorizontalDivider()
             }
-            if (GroupMenuItem.MY_PLAN in available) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.custom_repace_all)) }, onClick = { open = false; menu.repace() })
-                if (GroupMenuItem.COPY_PLAN in available) DropdownMenuItem(text = { Text(stringResource(R.string.custom_copy_to)) }, onClick = { open = false; copying = true })
-                DropdownMenuItem(text = { Text(stringResource(R.string.custom_delete), color = Pacer.colors.warn) }, onClick = { open = false; menu.deletePlan() })
+            sections.forEachIndexed { i, (section, items) ->
+                if (i > 0) HorizontalDivider()
+                MenuHeading(sectionTitle(section))
+                items.forEach { item ->
+                    if (menu != null) GroupMenuEntry(item, menu, close) { copying = true }
+                }
             }
-            if (GroupMenuItem.OWN_PACE in available) DropdownMenuItem(text = { Text(stringResource(R.string.plan_own_pace)) }, onClick = { open = false; menu.open(GroupSheet.OWN_PACE) })
-            if (menu.catchUp) DropdownMenuItem(text = { Text(stringResource(R.string.custom_adjust_catch_up)) }, onClick = { open = false; menu.open(GroupSheet.CATCH_UP) })
-            HorizontalDivider()
-            MenuHeading(stringResource(R.string.menu_lessons))
-            DropdownMenuItem(text = { Text(stringResource(R.string.extra_add)) }, leadingIcon = { AppIcon(AppIcons.Calendar) }, onClick = { open = false; menu.open(GroupSheet.EXTRA) })
-            HorizontalDivider()
-            MenuHeading(stringResource(R.string.menu_help))
-            DropdownMenuItem(text = { Text(stringResource(R.string.group_tips)) }, leadingIcon = { AppIcon(AppIcons.Info) }, onClick = { open = false; menu.open(GroupSheet.TIPS) })
         }
         PacerDropdownMenu(expanded = copying, onDismissRequest = { copying = false }) {
-            menu.others.forEach { (id, name) -> DropdownMenuItem(text = { Text(name) }, onClick = { copying = false; menu.copyPlan(id, name) }) }
+            if (menu != null) menu.others.forEach { (id, name) -> DropdownMenuItem(text = { Text(name) }, onClick = { copying = false; menu.copyPlan(id, name) }) }
         }
+    }
+}
+
+/** One item of the ⋮ menu; MY_PLAN only marks that the group has its own plan, so it shows nothing itself. */
+@Composable
+private fun GroupMenuEntry(item: GroupMenuItem, menu: GroupMenu, close: () -> Unit, copyingTo: () -> Unit) {
+    @Composable fun entry(text: Int, icon: ImageVector, color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified, action: () -> Unit) =
+        DropdownMenuItem(text = { Text(stringResource(text), color = color) }, leadingIcon = { AppIcon(icon) }, onClick = { close(); action() })
+    when (item) {
+        GroupMenuItem.CREATE_PLAN -> menu.customPlan?.let { make -> entry(R.string.group_make_custom_plan, AppIcons.Edit, action = make) }
+        GroupMenuItem.MY_PLAN -> Unit
+        GroupMenuItem.REPACE -> entry(R.string.custom_repace_all, AppIcons.Event, action = menu.repace)
+        GroupMenuItem.COPY_PLAN -> entry(R.string.custom_copy_to, AppIcons.Groups, action = copyingTo)
+        GroupMenuItem.DELETE_PLAN -> entry(R.string.custom_delete, AppIcons.Delete, Pacer.colors.warn, menu.deletePlan)
+        GroupMenuItem.OWN_PACE -> entry(R.string.plan_own_pace, AppIcons.Overview) { menu.open(GroupSheet.OWN_PACE) }
+        GroupMenuItem.CATCH_UP -> entry(R.string.custom_adjust_catch_up, AppIcons.Forward) { menu.open(GroupSheet.CATCH_UP) }
+        GroupMenuItem.EXTRA -> entry(R.string.extra_add, AppIcons.Add) { menu.open(GroupSheet.EXTRA) }
+        GroupMenuItem.COPY -> entry(R.string.group_copy, AppIcons.ContentCopy, action = menu.copy)
+        GroupMenuItem.SHARE -> entry(R.string.group_share, AppIcons.Share, action = menu.share)
+        GroupMenuItem.PRINT -> entry(R.string.group_print, AppIcons.Print, action = menu.print)
+        GroupMenuItem.TIPS -> entry(R.string.group_tips, AppIcons.Info) { menu.open(GroupSheet.TIPS) }
     }
 }

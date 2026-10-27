@@ -251,6 +251,34 @@ class PacerViewModelTest {
         assertEquals(setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY), r.group.days)
     }
 
+    /** Routes that no longer exist ("tests", "homework") may still be in a saved view; the app opens Home and ignores them. */
+    @Test fun aSavedViewNamingAnOldRouteOpensHome() {
+        for (view in listOf("tests", "homework", "setup", "gone-group")) {
+            val r = Rig(start = AppData(listOf(year), "y", "c", view))
+            assertEquals(view, listOf(Screen.Home), r.vm.state.value.stack)
+        }
+    }
+
+    @Test fun homeTestsOpenTheGroupsWorkPageOrTheClass() {
+        val r = Rig()
+        r.vm.openWork("c", "g1")
+        assertEquals(Screen.Group("g1", GroupPage.WORK), r.vm.state.value.screen)
+        r.vm.goTo(Screen.Home)
+        r.vm.openWork("c", null)
+        assertEquals(Screen.Class, r.vm.state.value.screen)
+    }
+
+    /** Create on Plan and Make a custom plan in ⋮ both call this and then offer Undo, so one tap takes either back. */
+    @Test fun creatingACustomPlanIsOneUndoStep() {
+        val r = Rig()
+        assertTrue(r.vm.createCustomPlan("g1"))
+        assertEquals(1, r.undoDepth)
+        assertTrue(r.group.custom != null)
+        r.vm.undo()
+        assertEquals(null, r.group.custom)
+        assertEquals(0, r.undoDepth)
+    }
+
     @Test fun noChangeEditDoesNotPushUndo() {
         val r = Rig()
         assertFalse(r.vm.renameGroup("g1", "Group A"))

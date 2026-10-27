@@ -48,6 +48,15 @@ object AppIcons {
     val Home: ImageVector by lazy { symbol("Home", "M240-200h120v-200q0-17 11.5-28.5T400-440h160q17 0 28.5 11.5T600-400v200h120v-360L480-740 240-560v360Zm-80 0v-360q0-19 8.5-36t23.5-28l240-180q21-16 48-16t48 16l240 180q15 11 23.5 28t8.5 36v360q0 33-23.5 56.5T720-120H560q-17 0-28.5-11.5T520-160v-200h-80v200q0 17-11.5 28.5T400-120H240q-33 0-56.5-23.5T160-200Zm320-270Z", false) }
     val Search: ImageVector by lazy { symbol("Search", "M380-320q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z", false) }
     val Menu: ImageVector by lazy { symbol("Menu", "M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h640q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H160Zm0-200q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h640q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h640q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H160Z", false) }
+    /** A drawing pin, drawn for Course Pacer on a 24-unit grid (the menu's pin on a wide tablet). */
+    val Pin: ImageVector by lazy {
+        ImageVector.Builder("Pin", 24.dp, 24.dp, 24f, 24f).apply {
+            addPath(
+                PathParser().parsePathString("M8 3h8v2h-1v5l2 3v1.5h-4V20l-1 1.5L11 20v-5.5H7V13l2-3V5H8z").toNodes(),
+                fill = SolidColor(Color.Black),
+            )
+        }.build()
+    }
     private fun symbol(name: String, data: String, mirrored: Boolean): ImageVector =
         ImageVector.Builder(name, 24.dp, 24.dp, 960f, 960f, autoMirror = mirrored).apply {
             group(translationY = 960f) {

@@ -20,7 +20,7 @@ are whole lessons, rounded up. The look is bright and friendly, and precise like
 | D2 | §1/§3: figures in monospace | Outfit with tabular figures |
 | D3 | §6 Home header: "Hello" with a Settings button | "Hello, name" with the date and year. ☰ opens the menu. Settings is in the menu. |
 | D4 | §6 Tile grid (bento) on Home | The Pacing overview board, with a blinking dot and "Today" on groups that teach today, and a card of the next tests and worksheets |
-| D5 | §15: a back arrow on every screen; no drawer | ☰ menu on every screen, a permanent drawer on tablets. System Back still works. |
+| D5 | §15: a back arrow on every screen; no drawer | ☰ menu on every screen, no back arrow; System Back still works. The menu keeps five items in a fixed order, and Classes & Groups opens at the teacher's place (class, group, or the group's pages) with the current page marked and a back row up. On tablets 840dp and wider the menu is a drawer the teacher can pin open (the default) or let collapse behind ☰. |
 | D6 | §6 List row: a leading icon | Ledger rows with no icon. Edge colours mark the kind. |
 | D7 | §6 Warning banner on the screen | A warning button with a count, and the Warnings sheet |
 | D8 | §2: no kind colours | Six non-violet lesson-kind edge tokens, with words retained (D13) |
@@ -89,7 +89,7 @@ Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distan
 - **Touch targets** are 48dp or more, text links included.
 - **Tablets** (the window's width in dp, no window-size library):
   - from 600dp, Pacing overview and the open group share the window as a list pane and a detail pane, with one set of actions in the detail pane's bar and the open group highlighted in the list;
-  - from 840dp the menu is a permanent drawer, so there is no ☰;
+  - from 840dp the menu is a permanent drawer while it is pinned, so there is no ☰; unpinned, it collapses behind ☰;
   - Back closes the detail pane first (`Nav.panes`).
 
 ## Popup corners (3.8.1)
