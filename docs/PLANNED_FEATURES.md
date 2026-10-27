@@ -138,7 +138,7 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 8. **Display:** is a "Focus: Grammar" tag with "—" in the other columns enough, or should block lessons be shaded like test lessons?
 9. **Relation to pinned lessons:** fixing the pages of a single future lesson was left out of 1.5.0 (`docs/LESSON_PAGES_BRIEF.md`, "Out of scope"). A one-lesson focus block covers part of that idea. Is that enough, or is a separate "plan this lesson's pages" still wanted?
 
-## 6. Setup checks that match the rest of the app (F05, F06, F07)
+## 6. Setup checks that match the rest of the app (F05, F06)
 
 **Status:** proposed (audit P2). No pacing change. Not approved.
 
@@ -158,12 +158,6 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 - The list shows "20 Nov – 10 Nov" (`YearScreens.kt:70-71`), while the engine closes the whole span either way round (`engine/Pacer.kt:144-153`).
 - The group day-off sheet already refuses this (`GroupSettingsScreen.kt:193`), as does `withClosureEdited` (`model/GroupBooks.kt:33-37`).
 
-**On pace at large text (F07).** `BoardCell.short == null` means "nothing to measure", but `behind` treats null as 0 (`ui/HomeModel.kt:94-97`).
-
-- So `behindOnly()` counts unmeasured groups as on pace (`:117-121`). Large-text Home then says "N groups on pace" (`HomeScreen.kt:307-347`) for a class with no books.
-- Tests lock this in: `HomeModelTest.kt:132-142` expects 3, counting a null cell, and `ScreensModelTest.kt:86-87` puts an unmeasured group behind the "on pace" link.
-- The Classes list already shows "On pace" only when measured (`YearScreens.kt:262`).
-
 ### Proposal
 
 - One shared page-range check, `1 ≤ first ≤ last ≤ MAX_PAGE`, used by Add book, the book editor, the supplementary page fields and the optional group book.
@@ -174,7 +168,6 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 ### Alternative
 
 - For ranges: offer an explicit suggested correction ("Swap to 10–100?") that the teacher must accept. Never correct silently.
-- For F07: a neutral total with no verdict word.
 
 ### Acceptance
 
@@ -187,11 +180,10 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 
 ### Risk
 
-- **Fits with:** the F07 fix can ride UI fix PR 3 (Home today) in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), since that PR rewrites the same `HomeModel` code. The range and day-off checks fit PR 6 (set-up screens).
+- **Fits with:** the range and day-off checks fit UI fix PR 6 (set-up screens) in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md).
 - **Ranges:** low to medium.
 - **Year closures:** medium, because a closure affects every group under it.
-- **F07:** low; the shared verdict is unchanged.
-- **Rollback:** three independent reverts, no data change.
+- **Rollback:** two independent reverts, no data change.
 
 ## 9. Device and accessibility check pass
 
@@ -305,7 +297,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 4. ~~Entry 5, history and schema-15 tests~~ (0.4.4.11, `REMOVED_BOOK_HISTORY_BRIEF.md`).
 5. ~~**UI PR 1**, group home and the hero~~ (0.4.5.0).
 6. ~~**UI PR 2**, Plan~~ (0.4.6.0, includes the book-label decision, I5).
-7. **UI PR 3**, Home today. It includes F16 (audit H1) and entry 6's F07 fix.
+7. ~~**UI PR 3**, Home today~~ (0.4.8.0, includes F16 (audit H1) and entry 6's F07 fix; lessons tick themselves from 0.4.7.0).
 8. **UI PR 4**, menu and top bar.
 9. **UI PR 5**, one sheet frame. It includes F18's draft rule (streamlining S4) and the shared Picker and SwitchRow semantics (audit X12, X13).
 10. **UI PR 6**, set-up screens. It includes F17 (audit C2, streamlining S2) and entry 6's range and day-off checks.

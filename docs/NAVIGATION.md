@@ -28,9 +28,9 @@ flowchart LR
   n_stats["Stats"]
   n_group_settings["Group settings"]
   n_home -- "Add a class +2" --> n_classes
-  n_home -- "Next lesson tile +1" --> n_group_home
-  n_home -- "“No lessons left this term”  +1" --> n_overview
-  n_home -- "Classes card" --> n_class
+  n_home -- "Board cell" --> n_group_home
+  n_home -- "See all" --> n_overview
+  n_home -- "Tests & worksheets row" --> n_moved_work
   n_overview -- "Open classes +1" --> n_classes
   n_overview -- "A group row +1" --> n_group_home
   n_overview -- "Fix on a term problem" --> n_school_year
@@ -190,7 +190,7 @@ flowchart LR
 <a id="home"></a>
 ### Home
 
-*Screen* · reached from [☰ Menu](#drawer), [Back, windows and start](#system), [School year settings](#school-year). The root of the stack. A greeting (Hello, or Hello, your name), today's date and the year, then tiles.
+*Screen* · reached from [☰ Menu](#drawer), [Back, windows and start](#system), [School year settings](#school-year). The root of the stack. A greeting (Hello, or Hello, your name), today's date and the year, then the Pacing overview board and the next tests and worksheets.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -198,15 +198,10 @@ flowchart LR
 | Welcome page | Automatic | First run | ↑ Opens [Welcome to Course Pacer](#welcome). Opens over Home once. |
 | New school year | Tap | No school year yet | ↑ Opens [New school year](#new-year). Opens the New school year dialog. |
 | Add a class | Tap | Year without classes | → Screen [Classes](#classes). Opens Classes. |
-| Next lesson tile (Class · Group, Next · today · N of M left / overdue / date) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. |
-| Done (on the tile) | Tap |  | Marks that group's next lesson done. Undo: “Lesson marked done” |
-| “No lessons left this term” tile | Tap |  | → Screen [Pacing overview](#overview). Opens Pacing overview. |
-| Classes card: All N › | Tap |  | → Screen [Classes](#classes). Opens Classes. |
-| Classes card: a class chip | Tap |  | → Screen [Class](#class). Opens that class. |
-| Classes › | Tap | Compact card in large text | → Screen [Classes](#classes). Opens Classes. |
-| Pacing overview board: a cell (Group, −N when behind) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. TalkBack reads class, group and “on pace” or “short by N lessons”. |
-| See all › / N groups on pace › | Tap |  | → Screen [Pacing overview](#overview). Opens Pacing overview. |
-| Legend (on pace · behind, lessons short) | Shows |  | Explains the board. |
+| Pacing overview board: a cell (Group, −N when behind; “● Today” under the name when the group has a lesson today) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. The dot blinks three times when Home opens, then stays lit (steady with animations off). Groups run most behind first inside each class, as on Pacing overview. TalkBack reads class, group, “on pace” or “short by N lessons”, and “has a lesson today”. |
+| See all › / N groups on pace › / N set-up needed › | Tap | The large-text board counts only measured groups as on pace; groups with nothing to measure are “set-up needed” | → Screen [Pacing overview](#overview). Opens Pacing overview. |
+| Legend (on pace · behind, lessons short · Today) | Shows |  | Explains the board; each swatch looks like its cell, and the dot blinks like the cells'. |
+| Tests & worksheets card: a row (date, title, class · group, kind) | Tap | Some test or worksheet is still to come; the card is hidden otherwise | → Screen [Tests & worksheets · Homework](#moved-work). Opens that class's Tests & worksheets. Shows the next four. |
 
 <a id="welcome"></a>
 ### Welcome to Course Pacer
@@ -228,7 +223,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Name | Type |  | Required. The placeholder suggests a name. |
 | Starts / Ends | Tap |  | ↑ Opens [Date picker](#date-picker). Open the date picker. |
-| Add the Greek public holidays as days off | Toggle |  | Adds the holidays between the two dates. Needs both dates. |
+| Add the Greek public holidays as days off (the box or its words) | Toggle |  | Adds the holidays between the two dates. Needs both dates. The whole row is one checkbox for TalkBack. |
 | Create | Tap | Name filled in | Edit. Creates the year and opens it. Undo history starts fresh. |
 | Cancel | Tap |  | Closes. Closes. |
 

@@ -1,6 +1,6 @@
 # UI/UX audit and redesign
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fix PR 1 (Group home and the hero, 0.4.5.0) and PR 2 (Plan, 0.4.6.0) are built. The others need the owner's go-ahead, one at a time.
+Status: approved 2026-10-25; audit done (stage 1, this brief). 0.4.4.3 added the usability audit's UI findings (X12–X15 and the notes under G1, H1 and C2); 0.4.4.7 added the interaction map's (X16–X21, from [NAVIGATION.md](NAVIGATION.md)). Fix PR 1 (Group home and the hero, 0.4.5.0), PR 2 (Plan, 0.4.6.0) and PR 3 (Home today, 0.4.8.0) are built. The others need the owner's go-ahead, one at a time.
 
 This brief records the taste-skill UI/UX audit (`PLANNED_FEATURES.md` §2 until 0.4.4.2), what it found per screen, and the order of the fix pull requests. Its companion is [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md), which covers each screen's start, purpose, next step and end.
 
@@ -112,12 +112,12 @@ Acceptance: every range is visible at 320dp, on a 360dp phone and in a 312dp pan
 
 | # | Finding | Seen | Severity |
 |---|---|---|---|
-| H1 | **Only the next lesson.** On a day with three lessons Home shows one ("1 of 3 today"). Teachers start from a day; the owner chose to list all of today's lessons. | code | P1 |
-| H2 | **Today's lesson isn't primary here.** The next-lesson bar is neutral with an accent Done; on group home the same lesson is accent-filled (X4). | code | P2 |
-| H3 | The greeting header (logo, "Hello, name", date) takes the first screen's best place (X11). D3 keeps it; the redesign can make it smaller. | phone | P3 |
-| H4 | Classes scroll sideways, so classes past the third or fourth are out of sight. | phone | P3 |
-| H5 | The board's legend shows an outlined square; on-pace cells have no outline. | code | P3 |
-| H6 | New school year: only the checkbox toggles Greek holidays, not its label. | code | P3 |
+| H1 | **Only the next lesson.** On a day with three lessons Home shows one ("1 of 3 today"). Teachers start from a day; the owner chose to list all of today's lessons. **Done (0.4.8.0):** the owner dropped the list of today's lessons. Home marks the groups with a lesson today on the board, and lessons tick themselves ([`AUTO_TICK_BRIEF.md`](AUTO_TICK_BRIEF.md)). | code | P1 |
+| H2 | **Today's lesson isn't primary here.** The next-lesson bar is neutral with an accent Done; on group home the same lesson is accent-filled (X4). **Done (0.4.8.0):** Home no longer has a today block, so there is nothing to fill. | code | P2 |
+| H3 | The greeting header (logo, "Hello, name", date) takes the first screen's best place (X11). D3 keeps it; the redesign can make it smaller. **Done (0.4.8.0):** the header stays as it was. | phone | P3 |
+| H4 | Classes scroll sideways, so classes past the third or fourth are out of sight. **Done (0.4.8.0):** the Classes card is gone; the board's cells and the menu reach every class. | phone | P3 |
+| H5 | The board's legend shows an outlined square; on-pace cells have no outline. **Done (0.4.8.0).** | code | P3 |
+| H6 | New school year: only the checkbox toggles Greek holidays, not its label. **Done (0.4.8.0).** | code | P3 |
 
 **H1 and the usability audit (F16, I1).** Today's bar takes the earliest pending lesson across all groups (`ui/HomeModel.kt:35-55`). Its Done ticks that lesson even when it is overdue (`markNextLessonDoneIn`). The group screen's hero skips overdue lessons (`GroupScreen.kt:182`). The today list should therefore:
 
@@ -125,7 +125,7 @@ Acceptance: every range is visible at 320dp, on a 360dp phone and in a 312dp pan
 - never tick anything automatically;
 - give each Done the right group and date.
 
-The large-text board's "N groups on pace" counts unmeasured groups too. That is fixed with this PR (F07, [`PLANNED_FEATURES.md`](PLANNED_FEATURES.md) entry 6).
+Lessons now tick themselves, so there is no overdue lesson to tick by mistake, and Home has no Done. The large-text board's "N groups on pace" counted unmeasured groups too; that is fixed in 0.4.8.0 (F07): they show as "set-up needed".
 
 ### Navigation, top bar and group menu
 

@@ -19,7 +19,7 @@ are whole lessons, rounded up. The look is bright and friendly, and precise like
 | D1 | §2.1/§2.2/§10: the dark set is deep, low-light versions | Deep green-tinted grounds and soft ink in both Pacer palettes (D13) |
 | D2 | §1/§3: figures in monospace | Outfit with tabular figures |
 | D3 | §6 Home header: "Hello" with a Settings button | "Hello, name" with the date and year. ☰ opens the menu. Settings is in the menu. |
-| D4 | §6 Tile grid (bento) on Home | Next-lesson bar, Classes card and Pacing overview board |
+| D4 | §6 Tile grid (bento) on Home | The Pacing overview board, with a blinking dot and "Today" on groups that teach today, and a card of the next tests and worksheets |
 | D5 | §15: a back arrow on every screen; no drawer | ☰ menu on every screen, a permanent drawer on tablets. System Back still works. |
 | D6 | §6 List row: a leading icon | Ledger rows with no icon. Edge colours mark the kind. |
 | D7 | §6 Warning banner on the screen | A warning button with a count, and the Warnings sheet |
@@ -69,7 +69,7 @@ The palette is saved outside undo and changes the whole Compose theme immediatel
 | edgeFree | `#896900` | `#D8C26A` | `#896900` | `#9FC98E` |
 | edgeSupp | `#414700` | `#E0DDD0` | `#414700` | `#E0DDD0` |
 
-The launcher icon and first-frame window background are static and always Bone (the background follows light/dark). Saffron users see that neutral Bone background only until Compose draws; it contains no launch text. The in-app logo follows the chosen palette, using accent and onAccent. Today's lesson is the accent fill wherever it is the screen's focal point (group home and Plan; Home's today block follows with its redesign).
+The launcher icon and first-frame window background are static and always Bone (the background follows light/dark). Saffron users see that neutral Bone background only until Compose draws; it contains no launch text. The in-app logo follows the chosen palette, using accent and onAccent. Today's lesson is the accent fill wherever it is the screen's focal point (group home and Plan). Home has no lesson block; its board marks the groups that teach today.
 
 Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distance is at least 60. Every set excludes violet/indigo. `docs/PACER_ACCENT_CONTRAST.md` lists all measured pairs. ![Palette swatches, not app screenshots](images/palettes.svg)
 
@@ -184,6 +184,6 @@ layout. Native runtime/screenshot checks remain pending without a device.
 
 Owner-approved proposals from [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md):
 
-- **Today's lesson is the accent fill** wherever it is the focal point (proposal 1).
+- **Today's lesson is the accent fill** wherever it is the focal point (proposal 1). Home has none: its board marks the groups that teach today.
 - **Marks on light paper use `mark`** (proposal 3): progress fills and ticks never use the fill accent where it falls under 3:1. `mark` is the accent in Bone and in both dark sets, and `accentText` in Saffron light; `ContrastTest` checks it against paper, surface and surfaceContainer.
 - **Pills have a visible edge** (proposal 6): a transparent pill with a 1px `outline` stroke, which reaches 3:1 against the ground.

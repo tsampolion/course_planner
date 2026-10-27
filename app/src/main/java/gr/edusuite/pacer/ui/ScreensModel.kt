@@ -61,7 +61,10 @@ fun sortGroups(classes: List<OverviewClass>, order: GroupOrder): List<OverviewCl
 }
 
 /** A class on Pacing overview in large-text mode: [shown] holds only its groups behind, and [onPace] are the rest. */
-data class LargeClass(val shown: OverviewClass, val onPace: List<OverviewGroup>)
+data class LargeClass(val shown: OverviewClass, val onPace: List<OverviewGroup>) {
+    /** Groups behind the link that have nothing to measure yet; they are never called on pace. */
+    val setUp: Int get() = onPace.count { it.short == null }
+}
 
 /**
  * Large-text Pacing overview: the classes with a group behind (their groups behind only, the rest one tap away) and,

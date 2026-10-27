@@ -37,9 +37,9 @@ class ExtraLessonUiTest {
         assertEquals(20, r.pages)
     }
 
-    @Test fun extraAppearsInHomePrintAndTsv() {
-        assertEquals(date, nextLesson(y, date)!!.date)
+    @Test fun extraAppearsInThePlanPrintAndTsv() {
         val r = GroupReport(y.planFor(c, TEST_TODAY), g)
+        assertEquals(date, r.rows.first().date)
         assertTrue(r.asTsv().contains("1–2"))
         assertTrue(r.asTsv().contains("Extra"))
         val html = PrintSheet.html(listOf(r.plan))

@@ -11,7 +11,7 @@ Every control each screen offers today, and where it leads, is in [NAVIGATION.md
 - **Flows:** all four matter (daily use, weekly planning at the desk, term set-up, first run).
 - **Removing:** moving and merging is fine; each removal is listed under "Remove" and needs the owner's yes in its PR.
 - **Navigation:** ☰ stays on every screen and gets more useful (M1). No back arrow.
-- **Home:** lists all of today's lessons.
+- **Home:** marks the groups with a lesson today on the board, with no next-lesson bar or Done (built in 0.4.8.0; the owner dropped the list of today's lessons).
 - **Wording** waits for [`STRING_INVENTORY.md`](STRING_INVENTORY.md). Nothing here touches the engine, the release, `applicationId`, signing or dependencies.
 
 The audit was done from the code; the app could not run here (see the audit brief). Step counts are taps, from the code paths.
@@ -20,7 +20,7 @@ The audit was done from the code; the app could not run here (see the audit brie
 
 | Screen | Arrives from | For | Next step | Ends |
 |---|---|---|---|---|
-| **Home** | app launch; ☰ | today: the next lesson, classes, who is behind | Done; tap the lesson to open the group; a behind cell | stays; Done has Undo |
+| **Home** | app launch; ☰ | who is behind, which groups teach today, the next tests | a board cell opens its group; a tests row | stays |
 | **Group home** | Home's lesson or board; Class; Pacing overview; menu search; the switcher | this group today: pages, progress, homework due | Done or record pages; Plan / Work / Stats / Settings pills | Back; Undo in the bar |
 | **Plan** | group home pill; tablet detail pane | the lesson-by-lesson schedule; custom plan edits | tick, record pages, plan a lesson (long-press) | Back |
 | **Work** | group home pill or Due soon; Class (old links) | homework, tests and worksheets for the group | Add; edit a row | Back; swipe has Undo |
@@ -55,8 +55,8 @@ The audit was done from the code; the app could not run here (see the audit brie
 
 | Task | Today | Proposed |
 |---|---|---|
-| Tick today's lesson | Home → Done: **1 tap** | same, for each of today's lessons (H1) |
-| Record pages taught | Home → lesson → group home → tap pages → sheet → Save: **4 taps + typing** | Home's today block opens the pages sheet directly: **2 taps + typing** (D2) |
+| Tick today's lesson | Home → Done: **1 tap** | none: it ticks itself at midnight; Done on group home still works ([`AUTO_TICK_BRIEF.md`](AUTO_TICK_BRIEF.md)) |
+| Record pages taught | Home → lesson → group home → tap pages → sheet → Save: **4 taps + typing** | Home's board cell opens the group (the today block was dropped), then the pages sheet: **3 taps + typing** (D2) |
 | Set homework for today | group home → long-press hero → Add homework, or Work → Add: **3–4 taps, one hidden** | a visible "Homework" action on the hero (D3) |
 | See what's due | group home Due soon (4 rows) | same; cap stays at 4 with "All work ›" |
 
@@ -112,7 +112,7 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 | # | What | From → to |
 |---|---|---|
 | D1 | The way to fix a short group | top-bar icon only → also a "Fix" on the progress strip |
-| D2 | Recording today's pages | group home → also Home's today block |
+| D2 | Recording today's pages | group home → also Home's today block (dropped in 0.4.8.0: the board's cell opens the group) |
 | D3 | Add homework for today | long-press menu → a visible action on the hero |
 | D4 | Custom-plan lesson actions | flat long-press menu → a grouped menu |
 | S1 | A new group's lesson days | after the fact, in a sheet → asked when the group is added |
