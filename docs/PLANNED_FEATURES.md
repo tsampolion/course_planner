@@ -15,7 +15,7 @@ How to use this file:
 - Entries 2 to 9 come from the usability audit of 25 October 2026. That audit was read-only and covered 0.4.1.3 and 0.4.2.0. Every finding was checked again against 0.4.4.0. Findings keep their audit IDs (F01 to F19) and open decisions keep theirs (I1 to I6), so they can be traced.
 - The audit's visual, accessibility and streamlining findings (F09 to F12 and F16 to F18, with I1, I3, I4 and I5) are now in the approved [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md) and [`STREAMLINING_BRIEF.md`](STREAMLINING_BRIEF.md). This file keeps the parts that change data, the engine, storage or output, which those briefs do not cover.
 - Most of entries 2 to 8 fix existing behaviour rather than add features. They wait here because they need the owner's go-ahead, and some need an engine decision.
-- Entry 11 (tablet layout) came out of UI PR 4.
+- Entries 11 (tablet layout) and 12 (help) came out of UI PR 4.
 - [Order of work](#order-of-work) at the end merges these entries with the briefs' fix pull requests.
 
 Evidence labels used in entries 2 to 9:
@@ -301,6 +301,28 @@ Design the tablet as its own layout, not a wider phone. Ideas to settle with the
 
 1. Which tasks matter most on a tablet: planning at a desk, teaching with the screen in front of the class, or both?
 2. Should the pinned menu stay at 320dp, shrink to a rail, or follow the panes?
+
+## 12. Help: a place to learn how the app works
+
+**Status:** proposed (owner's request while building UI PR 4). Not approved. Planned for a future release; nothing is built.
+
+### The problem
+
+The app explains itself in small pieces: the first-run guide, the Tips sheet in a group's ⋮ menu, and hints on empty screens. There is no one place a teacher can open to look something up, and the menu has no Help row.
+
+### Proposal
+
+A Help feature, reached from the ☰ menu. Its content and shape are not decided. Ideas to settle with the owner:
+
+- a short list of how-to topics (set up a class, tick lessons, fit to term, back up) written for teachers, not as a manual;
+- whether it reuses the first-run guide and the Tips text instead of repeating them (one home per fact);
+- whether it also explains the warnings and the pacing verdicts in plain words.
+
+### Open questions
+
+1. Where does it sit in the menu: a sixth fixed row, or inside Settings? The five fixed rows are the owner's decision, so a new row needs a new answer.
+2. Should it work offline only (the app's only permission is `INTERNET`, used for the update check)? Text inside the app avoids a new network use.
+3. Which topics first?
 
 ## Order of work
 
