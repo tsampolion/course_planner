@@ -358,17 +358,6 @@ private fun ColumnScope.BookFields(b: Book, vm: PacerViewModel, onRemove: () -> 
     )
 }
 
-/** Compatibility destination for old class-level routes, kept for one release. */
-@Composable
-fun MovedWorkScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
-    EditList(plan, Screen.Class, vm, padding) {
-        item { Hint(stringResource(R.string.work_moved)) }
-        plan.groups.forEach { g -> item(key = g.id) {
-            LedgerRow(g.name, onClick = { vm.goTo(Screen.Group(g.id, GroupPage.WORK)) }) { Chevron() }
-        } }
-    }
-}
-
 /** A supplementary book's pages, strict: an unreadable or empty list shows an error and isn't saved. */
 @Composable
 private fun IncludeField(value: String, onCommit: (String) -> Unit) {

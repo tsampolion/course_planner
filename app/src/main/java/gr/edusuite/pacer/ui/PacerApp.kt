@@ -23,6 +23,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -67,6 +68,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.onClick
@@ -93,10 +95,7 @@ private fun Screen.title(d: AppData, context: Context): String = when (this) {
     Screen.Overview -> context.getString(R.string.app_overview)
     Screen.Classes -> context.getString(R.string.app_classes)
     Screen.Class -> d.schoolClass?.name?.ifBlank { null } ?: context.getString(R.string.app_class)
-    // "FCE · Tests & worksheets", as the locked mock-ups have it.
-    Screen.Tests -> classTitle(d, context, context.getString(R.string.app_tests))
     Screen.Units -> context.getString(R.string.units_title)
-    Screen.Homework -> classTitle(d, context, context.getString(R.string.app_homework_short))
     is Screen.GroupSettings -> context.getString(R.string.group_settings_title)
     is Screen.Group -> {
         val name = d.schoolClass?.groups?.firstOrNull { it.id == id }?.name?.ifBlank { null } ?: context.getString(R.string.app_group)
@@ -110,15 +109,11 @@ private fun Screen.title(d: AppData, context: Context): String = when (this) {
     }
 }
 
-/** [what] after the open class's name. */
-private fun classTitle(d: AppData, context: Context, what: String): String =
-    d.schoolClass?.name?.ifBlank { null }?.let { context.getString(R.string.nav_class_group, it, what) } ?: what
-
 /** The small line above the title: where this screen sits. */
 private fun Screen.context(d: AppData, context: Context): String = when (this) {
     Screen.Home, Screen.Settings -> context.getString(R.string.app_name)
     Screen.YearSettings, Screen.Overview, Screen.Classes, Screen.Class -> d.year?.name.orEmpty()
-    Screen.Tests, Screen.Homework, Screen.Units -> d.year?.name.orEmpty()
+    Screen.Units -> d.year?.name.orEmpty()
     is Screen.Group -> listOfNotNull(d.year?.name, d.schoolClass?.name).joinToString(" · ")
     is Screen.GroupSettings -> listOfNotNull(d.schoolClass?.name, d.schoolClass?.groups?.firstOrNull { it.id == id }?.name).joinToString(" · ")
 }
@@ -226,13 +221,13 @@ fun PacerApp(vm: PacerViewModel) {
             print = { printing = true },
             canPrint = canPrint,
             open = { groupSheet = it },
+            // The same Undo message as Create on Plan.
             customPlan = if (large && report.group.custom == null && report.rows.isNotEmpty()) ({
-                vm.createCustomPlan(report.group.id)
-                toast(context.getString(R.string.custom_created))
+                if (vm.createCustomPlan(report.group.id)) undoToast(context.getString(R.string.custom_created))
             }) else null,
+            page = (screen as? Screen.Group)?.page ?: GroupPage.HOME,
         )
     }
-    val recent by vm.recent.collectAsState()
 
     // Screens keep their scroll position while they are on the stack, and forget it once popped.
     val saved = rememberSaveableStateHolder()
@@ -246,7 +241,7 @@ fun PacerApp(vm: PacerViewModel) {
     // A tablet 840dp wide or more keeps the menu open beside the screens; a smaller one slides it over them. From 600dp,
     // Pacing overview and an open group share the window as a list pane and a detail pane (decision 17).
     val layout = rememberWindowLayout()
-    val permanent = layout == WindowLayout.EXPANDED
+    val permanent = layout == WindowLayout.EXPANDED && settings.drawerPinned
     val panes = Nav.panes(ui.stack, layout)
     // One set of actions per window: on a tablet they sit in the detail pane's bar, which has ☰ only where the menu isn't always open.
     val bar: @Composable (Boolean) -> Unit = { titled ->
@@ -265,6 +260,7 @@ fun PacerApp(vm: PacerViewModel) {
             onSwitch = { switching = true },
             onWarnings = { if (screen == Screen.Overview || screen == Screen.Class) problemsOpen = true else warningsOpen = true },
             groupMenu = groupMenu,
+            onUndo = vm::undo,
         )
     }
     val screenContent: @Composable (Screen, PaddingValues) -> Unit = { s, padding ->
@@ -339,21 +335,25 @@ fun PacerApp(vm: PacerViewModel) {
             ) { (s, _) -> screenContent(s, padding) }
         }
     }
+    val pin: ((Boolean) -> Unit)? = if (layout == WindowLayout.EXPANDED) vm::setDrawerPinned else null
+    val plansStandIn = layout != WindowLayout.COMPACT
     if (permanent) Row(Modifier.fillMaxSize()) {
-        AppDrawer(ui.data, screen, vm, onClose = {}, permanent = true, updateBadge = update != null)
+        AppDrawer(ui.data, screen, vm, onClose = {}, permanent = true, updateBadge = update != null, plansStandIn = plansStandIn, pin = pin, pinned = true)
         Box(Modifier.weight(1f)) { body() }
     } else ModalNavigationDrawer(
-        drawerContent = { AppDrawer(ui.data, screen, vm, onClose = { scope.launch { drawer.close() } }, updateBadge = update != null) },
+        drawerContent = {
+            AppDrawer(
+                ui.data, screen, vm, onClose = { scope.launch { drawer.close() } }, updateBadge = update != null,
+                opening = drawer.targetValue == DrawerValue.Open, plansStandIn = plansStandIn, pin = pin, pinned = false,
+            )
+        },
         drawerState = drawer,
         // Swiping only closes it, so an edge swipe never fights the month pager or the system Back gesture.
         gesturesEnabled = drawer.isOpen,
     ) { body() }
     val year = ui.data.year
     if (switching && screen.groupId != null && year != null) {
-        when (val entries = switcherEntries(screen, ui.data.schoolClass?.groups.orEmpty())) {
-            is SwitcherEntries.Groups -> GroupSwitcherSheet(year, ui.data.activeClass, screen.groupId!!, recent, vm) { switching = false }
-            is SwitcherEntries.Pages -> PageSwitcherSheet(entries.groupId, entries.pages, vm) { switching = false }
-        }
+        GroupSwitcherSheet(year, ui.data.activeClass, screen, plansStandIn, vm) { switching = false }
     }
     if (problemsOpen && screen == Screen.Overview && year != null) {
         YearProblemsSheet(year, vm) { problemsOpen = false }
@@ -415,8 +415,6 @@ private fun ScreenContent(
         Screen.Classes -> ClassesScreen(year ?: return, vm, padding, order = settings.classOrder, undoToast = undoToast)
         Screen.Class -> ClassScreen(plan ?: return, vm, padding, undoToast)
         Screen.Units -> UnitsSettingsScreen(plan ?: return, vm, padding)
-        Screen.Tests -> MovedWorkScreen(plan ?: return, vm, padding)
-        Screen.Homework -> MovedWorkScreen(plan ?: return, vm, padding)
         is Screen.GroupSettings -> {
             if (plan == null || year == null) return
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return
@@ -451,8 +449,9 @@ private fun UndoButton(vm: PacerViewModel, depth: Int) {
 
 /**
  * Every other screen's bar: ☰ for the menu, where the screen sits over its title, and Undo where school-year data
- * changes ([undoDepth] null hides it). On a group, the title opens the group switcher and a warning button with the
- * count opens the Warnings sheet, and ⋮ holds the schedule's Copy, Share, Print and Tips. System Back still pops the back stack.
+ * changes ([undoDepth] null hides it). On a group, the title opens the switcher and a warning button with the count
+ * opens the Warnings sheet, and ⋮ holds the schedule's tools. The title keeps its room: when it and the buttons don't
+ * fit ([foldBarActions]), Undo and the warnings fold into ⋮, which then carries the count. System Back still pops the back stack.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -462,7 +461,7 @@ private fun ScreenBar(
     vm: PacerViewModel,
     undoDepth: Int?,
     warnings: Int,
-    /** False where the menu is always open (a tablet 840dp wide or more). */
+    /** False where the menu is always open (a tablet 840dp wide or more, pinned). */
     showMenu: Boolean,
     menuBadge: Boolean,
     /** False for the empty detail pane of a tablet: its bar holds the actions but no title. */
@@ -471,40 +470,52 @@ private fun ScreenBar(
     onSwitch: () -> Unit,
     onWarnings: () -> Unit,
     groupMenu: GroupMenu?,
+    onUndo: () -> Unit,
 ) {
     val context = LocalContext.current
     val switchable = screen.groupId != null && data.year != null
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-        navigationIcon = {
-            if (showMenu) MenuButton(onMenu, menuBadge)
-        },
-        title = {
-            if (!titled) return@TopAppBar
-            val heading = @Composable {
-                Column {
-                    Text(screen.context(data, context), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            screen.title(data, context),
-                            style = MaterialTheme.typography.titleLarge,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f, fill = false),
-                        )
-                        if (switchable) AppIcon(AppIcons.ArrowDropDown)
+    val title = screen.title(data, context)
+    val fontScale = LocalDensity.current.fontScale
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val foldable = warnings > 0 || undoDepth != null
+        val buttons = (if (warnings > 0) 1 else 0) + (if (undoDepth != null) 1 else 0) + (if (groupMenu != null) 1 else 0)
+        val fold = titled && foldable && foldBarActions(maxWidth.value, fontScale, title.length, buttons, showMenu, switchable)
+        TopAppBar(
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+            navigationIcon = {
+                if (showMenu) MenuButton(onMenu, menuBadge)
+            },
+            title = {
+                if (!titled) return@TopAppBar
+                val heading = @Composable {
+                    Column {
+                        Text(screen.context(data, context), style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                title,
+                                style = MaterialTheme.typography.titleLarge,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f, fill = false),
+                            )
+                            if (switchable) AppIcon(AppIcons.ArrowDropDown)
+                        }
                     }
                 }
-            }
-            if (switchable) {
-                val label = stringResource(R.string.switcher_open)
-                PaletteTextButton(onClick = onSwitch, modifier = Modifier.semantics { onClick(label) { onSwitch(); true } }) { heading() }
-            } else heading()
-        },
-        actions = {
-            if (warnings > 0) WarningButton(warnings, onWarnings)
-            if (undoDepth != null) UndoButton(vm, undoDepth)
-            if (groupMenu != null) GroupMenuButton(groupMenu)
-        },
-    )
+                if (switchable) {
+                    val label = stringResource(R.string.switcher_open)
+                    PaletteTextButton(onClick = onSwitch, modifier = Modifier.semantics { onClick(label) { onSwitch(); true } }) { heading() }
+                } else heading()
+            },
+            actions = {
+                if (fold) {
+                    GroupMenuButton(groupMenu, FoldedActions(warnings, onWarnings, undoDepth, onUndo))
+                } else {
+                    if (warnings > 0) WarningButton(warnings, onWarnings)
+                    if (undoDepth != null) UndoButton(vm, undoDepth)
+                    if (groupMenu != null) GroupMenuButton(groupMenu)
+                }
+            },
+        )
+    }
 }
 
 private fun copy(context: Context, text: String) {

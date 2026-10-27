@@ -1,6 +1,6 @@
 # Navigation and interaction map
 
-Every control in Course Pacer: the gesture it takes, when it is there, and what happens next. 360 interactions over 13 screens and 50 sheets, menus, dialogs and panels, read from `app/src/main/java/gr/edusuite/pacer/ui/`. The back-stack rules themselves are in [ARCHITECTURE.md](ARCHITECTURE.md) (Navigation).
+Every control in Course Pacer: the gesture it takes, when it is there, and what happens next. Every interaction over the screens, sheets, menus, dialogs and panels, read from `app/src/main/java/gr/edusuite/pacer/ui/`. The back-stack rules themselves are in [ARCHITECTURE.md](ARCHITECTURE.md) (Navigation).
 
 Read it before changing any screen, and change it in the same pull request as the control (see `CLAUDE.md`). Labels are the app's English strings; *name* and *N* stand for values the app fills in.
 
@@ -21,7 +21,6 @@ flowchart LR
   n_app_settings["Settings"]
   n_class["Class"]
   n_units["Book units"]
-  n_moved_work["Tests & worksheets · Homework"]
   n_group_home["Group home"]
   n_plan["Plan"]
   n_work["Work"]
@@ -30,7 +29,7 @@ flowchart LR
   n_home -- "Add a class +2" --> n_classes
   n_home -- "Board cell" --> n_group_home
   n_home -- "See all" --> n_overview
-  n_home -- "Tests & worksheets row" --> n_moved_work
+  n_home -- "Tests & worksheets row" --> n_work
   n_overview -- "Open classes +1" --> n_classes
   n_overview -- "A group row +1" --> n_group_home
   n_overview -- "Fix on a term problem" --> n_school_year
@@ -43,7 +42,6 @@ flowchart LR
   n_class -- "Work" --> n_work
   n_class -- "Fix" --> n_school_year
   n_units -- "Add a book" --> n_class
-  n_moved_work -- "A group row" --> n_work
   n_group_home -- "Progress strip +2" --> n_stats
   n_group_home -- "Due soon +1" --> n_work
   n_group_home -- "Plan pill" --> n_plan
@@ -54,16 +52,16 @@ flowchart LR
   n_drawer -- "Home" --> n_home
   n_drawer -- "Pacing overview" --> n_overview
   n_drawer -- "Classes +1" --> n_classes
-  n_drawer -- "A class row" --> n_class
+  n_drawer -- "Class settings" --> n_class
+  n_drawer -- "A group row" --> n_group_home
+  n_drawer -- "A place row" --> n_plan
   n_drawer -- "School year · name" --> n_school_year
   n_drawer -- "Settings" --> n_app_settings
 ```
 
 ## Findings
 
-- **Tests & worksheets and Homework are unreachable.** Both are still routes with titles and Undo, but no control opens them; they only link to each group's Work page, as Class already does.
 - **Deletes have no confirmation.** Deleting a school year, a class or a group happens at once; Undo in the message is the only way back.
-- **Make a custom plan differs by place.** Create on Plan gives an Undo message; the ⋮ item (large text only) gives a plain message.
 - **Creating or switching a school year clears Undo history.**
 - **Home is the only root.** Launch ignores the saved group; groups swap rather than stack.
 
@@ -76,33 +74,47 @@ flowchart LR
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| ☰ Menu | Tap | Below 840dp wide; read as “Menu, update available” while an update waits | ↑ Opens [☰ Menu](#drawer). Slides the menu in over the screen. |
-| Context line and title | Shows |  | Small line names the year (or year · class); the title names the screen, class or group. |
-| Title ▾ (Switch group) | Tap | Group screens only | ↑ Opens [Go to a group](#group-switcher). From group home: Go to a group. From Plan, Work, Stats or Group settings: Go to a page. |
-| ⚠ N warnings | Tap | Group screens, while the count is above 0 | ↑ Opens [Warnings · Class · Group](#warnings). Opens the group's Warnings sheet. |
+| ☰ Menu | Tap | Below 840dp wide, or on a wider tablet while the menu is unpinned; read as “Menu, update available” while an update waits | ↑ Opens [☰ Menu](#drawer). Slides the menu in over the screen. The update dot is the mark colour, 3:1 on every palette. |
+| Context line and title | Shows |  | Small line names the year (or year · class); the title names the screen, class or group. The line is plain text, not a link; the menu's Classes & Groups list is the way up. |
+| Title ▾ (Switch group) | Tap | Group screens only | ↑ Opens [Go to](#group-switcher). One sheet from every group page. |
+| ⚠ N warnings | Tap | Group screens, while the count is above 0 and the bar has room | ↑ Opens [Warnings · Class · Group](#warnings). Opens the group's Warnings sheet. |
 | ⚠ N (year problems) | Tap | Pacing overview | ↑ Opens [Problems in this year](#year-problems). Opens Problems in this year. |
 | ⚠ N (class problems) | Tap | Class | ↑ Opens [Problems in this class](#class-problems). Opens Problems in this class. |
-| Undo / Undo (N) | Tap | Classes, Class, School year settings, Units, Tests, Homework and every group screen. Greyed out at 0 | Edit. Steps back one edit. The number is how many steps are left. |
-| ⋮ More options | Tap | Group screens only | ↑ Opens [⋮ Group menu](#group-menu). Opens the group menu. |
+| Undo / Undo (N) | Tap | Classes, Class, School year settings, Units and every group screen, while the bar has room. Greyed out at 0 | Edit. Steps back one edit. The number is how many steps are left. |
+| ⋮ More options | Tap | Group screens; on other screens only while the bar has folded Undo or warnings | ↑ Opens [⋮ Group menu](#group-menu). Opens the group menu; read as “More options, N warnings” while it holds a folded count. |
+| Folded Undo and warnings | Automatic | The title and the buttons don't fit (a long name, a narrow bar, large text) | View. Undo and ⚠ N move to the top of ⋮, which carries the warning count on a badge. The title is cut only when even that doesn't fit. |
 
 <a id="drawer"></a>
 ### ☰ Menu
 
-*Panel* · reached from [Top bar](#top-bar), [Home](#home). A drawer that slides over the screen; from 840dp it stays open beside the screens and ☰ goes away. Swiping only closes it, so an edge swipe never fights the month pager or system Back. Every row closes the drawer and uses goTo: a screen already open is returned to, not stacked again.
+*Panel* · reached from [Top bar](#top-bar), [Home](#home). A drawer that slides over the screen; from 840dp it can stay open beside the screens (pinned, the default) and ☰ goes away. Swiping only closes it, so an edge swipe never fights the month pager or system Back. The five main items never change order: Home, Pacing overview, Classes & Groups, School year, Settings, each with an icon. Every row that opens a screen closes the drawer and uses goTo: a screen already open is returned to, not stacked again.
+
+**Classes & Groups** is the “You are here” list. It opens at the teacher's own place and shows one level at a time, each hiding the ones above it:
+
+- on Classes: the classes (with group counts) and All N classes;
+- on Class or Units: that class's Class settings and groups, under a back row to the classes;
+- on a group page: that group's five places, with the current one marked, under a back row to the class.
+
+Nested rows are indented and carry no icon. The row on the screen the teacher is on is highlighted and read as “Current page”.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
+| 📌 Pin / unpin the menu | Tap | Window 840dp wide or more | Edit. Pinned keeps the menu open beside the screens. Unpinned collapses it behind ☰ and it slides over the screen like a phone's. Kept in Settings (`drawerPinned`). Read as “Keep the menu open” / “Let the menu collapse”. |
 | Find a class or group | Type | While a school year is open | View. Lists every group whose class and group names hold each word you type. Accents and case are ignored, so “Fce” finds “FCE”. Each hit shows its status. |
 | ✕ Clear search | Tap | While there is text | View. Empties the field and brings the menu items back. |
 | A search hit (Class · Group) | Tap |  | → Screen [Group home](#group-home). Opens that group's home, switching the open class if needed. |
 | No class or group matches “…” | Shows | Search found nothing | Message only. |
 | Home | Tap |  | → Screen [Home](#home). Clears the stack back to Home. |
 | Pacing overview (N behind) | Tap | While a year is open | → Screen [Pacing overview](#overview). Opens Pacing overview. The count is groups behind. |
-| Classes | Tap | Year has no classes | → Screen [Classes](#classes). Opens Classes, where the first one is added. |
-| Classes ⌄ / ⌃ | Tap | Year has classes | View. Shows or hides the class list (read as Show classes / Hide classes). |
-| A class row (with group count) | Tap | List expanded | → Screen [Class](#class). Opens that class. |
-| All N classes | Tap | List expanded | → Screen [Classes](#classes). Opens Classes. |
-| School year · name | Tap | While a year is open | → Screen [School year settings](#school-year). Opens School year settings. |
+| Classes & Groups | Tap | Year has no classes | → Screen [Classes](#classes). Opens Classes, where the first one is added. |
+| Classes & Groups ⌄ / ⌃ | Tap | Year has classes | View. Shows or hides the list, which starts at the teacher's own place each time the menu opens (read as Show / Hide classes and groups). |
+| A class row (with group count and ›) | Tap | Classes level | View. Opens that class's groups in the list; the other classes disappear. |
+| All N classes | Tap | Classes level | → Screen [Classes](#classes). Opens Classes. |
+| ‹ Classes / ‹ Class name (back row) | Tap | Class and group levels | View. Goes up one level of the list without leaving the screen (read as “Back to …”). |
+| Class settings | Tap | Class level | → Screen [Class](#class). Opens that class. |
+| A group row (with status) | Tap | Class level | → Screen [Group home](#group-home). Opens that group's home and closes the menu. |
+| Group home · Plan · Work · Stats · Group settings | Tap | Group level | → Screen [Group home](#group-home) / [Plan](#plan) / [Work](#work) / [Stats](#stats) / [Group settings](#group-settings). Opens that place of the group. On a tablet group home is shown as Plan. |
+| School year · short name | Tap | While a year is open | → Screen [School year settings](#school-year). Opens School year settings. A long name is shortened (“2026–2027” becomes “2026–27”). |
 | Settings (Update tag) | Tap |  | → Screen [Settings](#app-settings). Opens Settings. The tag shows while an update is available. |
 | Swipe the drawer away / tap outside / Back | Swipe |  | Closes. Closes the drawer. |
 
@@ -131,32 +143,18 @@ flowchart LR
 | Switching class | Automatic |  | → Screen. Closes the old class's screens; the year's screens stay. |
 | Deleting or undoing something | Automatic |  | → Screen. Screens for a year, class or group that no longer exists drop off the stack. |
 | Tablet 600–839dp | Automatic |  | View. Pacing overview (or Classes) shows as a list pane beside the open group; with no group open the right pane says to pick one. Group home shows as Plan. |
-| Tablet 840dp and wider | Automatic |  | View. The menu stays open on the left; no ☰. |
+| Tablet 840dp and wider | Automatic |  | View. The menu stays open on the left while it is pinned (no ☰); unpinned, it collapses behind ☰. |
 | Midnight / returning to the app | Automatic |  | View. “Today” refreshes, so Today and Next labels and overdue lessons move on by themselves. |
 
 <a id="group-switcher"></a>
-### Go to a group
+### Go to
 
-*Sheet* · reached from [Top bar](#top-bar). Opened by the title ▾ on group home. A bottom sheet; swipe down, tap outside or Back to close.
-
-| Control | Gesture | When | What happens |
-| --- | --- | --- | --- |
-| Search field | Type |  | View. Same search as the menu: every group in the year by class and group name. |
-| A search hit | Tap |  | → Screen [Group home](#group-home). Opens that group's home. |
-| Recent | Tap | Up to 4 groups opened this session, other than this one | → Screen [Group home](#group-home). Opens that group's home. |
-| The open class's other groups (with status) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. |
-
-<a id="page-switcher"></a>
-### Go to a page
-
-*Sheet*. Opened by the title ▾ on Plan, Work, Stats or Group settings. Lists the group's other pages, leaving out the one you're on.
+*Sheet* · reached from [Top bar](#top-bar). Opened by the title ▾ on group home, Plan, Work, Stats and Group settings. A bottom sheet; swipe down, tap outside or Back to close. One sheet for every page: the open group's places first, then the open class's other groups.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Plan | Tap |  | → Screen [Plan](#plan). Opens the group's Plan. |
-| Work | Tap |  | → Screen [Work](#work). Opens the group's Work page. |
-| Stats | Tap |  | → Screen [Stats](#stats). Opens the group's Stats. |
-| Group settings | Tap |  | → Screen [Group settings](#group-settings). Opens Group settings. |
+| Group home · Plan · Work · Stats · Group settings | Tap |  | → Screen [Group home](#group-home) / [Plan](#plan) / [Work](#work) / [Stats](#stats) / [Group settings](#group-settings). Opens that place; the one you are on is ticked and read as “Current page”. |
+| The open class's other groups (with status) | Tap | The class has other groups | → Screen [Group home](#group-home). Opens that group's home. |
 
 <a id="date-picker"></a>
 ### Date picker
@@ -201,7 +199,7 @@ flowchart LR
 | Pacing overview board: a cell (Group, −N when behind; “● Today” under the name when the group has a lesson today) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. The dot blinks three times when Home opens, then stays lit (steady with animations off). Groups run most behind first inside each class, as on Pacing overview. TalkBack reads class, group, “on pace” or “short by N lessons”, and “has a lesson today”. |
 | See all › / N groups on pace › / N set-up needed › | Tap | The large-text board counts only measured groups as on pace; groups with nothing to measure are “set-up needed” | → Screen [Pacing overview](#overview). Opens Pacing overview. |
 | Legend (on pace · behind, lessons short · Today) | Shows |  | Explains the board; each swatch looks like its cell, and the dot blinks like the cells'. |
-| Tests & worksheets card: a row (date, title, class · group, kind) | Tap | Some test or worksheet is still to come; the card is hidden otherwise | → Screen [Tests & worksheets · Homework](#moved-work). Opens that class's Tests & worksheets. Shows the next four. |
+| Tests & worksheets card: a row (date, title, class · group, kind) | Tap | Some test or worksheet is still to come; the card is hidden otherwise | → Screen [Work](#work). Opens the Work page of its group (the class's first group for a test that is for every group; the Class screen if it has none). Shows the next four. |
 
 <a id="welcome"></a>
 ### Welcome to Course Pacer
@@ -544,21 +542,12 @@ flowchart LR
 | Unit N start page | Type |  | Each shows where the unit ends. |
 | Save | Tap | Pages increase from the first page | Edit. Saves the starts. |
 
-<a id="moved-work"></a>
-### Tests & worksheets · Homework
-
-*Screen*. Old routes kept in the code with titles and Undo, but no control opens them today.
-
-| Control | Gesture | When | What happens |
-| --- | --- | --- | --- |
-| A group row | Tap |  | → Screen [Work](#work). Opens that group's Work page. |
-
 ## Group
 
 <a id="group-home"></a>
 ### Group home
 
-*Screen* · reached from [☰ Menu](#drawer), [Go to a group](#group-switcher), [Home](#home), [Pacing overview](#overview), [Problems in this year](#year-problems), [Class](#class), [Group (editor)](#group-editor). The group's hub. On a tablet it shows as Plan instead.
+*Screen* · reached from [☰ Menu](#drawer), [Go to](#group-switcher), [Home](#home), [Pacing overview](#overview), [Problems in this year](#year-problems), [Class](#class), [Group (editor)](#group-editor). The group's hub. On a tablet it shows as Plan instead.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -581,7 +570,7 @@ flowchart LR
 <a id="plan"></a>
 ### Plan
 
-*Screen* · reached from [Go to a page](#page-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row starts with a gutter (the day number over the weekday) and an edge colour that shows its kind: test, worksheet, day off, edited, by hand, free, supplementary. A taught lesson also lists, greyed and marked “(not in plan)”, pages taught from a book the group has since dropped; TalkBack says the book is no longer in the plan.
+*Screen* · reached from [Go to](#group-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row starts with a gutter (the day number over the weekday) and an edge colour that shows its kind: test, worksheet, day off, edited, by hand, free, supplementary. A taught lesson also lists, greyed and marked “(not in plan)”, pages taught from a book the group has since dropped; TalkBack says the book is no longer in the plan.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -761,7 +750,7 @@ flowchart LR
 <a id="work"></a>
 ### Work
 
-*Screen* · reached from [Go to a page](#page-switcher), [Class](#class), [Tests & worksheets · Homework](#moved-work), [Group home](#group-home), [Plan](#plan). The group's homework, tests and worksheets in This week, Later, No date and Earlier.
+*Screen* · reached from [Go to](#group-switcher), [Class](#class), [Group home](#group-home), [Plan](#plan). The group's homework, tests and worksheets in This week, Later, No date and Earlier.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -784,7 +773,7 @@ flowchart LR
 <a id="stats"></a>
 ### Stats
 
-*Screen* · reached from [Go to a page](#page-switcher), [Group home](#group-home). The verdict, figures, pace track, lessons by month and details.
+*Screen* · reached from [Go to](#group-switcher), [Group home](#group-home). The verdict, figures, pace track, lessons by month and details.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -817,7 +806,7 @@ flowchart LR
 <a id="group-settings"></a>
 ### Group settings
 
-*Screen* · reached from [Go to a page](#page-switcher), [Group (editor)](#group-editor), [Group home](#group-home). Calendar and book overrides for one group, under the class's defaults.
+*Screen* · reached from [Go to](#group-switcher), [Group (editor)](#group-editor), [Group home](#group-home). Calendar and book overrides for one group, under the class's defaults.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -882,14 +871,15 @@ flowchart LR
 <a id="group-menu"></a>
 ### ⋮ Group menu
 
-*Menu* · reached from [Top bar](#top-bar). Under headings Share & print, Plan, Lessons and Help.
+*Menu* · reached from [Top bar](#top-bar). Under headings Share & print, Plan, Lessons and Help; a heading shows only when it has items, and Work leaves out Plan and Lessons (it lists assignments, not lessons). Every item has an icon. While the bar has folded Undo and ⚠ N (see Top bar) they come first.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
+| Warnings (N) / Undo (N) | Tap | The bar has folded them | As the bar buttons: opens the group's Warnings sheet, or steps back one edit. |
 | Copy | Tap | Has lessons | Leaves app. Copies the schedule as a table. Message: “Copied. Paste into a spreadsheet or Word. (before Android 13)” |
 | Share | Tap | Has lessons | Leaves app. Opens the Android share sheet with the schedule. |
 | Print | Tap | Some scope has lessons to print | ↑ Opens [Print or save PDF](#print). Opens Print or save PDF. |
-| Make a custom plan | Tap | Large text, no custom plan | Creates one from the proposed plan. Message: “Custom plan created (no Undo here)” |
+| Make a custom plan | Tap | Large text, no custom plan | Creates one from the proposed plan. Undo: “Custom plan created”, as Create on Plan gives. |
 | Re-pace untouched lessons | Tap | Has a custom plan | Re-spreads pages over lessons you haven't changed by hand. Undo: “Plan re-paced” |
 | Copy to… | Tap | Custom plan and other groups | ↑ Opens [Copy to…](#copy-to). Opens the list of the class's other groups. |
 | Delete my plan | Tap | Has a custom plan | Deletes it; the proposed plan takes over. Undo: “Custom plan deleted” |

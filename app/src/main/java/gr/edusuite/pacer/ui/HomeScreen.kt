@@ -350,7 +350,7 @@ private fun BlinkingDot(color: Color) {
 
 private const val BLINKS = 3
 
-/** The next tests and worksheets across the year. Tapping one opens its class's Tests & worksheets. Nothing to show means no card. */
+/** The next tests and worksheets across the year. Tapping one opens its group's Work page. Nothing to show means no card. */
 @Composable
 private fun UpcomingCard(year: SchoolYear, vm: PacerViewModel) {
     val today = rememberToday()
@@ -367,7 +367,7 @@ private fun UpcomingCard(year: SchoolYear, vm: PacerViewModel) {
             val open = stringResource(R.string.home_open_tests)
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 56.dp)
-                    .clickable(onClickLabel = open, role = Role.Button) { vm.openTests(item.classId) }
+                    .clickable(onClickLabel = open, role = Role.Button) { vm.openWork(item.classId, item.groupId) }
                     .padding(horizontal = Space.l, vertical = Space.xs)
                     .semantics(mergeDescendants = true) { contentDescription = "$kind, $title, $day, $where" },
                 verticalAlignment = Alignment.CenterVertically,

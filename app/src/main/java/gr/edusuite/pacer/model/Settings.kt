@@ -64,6 +64,8 @@ data class Settings(
      * Null until the teacher has answered the first-launch question about lessons left unticked in the past.
      */
     val autoTickFrom: LocalDate? = null,
+    /** On a tablet 840dp wide or more, the menu stays open beside the screens (pinned, the default) or collapses behind ☰. */
+    val drawerPinned: Boolean = true,
 ) {
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(

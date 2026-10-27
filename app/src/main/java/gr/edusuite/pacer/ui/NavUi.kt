@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +43,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.ImeAction
@@ -112,16 +115,34 @@ private fun groupLabel(className: String, groupName: String): String = stringRes
 )
 
 /**
- * The ☰ menu (decision 3): search over the year's classes and groups, then Home, Pacing overview with how many groups
- * are behind, Classes as an expandable list, School year and Settings. [onClose] closes the drawer before it moves.
- * With [permanent] (a tablet 840dp wide or more) it is the always-open drawer beside the screens.
+ * The ☰ menu (decision 3): search over the year's classes and groups, then the same five items in the same order:
+ * Home, Pacing overview with how many groups are behind, Classes & Groups, School year and Settings. Classes & Groups
+ * opens where the teacher is ("You are here"): the classes, one class's groups, or one group's places, each level
+ * hiding the ones above it. [onClose] closes the drawer before it moves. With [permanent] (a tablet 840dp wide or
+ * more, pinned) it is the always-open drawer beside the screens; [pin] then shows the pin that lets it collapse.
+ * [opening] is true while the modal drawer opens, so the list starts at the teacher's own place each time.
  */
 @Composable
-fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> Unit, permanent: Boolean = false, updateBadge: Boolean = false) {
+fun AppDrawer(
+    data: AppData,
+    screen: Screen,
+    vm: PacerViewModel,
+    onClose: () -> Unit,
+    permanent: Boolean = false,
+    updateBadge: Boolean = false,
+    opening: Boolean = false,
+    plansStandIn: Boolean = false,
+    pin: ((Boolean) -> Unit)? = null,
+    pinned: Boolean = true,
+) {
     val c = Pacer.colors
     var query by rememberSaveable { mutableStateOf("") }
-    var expanded by rememberSaveable { mutableStateOf(false) }
     val year = data.year
+    val here = menuLevelFor(screen, data.activeClass)
+    var expanded by rememberSaveable { mutableStateOf(here != null) }
+    var level by remember { mutableStateOf<MenuLevel>(here ?: MenuLevel.Classes) }
+    LaunchedEffect(screen, data.activeClass) { level = here ?: MenuLevel.Classes; expanded = here != null }
+    LaunchedEffect(opening) { if (opening) { level = here ?: MenuLevel.Classes; expanded = here != null } }
     val today = rememberToday()
     val status = remember(year, today) { year?.let { yearStatus(it, today) }.orEmpty() }
     val hits = remember(year, query) { year?.let { searchGroups(it, query) }.orEmpty() }
@@ -134,7 +155,8 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
             Row(Modifier.padding(start = Space.s, bottom = Space.s), verticalAlignment = Alignment.CenterVertically) {
                 Logo(32.dp)
                 Spacer(Modifier.width(Space.m))
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                if (pin != null) PinButton(pinned, pin)
             }
             if (year != null) SearchField(query, { query = it }, Modifier.padding(bottom = Space.s))
             if (year != null && query.isNotBlank()) {
@@ -156,9 +178,9 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
                                 if (behind > 0) Tag(pluralStringResource(R.plurals.nav_behind, behind, behind), Modifier.semantics { contentDescription = description }, warn = true)
                             }
                         }
-                        Screen.Classes -> if (year != null) DrawerClasses(year, screen, data.activeClass, expanded, { expanded = it }, go, vm)
+                        Screen.Classes -> if (year != null) DrawerClasses(year, screen, data.activeClass, plansStandIn, status, expanded, { expanded = it }, level, { level = it }, go, vm)
                         Screen.YearSettings -> DrawerRow(
-                            year?.name?.ifBlank { null }?.let { stringResource(R.string.nav_year_named, it) } ?: stringResource(R.string.nav_year),
+                            year?.name?.ifBlank { null }?.let { stringResource(R.string.nav_year_named, yearShort(it)) } ?: stringResource(R.string.nav_year),
                             AppIcons.Calendar, screen == s, { go { vm.goTo(s) } },
                         )
                         Screen.Settings -> {
@@ -173,50 +195,96 @@ fun AppDrawer(data: AppData, screen: Screen, vm: PacerViewModel, onClose: () -> 
             }
         }
     }
-    // A tablet at 840dp or wider keeps the menu open beside the screens; anywhere else it slides over them.
+    // A tablet at 840dp or wider can keep the menu open beside the screens; anywhere else it slides over them.
     if (permanent) PermanentDrawerSheet(Modifier.width(320.dp), drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) { content() }
     else ModalDrawerSheet(drawerContainerColor = c.surface, drawerContentColor = c.ink, drawerTonalElevation = 0.dp) { content() }
 }
 
-/** Classes in the menu: the row opens and closes the list of classes, each with its group count, and "All 9 classes". */
+/** The pin on a wide tablet's menu: pinned keeps it open beside the screens, unpinned lets it collapse behind ☰. */
+@Composable
+private fun PinButton(pinned: Boolean, onPin: (Boolean) -> Unit) {
+    val c = Pacer.colors
+    val haptic = rememberToggleHaptic()
+    val label = stringResource(if (pinned) R.string.nav_unpin else R.string.nav_pin)
+    IconButton(
+        onClick = { haptic(!pinned); onPin(!pinned) },
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = if (pinned) c.accentSoft else Color.Transparent,
+            contentColor = if (pinned) c.onAccentSoft else c.ink,
+        ),
+    ) { AppIcon(AppIcons.Pin, contentDescription = label) }
+}
+
+/**
+ * Classes & Groups in the menu. Collapsed it is one row; open it lists what [menuRows] gives for the [level]: classes,
+ * a class's groups, or a group's places. Rows that go deeper only change the list; the rest open a screen and close the menu.
+ * Rows under the heading are indented and carry no icon; the five main items do.
+ */
 @Composable
 private fun DrawerClasses(
     year: SchoolYear,
     screen: Screen,
     activeClass: String,
+    plansStandIn: Boolean,
+    status: Map<String, Int?>,
     expanded: Boolean,
     onExpand: (Boolean) -> Unit,
+    level: MenuLevel,
+    onLevel: (MenuLevel) -> Unit,
     go: (() -> Unit) -> Unit,
     vm: PacerViewModel,
 ) {
     // With no classes there is nothing to expand, so the row opens Classes, where the first one is added.
     if (year.classes.isEmpty()) {
-        DrawerRow(stringResource(R.string.app_classes), AppIcons.School, screen == Screen.Classes, { go { vm.goTo(Screen.Classes) } })
+        DrawerRow(stringResource(R.string.nav_classes_groups), AppIcons.School, screen == Screen.Classes, { go { vm.goTo(Screen.Classes) } })
         return
     }
-    val state =stringResource(if (expanded) R.string.nav_hide_classes else R.string.nav_show_classes)
+    val inside = menuLevelFor(screen, activeClass) != null
+    val state = stringResource(if (expanded) R.string.nav_hide_classes else R.string.nav_show_classes)
     DrawerRow(
-        stringResource(R.string.app_classes), AppIcons.School, screen == Screen.Classes, { onExpand(!expanded) },
-        Modifier.semantics { stateDescription = state },
+        stringResource(R.string.nav_classes_groups), AppIcons.School, inside && !expanded, { onExpand(!expanded) },
+        Modifier.semantics { stateDescription = state }, markCurrent = false,
     ) { AppIcon(if (expanded) AppIcons.ExpandLess else AppIcons.ExpandMore) }
     if (!expanded) return
-    year.classes.forEach { cl ->
-        val count = cl.groups.size
-        val description = pluralStringResource(R.plurals.home_groups_count, count, count)
-        DrawerRow(
-            cl.name.ifBlank { stringResource(R.string.app_class) }, null, screen == Screen.Class && activeClass == cl.id,
-            { go { vm.goToClass(cl.id) } }, Modifier.padding(start = Space.xl),
-        ) {
-            Text("$count", style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, modifier = Modifier.semantics { contentDescription = description })
+    val indent = Modifier.padding(start = Space.xl)
+    menuRows(year, level, screen, plansStandIn).forEach { row ->
+        when (row) {
+            is MenuRow.Up -> {
+                val name = row.name?.let { it.ifBlank { stringResource(R.string.app_class) } } ?: stringResource(R.string.app_classes)
+                val description = stringResource(R.string.nav_back_to, name)
+                DrawerRow(name, AppIcons.Back, false, { onLevel(row.to) }, indent.semantics { contentDescription = description }, accent = true)
+            }
+            is MenuRow.Heading -> Text(
+                row.name.ifBlank { stringResource(if (row.isClass) R.string.app_class else R.string.app_group) },
+                style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = indent.padding(horizontal = Space.l, vertical = Space.xs).semantics { heading() },
+            )
+            is MenuRow.ClassItem -> {
+                val description = pluralStringResource(R.plurals.home_groups_count, row.groups, row.groups)
+                DrawerRow(row.name.ifBlank { stringResource(R.string.app_class) }, null, false, { onLevel(MenuLevel.Class(row.classId)) }, indent) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("${row.groups}", style = MaterialTheme.typography.labelMedium, color = Pacer.colors.muted, modifier = Modifier.semantics { contentDescription = description })
+                        AppIcon(AppIcons.ChevronRight)
+                    }
+                }
+            }
+            is MenuRow.AllClasses -> DrawerRow(
+                pluralStringResource(R.plurals.nav_all_classes, row.count, row.count), null, row.current,
+                { go { vm.goTo(Screen.Classes) } }, indent, accent = true,
+            )
+            is MenuRow.ClassSettings -> DrawerRow(stringResource(R.string.class_class_settings), null, row.current, { go { vm.goToClass(row.classId) } }, indent)
+            is MenuRow.GroupItem -> DrawerRow(
+                row.name.ifBlank { stringResource(R.string.app_group) }, null, row.current, { go { vm.goToGroup(row.classId, row.groupId) } }, indent,
+            ) { StatusLabel(status[row.groupId]) }
+            is MenuRow.PlaceItem -> DrawerRow(stringResource(row.place.titleRes()), null, row.current, { go { vm.goTo(row.place.screen(row.groupId)) } }, indent)
         }
     }
-    DrawerRow(
-        pluralStringResource(R.plurals.nav_all_classes, year.classes.size, year.classes.size), null, false,
-        { go { vm.goTo(Screen.Classes) } }, Modifier.padding(start = Space.xl), accent = true,
-    )
 }
 
-/** A menu row: an optional symbol, its label and an optional trailing badge, highlighted when it is the open screen. */
+/**
+ * A menu row: an optional symbol, its label and an optional trailing badge, highlighted when it is the open screen.
+ * The highlighted row also says "Current page" to TalkBack unless [markCurrent] is false.
+ */
 @Composable
 private fun DrawerRow(
     label: String,
@@ -225,14 +293,16 @@ private fun DrawerRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     accent: Boolean = false,
+    markCurrent: Boolean = true,
     badge: (@Composable () -> Unit)? = null,
 ) {
     val c = Pacer.colors
+    val current = stringResource(R.string.nav_current_page)
     NavigationDrawerItem(
         label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (accent && !selected) c.accentText else Color.Unspecified) },
         selected = selected,
         onClick = onClick,
-        modifier = modifier,
+        modifier = if (selected && markCurrent) modifier.semantics { stateDescription = current } else modifier,
         icon = icon?.let { { AppIcon(it) } },
         badge = badge,
         colors = NavigationDrawerItemDefaults.colors(
@@ -242,78 +312,58 @@ private fun DrawerRow(
     )
 }
 
-/** One group in a list: its name, "you are here" on the open one, and its status at the end. */
+/** One place or group in a list: its name, and at the end its status, or a tick on the one the teacher is on. */
 @Composable
-private fun GroupRow(label: String, short: Int?, onClick: () -> Unit) {
+private fun GroupRow(label: String, short: Int?, current: Boolean = false, onClick: () -> Unit) {
+    val here = stringResource(R.string.nav_current_page)
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onClick).padding(vertical = Space.s),
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onClick).padding(vertical = Space.s)
+            .semantics { if (current) stateDescription = here },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        Text(
+            label, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+            color = if (current) Pacer.colors.accentText else Color.Unspecified,
+        )
         Spacer(Modifier.width(Space.s))
-        StatusLabel(short)
+        if (current) androidx.compose.material3.Icon(AppIcons.Check, contentDescription = null, tint = Pacer.colors.accentText) else StatusLabel(short)
     }
     HorizontalDivider(color = Pacer.colors.line)
 }
 
 /**
- * The group switcher (decision 4), opened from the group's title: search, the groups opened recently this session
- * and the open class's groups, each with its status.
+ * The title switcher (decision 4), one sheet for every group page: the open group's places first, in a fixed order with
+ * the current one ticked, then the open class's other groups with their status.
  */
 @Composable
-fun GroupSwitcherSheet(year: SchoolYear, classId: String, groupId: String, recent: List<GroupRef>, vm: PacerViewModel, onDismiss: () -> Unit) {
-    var query by rememberSaveable { mutableStateOf("") }
+fun GroupSwitcherSheet(year: SchoolYear, classId: String, screen: Screen, plansStandIn: Boolean, vm: PacerViewModel, onDismiss: () -> Unit) {
+    val groupId = screen.groupId ?: return
     val today = rememberToday()
     val status = remember(year, today) { yearStatus(year, today) }
-    val hits = remember(year, query) { searchGroups(year, query) }
-    // Recent groups that still exist, other than the open one.
-    val recents = remember(year, recent, groupId) {
-        recent.filter { it.groupId != groupId }.mapNotNull { r ->
-            val cl = year.classes.firstOrNull { it.id == r.classId } ?: return@mapNotNull null
-            val g = cl.groups.firstOrNull { it.id == r.groupId } ?: return@mapNotNull null
-            GroupHit(cl.id, cl.name, g.id, g.name)
-        }.take(Nav.RECENT - 1)
-    }
     val open = year.classes.firstOrNull { it.id == classId }
-    val others = (switcherEntries(Screen.Group(groupId), open?.groups.orEmpty()) as SwitcherEntries.Groups).others
+    val here = open?.groups?.firstOrNull { it.id == groupId }
     HomeSheet(stringResource(R.string.switcher_title), onDismiss) { close ->
-        val go = { h: GroupHit -> vm.goToGroup(h.classId, h.groupId); close() }
-        SearchField(query, { query = it })
-        if (query.isNotBlank()) {
-            if (hits.isEmpty()) Hint(stringResource(R.string.nav_no_match, query.trim()))
-            hits.forEach { h -> GroupRow(groupLabel(h.className, h.groupName), status[h.groupId]) { go(h) } }
-            return@HomeSheet
+        Eyebrow(here?.name?.ifBlank { null } ?: stringResource(R.string.app_group))
+        switcherPages(screen, plansStandIn).forEach { p ->
+            GroupRow(stringResource(p.place.titleRes()), null, current = p.current) { vm.goTo(p.place.screen(groupId)); close() }
         }
-        if (recents.isNotEmpty()) {
-            Eyebrow(stringResource(R.string.switcher_recent), Modifier.padding(top = Space.s))
-            recents.forEach { h -> GroupRow(groupLabel(h.className, h.groupName), status[h.groupId]) { go(h) } }
-        }
-        if (open != null) {
+        val others = open?.let { switcherGroups(it.groups, groupId) }.orEmpty()
+        if (open != null && others.isNotEmpty()) {
             Eyebrow(open.name.ifBlank { stringResource(R.string.app_class) }, Modifier.padding(top = Space.s))
             others.forEach { g ->
-                GroupRow(g.name.ifBlank { stringResource(R.string.app_group) }, status[g.id]) { go(GroupHit(open.id, open.name, g.id, g.name)) }
+                GroupRow(g.name.ifBlank { stringResource(R.string.app_group) }, status[g.id]) { vm.goToGroup(open.id, g.id); close() }
             }
         }
     }
 }
 
-/** The switcher from one of a group's pages: that group's other pages. Picking one opens it. */
-@Composable
-fun PageSwitcherSheet(groupId: String, pages: List<GroupDestination>, vm: PacerViewModel, onDismiss: () -> Unit) {
-    HomeSheet(stringResource(R.string.switcher_pages_title), onDismiss) { close ->
-        pages.forEach { page ->
-            GroupRow(stringResource(page.titleRes()), null) { vm.goTo(page.screen(groupId)); close() }
-        }
-    }
-}
-
-/** ☰, with a small accent dot while an update is available. TalkBack reads "Menu, update available". */
+/** ☰, with a small dot in the mark colour (3:1 on every ground, unlike the Saffron fill) while an update is available. TalkBack reads "Menu, update available". */
 @Composable
 fun MenuButton(onMenu: () -> Unit, badge: Boolean) {
     val c = Pacer.colors
     PillIconButton(stringResource(if (badge) R.string.nav_menu_update else R.string.nav_menu), onMenu) {
         BadgedBox(
-            badge = { if (badge) Badge(containerColor = c.accent) },
+            badge = { if (badge) Badge(containerColor = c.mark) },
             modifier = Modifier.clearAndSetSemantics {},
         ) { AppIcon(AppIcons.Menu) }
     }

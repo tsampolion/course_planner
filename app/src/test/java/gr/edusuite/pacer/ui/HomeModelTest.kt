@@ -151,6 +151,8 @@ class HomeModelTest {
         assertEquals(listOf("Unit 1 test", "Reading worksheet", "Mid-term", "Unit 2 test"), list.map { it.title })
         assertEquals(listOf(UpcomingKind.TEST, UpcomingKind.WORKSHEET, UpcomingKind.TEST, UpcomingKind.TEST), list.map { it.kind })
         assertEquals(listOf(null, "Group A", "Group A", "Group B"), list.map { it.groupName })
+        // Each opens a group's Work page: its own group, or the class's first when the test is for every group.
+        assertEquals(listOf("ga", "ga", "ga", "gb"), list.map { it.groupId })
         assertEquals(2, upcoming(seed.copy(classes = listOf(c)), d("2026-09-09"), limit = 2).size)
         // A test on the day itself is still to come; the day after, it is gone.
         assertEquals("Unit 1 test", upcoming(seed.copy(classes = listOf(c)), d("2026-10-01")).first().title)

@@ -54,6 +54,33 @@ class GroupModelTest {
         assertTrue(GroupMenuItem.CREATE_PLAN in groupMenuItems(true, false, 1, true))
     }
 
+    @Test fun theGroupMenuNeverShowsAHeadingOverNothing() {
+        val shapes = listOf(
+            groupMenuItems(hasRows = false, hasCustom = false, otherGroups = 0, large = false),
+            groupMenuItems(hasRows = true, hasCustom = false, otherGroups = 1, large = true),
+            groupMenuItems(hasRows = true, hasCustom = true, otherGroups = 1, large = true, catchUp = true),
+        )
+        for (items in shapes) for (page in GroupPage.entries) {
+            val sections = groupMenuSections(items, page)
+            assertTrue("$items on $page", sections.all { it.second.isNotEmpty() })
+            assertEquals(sections.map { it.first }.distinct(), sections.map { it.first })
+        }
+    }
+
+    @Test fun planToolsAreOnlyOnThePagesThatHaveLessons() {
+        val items = groupMenuItems(hasRows = true, hasCustom = true, otherGroups = 1, large = true, catchUp = true)
+        val sectionsOn = { page: GroupPage -> groupMenuSections(items, page).map { it.first } }
+        val all = listOf(GroupMenuSection.SHARE_PRINT, GroupMenuSection.PLAN, GroupMenuSection.LESSONS, GroupMenuSection.HELP)
+        assertEquals(all, sectionsOn(GroupPage.PLAN))
+        assertEquals(all, sectionsOn(GroupPage.STATS))
+        assertEquals(listOf(GroupMenuSection.SHARE_PRINT, GroupMenuSection.HELP), sectionsOn(GroupPage.WORK))
+    }
+
+    @Test fun catchUpShowsOnlyWhenTheReportOffersIt() {
+        assertTrue(GroupMenuItem.CATCH_UP !in groupMenuItems(true, true, 0, false))
+        assertTrue(GroupMenuItem.CATCH_UP in groupMenuItems(true, true, 0, false, catchUp = true))
+    }
+
     @Test fun repacingImportedYearKeepsHolidayRows() {
         val seed = seedYear()
         // Both modern backups (including Add's id collision) and legacy flat-plan migration.

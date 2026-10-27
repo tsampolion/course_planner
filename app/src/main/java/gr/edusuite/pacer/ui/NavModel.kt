@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.UnitIssue
 import gr.edusuite.pacer.engine.unitIssues
 import gr.edusuite.pacer.engine.BookLag
@@ -125,28 +126,126 @@ private fun GroupReport.lessonHolding(pages: Map<String, List<Int>>): String? {
     return (lessons.firstOrNull { it.touched && holds(it) } ?: lessons.firstOrNull(holds))?.id
 }
 
-/** What the group switcher lists: from group home the other groups, from any of its pages the group's other pages. */
-sealed interface SwitcherEntries {
-    data class Groups(val others: List<gr.edusuite.pacer.model.Group>) : SwitcherEntries
-    data class Pages(val groupId: String, val pages: List<GroupDestination>) : SwitcherEntries
+/** The places a group has, in the order the title switcher and the ☰ menu list them. */
+enum class GroupPlace {
+    HOME, PLAN, WORK, STATS, SETTINGS;
+
+    fun titleRes(): Int = when (this) {
+        HOME -> R.string.group_place_home
+        PLAN -> R.string.group_tab_plan
+        WORK -> R.string.work_title
+        STATS -> R.string.group_tab_stats
+        SETTINGS -> R.string.group_settings_title
+    }
+
+    fun screen(groupId: String): Screen = when (this) {
+        HOME -> Screen.Group(groupId)
+        PLAN -> Screen.Group(groupId, GroupPage.PLAN)
+        WORK -> Screen.Group(groupId, GroupPage.WORK)
+        STATS -> Screen.Group(groupId, GroupPage.STATS)
+        SETTINGS -> Screen.GroupSettings(groupId)
+    }
 }
 
-/** The destination [screen] is, or null on group home and anywhere that isn't one of the group's pages. */
-fun Screen.destination(): GroupDestination? = when (this) {
+/** The place this screen is, or null off a group. With [plansStandIn] (a tablet) group home is shown as, and counts as, Plan. */
+fun Screen.place(plansStandIn: Boolean = false): GroupPlace? = when (this) {
     is Screen.Group -> when (page) {
-        GroupPage.HOME -> null
-        GroupPage.PLAN -> GroupDestination.PLAN
-        GroupPage.WORK -> GroupDestination.WORK
-        GroupPage.STATS -> GroupDestination.STATS
+        GroupPage.HOME -> if (plansStandIn) GroupPlace.PLAN else GroupPlace.HOME
+        GroupPage.PLAN -> GroupPlace.PLAN
+        GroupPage.WORK -> GroupPlace.WORK
+        GroupPage.STATS -> GroupPlace.STATS
     }
-    is Screen.GroupSettings -> GroupDestination.SETTINGS
+    is Screen.GroupSettings -> GroupPlace.SETTINGS
     else -> null
 }
 
-/** Picking a group always opens its home; the pages list leaves out the page the teacher is on. [groups] are the open class's. */
-fun switcherEntries(current: Screen, groups: List<gr.edusuite.pacer.model.Group>): SwitcherEntries {
-    val here = current.destination()
-    val id = current.groupId
-    return if (here == null || id == null) SwitcherEntries.Groups(groups.filter { it.id != id })
-    else SwitcherEntries.Pages(id, GroupDestination.entries.filter { it != here })
+/** One row of the title switcher: a place of the open group, with a mark on the one the teacher is on. */
+data class SwitcherPage(val place: GroupPlace, val current: Boolean)
+
+/** The switcher's first part: every place of the open group in fixed order, the current one marked. */
+fun switcherPages(current: Screen, plansStandIn: Boolean = false): List<SwitcherPage> =
+    GroupPlace.entries.map { SwitcherPage(it, it == current.place(plansStandIn)) }
+
+/** The switcher's second part: the open class's other groups. */
+fun switcherGroups(groups: List<gr.edusuite.pacer.model.Group>, openGroupId: String?): List<gr.edusuite.pacer.model.Group> =
+    groups.filter { it.id != openGroupId }
+
+/**
+ * Where the menu's Classes & Groups list is open: the classes, one class's groups, or one group's places. Each level
+ * hides the ones above it, so the list shows only the way down and one row back up.
+ */
+sealed interface MenuLevel {
+    data object Classes : MenuLevel
+    data class Class(val classId: String) : MenuLevel
+    data class Group(val classId: String, val groupId: String) : MenuLevel
+}
+
+/** The level that holds [screen] ("You are here"), or null on a screen outside Classes & Groups. */
+fun menuLevelFor(screen: Screen, activeClass: String): MenuLevel? = when {
+    screen is Screen.Group || screen is Screen.GroupSettings -> MenuLevel.Group(activeClass, screen.groupId.orEmpty())
+    screen == Screen.Class || screen == Screen.Units -> MenuLevel.Class(activeClass)
+    screen == Screen.Classes -> MenuLevel.Classes
+    else -> null
+}
+
+/** What the open level of Classes & Groups lists. Names are as stored, so the screen supplies stand-ins for blank ones. */
+sealed interface MenuRow {
+    /** One step back up the list; [name] is what it goes back to, null for the list of classes. Doesn't leave the screen. */
+    data class Up(val to: MenuLevel, val name: String?) : MenuRow
+    /** The open class or group, over its rows. */
+    data class Heading(val name: String, val isClass: Boolean) : MenuRow
+    /** Opens that class's groups in the list. */
+    data class ClassItem(val classId: String, val name: String, val groups: Int) : MenuRow
+    /** Opens the Classes screen. */
+    data class AllClasses(val count: Int, val current: Boolean) : MenuRow
+    /** Opens the Class screen. */
+    data class ClassSettings(val classId: String, val current: Boolean) : MenuRow
+    data class GroupItem(val classId: String, val groupId: String, val name: String, val current: Boolean) : MenuRow
+    data class PlaceItem(val groupId: String, val place: GroupPlace, val current: Boolean) : MenuRow
+}
+
+/**
+ * The rows under Classes & Groups at [level]. A class or group that no longer exists falls back to the classes, so a
+ * delete never leaves the menu pointing at nothing.
+ */
+fun menuRows(year: SchoolYear, level: MenuLevel, screen: Screen, plansStandIn: Boolean = false): List<MenuRow> {
+    val cl = when (level) {
+        MenuLevel.Classes -> null
+        is MenuLevel.Class -> year.classes.firstOrNull { it.id == level.classId }
+        is MenuLevel.Group -> year.classes.firstOrNull { it.id == level.classId }
+    }
+    if (level is MenuLevel.Group && cl != null) {
+        val g = cl.groups.firstOrNull { it.id == level.groupId }
+        if (g != null) {
+            val here = screen.place(plansStandIn).takeIf { screen.groupId == g.id }
+            return listOf(MenuRow.Up(MenuLevel.Class(cl.id), cl.name), MenuRow.Heading(g.name, isClass = false)) +
+                GroupPlace.entries.map { MenuRow.PlaceItem(g.id, it, it == here) }
+        }
+    }
+    if (cl != null && level !is MenuLevel.Classes) {
+        return listOf(MenuRow.Up(MenuLevel.Classes, null), MenuRow.Heading(cl.name, isClass = true), MenuRow.ClassSettings(cl.id, screen == Screen.Class)) +
+            cl.groups.map { MenuRow.GroupItem(cl.id, it.id, it.name, screen.groupId == it.id) }
+    }
+    return year.classes.map { MenuRow.ClassItem(it.id, it.name, it.groups.size) } +
+        (if (year.classes.isEmpty()) emptyList() else listOf(MenuRow.AllClasses(year.classes.size, screen == Screen.Classes)))
+}
+
+/** A long year name for the menu: "2026–2027" → "2026–27", anything still over 12 characters cut with an ellipsis. */
+fun yearShort(name: String): String {
+    val n = name.trim().replace(Regex("^(\\d{4})\\s*[-–—/]\\s*\\d{2}(\\d{2})\\b"), "$1–$2")
+    return if (n.length > 12) n.take(11).trimEnd() + "…" else n
+}
+
+/** Width of an average character of the bar's title, in dp at the default text size. */
+private const val TITLE_CHAR_DP = 11f
+
+/**
+ * Whether the top bar should fold Undo and the warning button into ⋮ so the title keeps its room. [buttons] is how many
+ * buttons follow the title now; [hasMenu] is false where ☰ isn't there (a tablet beside the permanent drawer). An estimate
+ * from the title's length, the bar's width and the text size: close enough to decide, and never cuts a title that fits.
+ */
+fun foldBarActions(barDp: Float, fontScale: Float, titleChars: Int, buttons: Int, hasMenu: Boolean, hasSwitcher: Boolean): Boolean {
+    val needs = titleChars * TITLE_CHAR_DP * fontScale + (if (hasSwitcher) 24f else 0f)
+    val room = barDp - (if (hasMenu) 56f else 16f) - 48f * buttons - 16f
+    return needs > room
 }

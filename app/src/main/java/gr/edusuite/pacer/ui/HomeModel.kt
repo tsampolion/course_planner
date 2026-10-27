@@ -64,6 +64,8 @@ data class UpcomingItem(
     val date: LocalDate,
     val kind: UpcomingKind,
     val groupName: String?,
+    /** The group whose Work page shows it: its own group, or the class's first when it is for every group. Null when the class has none. */
+    val groupId: String? = null,
 )
 
 /**
@@ -73,11 +75,11 @@ data class UpcomingItem(
 fun upcoming(year: SchoolYear, today: LocalDate, limit: Int = 4): List<UpcomingItem> = year.classes.flatMap { c ->
     val names = c.groups.associate { it.id to it.name }
     val tests = c.events.filter { !it.date.isBefore(today) }.map { e ->
-        UpcomingItem(c.id, c.name, e.name, e.date, UpcomingKind.TEST, e.who.takeIf { it != ALL_GROUPS }?.let { names[it] })
+        UpcomingItem(c.id, c.name, e.name, e.date, UpcomingKind.TEST, e.who.takeIf { it != ALL_GROUPS }?.let { names[it] }, c.groups.firstOrNull { it.id == e.who }?.id ?: c.groups.firstOrNull()?.id)
     }
     val work = c.groups.flatMap { g ->
         g.assignments.filter { it.type != AssignmentType.HOMEWORK && it.due?.isBefore(today) == false }.map { a ->
-            UpcomingItem(c.id, c.name, a.title, a.due!!, if (a.type == AssignmentType.WORKSHEET) UpcomingKind.WORKSHEET else UpcomingKind.TEST, g.name)
+            UpcomingItem(c.id, c.name, a.title, a.due!!, if (a.type == AssignmentType.WORKSHEET) UpcomingKind.WORKSHEET else UpcomingKind.TEST, g.name, g.id)
         }
     }
     tests + work
