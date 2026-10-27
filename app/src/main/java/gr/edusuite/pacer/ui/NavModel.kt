@@ -159,12 +159,18 @@ fun Screen.place(plansStandIn: Boolean = false): GroupPlace? = when (this) {
     else -> null
 }
 
+/**
+ * The places the menu and the switcher list. On a tablet group home is shown as Plan, so listing both would offer two
+ * rows for one view: [plansStandIn] leaves Group home out.
+ */
+fun groupPlaces(plansStandIn: Boolean = false): List<GroupPlace> = GroupPlace.entries.filter { !plansStandIn || it != GroupPlace.HOME }
+
 /** One row of the title switcher: a place of the open group, with a mark on the one the teacher is on. */
 data class SwitcherPage(val place: GroupPlace, val current: Boolean)
 
 /** The switcher's first part: every place of the open group in fixed order, the current one marked. */
 fun switcherPages(current: Screen, plansStandIn: Boolean = false): List<SwitcherPage> =
-    GroupPlace.entries.map { SwitcherPage(it, it == current.place(plansStandIn)) }
+    groupPlaces(plansStandIn).map { SwitcherPage(it, it == current.place(plansStandIn)) }
 
 /** The switcher's second part: the open class's other groups. */
 fun switcherGroups(groups: List<gr.edusuite.pacer.model.Group>, openGroupId: String?): List<gr.edusuite.pacer.model.Group> =
@@ -187,6 +193,18 @@ fun menuLevelFor(screen: Screen, activeClass: String): MenuLevel? = when {
     screen == Screen.Classes -> MenuLevel.Classes
     else -> null
 }
+
+/** Where Classes & Groups is open: the [level] it shows and whether the list is [expanded]. */
+data class MenuState(val level: MenuLevel, val expanded: Boolean)
+
+/** The state each time the menu opens: at the teacher's own place, or folded away on a screen outside Classes & Groups. */
+fun menuStateOnOpen(here: MenuLevel?): MenuState = MenuState(here ?: MenuLevel.Classes, here != null)
+
+/**
+ * The state after the screen changes. Inside Classes & Groups the list follows the teacher; elsewhere (Home, Pacing
+ * overview, Settings) it stays as it is, so a pinned menu doesn't fold up each time another item is tapped.
+ */
+fun MenuState.followScreen(here: MenuLevel?): MenuState = if (here != null) MenuState(here, true) else this
 
 /** What the open level of Classes & Groups lists. Names are as stored, so the screen supplies stand-ins for blank ones. */
 sealed interface MenuRow {
@@ -219,7 +237,7 @@ fun menuRows(year: SchoolYear, level: MenuLevel, screen: Screen, plansStandIn: B
         if (g != null) {
             val here = screen.place(plansStandIn).takeIf { screen.groupId == g.id }
             return listOf(MenuRow.Up(MenuLevel.Class(cl.id), cl.name), MenuRow.Heading(g.name, isClass = false)) +
-                GroupPlace.entries.map { MenuRow.PlaceItem(g.id, it, it == here) }
+                groupPlaces(plansStandIn).map { MenuRow.PlaceItem(g.id, it, it == here) }
         }
     }
     if (cl != null && level !is MenuLevel.Classes) {
@@ -237,7 +255,7 @@ fun yearShort(name: String): String {
 }
 
 /** Width of an average character of the bar's title, in dp at the default text size. */
-private const val TITLE_CHAR_DP = 11f
+private const val TITLE_CHAR_DP = 12f
 
 /**
  * Whether the top bar should fold Undo and the warning button into ⋮ so the title keeps its room. [buttons] is how many

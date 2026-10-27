@@ -190,7 +190,7 @@ private fun GroupMenuEntry(item: GroupMenuItem, menu: GroupMenu, close: () -> Un
         GroupMenuItem.CREATE_PLAN -> menu.customPlan?.let { make -> entry(R.string.group_make_custom_plan, AppIcons.Edit, action = make) }
         GroupMenuItem.MY_PLAN -> Unit
         GroupMenuItem.REPACE -> entry(R.string.custom_repace_all, AppIcons.Event, action = menu.repace)
-        GroupMenuItem.COPY_PLAN -> entry(R.string.custom_copy_to, AppIcons.ContentCopy, action = copyingTo)
+        GroupMenuItem.COPY_PLAN -> entry(R.string.custom_copy_to, AppIcons.Groups, action = copyingTo)
         GroupMenuItem.DELETE_PLAN -> entry(R.string.custom_delete, AppIcons.Delete, Pacer.colors.warn, menu.deletePlan)
         GroupMenuItem.OWN_PACE -> entry(R.string.plan_own_pace, AppIcons.Overview) { menu.open(GroupSheet.OWN_PACE) }
         GroupMenuItem.CATCH_UP -> entry(R.string.custom_adjust_catch_up, AppIcons.Forward) { menu.open(GroupSheet.CATCH_UP) }

@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.ImeAction
@@ -141,8 +142,14 @@ fun AppDrawer(
     val here = menuLevelFor(screen, data.activeClass)
     var expanded by rememberSaveable { mutableStateOf(here != null) }
     var level by remember { mutableStateOf<MenuLevel>(here ?: MenuLevel.Classes) }
-    LaunchedEffect(screen, data.activeClass) { level = here ?: MenuLevel.Classes; expanded = here != null }
-    LaunchedEffect(opening) { if (opening) { level = here ?: MenuLevel.Classes; expanded = here != null } }
+    // The list follows the teacher while they are inside it, and starts at their place each time the menu opens.
+    LaunchedEffect(screen, data.activeClass) {
+        val next = MenuState(level, expanded).followScreen(here)
+        level = next.level; expanded = next.expanded
+    }
+    LaunchedEffect(opening) {
+        if (opening) { val next = menuStateOnOpen(here); level = next.level; expanded = next.expanded }
+    }
     val today = rememberToday()
     val status = remember(year, today) { year?.let { yearStatus(it, today) }.orEmpty() }
     val hits = remember(year, query) { year?.let { searchGroups(it, query) }.orEmpty() }
@@ -212,6 +219,7 @@ private fun PinButton(pinned: Boolean, onPin: (Boolean) -> Unit) {
             containerColor = if (pinned) c.accentSoft else Color.Transparent,
             contentColor = if (pinned) c.onAccentSoft else c.ink,
         ),
+        modifier = Modifier.semantics { selected = pinned },
     ) { AppIcon(AppIcons.Pin, contentDescription = label) }
 }
 

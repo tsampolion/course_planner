@@ -112,8 +112,10 @@ class NavModelTest {
         }
     }
 
-    @Test fun onATabletGroupHomeCountsAsPlan() {
-        assertEquals(GroupPlace.PLAN, switcherPages(Screen.Group("a"), plansStandIn = true).single { it.current }.place)
+    @Test fun onATabletGroupHomeCountsAsPlanAndIsNotListedTwice() {
+        val tablet = switcherPages(Screen.Group("a"), plansStandIn = true)
+        assertEquals(GroupPlace.PLAN, tablet.single { it.current }.place)
+        assertEquals(listOf(GroupPlace.PLAN, GroupPlace.WORK, GroupPlace.STATS, GroupPlace.SETTINGS), tablet.map { it.place })
         assertEquals(GroupPlace.HOME, switcherPages(Screen.Group("a"), plansStandIn = false).single { it.current }.place)
     }
 
@@ -196,6 +198,22 @@ class NavModelTest {
     @Test fun onATabletTheGroupLevelMarksPlanForGroupHome() {
         val places = menuRows(twoClasses, MenuLevel.Group("c1", "ga"), Screen.Group("ga"), plansStandIn = true).filterIsInstance<MenuRow.PlaceItem>()
         assertEquals(listOf(GroupPlace.PLAN), places.filter { it.current }.map { it.place })
+        // Group home is shown as Plan there, so it is not offered as a second row.
+        assertTrue(places.none { it.place == GroupPlace.HOME })
+    }
+
+    @Test fun theListFollowsTheTeacherInsideItAndStaysPutOutsideIt() {
+        val open = MenuState(MenuLevel.Class("c1"), expanded = true)
+        // Moving to another group opens that group's places.
+        assertEquals(MenuState(MenuLevel.Group("c1", "gb"), true), open.followScreen(MenuLevel.Group("c1", "gb")))
+        // Opening Pacing overview or Settings leaves a pinned menu as it was, open or folded.
+        assertEquals(open, open.followScreen(null))
+        assertEquals(MenuState(MenuLevel.Classes, false), MenuState(MenuLevel.Classes, false).followScreen(null))
+    }
+
+    @Test fun eachTimeTheMenuOpensItStartsAtThePlaceOrFolded() {
+        assertEquals(MenuState(MenuLevel.Group("c1", "ga"), true), menuStateOnOpen(MenuLevel.Group("c1", "ga")))
+        assertEquals(MenuState(MenuLevel.Classes, false), menuStateOnOpen(null))
     }
 
     @Test fun longYearNamesAreShortenedForTheMenu() {
