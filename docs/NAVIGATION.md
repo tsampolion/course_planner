@@ -150,7 +150,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="group-switcher"></a>
 ### Go to
 
-*Sheet* · reached from [Top bar](#top-bar). Opened by the title ▾ on group home, Plan, Work, Stats and Group settings. A bottom sheet; swipe down, tap outside or Back to close. One sheet for every page: the open group's places first, then the open class's other groups.
+*Sheet* · reached from [Top bar](#top-bar). Opened by the title ▾ on group home, Plan, Work, Stats and Group settings. A sheet; ✕, swipe down, tap outside or Back to close. One sheet for every page: the open group's places first, then the open class's other groups.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -176,12 +176,23 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Text and number fields on screens and Done sheets | Type |  | Edit. Save as you type whenever the value is valid; an invalid value shows its error and isn't saved. |
-| Pick-from-list fields (Picker) | Tap |  | Edit. Open a dropdown of choices; picking one saves it. |
-| Bottom sheet: Save / Add / Apply | Tap |  | Edit. Greyed out until the form is valid. Saves, shows a short Saved tick, then closes. |
-| Bottom sheet: Done | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
-| Swipe a sheet down / tap outside / Back | Swipe |  | Closes. Closes without saving whatever needed Save. |
-| Full-height work sheets (assignment, units, revision): ✕ Close | Tap |  | Closes. Closes. Tapping the dimmed area does the same. |
+| Text and number fields on screens and in sheets without Save | Type |  | Edit. Save as you type whenever the value is valid; an invalid value shows its error and isn't saved. |
+| Pick-from-list fields (Picker) | Tap |  | Edit. Open a dropdown of choices, with the current one ticked; picking one saves it. TalkBack reads the label, the choice and “drop-down list” as one item. |
+| Switch rows | Tap |  | Edit. The words toggle the switch too; TalkBack reads one switch with its label. |
+| Sheet: Save / Add / Apply (the filled button at the bottom) | Tap | Sheets that have something to save | Edit. Greyed out until the form is valid. Saves, shows a short Saved tick, then closes. Sheets whose fields save as you type have no filled button. |
+| Sheet: ✕ Close | Tap | Every sheet | Closes. Closes at once when nothing needs Save. With a changed draft, ↑ Opens [Discard your changes?](#discard). |
+| Swipe a sheet down (by its handle or title) / tap outside / Back | Swipe |  | Closes. The same as ✕. |
+| Swipe a removable row from the end | Swipe |  | Undo:. Reveals Remove and removes the row (days off, assignments), with Undo. The same Remove is in its long-press menu and TalkBack actions. |
+
+<a id="discard"></a>
+### Discard your changes?
+
+*Dialog* · reached from [How fields and sheets save](#fields). Asked when a sheet with unsaved changes is closed by ✕, Back, a tap outside or a swipe down. An untouched sheet never asks.
+
+| Control | Gesture | When | What happens |
+| --- | --- | --- | --- |
+| Keep editing | Tap |  | Closes. Closes the question; the sheet stays open with the draft. Back and a tap outside do the same. |
+| Discard | Tap |  | Closes. Closes the sheet without saving. |
 | Swipe a removable row from the end | Swipe |  | Undo:. Reveals Remove and removes the row (days off, assignments), with Undo. The same Remove is in its long-press menu and TalkBack actions. |
 
 ## Year
@@ -333,6 +344,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Days off: Add | Tap |  | ↑ Opens [Add a day off](#day-off). Opens Add a day off. |
 | A day-off row | Swipe |  | Swipe from the end, or long-press for Remove. Undo: “Removed “reason”” |
 | Add Greek public holidays | Tap | Both term dates set | Adds the holidays for every calendar year the term touches. Message: “N holidays added / Already there” |
+| Print or save PDF | Tap | Some group this year has lessons to print | ↑ Opens [Print or save PDF](#print), on Every group this year. |
 | Rename | Tap |  | ↑ Opens [Rename school year](#rename-year). Opens Rename school year. |
 | Delete this school year | Tap |  |  [Home](#home). Deletes it at once, with no confirmation, and returns Home. Undo: “Deleted “name”” |
 
@@ -345,7 +357,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | --- | --- | --- | --- |
 | Starts / Ends | Tap |  | Edit [Date picker](#date-picker). Date pickers with Clear. Saved at once. |
 | Error box | Shows | End before start | “Set a start and end date, with the end on or after the start.” |
-| Done | Tap |  | Closes. Closes. |
+| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="day-off"></a>
 ### Add a day off
@@ -400,7 +412,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | --- | --- | --- | --- |
 | Lesson length (min) | Type |  | Saved as you type; new classes only. |
 | Pace you can sustain | Type |  | Pages per lesson; new classes only. |
-| Done | Tap |  | Closes. Closes. |
+| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="import"></a>
 ### Import N school years?
@@ -441,6 +453,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | A group row (Next date) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. |
 | Edit name (beside a group) | Tap |  | ↑ Opens [Group (editor)](#group-editor). Opens the group editor. |
 | Work: a group row | Tap |  | → Screen [Work](#work). Assignments now live in each group; opens that group's Work. |
+| Print or save PDF | Tap | Some group of the class or year has lessons to print | ↑ Opens [Print or save PDF](#print), on Every group in class. |
 | Reset all positions | Tap |  | Clears every group's resume page. Undo: “Positions reset” |
 | Delete this class | Tap |  | Deletes at once, with no confirmation, and closes its screens. Undo: “Deleted “name”” |
 | ⚠ in the top bar | Tap | The class has problems | ↑ Opens [Problems in this class](#class-problems). Opens Problems in this class. |
@@ -458,7 +471,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Enable book units? | Toggle |  | Turns units on or off for the class. |
 | Book units | Tap |  | → Screen [Book units](#units). Closes the sheet and opens Book units. |
 | Warn when a book is this many lessons behind | Type | Two or more books | When Bring in step warnings start. |
-| Done | Tap |  | Closes. Closes. |
+| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="add-book"></a>
 ### Add a book
@@ -490,7 +503,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Pages you'll use | Type | Supplementary | The pages it can place. |
 | Count in the lesson by default | Toggle | Supplementary | Off: new placements come on top of the lesson. |
 | Remove book | Tap |  | Closes the sheet and removes the book. Undo: “Removed “name”” |
-| Done | Tap |  | Closes. Closes. |
+| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="group-editor"></a>
 ### Group (editor)
@@ -504,7 +517,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Next lesson | Tap |  | Edit [Date picker](#date-picker). Date picker; sets where the group's lessons start. |
 | Group settings | Tap |  | → Screen [Group settings](#group-settings). Closes the sheet and opens Group settings. |
 | Open schedule | Tap |  | → Screen [Group home](#group-home). Opens the group. |
-| Done | Tap |  | Closes. Closes. |
+| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="class-problems"></a>
 ### Problems in this class
@@ -534,7 +547,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="unit-starts"></a>
 ### Unit start pages
 
-*Sheet* · reached from [Book units](#units). Titled with the book's name. Full height, with ✕.
+*Sheet* · reached from [Book units](#units). Titled with the book's name.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -725,7 +738,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="assignment"></a>
 ### Add assignment / Edit assignment
 
-*Sheet* · reached from [Lesson menu](#lesson-menu), [Work](#work), [Assignment ⋮](#work-row-menu). Full height with ✕. From the lesson menu it starts as Homework set on that lesson.
+*Sheet* · reached from [Lesson menu](#lesson-menu), [Work](#work), [Assignment ⋮](#work-row-menu). From the lesson menu it starts as Homework set on that lesson.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -803,7 +816,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Resume at page | Type |  | The next page to teach; saved as you type, the remaining pages re-spread. |
-| Done | Tap |  | Closes. Closes. |
+| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="group-settings"></a>
 ### Group settings
@@ -858,7 +871,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Use class date | Tap | Own date set | Edit. Goes back to the class date. |
 | Remove from this group | Tap | Not the last paced book | Edit. Leaves it out; taught lessons stay. Closes the sheet. |
 | Add back | Tap | Left out | Edit. Puts it back. |
-| Done | Tap |  | Closes. Closes. |
+| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="group-add-book"></a>
 ### Add a book (group)
@@ -911,7 +924,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="print"></a>
 ### Print or save PDF
 
-*Dialog* · reached from [⋮ Group menu](#group-menu)
+*Dialog* · reached from [⋮ Group menu](#group-menu), [Class](#class), [School year settings](#school-year)
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -961,7 +974,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="unit-revision"></a>
 ### Unit N revision
 
-*Sheet* · reached from [Home](#home), [Plan](#plan), [Warnings · Class · Group](#warnings). Full height with ✕. Opens from a revision row or the Warnings sheet.
+*Sheet* · reached from [Home](#home), [Plan](#plan), [Warnings · Class · Group](#warnings). Opens from a revision row or the Warnings sheet.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |

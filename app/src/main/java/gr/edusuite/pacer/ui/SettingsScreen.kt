@@ -137,7 +137,7 @@ fun SettingsScreen(
     }
 
     if (defaults) {
-        SheetFrame(stringResource(R.string.settings_defaults_title), stringResource(R.string.settings_done), true, {}, { defaults = false }) {
+        PacerSheet(stringResource(R.string.settings_defaults_title), { defaults = false }) {
             IntField(settings.lessonMins, vm::setDefaultMins, stringResource(R.string.settings_lesson_length), Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
             PaceField(settings.pace, vm::setDefaultPace, Modifier.fillMaxWidth())
             Hint(stringResource(R.string.settings_defaults_saved))

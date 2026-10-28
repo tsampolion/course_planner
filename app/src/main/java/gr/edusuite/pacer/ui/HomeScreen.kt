@@ -384,30 +384,6 @@ private fun UpcomingCard(year: SchoolYear, vm: PacerViewModel) {
     }
 }
 
-/** A bottom sheet for Home's pickers, the group switcher and Warnings (§6 Bottom sheet): 28dp top corners on surface. [content] gets a close that slides it away. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeSheet(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.(close: () -> Unit) -> Unit) {
-    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-    val close = { scope.launch { state.hide() }.invokeOnCompletion { onDismiss() }; Unit }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = state,
-        shape = MaterialTheme.shapes.extraLarge.let { if (it is RoundedCornerShape) it.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)) else it },
-        containerColor = Pacer.colors.surface,
-        tonalElevation = 0.dp,
-    ) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = Space.l, end = Space.l, bottom = Space.xl),
-            verticalArrangement = Arrangement.spacedBy(Space.s),
-        ) {
-            Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-            content(close)
-        }
-    }
-}
-
 /** Four fields, so a dialog rather than a sheet (§6 Bottom sheet is for three or fewer). */
 @Composable
 internal fun NewYearDialog(years: List<SchoolYear>, vm: PacerViewModel, onDismiss: () -> Unit) {

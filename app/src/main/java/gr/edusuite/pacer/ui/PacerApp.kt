@@ -364,7 +364,7 @@ fun PacerApp(vm: PacerViewModel) {
         ClassProblemsSheet(plan, vm) { problemsOpen = false }
     }
     if (printing && year != null && groupReport != null) {
-        PrintDialog(year, only = ui.data.activeClass to groupReport.group.id) { printing = false }
+        PrintDialog(year, ui.data.activeClass, groupReport.group.id) { printing = false }
     }
     revisionTarget?.let { target ->
         val year = ui.data.year

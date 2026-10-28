@@ -73,6 +73,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
@@ -358,7 +361,10 @@ fun DateField(
     }
 }
 
-/** An outlined dropdown for short option lists (group, book, "applies to"). */
+/**
+ * An outlined dropdown for short option lists (group, book, "applies to"). The field and its tap target are one node
+ * (audit X12): TalkBack reads the label, the choice and the dropdown role together, and the open menu marks the choice.
+ */
 @Composable
 fun Picker(
     label: String,
@@ -368,22 +374,32 @@ fun Picker(
     modifier: Modifier = Modifier,
 ) {
     var open by remember { mutableStateOf(false) }
+    val choice = options.firstOrNull { it.first == selected }?.second ?: ""
+    val notSet = stringResource(R.string.component_not_set)
     Box(modifier) {
         OutlinedTextField(
             colors = paletteFieldColors(),
-            value = options.firstOrNull { it.first == selected }?.second ?: "",
+            value = choice,
             onValueChange = {},
             readOnly = true,
             singleLine = true,
             label = { Text(label) },
             trailingIcon = { AppIcon(AppIcons.ArrowDropDown) },
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
         )
-        Box(Modifier.matchParentSize().padding(top = Space.s).clickable(role = Role.DropdownList) { open = true })
+        Box(Modifier.matchParentSize().padding(top = Space.s)
+            .clickable(role = Role.DropdownList) { open = true }
+            .semantics { contentDescription = label; stateDescription = choice.ifEmpty { notSet } })
         PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { (id, name) ->
-                DropdownMenuItem(text = { Text(name) }, onClick = { onSelect(id); open = false })
+                val isChoice = id == selected
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    onClick = { onSelect(id); open = false },
+                    leadingIcon = { if (isChoice) AppIcon(AppIcons.Check) else Box(Modifier.size(24.dp)) },
+                    modifier = Modifier.semantics { this.selected = isChoice },
+                )
             }
         }
     }
@@ -559,52 +575,6 @@ fun AddDialogFrame(
         confirmButton = { PaletteTextButton(onClick = { onAdd(); onDismiss() }, enabled = canAdd) { Text(confirm) } },
         dismissButton = { PaletteTextButton(onClick = onDismiss) { Text(stringResource(R.string.component_cancel)) } },
     )
-}
-
-/**
- * A bottom sheet for a short edit (§6 Bottom sheet, §14 Act in place): a title, the fields, and the primary pill action
- * at the bottom, which stays off until [enabled]. Used for adds and renames of three fields or fewer.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SheetFrame(
-    title: String,
-    primary: String,
-    enabled: Boolean,
-    onPrimary: () -> Unit,
-    onDismiss: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-    var completed by remember { mutableStateOf(false) }
-    val motion = animationsEnabled()
-    val saveLabel = stringResource(R.string.component_save)
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = state,
-        shape = MaterialTheme.shapes.extraLarge.let { if (it is RoundedCornerShape) it.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)) else it },
-        containerColor = Pacer.colors.surface,
-        tonalElevation = 0.dp,
-    ) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding()
-                .padding(start = Space.l, end = Space.l, bottom = Space.xl),
-            verticalArrangement = Arrangement.spacedBy(Space.m),
-        ) {
-            Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-            content()
-            PrimaryButton(primary, {
-                if (!completed) {
-                    onPrimary()
-                    if (primary == saveLabel && motion) {
-                        completed = true
-                        scope.launch { delay(600); onDismiss() }
-                    } else onDismiss()
-                }
-            }, Modifier.fillMaxWidth(), enabled = enabled && !completed, completed = completed)
-        }
-    }
 }
 
 /**

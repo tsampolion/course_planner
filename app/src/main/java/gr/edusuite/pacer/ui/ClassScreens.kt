@@ -36,6 +36,8 @@ import gr.edusuite.pacer.R
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.fmtShort
@@ -96,7 +98,7 @@ private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: Pa
 @Composable
 fun ClassProblemsSheet(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit) {
     val problems = remember(plan) { screenProblems(plan, Screen.Class) }
-    HomeSheet(stringResource(R.string.class_problems_title), onDismiss) { close ->
+    PacerSheet(stringResource(R.string.class_problems_title), onDismiss) { close ->
         if (problems.isEmpty()) Hint(stringResource(R.string.warnings_none))
         problems.forEach { p -> ErrorBox(p.text, onFix = p.fix?.takeIf { it != Screen.Class }?.let { f -> { close(); vm.open(f) } }) }
     }
@@ -187,6 +189,10 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
                 }
             }
         }
+        item(key = "print") {
+            val ui by vm.state.collectAsState()
+            ui.data.year?.let { PrintRow(it, ui.data.activeClass) }
+        }
         item(key = "delete") {
             FootActions(
                 start = stringResource(R.string.class_reset_all_positions) to { vm.resetPositions(); undoToast(context.getString(R.string.class_positions_reset)) },
@@ -198,7 +204,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             )
         }
     }
-    if (settings) SheetFrame(stringResource(R.string.class_class_settings), stringResource(R.string.class_done), true, {}, { settings = false }) {
+    if (settings) PacerSheet(stringResource(R.string.class_class_settings), { settings = false }) {
         CommitField(plan.name, vm::renameClass, stringResource(R.string.class_name), Modifier.fillMaxWidth())
         IntField(plan.mins, vm::setMins, stringResource(R.string.class_lesson_length_min), Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
         PaceField(plan.pace, vm::setPace, Modifier.fillMaxWidth())
@@ -247,7 +253,7 @@ private fun ClassGroupRow(plan: Plan, g: Group, vm: PacerViewModel) {
             modifier = Modifier.size(48.dp).semantics { contentDescription = editLabel },
         ) { AppIcon(AppIcons.Edit) }
     }
-    if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
+    if (editing) PacerSheet(name, { editing = false }) {
         GroupFields(plan, g, vm) { editing = false; vm.open(Screen.GroupSettings(g.id)) }
     }
 }
@@ -315,7 +321,7 @@ private fun BookRow(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (Str
         if (b.supplementary) Tag(stringResource(R.string.supp_tag))
         Chevron()
     }
-    if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
+    if (editing) PacerSheet(name, { editing = false }) {
         BookFields(b, vm) { editing = false; vm.removeBook(b.id); undoToast(context.getString(R.string.class_removed, name)) }
     }
 }
@@ -388,13 +394,19 @@ private fun bookTypeName(type: BookType): Int = when (type) {
     BookType.UNCLASSIFIED -> R.string.book_type_none
 }
 
-/** A labelled switch with the shared toggle haptic and the ✓/✕ thumb (§5). */
+/**
+ * A labelled switch with the shared toggle haptic and the ✓/✕ thumb (§5). The whole row is one switch (audit X13):
+ * the words toggle it too, and TalkBack reads label, role and state as one item.
+ */
 @Composable
 internal fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     val toggleHaptic = rememberToggleHaptic()
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(checked, role = Role.Switch) { toggleHaptic(it); onChange(it) },
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m),
+    ) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-        Switch(colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper, checkedIconColor = Pacer.colors.accentText), checked = checked, onCheckedChange = { toggleHaptic(it); onChange(it) },
+        Switch(colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper, checkedIconColor = Pacer.colors.accentText), checked = checked, onCheckedChange = null,
             thumbContent = { AppIcon(if (checked) AppIcons.Check else AppIcons.Close, Modifier.size(Space.l)) })
     }
 }
@@ -410,10 +422,10 @@ private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
     var include by rememberSaveable { mutableStateOf("") }
     val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
     val includeOk = !parseInclude(include).isNullOrEmpty()
-    SheetFrame(stringResource(R.string.class_add_a_book), stringResource(R.string.class_add), if (supplementary) includeOk else lastN != null, {
+    PacerSheet(stringResource(R.string.class_add_a_book), onDismiss, SheetAction(stringResource(R.string.class_add), if (supplementary) includeOk else lastN != null) {
         if (supplementary) vm.addSupplementaryBook(name.trim(), include)
         else vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!, type)
-    }, onDismiss) {
+    }, dirty = rememberDraftChanged(name, first, last, typeName, include)) {
         CommitField(name, { name = it }, stringResource(R.string.class_title), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_companion))
         BookTypePicker(type) { typeName = it.name }
         if (supplementary) {

@@ -33,18 +33,19 @@ enum class PrintScope { GROUP, CLASS, YEAR }
 
 /**
  * Print (decision 24): radio buttons for this group, every group in its class or every group this year, then the
- * margins. Opened from a group's ⋮ with [only] (its class and group ids), it starts on that group.
+ * margins. Opened from a group's ⋮ with [classId] and [groupId] it starts on that group; from Class with [classId]
+ * alone it starts on that class; from School year with neither it offers the year.
  */
 @Composable
-fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss: () -> Unit) {
+fun PrintDialog(year: SchoolYear, classId: String? = null, groupId: String? = null, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val today = rememberToday()
     val segment = rememberSegmentHaptic()
-    val onlyClass = only?.let { (c, _) -> year.classes.firstOrNull { it.id == c } }
-    val onlyGroup = only?.let { (_, g) -> onlyClass?.groups?.firstOrNull { it.id == g } }
+    val onlyClass = classId?.let { c -> year.classes.firstOrNull { it.id == c } }
+    val onlyGroup = groupId?.let { g -> onlyClass?.groups?.firstOrNull { it.id == g } }
     // Only scopes with something to print are offered, so Print never hands over a blank job.
-    val available = remember(year, today, only) { PrintScopes.available(year, today, only?.first, only?.second) }
-    var picked by rememberSaveable(only) { mutableStateOf<PrintScope?>(null) }
+    val available = remember(year, today, classId, groupId) { PrintScopes.available(year, today, classId, groupId) }
+    var picked by rememberSaveable(classId, groupId) { mutableStateOf<PrintScope?>(null) }
     val scope = picked?.takeIf { it in available } ?: available.firstOrNull()
     var margin by rememberSaveable { mutableStateOf(PrintMargin.NORMAL) }
     val className = onlyClass?.name?.ifBlank { null } ?: stringResource(R.string.print_class)
@@ -59,7 +60,7 @@ fun PrintDialog(year: SchoolYear, only: Pair<String, String>? = null, onDismiss:
         stringResource(R.string.print_title),
         canAdd = scope != null,
         onAdd = {
-            if (scope != null) PrintSheet.print(context, year.name, PrintScopes.plans(year, today, scope, only?.first, only?.second), margin)
+            if (scope != null) PrintSheet.print(context, year.name, PrintScopes.plans(year, today, scope, classId, groupId), margin)
         },
         onDismiss = onDismiss,
         confirm = stringResource(R.string.print_print),
@@ -89,3 +90,21 @@ private fun PrintMargin.localizedLabel(): String = stringResource(when (this) {
     PrintMargin.NORMAL -> R.string.print_normal
     PrintMargin.WIDE -> R.string.print_wide
 })
+
+/**
+ * Print from Class ([classId]) or School year (no class): a row that opens [PrintDialog] on that scope (streamlining
+ * M3). It shows only when something in reach has lessons to print.
+ */
+@Composable
+internal fun PrintRow(year: SchoolYear, classId: String?) {
+    val today = rememberToday()
+    val printable = remember(year, today, classId) { PrintScopes.available(year, today, classId, null).isNotEmpty() }
+    var open by rememberSaveable(classId) { mutableStateOf(false) }
+    if (printable) SectionColumn {
+        RowGroup {
+            LinkRow(stringResource(R.string.print_title),
+                stringResource(if (classId != null) R.string.print_from_class else R.string.print_from_year), AppIcons.Print) { open = true }
+        }
+    }
+    if (open) PrintDialog(year, classId) { open = false }
+}

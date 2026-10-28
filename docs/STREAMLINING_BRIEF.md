@@ -1,6 +1,6 @@
 # Streamlining
 
-Status: approved 2026-10-25; audit done (stage 1, this brief). D1 and D3 are built in 0.4.5.0; the owner declined G3 (D2 waits for PR 3). R3, P3 and D4 are built in 0.4.6.0. M1 and R2 are built in 0.4.9.0. The rest ride the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), and every removal needs the owner's yes.
+Status: approved 2026-10-25; audit done (stage 1, this brief). D1 and D3 are built in 0.4.5.0; the owner declined G3 (D2 waits for PR 3). R3, P3 and D4 are built in 0.4.6.0. M1 and R2 are built in 0.4.9.0. S4 and M3 are built in 0.4.10.0. The rest ride the fix pull requests in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md), and every removal needs the owner's yes.
 
 This brief records the streamlining pass (`PLANNED_FEATURES.md` §3 until 0.4.4.2). For every screen it answers four questions: where the teacher arrives from, what the screen is for, what the next step is, and how it ends (done, back, undo). It then lists what to remove, merge or move.
 
@@ -103,7 +103,7 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 | # | What | Into |
 |---|---|---|
 | S2 | Class's group pencil sheet (name, days, next lesson) | Group settings, which gains name and lesson days; the pencil opens Group settings |
-| S4 | `HomeSheet`, `SheetFrame`, `WorkSheetFrame` | one sheet frame that always ends the same way: a filled action when there is something to save, ✕ otherwise. An untouched sheet closes at once. A changed draft asks Keep editing / Discard (F18: today Back, a scrim tap or ✕ drops it silently, `ui/WorkSheetFrame.kt:51-90`). A draft is never autosaved invalid, or restored into another group after switching or process death (I4: confirm, recommended, or restore). |
+| S4 | **Done (0.4.10.0), with the owner's choice: confirm, no restore.** `HomeSheet`, `SheetFrame`, `WorkSheetFrame` | one sheet frame that always ends the same way: a filled action when there is something to save, ✕ otherwise. An untouched sheet closes at once. A changed draft asks Keep editing / Discard (F18: today Back, a scrim tap or ✕ drops it silently, `ui/WorkSheetFrame.kt:51-90`). A draft is never autosaved invalid, or restored into another group after switching or process death (I4: confirm, recommended, or restore). |
 | S5 | Stats' and Plan's separate My plan/Proposed switches | one choice per group, shared by both pages |
 | S6 | Day-off rows' ⋮ (Remove) and long-press menu (Edit, Delete) | one ⋮ with Edit and Delete |
 
@@ -117,7 +117,7 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 | D4 | Custom-plan lesson actions | flat long-press menu → a grouped menu |
 | S1 | A new group's lesson days | after the fact, in a sheet → asked when the group is added |
 | S3 | Units | second row of Class → under Books |
-| M3 | Print for a class or the year | one group's ⋮ → also Class and School year |
+| M3 | **Done (0.4.10.0).** Print for a class or the year | one group's ⋮ → also Class and School year |
 | P3 | Tapping a day off on Plan | adds an extra lesson → shows the day off; Add extra lesson stays in its menu |
 | G3 | Group home pills | under Due soon → directly under the progress strip (owner's call in the first fix PR; the pills stay pills) |
 

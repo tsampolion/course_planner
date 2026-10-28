@@ -148,6 +148,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 Hint(stringResource(R.string.year_holidays_hint))
             }
         }
+        item(key = "print") { PrintRow(year, null) }
         item(key = "delete") {
             FootActions(
                 start = stringResource(R.string.home_rename) to { renaming = true },
@@ -163,7 +164,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
     if (adding) AddClosureSheet(year, vm) { adding = false }
     if (newYear) NewYearDialog(years, vm) { newYear = false }
     if (renaming) RenameYearSheet(year, vm) { renaming = false }
-    if (editingTerm) SheetFrame(stringResource(R.string.year_term), stringResource(R.string.year_done), true, {}, { editingTerm = false }) {
+    if (editingTerm) PacerSheet(stringResource(R.string.year_term), { editingTerm = false }) {
         DateField(year.start, vm::setStart, stringResource(R.string.year_starts), Modifier.fillMaxWidth(), clearable = true)
         DateField(year.end, vm::setEnd, stringResource(R.string.year_ends), Modifier.fillMaxWidth(), clearable = true)
         Hint(stringResource(R.string.year_term_hint))
@@ -197,7 +198,8 @@ private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () 
     val from = fromText?.let(LocalDate::parse)
     val to = toText?.let(LocalDate::parse)
     var who by rememberSaveable { mutableStateOf(ALL_GROUPS) }
-    SheetFrame(stringResource(R.string.year_add_day_off), stringResource(R.string.year_add), from != null, { vm.addClosure(label.trim(), from!!, to, who) }, onDismiss) {
+    PacerSheet(stringResource(R.string.year_add_day_off), onDismiss, SheetAction(stringResource(R.string.year_add), from != null) { vm.addClosure(label.trim(), from!!, to, who) },
+        dirty = rememberDraftChanged(label, fromText, toText, who)) {
         CommitField(label, { label = it }, stringResource(R.string.year_reason), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_reason_example))
         DateField(from, { fromText = it?.toString() }, stringResource(R.string.year_from), Modifier.fillMaxWidth())
         MoreOptions {
@@ -305,7 +307,8 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
     if (adding) {
         var name by rememberSaveable { mutableStateOf("") }
         var unitsEnabled by rememberSaveable { mutableStateOf(false) }
-        SheetFrame(stringResource(R.string.year_new_class), stringResource(R.string.year_add), true, { vm.newClass(name.trim(), unitsEnabled) }, { adding = false }) {
+        PacerSheet(stringResource(R.string.year_new_class), { adding = false }, SheetAction(stringResource(R.string.year_add), true) { vm.newClass(name.trim(), unitsEnabled) },
+            dirty = rememberDraftChanged(name, unitsEnabled)) {
             CommitField(name, { name = it }, stringResource(R.string.year_name), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_class_example))
             SwitchRow(stringResource(R.string.units_enable), unitsEnabled) { unitsEnabled = it }
             Hint(stringResource(R.string.units_creation_hint))
@@ -317,7 +320,8 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
 @Composable
 internal fun RenameYearSheet(y: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
     var name by rememberSaveable { mutableStateOf(y.name) }
-    SheetFrame(stringResource(R.string.home_rename_year), stringResource(R.string.home_save), name.isNotBlank(), { vm.renameYear(y.id, name.trim()) }, onDismiss) {
+    PacerSheet(stringResource(R.string.home_rename_year), onDismiss, SheetAction(stringResource(R.string.home_save), name.isNotBlank()) { vm.renameYear(y.id, name.trim()) },
+        dirty = rememberDraftChanged(name)) {
         CommitField(name, { name = it }, stringResource(R.string.home_name), Modifier.fillMaxWidth())
     }
 }

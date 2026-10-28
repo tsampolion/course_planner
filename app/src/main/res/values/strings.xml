@@ -140,6 +140,9 @@
     <string name="component_integer_range">Enter a whole number from %1$d to %2$d.</string>
     <string name="component_pace_invalid">Enter a finite number of pages, zero or greater.</string>
     <string name="component_save">Save</string>
+    <string name="sheet_discard_title">Discard your changes?</string>
+    <string name="sheet_keep_editing">Keep editing</string>
+    <string name="sheet_discard">Discard</string>
     <string name="component_saved">Saved</string>
     <string name="group_updated">Lesson updated</string>
     <string name="group_marked_done">Lessons marked done</string>
@@ -274,6 +277,8 @@
     <string name="home_pair">%1$s · %2$s</string>
     <string name="print_title">Print or save PDF</string>
     <string name="print_print">Print</string>
+    <string name="print_from_class">This class or the whole year, on paper or as a PDF</string>
+    <string name="print_from_year">Every group this year, on paper or as a PDF</string>
     <string name="print_none">No lessons left to print.</string>
     <string name="print_class">Class</string>
     <string name="print_margins">Margins</string>

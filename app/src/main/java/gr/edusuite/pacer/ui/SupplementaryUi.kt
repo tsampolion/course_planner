@@ -100,18 +100,17 @@ fun LessonPlanSheet(
         restoredHint = true
     }
 
-    SheetFrame(
+    PacerSheet(
         title = title,
-        primary = stringResource(R.string.group_save),
-        enabled = corePages.all { it != null } && suppPages.all { it != null } && (inLesson.isEmpty() || confirmed),
-        onPrimary = {
+        onDismiss = onDismiss,
+        action = SheetAction(stringResource(R.string.group_save), corePages.all { it != null } && suppPages.all { it != null } && (inLesson.isEmpty() || confirmed)) {
             onSave(LessonSave(
                 core = core.zip(corePages).associate { (b, p) -> b.id to p.orEmpty() },
                 supplementary = supp.zip(suppPages).associate { (b, p) -> b.id to p.orEmpty() },
                 inLesson = inLesson, note = note,
             ))
         },
-        onDismiss = onDismiss,
+        dirty = rememberDraftChanged(coreTexts.toList(), suppTexts.toList(), modes.toList(), note),
     ) {
         Hint(stringResource(R.string.custom_sheet_hint))
         core.forEachIndexed { i, b ->

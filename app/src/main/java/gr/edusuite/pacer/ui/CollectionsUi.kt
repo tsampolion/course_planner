@@ -73,14 +73,14 @@ internal fun CollectionSheet(
     val context = androidx.compose.ui.platform.LocalContext.current
     var name by rememberSaveable(collection?.id) { mutableStateOf(collection?.name.orEmpty()) }
     var selected by rememberSaveable(collection?.id) { mutableStateOf(collection?.classIds?.toList().orEmpty()) }
-    SheetFrame(
-        stringResource(if (collection == null) R.string.collections_new else R.string.collections_edit),
-        stringResource(R.string.home_save), name.isNotBlank(),
-        {
+    PacerSheet(
+        stringResource(if (collection == null) R.string.collections_new else R.string.collections_edit), onDismiss,
+        SheetAction(stringResource(R.string.home_save), name.isNotBlank()) {
             val changed = if (collection == null) vm.addCollection(name.trim(), selected.toSet())
                 else vm.updateCollection(collection.id, name.trim(), selected.toSet())
             if (changed) undoToast(context.getString(R.string.collections_saved))
-        }, onDismiss,
+        },
+        dirty = rememberDraftChanged(name, selected.sorted()),
     ) {
         CommitField(name, { name = it }, stringResource(R.string.year_name), Modifier.fillMaxWidth())
         Hint(stringResource(R.string.collections_move_hint))

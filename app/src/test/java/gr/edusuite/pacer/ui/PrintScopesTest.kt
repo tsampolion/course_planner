@@ -26,6 +26,21 @@ class PrintScopesTest {
         )
     }
 
+    @Test fun classPrintStartsOnTheClassAndYearPrintOffersTheYear() {
+        // Class's Print row passes its class alone; School year's passes nothing (streamlining M3).
+        assertEquals(listOf(PrintScope.CLASS, PrintScope.YEAR), PrintScopes.available(year, TEST_TODAY, cls.id, null))
+        assertEquals(listOf(PrintScope.YEAR), PrintScopes.available(year, TEST_TODAY, null, null))
+        assertEquals(cls.groups.map { it.id }, PrintScopes.plans(year, TEST_TODAY, PrintScope.CLASS, cls.id, null).single().groups.map { it.id })
+    }
+
+    @Test fun aFinishedClassHidesClassPrintButNotAnotherClasssYear() {
+        val y = withGroups(finished(a), finished(b))
+        assertTrue(PrintScopes.available(y, TEST_TODAY, cls.id, null).isEmpty())
+        val other = cls.copy(id = "other", groups = listOf(a, b))
+        val both = y.copy(classes = y.classes + other)
+        assertEquals(listOf(PrintScope.YEAR), PrintScopes.available(both, TEST_TODAY, cls.id, null))
+    }
+
     @Test fun aFinishedGroupLosesItsOwnScopeButTheClassStaysPrintable() {
         val y = withGroups(finished(a), b)
         assertEquals(listOf(PrintScope.CLASS, PrintScope.YEAR), PrintScopes.available(y, TEST_TODAY, cls.id, a.id))

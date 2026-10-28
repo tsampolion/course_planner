@@ -182,7 +182,7 @@ private fun GroupOrder.label(): String = stringResource(when (this) {
 fun YearProblemsSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
     val today = rememberToday()
     val problems = remember(year, today) { Nav.problems(year, today) }
-    HomeSheet(stringResource(R.string.overview_problems), onDismiss) { close ->
+    PacerSheet(stringResource(R.string.overview_problems), onDismiss) { close ->
         if (problems.isEmpty()) Hint(stringResource(R.string.warnings_none))
         problems.forEach { p ->
             // A class's problem opens that class, or its group for a custom plan's; the rest open the screen that fixes them.

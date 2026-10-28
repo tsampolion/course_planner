@@ -52,10 +52,10 @@ fun ExtraLessonSheet(
     val draftId = rememberSaveable(report.group.id) { newId() }
     val draft = report.plan.withExtra(report.group, ExtraLesson(old?.id ?: draftId, date, pages))
     val after = GroupReport(report.plan, draft)
-    SheetFrame(
-        title = stringResource(if (old == null) R.string.extra_add else R.string.extra_edit),
-        primary = stringResource(R.string.group_save), enabled = valid,
-        onPrimary = { onSave(date, old?.id, pages) }, onDismiss = onDismiss,
+    PacerSheet(
+        title = stringResource(if (old == null) R.string.extra_add else R.string.extra_edit), onDismiss = onDismiss,
+        action = SheetAction(stringResource(R.string.group_save), valid) { onSave(date, old?.id, pages) },
+        dirty = rememberDraftChanged(dateText, texts.toList()),
     ) {
         if (chooseDate && old == null) DateField(date, { if (it != null) dateText = it.toString() }, stringResource(R.string.class_date), Modifier.fillMaxWidth())
         else {

@@ -348,7 +348,7 @@ The recommended sequence keeps data safety ahead of layout work, and each layout
 6. ~~**UI PR 2**, Plan~~ (0.4.6.0, includes the book-label decision, I5).
 7. ~~**UI PR 3**, Home today~~ (0.4.8.0, includes F16 (audit H1) and entry 6's F07 fix; lessons tick themselves from 0.4.7.0).
 8. ~~**UI PR 4**, menu and top bar~~ (0.4.9.0).
-9. **UI PR 5**, one sheet frame. It includes F18's draft rule (streamlining S4) and the shared Picker and SwitchRow semantics (audit X12, X13).
+9. ~~**UI PR 5**, one sheet frame~~ (0.4.10.0, includes F18's draft rule (streamlining S4), the Picker and SwitchRow semantics (audit X12, X13) and Print from Class and School year (M3)).
 10. **UI PR 6**, set-up screens. It includes F17 (audit C2, streamlining S2) and entry 6's range and day-off checks.
 11. **UI PRs 7 and 8**, Stats and Work; Settings, welcome and empty states.
 12. ~~Entry 7, print~~ (0.4.6.1, `PRINT_BRIEF.md`). ~~Entry 8, backup~~ (0.4.6.2, `BACKUP_BRIEF.md`).

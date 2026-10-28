@@ -370,7 +370,7 @@ fun GroupSwitcherSheet(year: SchoolYear, classId: String, screen: Screen, plansS
     val status = remember(year, today) { yearStatus(year, today) }
     val open = year.classes.firstOrNull { it.id == classId }
     val here = open?.groups?.firstOrNull { it.id == groupId }
-    HomeSheet(stringResource(R.string.switcher_title), onDismiss) { close ->
+    PacerSheet(stringResource(R.string.switcher_title), onDismiss) { close ->
         Eyebrow(here?.name?.ifBlank { null } ?: stringResource(R.string.app_group))
         switcherPages(screen, plansStandIn).forEach { p ->
             GroupRow(stringResource(p.place.titleRes()), null, current = p.current) { vm.goTo(p.place.screen(groupId)); close() }
@@ -430,7 +430,7 @@ class WarningFixes(
 fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: WarningFixes, onDismiss: () -> Unit) {
     val plan = report.plan
     val title = groupLabel(plan.name, report.group.name)
-    HomeSheet(stringResource(R.string.warnings_title, title), onDismiss) { close ->
+    PacerSheet(stringResource(R.string.warnings_title, title), onDismiss) { close ->
         if (warnings.isEmpty()) Hint(stringResource(R.string.warnings_none))
         warnings.forEachIndexed { i, w ->
             if (i > 0) HorizontalDivider(color = Pacer.colors.line)
