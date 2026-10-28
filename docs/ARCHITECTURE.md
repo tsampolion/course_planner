@@ -213,7 +213,11 @@ Group home (`Screen.Group(id, page)`) has the accent-filled hero, a Progress str
 
 ### List screens
 
-The list screens use the ledger rows in `Rows.kt` (`SectionHead`, `RowGroup`, `LedgerRow` with an optional edge and date column, `RemoveMenu`, `FootActions`). What Classes, School year and Pacing overview list comes from `ScreensModel.kt` (`pacingOverview`, `sortGroups`, `classSummaries`, `termSummary`), plain Kotlin and unit-tested. School year has year chips and + New year at its top, Rename and Delete at its foot (Print is in a group's ⋮). Pacing overview's warning button opens `YearProblemsSheet`, and Class's opens `ClassProblemsSheet` (`screenProblems`). The first-run guide is the full-page `WelcomePage` (`Guide.kt`), which Settings → Getting started reopens. Show-once hints are `ShowOnceHint` (`Guide.kt`) with an id from `Hints` (`model/Settings.kt`), kept in `Settings.seenTips`.
+The list screens use the ledger rows in `Rows.kt` (`SectionHead`, `RowGroup`, `LedgerRow` with an optional edge and date column, `RemoveMenu`, `FootActions`). What Classes, School year and Pacing overview list comes from `ScreensModel.kt` (`pacingOverview`, `sortGroups`, `classSummaries`, `termSummary`), plain Kotlin and unit-tested. School year has year chips and + New year at its top, a Print row (`PrintRow`), and Rename and Delete at its foot. Class has the same Print row, on its class. Pacing overview's warning button opens `YearProblemsSheet`, and Class's opens `ClassProblemsSheet` (`screenProblems`). The first-run guide is the full-page `WelcomePage` (`Guide.kt`), which Settings → Getting started reopens. Show-once hints are `ShowOnceHint` (`Guide.kt`) with an id from `Hints` (`model/Settings.kt`), kept in `Settings.seenTips`.
+
+### Sheets and shared controls
+
+Every sheet is `PacerSheet` (`PacerSheet.kt`): a Dialog drawn as a bottom sheet so its motion uses `MotionSpec` and snaps when animations are off. It has a handle, the title, ✕, the content, and a filled `SheetAction` only when there is something to save. ✕, Back, a scrim tap and a swipe down go through one close request; `sheetCloseDecision` (`SheetClose.kt`, plain Kotlin, unit-tested) asks Keep editing / Discard when the sheet is `dirty`. Staged sheets work that out with `rememberDraftChanged(fields…)`, which compares a `draftSignature` saved when the sheet opened. Drafts are not restored after process death. `Picker` is one TalkBack node (label, choice, dropdown role) and ticks the choice in its menu; `SwitchRow` is one toggleable row.
 
 ### Large text and tablets
 
@@ -221,7 +225,7 @@ The list screens use the ledger rows in `Rows.kt` (`SectionHead`, `RowGroup`, `L
 
 ### Print
 
-`PrintSheet` renders HTML into a `WebView` for `PrintManager`: fixed table layout with reserved number, date and note columns, wrapping text, and landscape when a group prints more than four book columns. `PrintDialog` chooses this group, its class or the year, offering only the scopes `PrintScopes` finds printable (a group is printable when its report has rows); the group menu hides Print when none is. See `PRINT_BRIEF.md`.
+`PrintSheet` renders HTML into a `WebView` for `PrintManager`: fixed table layout with reserved number, date and note columns, wrapping text, and landscape when a group prints more than four book columns. `PrintDialog` chooses this group, its class or the year, offering only the scopes `PrintScopes` finds printable (a group is printable when its report has rows); the group menu hides Print and `PrintRow` hides itself when none is. See `PRINT_BRIEF.md`.
 
 ## Theme and tokens
 

@@ -172,6 +172,12 @@ installed-version line. Debug builds retain About's version and hide Updates.
 Use the existing Material components, Outfit, Bone/Saffron roles and large-text
 layout. Native runtime/screenshot checks remain pending without a device.
 
+## One sheet frame (0.4.10.0)
+
+- **One frame for every sheet** (audit X7, streamlining S4): a handle, the title, ✕, then the fields. A filled Save, Add or Apply sits at the bottom only when the sheet has something to save; sheets that save as you type, pickers and notices have ✕ alone.
+- **Every way out is the same:** ✕, Back, a tap outside and a swipe down. An untouched sheet closes at once; a changed draft asks Keep editing / Discard. Drafts are not kept after the app is closed.
+- **Motion** uses the sheet and scrim timings from `MotionSpec` and snaps when animations are off.
+
 ## Plan redesign (0.4.6.0)
 
 - **One hue per kind in every mode** (proposal 4): each lesson kind keeps its hue family between light and dark, a worksheet has an ochre edge of its own, and a test is never the warning colour. `ContrastTest` checks the families, the distinctness of the seven edges and the 3:1 contrast.

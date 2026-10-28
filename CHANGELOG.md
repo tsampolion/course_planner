@@ -25,6 +25,19 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.10.0] - 2026-10-28
+
+UI fix PR 5, one sheet frame ([`UI_AUDIT_BRIEF.md`](docs/UI_AUDIT_BRIEF.md) X7, X12, X13, D1, D2; [`STREAMLINING_BRIEF.md`](docs/STREAMLINING_BRIEF.md) S4, M3).
+
+### Changed
+- Every sheet uses one frame: a handle, its title and ✕, then its fields. Sheets that save have a filled Save, Add or Apply at the bottom. Sheets whose fields save as you type have ✕ alone instead of Done.
+- ✕, Back, a tap outside and a swipe down close every sheet the same way. A sheet with unsaved changes now asks “Discard your changes?” (Keep editing / Discard) instead of dropping them silently. An untouched sheet closes at once.
+- Pick-from-list fields read as one item in TalkBack, with their label and current choice, and the open list ticks the current choice.
+- Switch rows toggle from their words as well as the switch, and TalkBack reads each as one switch. Work's “Takes a lesson” uses the same row.
+
+### Added
+- A Print or save PDF row on Class and on School year settings, which opens Print on that class or the whole year.
+
 ## [0.4.9.1] - 2026-10-27
 
 ### Added
@@ -1032,7 +1045,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.9.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.10.0...HEAD
+[0.4.10.0]: https://github.com/tsampolion/course_planner/compare/v0.4.9.1...v0.4.10.0
 [0.4.9.1]: https://github.com/tsampolion/course_planner/compare/v0.4.9.0...v0.4.9.1
 [0.4.9.0]: https://github.com/tsampolion/course_planner/compare/v0.4.8.0...v0.4.9.0
 [0.4.8.0]: https://github.com/tsampolion/course_planner/compare/v0.4.7.0...v0.4.8.0
