@@ -277,6 +277,8 @@
     <string name="home_pair">%1$s · %2$s</string>
     <string name="print_title">Print or save PDF</string>
     <string name="print_print">Print</string>
+    <string name="print_from_class">This class or the whole year, on paper or as a PDF</string>
+    <string name="print_from_year">Every group this year, on paper or as a PDF</string>
     <string name="print_none">No lessons left to print.</string>
     <string name="print_class">Class</string>
     <string name="print_margins">Margins</string>

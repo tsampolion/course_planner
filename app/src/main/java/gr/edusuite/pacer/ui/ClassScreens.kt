@@ -36,6 +36,8 @@ import gr.edusuite.pacer.R
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import gr.edusuite.pacer.engine.GroupReport
 import gr.edusuite.pacer.engine.fmtShort
@@ -186,6 +188,10 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
                     }
                 }
             }
+        }
+        item(key = "print") {
+            val ui by vm.state.collectAsState()
+            ui.data.year?.let { PrintRow(it, ui.data.activeClass) }
         }
         item(key = "delete") {
             FootActions(
@@ -388,13 +394,19 @@ private fun bookTypeName(type: BookType): Int = when (type) {
     BookType.UNCLASSIFIED -> R.string.book_type_none
 }
 
-/** A labelled switch with the shared toggle haptic and the ✓/✕ thumb (§5). */
+/**
+ * A labelled switch with the shared toggle haptic and the ✓/✕ thumb (§5). The whole row is one switch (audit X13):
+ * the words toggle it too, and TalkBack reads label, role and state as one item.
+ */
 @Composable
 internal fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     val toggleHaptic = rememberToggleHaptic()
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(checked, role = Role.Switch) { toggleHaptic(it); onChange(it) },
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m),
+    ) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-        Switch(colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper, checkedIconColor = Pacer.colors.accentText), checked = checked, onCheckedChange = { toggleHaptic(it); onChange(it) },
+        Switch(colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper, checkedIconColor = Pacer.colors.accentText), checked = checked, onCheckedChange = null,
             thumbContent = { AppIcon(if (checked) AppIcons.Check else AppIcons.Close, Modifier.size(Space.l)) })
     }
 }

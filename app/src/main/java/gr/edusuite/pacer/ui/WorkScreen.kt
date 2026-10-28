@@ -148,7 +148,6 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
     val datesValid = due == null || setOn == null || due >= setOn
     val datedLesson = type == AssignmentType.HOMEWORK || !takesLesson || due != null
     val valid = title.isNotBlank() && assignmentDatesValid(Assignment(id, type, title, setOn, due, takesLesson = takesLesson)) && pages.all { it != null }
-    val haptic = rememberToggleHaptic()
     PacerSheet(stringResource(if (initial == null) R.string.work_add else R.string.work_edit), onDismiss, SheetAction(stringResource(R.string.component_save), valid) {
         onSave(Assignment(id, type, title.trim(), setOn, due,
             assignmentEditedPages(initial?.pages.orEmpty(), books.mapIndexed { i, b -> b.id to pages[i].orEmpty() }.toMap()),
@@ -184,10 +183,6 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
         }
         OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text(stringResource(R.string.custom_note)) },
             colors = paletteFieldColors(), minLines = 2, modifier = Modifier.fillMaxWidth())
-        if (type != AssignmentType.HOMEWORK) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.class_takes_lesson), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-            Switch(checked = takesLesson, onCheckedChange = { haptic(it); takesLesson = it },
-                colors = SwitchDefaults.colors(checkedTrackColor = Pacer.colors.accentText, checkedThumbColor = Pacer.colors.paper))
-        }
+        if (type != AssignmentType.HOMEWORK) SwitchRow(stringResource(R.string.class_takes_lesson), takesLesson) { takesLesson = it }
     }
 }

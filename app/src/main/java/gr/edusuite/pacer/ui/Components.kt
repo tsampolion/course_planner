@@ -73,6 +73,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
@@ -358,7 +361,10 @@ fun DateField(
     }
 }
 
-/** An outlined dropdown for short option lists (group, book, "applies to"). */
+/**
+ * An outlined dropdown for short option lists (group, book, "applies to"). The field and its tap target are one node
+ * (audit X12): TalkBack reads the label, the choice and the dropdown role together, and the open menu marks the choice.
+ */
 @Composable
 fun Picker(
     label: String,
@@ -368,22 +374,32 @@ fun Picker(
     modifier: Modifier = Modifier,
 ) {
     var open by remember { mutableStateOf(false) }
+    val choice = options.firstOrNull { it.first == selected }?.second ?: ""
+    val notSet = stringResource(R.string.component_not_set)
     Box(modifier) {
         OutlinedTextField(
             colors = paletteFieldColors(),
-            value = options.firstOrNull { it.first == selected }?.second ?: "",
+            value = choice,
             onValueChange = {},
             readOnly = true,
             singleLine = true,
             label = { Text(label) },
             trailingIcon = { AppIcon(AppIcons.ArrowDropDown) },
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
         )
-        Box(Modifier.matchParentSize().padding(top = Space.s).clickable(role = Role.DropdownList) { open = true })
+        Box(Modifier.matchParentSize().padding(top = Space.s)
+            .clickable(role = Role.DropdownList) { open = true }
+            .semantics { contentDescription = label; stateDescription = choice.ifEmpty { notSet } })
         PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { (id, name) ->
-                DropdownMenuItem(text = { Text(name) }, onClick = { onSelect(id); open = false })
+                val isChoice = id == selected
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    onClick = { onSelect(id); open = false },
+                    leadingIcon = { if (isChoice) AppIcon(AppIcons.Check) else Box(Modifier.size(24.dp)) },
+                    modifier = Modifier.semantics { this.selected = isChoice },
+                )
             }
         }
     }

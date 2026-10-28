@@ -148,6 +148,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 Hint(stringResource(R.string.year_holidays_hint))
             }
         }
+        item(key = "print") { PrintRow(year, null) }
         item(key = "delete") {
             FootActions(
                 start = stringResource(R.string.home_rename) to { renaming = true },
