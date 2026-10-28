@@ -140,6 +140,9 @@
     <string name="component_integer_range">Enter a whole number from %1$d to %2$d.</string>
     <string name="component_pace_invalid">Enter a finite number of pages, zero or greater.</string>
     <string name="component_save">Save</string>
+    <string name="sheet_discard_title">Discard your changes?</string>
+    <string name="sheet_keep_editing">Keep editing</string>
+    <string name="sheet_discard">Discard</string>
     <string name="component_saved">Saved</string>
     <string name="group_updated">Lesson updated</string>
     <string name="group_marked_done">Lessons marked done</string>

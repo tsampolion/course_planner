@@ -27,7 +27,8 @@ fun OwnPaceSheet(report: GroupReport, onSave: (Double) -> Unit, onDismiss: () ->
             }.getOrNull()
         }
     }
-    SheetFrame(stringResource(R.string.stats_own_pace_title), stringResource(R.string.group_save), preview != null, { if (preview != null) rate?.let(onSave) }, onDismiss) {
+    PacerSheet(stringResource(R.string.stats_own_pace_title), onDismiss, SheetAction(stringResource(R.string.group_save), preview != null) { if (preview != null) rate?.let(onSave) },
+        dirty = rememberDraftChanged(text)) {
         Hint(stringResource(R.string.stats_own_pace_hint))
         OutlinedTextField(
             value = text, onValueChange = { text = it }, label = { Text(stringResource(R.string.stats_own_pace_field)) },

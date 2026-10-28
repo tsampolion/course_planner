@@ -187,13 +187,13 @@ private fun GroupClosureSheet(groupId: String, editing: Closure?, vm: PacerViewM
     var toText by rememberSaveable(editing?.id) { mutableStateOf(editing?.takeIf { it.to != it.from }?.to?.toString()) }
     val from = fromText?.let(LocalDate::parse)
     val to = toText?.let(LocalDate::parse)
-    SheetFrame(
-        stringResource(if (editing == null) R.string.year_add_day_off else R.string.year_edit_day_off),
-        stringResource(if (editing == null) R.string.year_add else R.string.component_save),
-        from != null && (to == null || to >= from), {
+    PacerSheet(
+        stringResource(if (editing == null) R.string.year_add_day_off else R.string.year_edit_day_off), onDismiss,
+        SheetAction(stringResource(if (editing == null) R.string.year_add else R.string.component_save), from != null && (to == null || to >= from)) {
             if (editing == null) vm.addClosure(label.trim(), from!!, to, groupId)
             else vm.editClosure(editing.id, groupId, label.trim(), from!!, to)
-        }, onDismiss,
+        },
+        dirty = rememberDraftChanged(label, fromText, toText),
     ) {
         Hint(stringResource(R.string.group_settings_days_off_hint))
         CommitField(label, { label = it }, stringResource(R.string.year_reason), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_reason_example))
@@ -212,7 +212,7 @@ private fun GroupBookOptionsSheet(plan: Plan, group: Group, book: Book, vm: Pace
     val removed = book.id in group.removedBooks
     val own = group.bookDue[book.id]
     val end = plan.endFor(group)
-    SheetFrame(book.name.ifBlank { stringResource(R.string.class_book) }, stringResource(R.string.class_done), true, {}, onDismiss) {
+    PacerSheet(book.name.ifBlank { stringResource(R.string.class_book) }, onDismiss) {
         if (!removed && !book.supplementary) {
             DateField(own, { vm.setGroupBookDue(group.id, book.id, it) }, stringResource(R.string.class_finish_by), Modifier.fillMaxWidth())
             Hint(stringResource(R.string.group_settings_class_date, book.due?.fmt() ?: stringResource(R.string.component_not_set)))
@@ -239,9 +239,9 @@ private fun GroupBookSheet(groupId: String, vm: PacerViewModel, onDismiss: () ->
     val firstN = first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
     val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
     val valid = name.isNotBlank() && firstN != null && lastN != null && lastN >= firstN
-    SheetFrame(stringResource(R.string.class_add_a_book), stringResource(R.string.class_add), valid, {
+    PacerSheet(stringResource(R.string.class_add_a_book), onDismiss, SheetAction(stringResource(R.string.class_add), valid) {
         vm.addGroupBook(groupId, name.trim(), firstN!!, lastN!!)
-    }, onDismiss) {
+    }, dirty = rememberDraftChanged(name, first, last)) {
         Hint(stringResource(R.string.group_settings_new_book_hint))
         CommitField(name, { name = it }, stringResource(R.string.class_title), Modifier.fillMaxWidth())
         CommitField(first, { first = it }, stringResource(R.string.class_first_page), Modifier.fillMaxWidth(), numeric = true,

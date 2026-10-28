@@ -562,52 +562,6 @@ fun AddDialogFrame(
 }
 
 /**
- * A bottom sheet for a short edit (§6 Bottom sheet, §14 Act in place): a title, the fields, and the primary pill action
- * at the bottom, which stays off until [enabled]. Used for adds and renames of three fields or fewer.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SheetFrame(
-    title: String,
-    primary: String,
-    enabled: Boolean,
-    onPrimary: () -> Unit,
-    onDismiss: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-    var completed by remember { mutableStateOf(false) }
-    val motion = animationsEnabled()
-    val saveLabel = stringResource(R.string.component_save)
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = state,
-        shape = MaterialTheme.shapes.extraLarge.let { if (it is RoundedCornerShape) it.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)) else it },
-        containerColor = Pacer.colors.surface,
-        tonalElevation = 0.dp,
-    ) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding()
-                .padding(start = Space.l, end = Space.l, bottom = Space.xl),
-            verticalArrangement = Arrangement.spacedBy(Space.m),
-        ) {
-            Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-            content()
-            PrimaryButton(primary, {
-                if (!completed) {
-                    onPrimary()
-                    if (primary == saveLabel && motion) {
-                        completed = true
-                        scope.launch { delay(600); onDismiss() }
-                    } else onDismiss()
-                }
-            }, Modifier.fillMaxWidth(), enabled = enabled && !completed, completed = completed)
-        }
-    }
-}
-
-/**
  * A list row that can be swiped away (§14 Act in place): swiping from the end reveals Remove behind it. The same
  * action is in the row's long-press menu and in TalkBack's custom actions (§7), so nobody has to swipe.
  */

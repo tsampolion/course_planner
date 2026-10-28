@@ -144,12 +144,13 @@ fun PlannedLessonSheet(
     }
     var noteText by rememberSaveable(report.group.id, key) { mutableStateOf(note) }
     val parsed = books.mapIndexed { i, b -> lessonPages(texts.getOrElse(i) { "" }, b) }
-    SheetFrame(
+    PacerSheet(
         title = title,
-        primary = stringResource(R.string.group_save),
-        enabled = parsed.all { it != null },
-        onPrimary = { onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() }, noteText) },
         onDismiss = onDismiss,
+        action = SheetAction(stringResource(R.string.group_save), parsed.all { it != null }) {
+            onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() }, noteText)
+        },
+        dirty = rememberDraftChanged(texts.toList(), noteText),
     ) {
         Hint(stringResource(R.string.custom_sheet_hint))
         books.forEachIndexed { i, b ->

@@ -29,10 +29,10 @@ internal fun UnitRevisionSheet(report: GroupReport, target: UnitRevisionTarget, 
     val title = stringResource(R.string.units_revision_title, target.unitIndex + 1)
     val savedMessage = stringResource(R.string.units_revision_saved)
     val removedMessage = stringResource(R.string.units_revision_removed)
-    WorkSheetFrame(title, stringResource(R.string.component_save), valid, {
+    PacerSheet(title, { vm.dismissUnitRevision(target) }, SheetAction(stringResource(R.string.component_save), valid) {
         if (vm.saveUnitRevision(target, kind, date?.let(LocalDate::parse),
             if (kind == RevisionKind.PAGES && chosen != null) assignmentEditedPages(oldPages, mapOf(chosen.id to parsed.orEmpty())) else emptyMap(), title)) onChanged(savedMessage)
-    }, { vm.dismissUnitRevision(target) }) {
+    }, dirty = rememberDraftChanged(kind, date, book, pages)) {
         Picker(stringResource(R.string.units_revision_format), RevisionKind.entries.map { it.name to stringResource(when(it) {
             RevisionKind.TEST -> R.string.work_test
             RevisionKind.WORKSHEET -> R.string.work_worksheet

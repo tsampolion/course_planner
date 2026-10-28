@@ -96,7 +96,7 @@ private fun EditList(plan: Plan, screen: Screen, vm: PacerViewModel, padding: Pa
 @Composable
 fun ClassProblemsSheet(plan: Plan, vm: PacerViewModel, onDismiss: () -> Unit) {
     val problems = remember(plan) { screenProblems(plan, Screen.Class) }
-    HomeSheet(stringResource(R.string.class_problems_title), onDismiss) { close ->
+    PacerSheet(stringResource(R.string.class_problems_title), onDismiss) { close ->
         if (problems.isEmpty()) Hint(stringResource(R.string.warnings_none))
         problems.forEach { p -> ErrorBox(p.text, onFix = p.fix?.takeIf { it != Screen.Class }?.let { f -> { close(); vm.open(f) } }) }
     }
@@ -198,7 +198,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             )
         }
     }
-    if (settings) SheetFrame(stringResource(R.string.class_class_settings), stringResource(R.string.class_done), true, {}, { settings = false }) {
+    if (settings) PacerSheet(stringResource(R.string.class_class_settings), { settings = false }) {
         CommitField(plan.name, vm::renameClass, stringResource(R.string.class_name), Modifier.fillMaxWidth())
         IntField(plan.mins, vm::setMins, stringResource(R.string.class_lesson_length_min), Modifier.fillMaxWidth(), max = Settings.MAX_MINS)
         PaceField(plan.pace, vm::setPace, Modifier.fillMaxWidth())
@@ -247,7 +247,7 @@ private fun ClassGroupRow(plan: Plan, g: Group, vm: PacerViewModel) {
             modifier = Modifier.size(48.dp).semantics { contentDescription = editLabel },
         ) { AppIcon(AppIcons.Edit) }
     }
-    if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
+    if (editing) PacerSheet(name, { editing = false }) {
         GroupFields(plan, g, vm) { editing = false; vm.open(Screen.GroupSettings(g.id)) }
     }
 }
@@ -315,7 +315,7 @@ private fun BookRow(b: Book, leads: Boolean, vm: PacerViewModel, undoToast: (Str
         if (b.supplementary) Tag(stringResource(R.string.supp_tag))
         Chevron()
     }
-    if (editing) SheetFrame(name, stringResource(R.string.class_done), true, {}, { editing = false }) {
+    if (editing) PacerSheet(name, { editing = false }) {
         BookFields(b, vm) { editing = false; vm.removeBook(b.id); undoToast(context.getString(R.string.class_removed, name)) }
     }
 }
@@ -410,10 +410,10 @@ private fun AddBookSheet(vm: PacerViewModel, onDismiss: () -> Unit) {
     var include by rememberSaveable { mutableStateOf("") }
     val lastN = last.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE }
     val includeOk = !parseInclude(include).isNullOrEmpty()
-    SheetFrame(stringResource(R.string.class_add_a_book), stringResource(R.string.class_add), if (supplementary) includeOk else lastN != null, {
+    PacerSheet(stringResource(R.string.class_add_a_book), onDismiss, SheetAction(stringResource(R.string.class_add), if (supplementary) includeOk else lastN != null) {
         if (supplementary) vm.addSupplementaryBook(name.trim(), include)
         else vm.addBook(name.trim(), first.trim().toIntOrNull()?.takeIf { it in 1..MAX_PAGE } ?: 1, lastN!!, type)
-    }, onDismiss) {
+    }, dirty = rememberDraftChanged(name, first, last, typeName, include)) {
         CommitField(name, { name = it }, stringResource(R.string.class_title), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.class_companion))
         BookTypePicker(type) { typeName = it.name }
         if (supplementary) {

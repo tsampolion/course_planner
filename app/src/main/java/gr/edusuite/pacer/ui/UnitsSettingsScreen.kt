@@ -82,7 +82,7 @@ private fun UnitStartsSheet(book: Book, onSave: (List<String>) -> Unit, onDismis
     val old = book.units.takeIf { it.isNotBlank() }?.split(',', ';')?.map { it.trim() }.orEmpty()
     var rows by rememberSaveable(book.id) { mutableStateOf(old.takeIf { it.isNotEmpty() } ?: listOf(book.first.toString())) }
     val starts = validateUnitStarts(book.first, book.last, rows)
-    WorkSheetFrame(book.name, stringResource(R.string.component_save), starts != null, { onSave(rows); onDismiss() }, onDismiss) {
+    PacerSheet(book.name, onDismiss, SheetAction(stringResource(R.string.component_save), starts != null) { onSave(rows) }, dirty = rememberDraftChanged(rows)) {
         val maximum = (book.last - book.first + 1).coerceAtLeast(1)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s)) {
             PillIconButton(stringResource(R.string.units_fewer), { rows = rows.dropLast(1) }, enabled = rows.size > 1) {

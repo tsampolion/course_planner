@@ -128,7 +128,7 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
     if (ownPace) OwnPaceSheet(shown, { rate -> onOwnPaceApplied(vm.applyOwnPace(report.group.id, rate)); showingMine = true; ownPace = false }, { ownPace = false })
     val book = plan.books.firstOrNull { it.id == bookId }
     if (book != null) {
-        SheetFrame(stringResource(R.string.group_position, book.name), stringResource(R.string.group_done), true, {}, { bookId = null }) {
+        PacerSheet(stringResource(R.string.group_position, book.name), { bookId = null }) {
             Hint(stringResource(R.string.group_position_hint))
             IntField(position(report.group, book), { vm.setPosition(report.group.id, book.id, it) }, stringResource(R.string.group_resume), Modifier.fillMaxWidth(), min = book.first, max = MAX_PAGE + 1)
         }

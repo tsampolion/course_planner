@@ -377,7 +377,7 @@ fun GroupScreen(
     }
 
     when (sheet) {
-        GroupSheet.TIPS -> HomeSheet(stringResource(R.string.group_tips), onSheetClose) {
+        GroupSheet.TIPS -> PacerSheet(stringResource(R.string.group_tips), onSheetClose) {
             Note(stringResource(R.string.guide_schedule_note))
             Hint(stringResource(R.string.group_tick_hint))
             if (custom != null) Hint(stringResource(R.string.custom_hint))
@@ -512,12 +512,13 @@ private fun PagesTaughtDialog(report: GroupReport, l: Lesson, onSave: (Map<Strin
     }
     // A supplementary book takes only the pages it includes.
     val parsed = books.mapIndexed { i, b -> lessonPages(texts[i], b)?.takeIf { ps -> !b.supplementary || b.includedPages().containsAll(ps) } }
-    SheetFrame(
+    PacerSheet(
         title = stringResource(R.string.group_pages_title, l.date.dayOfWeek.short(), l.date.fmtShort()),
-        enabled = parsed.all { it != null },
-        onPrimary = { onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() }) },
         onDismiss = onDismiss,
-        primary = stringResource(R.string.group_save),
+        action = SheetAction(stringResource(R.string.group_save), parsed.all { it != null }) {
+            onSave(books.zip(parsed).associate { (b, p) -> b.id to p.orEmpty() })
+        },
+        dirty = rememberDraftChanged(texts.toList()),
     ) {
         Hint(
             stringResource(R.string.group_pages_hint, if (l.done) "" else stringResource(R.string.group_saving_marks_done)),

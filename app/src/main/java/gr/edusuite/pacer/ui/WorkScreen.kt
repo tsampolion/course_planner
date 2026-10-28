@@ -149,12 +149,12 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
     val datedLesson = type == AssignmentType.HOMEWORK || !takesLesson || due != null
     val valid = title.isNotBlank() && assignmentDatesValid(Assignment(id, type, title, setOn, due, takesLesson = takesLesson)) && pages.all { it != null }
     val haptic = rememberToggleHaptic()
-    WorkSheetFrame(stringResource(if (initial == null) R.string.work_add else R.string.work_edit), stringResource(R.string.component_save), valid, {
+    PacerSheet(stringResource(if (initial == null) R.string.work_add else R.string.work_edit), onDismiss, SheetAction(stringResource(R.string.component_save), valid) {
         onSave(Assignment(id, type, title.trim(), setOn, due,
             assignmentEditedPages(initial?.pages.orEmpty(), books.mapIndexed { i, b -> b.id to pages[i].orEmpty() }.toMap()),
             note.trim(), type != AssignmentType.HOMEWORK && takesLesson,
             contentType.takeIf { type == AssignmentType.HOMEWORK }, initial?.linkedId))
-    }, onDismiss) {
+    }, dirty = rememberDraftChanged(type, title, setText, dueText, note, takesLesson, contentType, texts.toList())) {
         SegmentedToggle(typeLabels, typeOptions.indexOf(type), { selected ->
             if (title == typeLabels[typeOptions.indexOf(type)]) title = typeLabels[selected]
             type = typeOptions[selected]

@@ -74,10 +74,10 @@ fun CatchUpSheet(report: GroupReport, onApply: (Int) -> Unit, onDismiss: () -> U
     val boost = BOOSTS[choice]
     val cu = remember(report, boost) { report.catchUp(boost) }
     val preview = remember(report, boost) { previewOf(report, report.catchUpPlan(boost)?.let { report.group.copy(custom = it) }) }
-    SheetFrame(stringResource(R.string.warn_catch_up_title), stringResource(R.string.warn_apply_catch_up), cu?.feasible == true, { onApply(boost) }, onDismiss) {
+    PacerSheet(stringResource(R.string.warn_catch_up_title), onDismiss, SheetAction(stringResource(R.string.warn_apply_catch_up), cu?.feasible == true) { onApply(boost) }) {
         if (cu == null) {
             Hint(stringResource(R.string.warn_on_pace))
-            return@SheetFrame
+            return@PacerSheet
         }
         Text(pluralStringResource(R.plurals.warn_behind, cu.behind, cu.behind, report.plan.pace.plain()), style = MaterialTheme.typography.bodyLarge)
         SegmentedToggle(BOOSTS.map { stringResource(R.string.warn_boost, it) }, choice, { choice = it })
@@ -108,7 +108,7 @@ fun FoldSheet(report: GroupReport, lag: BookLag, onApply: (Int) -> Unit, onDismi
     var choice by rememberSaveable(report.group.id, lag.bookId) { mutableIntStateOf(1) }
     val over = spans[choice]
     val preview = remember(report, lag.bookId, over) { previewOf(report, report.foldBacklog(lag.bookId, over)?.let { report.group.copy(custom = it) }, lag.bookId) }
-    SheetFrame(stringResource(R.string.warn_fold_title, book.name), stringResource(R.string.warn_apply_fold), preview.isNotEmpty(), { onApply(over) }, onDismiss) {
+    PacerSheet(stringResource(R.string.warn_fold_title, book.name), onDismiss, SheetAction(stringResource(R.string.warn_apply_fold), preview.isNotEmpty()) { onApply(over) }) {
         Text(stringResource(R.string.warn_book_behind, book.name, lag.lessonsBehind.fixed2()), style = MaterialTheme.typography.bodyLarge)
         SegmentedToggle(spans.map { pluralStringResource(R.plurals.warn_over, it, it) }, choice, { choice = it })
         PreviewLines(preview)

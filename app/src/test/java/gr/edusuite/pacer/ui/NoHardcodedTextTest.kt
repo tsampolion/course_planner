@@ -11,7 +11,7 @@ class NoHardcodedTextTest {
     private val tokens = Regex("""(?s)//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*""" + "\"")
     private val interpolation = Regex("""\$\{[^}]*}|\$[A-Za-z_][A-Za-z_0-9]*""")
     private val letters = Regex("[A-Za-z]")
-    private val uiCall = Regex("""\b(?:Text|Hint|Tag|Heading|Eyebrow|PrimaryButton|SecondaryButton|TertiaryButton|AddButton|ErrorBox|GuideCard|LinkRow|SheetFrame|AddDialogFrame|PillIconButton)\s*\(\s*$""")
+    private val uiCall = Regex("""\b(?:Text|Hint|Tag|Heading|Eyebrow|PrimaryButton|SecondaryButton|TertiaryButton|AddButton|ErrorBox|GuideCard|LinkRow|PacerSheet|SheetAction|AddDialogFrame|PillIconButton)\s*\(\s*$""")
     private val uiAssignment = Regex("""\b(?:text|title|label|contentDescription|stateDescription|onClickLabel|onLongClickLabel|actionLabel|placeholder|confirm)\s*=\s*$""")
     private val dataStrings = mapOf(
         "ScreensModel.kt" to setOf("uncollected", "collection:"),
