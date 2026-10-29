@@ -8,6 +8,10 @@ import gr.edusuite.pacer.engine.position
 import gr.edusuite.pacer.engine.taughtPages
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.BookType
+import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.CustomPlan
+import gr.edusuite.pacer.model.Features
+import gr.edusuite.pacer.model.handPlanned
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -173,3 +177,17 @@ data class HeroActions(val canDone: Boolean, val canEditPages: Boolean)
 /** No lesson left offers nothing; a test day can be ticked but has no pages to edit; a plan shown only for comparison offers nothing. */
 internal fun heroActions(next: Lesson?, canTick: Boolean): HeroActions =
     HeroActions(canDone = next != null && canTick, canEditPages = next != null && canTick && !next.blocked)
+
+/** What Plan shows above the schedule for a group's own plan. */
+enum class PlanBarMode { NONE, CATCH_UP_ONLY, EDITOR }
+
+/**
+ * The plan editor's bar while Planning tools are on or the group planned a lesson by hand; otherwise a plan written
+ * only by a fix gets the slim catch-up bar (`docs/FEATURE_MODULES_BRIEF.md`, Warning fixes at every preset).
+ */
+fun planBarMode(custom: CustomPlan?, features: Features): PlanBarMode = when {
+    custom == null -> PlanBarMode.NONE
+    custom.handPlanned() || features.has(Brick.PLAN_EDITOR) -> PlanBarMode.EDITOR
+    else -> PlanBarMode.CATCH_UP_ONLY
+}
+

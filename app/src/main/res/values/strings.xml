@@ -488,6 +488,12 @@
     <string name="custom_copied">Plan copied to %1$s</string>
     <string name="custom_delete">Delete my plan</string>
     <string name="custom_deleted">Custom plan deleted</string>
+    <plurals name="plan_fix_catch_up">
+        <item quantity="one">Catch-up: %1$d more page a lesson until the group is back on pace.</item>
+        <item quantity="other">Catch-up: %1$d more pages a lesson until the group is back on pace.</item>
+    </plurals>
+    <string name="plan_fix_adjusted">A fix has adjusted this group\'s plan.</string>
+    <string name="plan_fix_undo">Back to the proposed plan</string>
     <string name="custom_repaced">Plan re-paced</string>
     <string name="custom_tidied">Plan tidied</string>
     <string name="custom_fitted">Plan fitted to the term</string>

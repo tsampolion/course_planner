@@ -290,7 +290,12 @@ fun GroupScreen(
                                 undoToast(context.getString(R.string.custom_created))
                             })
                         } else {
-                            PlanSourceBar(custom, showMine, { showMine = it }, { vm.setCustomActive(g.id, showMine) })
+                            when (planBarMode(custom, LocalFeatures.current)) {
+                                PlanBarMode.CATCH_UP_ONLY -> FixPlanBar(custom, onBack = {
+                                    if (vm.deleteCustomPlan(g.id)) undoToast(context.getString(R.string.custom_deleted))
+                                })
+                                else -> PlanSourceBar(custom, showMine, { showMine = it }, { vm.setCustomActive(g.id, showMine) })
+                            }
                         }
                     }
                 }

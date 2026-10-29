@@ -93,6 +93,26 @@ fun CustomPlanLine(onCreate: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 /**
+ * The plan a fix wrote, while Planning tools are off: one line saying what changed and a way back to the proposed plan,
+ * instead of the plan editor's controls.
+ */
+@Composable
+fun FixPlanBar(custom: CustomPlan, onBack: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).background(Pacer.colors.surfaceContainer)
+            .padding(start = Space.m, top = Space.xs, bottom = Space.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val boost = custom.catchUpBoost
+        Text(
+            if (boost != null) pluralStringResource(R.plurals.plan_fix_catch_up, boost, boost) else stringResource(R.string.plan_fix_adjusted),
+            style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted, modifier = Modifier.weight(1f),
+        )
+        TertiaryButton(stringResource(R.string.plan_fix_undo), onBack)
+    }
+}
+
+/**
  * My plan | Proposed. Showing the plan that isn't in use says so, with a button to use it; nothing is lost either way.
  */
 @Composable
