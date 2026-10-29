@@ -5,6 +5,7 @@ import gr.edusuite.pacer.update.storedUpdate
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.ClassOrder
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import java.time.LocalDate
@@ -41,6 +42,7 @@ class SettingsStore(context: Context) : SettingsPort {
         seenTips = prefs.getStringSet(TIPS, null)?.toSet().orEmpty(),
         autoTickFrom = runCatching { LocalDate.parse(prefs.getString(AUTO_TICK_FROM, null)) }.getOrNull(),
         drawerPinned = runCatching { prefs.getBoolean(DRAWER_PINNED, true) }.getOrDefault(true),
+        modules = runCatching { prefs.getStringSet(MODULES, null) }.getOrNull()?.mapNotNull(Module::parse)?.toSet(),
     ).sanitised()
 
     override fun save(s: Settings) {
@@ -69,6 +71,7 @@ class SettingsStore(context: Context) : SettingsPort {
             .putStringSet(TIPS, s.seenTips.toSet())
             .putBoolean(DRAWER_PINNED, s.drawerPinned)
             .apply { if (s.autoTickFrom == null) remove(AUTO_TICK_FROM) else putString(AUTO_TICK_FROM, s.autoTickFrom.toString()) }
+            .apply { if (s.modules == null) remove(MODULES) else putStringSet(MODULES, s.modules.mapTo(mutableSetOf()) { it.name }) }
             .apply()
     }
 
@@ -101,5 +104,6 @@ class SettingsStore(context: Context) : SettingsPort {
         /** The first day lessons tick themselves from; absent until the first-launch question is answered. */
         const val AUTO_TICK_FROM = "autoTickFrom"
         const val DRAWER_PINNED = "drawerPinned"
+        const val MODULES = "modules"
     }
 }

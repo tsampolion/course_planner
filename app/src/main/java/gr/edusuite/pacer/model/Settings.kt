@@ -66,7 +66,15 @@ data class Settings(
     val autoTickFrom: LocalDate? = null,
     /** On a tablet 840dp wide or more, the menu stays open beside the screens (pinned, the default) or collapses behind ☰. */
     val drawerPinned: Boolean = true,
+    /**
+     * The modules the teacher turned on (`docs/FEATURE_MODULES_BRIEF.md`). Null until chosen, which means every module,
+     * so an install from before modules keeps every control.
+     */
+    val modules: Set<Module>? = null,
 ) {
+    /** The modules on, before the data in use is added (see [Features]). */
+    fun features(): Features = Features(modules ?: Module.entries.toSet())
+
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(
         lessonMins = lessonMins.takeIf { it in 1..MAX_MINS } ?: DEFAULT_MINS,
