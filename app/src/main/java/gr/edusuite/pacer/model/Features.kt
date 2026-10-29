@@ -57,7 +57,7 @@ fun Brick.inUse(years: List<SchoolYear>): Boolean {
             groups.any { g -> g.assignments.any { it.type != AssignmentType.HOMEWORK } }
         Brick.UNIT_REVISIONS -> groups.any { it.unitRevisions.isNotEmpty() }
         Brick.LEAD_BOOK -> classes.any { it.lead != null }
-        Brick.UNITS -> classes.any { c -> c.unitsEnabled || c.books.any { it.units.isNotBlank() } } ||
+        Brick.UNITS -> classes.any { c -> c.unitsEnabled || c.bookLinks.isNotEmpty() || c.books.any { it.units.isNotBlank() } } ||
             groups.any { it.unitsOverride != null }
         Brick.OPTIONAL_BOOKS -> classes.any { c -> c.books.any { it.groupOnly } } || groups.any { it.extraBooks.isNotEmpty() }
         Brick.GROUP_BOOK_RULES -> groups.any { g -> g.removedBooks.isNotEmpty() || g.bookDue.isNotEmpty() || g.skip.values.any { it.isNotBlank() } }

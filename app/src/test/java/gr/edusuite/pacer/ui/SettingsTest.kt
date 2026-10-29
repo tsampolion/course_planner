@@ -61,6 +61,14 @@ class SettingsTest {
         assertFalse(f.has(Brick.PLAN_EDITOR))
     }
 
+    @Test fun storedModulesReadBack() {
+        assertNull(Settings.readModules(null))
+        assertEquals(setOf(Module.WORK), Settings.readModules(setOf("WORK", "RETIRED")))
+        assertEquals(emptySet<Module>(), Settings.readModules(emptySet()))
+        // Names this version doesn't know never switch every module off.
+        assertNull(Settings.readModules(setOf("RETIRED")))
+    }
+
     @Test fun sanitisedKeepsModules() {
         assertEquals(setOf(Module.OUTPUT), Settings(modules = setOf(Module.OUTPUT)).sanitised().modules)
         assertEquals(emptySet<Module>(), Settings(modules = emptySet()).sanitised().modules)

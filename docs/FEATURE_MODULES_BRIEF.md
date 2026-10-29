@@ -86,7 +86,7 @@ Cancel imports nothing. The same words serve the teacher's own backup on a new p
 
 ## Warning fixes at every preset
 
-A fix that writes a custom plan works without Planning tools. While no lesson is planned by hand, Plan shows one slim bar instead of the plan editor: "Catch-up: 2 more pages a lesson until 14 Mar. Undo". The editor appears with Planning tools, or after the teacher turns them on from that bar.
+A fix that writes a custom plan works without Planning tools. While no lesson is planned by hand, Plan shows one slim bar instead of the plan editor: "Catch-up: 2 more pages a lesson until the group is back on pace" (or "A fix has adjusted this group's plan"), with **Back to the proposed plan**, which deletes the fix's plan with Undo. The editor appears once Planning tools are on, or once any group in the open year has a lesson planned by hand (data in use always shows). The launch adds a way to turn Planning tools on from the bar.
 
 ## What's new
 

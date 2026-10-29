@@ -5,7 +5,6 @@ import gr.edusuite.pacer.update.storedUpdate
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.ClassOrder
-import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import java.time.LocalDate
@@ -42,7 +41,7 @@ class SettingsStore(context: Context) : SettingsPort {
         seenTips = prefs.getStringSet(TIPS, null)?.toSet().orEmpty(),
         autoTickFrom = runCatching { LocalDate.parse(prefs.getString(AUTO_TICK_FROM, null)) }.getOrNull(),
         drawerPinned = runCatching { prefs.getBoolean(DRAWER_PINNED, true) }.getOrDefault(true),
-        modules = runCatching { prefs.getStringSet(MODULES, null) }.getOrNull()?.mapNotNull(Module::parse)?.toSet(),
+        modules = Settings.readModules(runCatching { prefs.getStringSet(MODULES, null) }.getOrNull()?.toSet()),
     ).sanitised()
 
     override fun save(s: Settings) {

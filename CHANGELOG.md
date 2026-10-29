@@ -31,7 +31,7 @@ The foundation for feature modules ([`FEATURE_MODULES_BRIEF.md`](docs/FEATURE_MO
 
 ### Added
 - Features as bricks (`model/Features.kt`): each feature names its module, what it needs and which saved data means it is in use. The teacher's modules are stored in Settings and only ever turn on.
-- The ⋮ group menu, the lesson menu and group home's pages name the feature each control belongs to, and show only the features that are on or already in use.
+- The ⋮ group menu, the lesson menu, group home's pages, Plan's Create line, the Day strip's + and a day off's Add extra lesson name the feature each belongs to, and show only the features that are on or already in use.
 - Import asks “Turn on these tools?” when a file uses modules that are off here; Cancel imports nothing.
 - While Planning tools are off, a plan written only by a fix shows a slim catch-up bar with “Back to the proposed plan” instead of the plan editor.
 

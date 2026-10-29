@@ -59,6 +59,7 @@ import gr.edusuite.pacer.engine.plannedPages
 import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.engine.supplementaryBooks
 import gr.edusuite.pacer.engine.unplacedPages
+import gr.edusuite.pacer.model.Brick
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.ui.theme.Figures
@@ -282,7 +283,7 @@ fun GroupScreen(
                     Column(Modifier.padding(start = Space.l, end = Space.l, top = Rhythm.section), verticalArrangement = Arrangement.spacedBy(Rhythm.inSection)) {
                         if (custom == null) {
                             // Large text: the line lives in the ⋮ menu instead.
-                            if (report.rows.isNotEmpty() && !largeText) CustomPlanLine({
+                            if (report.rows.isNotEmpty() && !largeText && LocalFeatures.current.has(Brick.PLAN_EDITOR)) CustomPlanLine({
                                 toggleHaptic(true)
                                 vm.createCustomPlan(g.id)
                                 showMine = true
@@ -323,7 +324,7 @@ fun GroupScreen(
                             if (start != null && end != null) {
                                 DayStrip(start, end, chosen, lessons.map { it.date }.toSet(), { selectedDay = it.toString() }, onAdd = {
                                     if (lessons.firstOrNull { it.date == chosen }?.done == true) toast(context.getString(R.string.extra_taught_day)) else extraDate = selectedDay
-                                })
+                                }.takeIf { LocalFeatures.current.has(Brick.EXTRA_LESSONS) })
                             }
                         }
                     }

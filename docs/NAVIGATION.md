@@ -605,12 +605,12 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Weekly: the round ‹ › buttons, or swipe the day strip | Tap |  | View. Pages the week strip by one week. |
 | Weekly: the week label (dates, with the month under them) | Tap |  | ↑ Opens [Month picker](#month-menu). Jumps the strip to the first week of the month. |
 | Weekly: a day in the strip | Tap |  | View. Scrolls the list to that day's row (or the next listed day) and highlights it. The strip opens on the lesson after the one in the box. |
-| Weekly: + at the end of the strip | Tap |  | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet for the selected day; on a taught day it says “That day is already taught”. |
+| Weekly: + at the end of the strip | Tap | Planning tools | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet for the selected day; on a taught day it says “That day is already taught”. |
 | Monthly: Previous month / Next month | Tap |  | View. Moves a month with a slide. |
 | Monthly: the month name | Tap |  | ↑ Opens [Month picker](#month-menu). Opens a menu of the term's months. |
 | N earlier lessons › / Hide earlier lessons | Tap |  | View. Shows or folds taught lessons. |
 | Today box | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Lesson menu; Done and Pages taught work as on group home. |
-| Make it yours: Create | Tap | No custom plan, has lessons, not large text | Copies the proposed plan into a custom plan; its lessons lift in one by one. Undo: “Custom plan created” |
+| Make it yours: Create | Tap | No custom plan, has lessons, not large text; Planning tools | Copies the proposed plan into a custom plan; its lessons lift in one by one. Undo: “Custom plan created” |
 | Catch-up bar (“Catch-up: N more pages a lesson…”) · Back to the proposed plan | Tap | A plan written only by a fix, without Planning tools | Deletes the fix's plan; the proposed plan takes over. Undo: “Custom plan deleted” |
 | My plan · In use / Proposed | Toggle | Has a custom plan; Planning tools or a lesson planned by hand | View. Shows either plan. The one not in use is a preview, and can't be ticked. |
 | Use this plan | Tap | Previewing the plan not in use | Edit. Makes the shown plan the one you teach from. |
@@ -619,7 +619,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | A custom-plan lesson's ⠿ grip | Drag | Custom plan shown | Drag up or down; the others make room. Release to move it, or cancel to drop it back. Undo: “Lesson moved” |
 | A test or worksheet row (as tall as a lesson, kind in bold) | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Takes the lesson; has the tick and the lesson menu. |
 | A day-off row (slim) | Tap |  | Nothing happens. |
-| A day-off row (slim) | Long-press |  | ↑ Opens [Day-off row menu](#day-off-menu). A one-item menu: Add extra lesson…. Once added, the day is a lesson row whose menu has Edit extra lesson… and Delete extra lesson. |
+| A day-off row (slim) | Long-press | Planning tools | ↑ Opens [Day-off row menu](#day-off-menu). A one-item menu: Add extra lesson…. Once added, the day is a lesson row whose menu has Edit extra lesson… and Delete extra lesson. |
 | Unit N revision row: Add a revision / Edit (a finished unit with no decision asks “Unit N is finished. Plan its revision?”) | Tap | After a unit's last lesson | ↑ Opens [Unit N revision](#unit-revision). Opens the unit revision sheet; finishing a unit never opens it by itself. |
 | Tip: Long-press a lesson… · Got it | Tap |  | Edit. Hides the tip until Show tips again. |
 | Tablet: Work · Stats · Group settings rows | Tap | 600dp and wider, where Plan stands in for group home; the Work row needs Work | → Screen [Work](#work). The group home links, at the top of Plan. |

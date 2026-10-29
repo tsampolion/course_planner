@@ -47,6 +47,10 @@ class FeaturesTest {
         assertEquals(setOf(Module.BOOK_TOOLS), modulesInUse(years))
     }
 
+    @Test fun linkedBooksMeanUnits() {
+        assertTrue(Brick.UNITS.inUse(withClass { c -> c.copy(bookLinks = listOf(setOf(c.books[0].id, c.books[1].id))) }))
+    }
+
     @Test fun groupSkipMeansBookTools() {
         val years = withGroup { it.copy(skip = mapOf(cls.books[0].id to "5-6")) }
         assertTrue(Brick.GROUP_BOOK_RULES.inUse(years))
