@@ -178,6 +178,10 @@ Opening another school year clears the undo history. Deleting a year lands on Ho
 
 Only the open year, class and group persist (`activeYear`, `activeClass`, `view`), but a fresh start always opens Home (`Nav.launch`, 0.4.1.3): the saved group is written and never reopened. With no year open, Home shows the one that starts last (`defaultYearId`).
 
+### Feature modules
+
+`model/Features.kt` holds the bricks and modules of [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md): each `Brick` names its `Module` (null for the core) and its `needs`, and `Brick.inUse` reads which saved data uses it. `Settings.modules` stores the teacher's modules (null means every one, so older installs keep every control); `turnOn` only adds and `chooseModules` applies once. `featuresOf` adds the open year's bricks in use, and `PacerApp` provides the result as `LocalFeatures`. Each menu control names its brick (`GroupMenuItem.brick()`, `MenuItemKind.brick()`, `GroupDestination.bricks()`), and the menu models filter by `Features.has`, so saved data always shows. Import asks to turn on what a file needs (`modulesNeeded`), and a plan written only by fixes gets the slim `FixPlanBar` while Planning tools are off (`planBarMode`).
+
 ### Navigation
 
 A back stack of `Screen`s in `UiState`, with rules in `Nav.kt` (plain Kotlin, unit-tested). There is no navigation library. Every top bar starts with ☰, which opens `AppDrawer` (`NavUi.kt`, a `ModalNavigationDrawer`): search over the year's groups, then five items in a fixed order: Home, Pacing overview with its count of groups behind, Classes & Groups, School year (its name shortened by `yearShort`), Settings. The menu, its search and the title switcher (`GroupSwitcherSheet`) open screens through `Nav.goTo`, which goes back to a screen already on the stack instead of stacking it again. System Back still pops, closing the menu first.
