@@ -208,12 +208,15 @@ Each is its own session and PR, approved by the owner one at a time. Redesign wo
 | 3 | **Home today** | H1–H6 (with F16 and F07), D-proposal 7; needs a `HomeModel` change and tests | M |
 | 4 | **Menu and top bar** (built, 0.4.9.0) | N1–N3, D-proposal 2, X1 (update dot), X16, X18 | M |
 | 5 | **One sheet frame** (built, 0.4.10.0) | X7, D1, D2, X12, X13, F18 (streamlining S4); every sheet ends the same way | L |
-| 6 | **Set-up screens** | C1–C5 (with F17), X6 (Group settings), X17, X20, D-proposal 5; removals only with the owner's yes | L |
-| 7 | **Stats and Work** | S1–S3, W1 | S |
-| 8 | **Settings, welcome, empty states** | D3, D4, X8, X10, X11 | S |
-| 9 | **Polish and record** | dark-mode and tablet pass over all screens, X15 and D-proposal 9, `PACER_DESIGN.md` updated with what was approved | M |
+| 5a | **Modules foundation** | [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md): the module registry, stored modules, gates in the menu models, the import question, the slim catch-up bar; no visible change for existing installs | M |
+| 6 | **Set-up screens** | C1–C5 (with F17), X6 (Group settings), X17, X20, D-proposal 5; removals only with the owner's yes; the book form, Class, Group settings and Units module gates | L |
+| 7 | **Stats and Work** | S1–S3, W1; Work's module gates and the hero's Homework button | S |
+| 8 | **Settings, welcome, empty states** | D3, D4, X8, X10, X11; the modules launch: Welcome presets, Settings › Features, hints, What's new, the first release name | M |
+| 9 | **Polish and record** | dark-mode and tablet pass over all screens (module screens included), X15 and D-proposal 9, `PACER_DESIGN.md` updated with what was approved, the deck and the module motion | M |
 
 Each PR checks its screens' rows in [NAVIGATION.md](NAVIGATION.md) first and updates them with the change.
+
+The modules work rides PRs 5a to 9 so no screen is redesigned twice ([`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md#order-of-work)). It needs the owner's yes per PR like the rest; each of these PRs also counts its journeys' taps before and after, and none may get longer.
 
 Copy changes wait for the inventory and can ride any PR after it comes back.
 

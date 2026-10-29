@@ -25,6 +25,17 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.10.1] - 2026-10-29
+
+Docs only: the approved design for feature modules ([`FEATURE_MODULES_BRIEF.md`](docs/FEATURE_MODULES_BRIEF.md)) and its place in the UI audit's order of work.
+
+### Added
+- `docs/FEATURE_MODULES_BRIEF.md`: teachers start with pacing alone and turn on Work, Book tools, Planning tools and Output as they need them. It records the presets, moment-of-need hints, the import question, the What's new cards, release names, the motion, and the journeys each change must shorten.
+- The build plan for the modules foundation, in `docs/superpowers/plans/` while the work is open.
+
+### Changed
+- `UI_AUDIT_BRIEF.md`: a modules foundation step after PR 5, and the module work that rides PRs 6 to 9.
+
 ## [0.4.10.0] - 2026-10-28
 
 UI fix PR 5, one sheet frame ([`UI_AUDIT_BRIEF.md`](docs/UI_AUDIT_BRIEF.md) X7, X12, X13, D1, D2; [`STREAMLINING_BRIEF.md`](docs/STREAMLINING_BRIEF.md) S4, M3).
@@ -1045,7 +1056,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.10.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.10.1...HEAD
+[0.4.10.1]: https://github.com/tsampolion/course_planner/compare/v0.4.10.0...v0.4.10.1
 [0.4.10.0]: https://github.com/tsampolion/course_planner/compare/v0.4.9.1...v0.4.10.0
 [0.4.9.1]: https://github.com/tsampolion/course_planner/compare/v0.4.9.0...v0.4.9.1
 [0.4.9.0]: https://github.com/tsampolion/course_planner/compare/v0.4.8.0...v0.4.9.0
