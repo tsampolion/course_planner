@@ -317,6 +317,7 @@ A Help feature, reached from the ☰ menu. Its content and shape are not decided
 - a short list of how-to topics (set up a class, tick lessons, fit to term, back up) written for teachers, not as a manual;
 - whether it reuses the first-run guide and the Tips text instead of repeating them (one home per fact);
 - whether it also explains the warnings and the pacing verdicts in plain words.
+- reusing the What's new `CardDeck` from [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md) as Help's frame, and its module cards as topics.
 
 ### Open questions
 

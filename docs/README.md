@@ -40,6 +40,7 @@ Each one records why a feature was built, and starts with a `Status:` line.
 - [PRINT_BRIEF.md](PRINT_BRIEF.md): the printed sheet wraps and turns landscape for many books, and Print offers only scopes with lessons.
 - [UI_AUDIT_BRIEF.md](UI_AUDIT_BRIEF.md): the UI/UX audit: findings per screen, proposed design-rule changes and the order of the fix pull requests.
 - [STREAMLINING_BRIEF.md](STREAMLINING_BRIEF.md): each screen's start, purpose, next step and end, and what to remove, merge or move.
+- [FEATURE_MODULES_BRIEF.md](FEATURE_MODULES_BRIEF.md): start with pacing alone and turn on Work, Book tools, Planning tools and Output when needed; woven into the UI audit's order of work.
 
 ## Not yet approved
 
