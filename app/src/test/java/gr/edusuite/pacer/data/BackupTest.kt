@@ -2,6 +2,8 @@ package gr.edusuite.pacer.data
 
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
+import gr.edusuite.pacer.model.Features
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.seedYear
 import java.io.ByteArrayInputStream
@@ -102,5 +104,24 @@ class BackupTest {
         val big = ImportResult.TooLarge(60L * 1024 * 1024, MAX_IMPORT_BYTES)
         assertNotEquals(ImportResult.Unreadable, big)
         assertEquals("60 MB; the limit is 50 MB", "${megabytes(big.bytes)} MB; the limit is ${megabytes(big.limit)} MB")
+    }
+
+    private fun yearWithTests(): SchoolYear = seedYear().let { y ->
+        val c = y.classes[0]
+        val g = c.groups[0].copy(assignments = listOf(Assignment("t", AssignmentType.TEST, "Unit 1 test")))
+        y.copy(classes = listOf(c.copy(groups = listOf(g) + c.groups.drop(1), lead = c.books[0].id)))
+    }
+
+    @Test fun noQuestionWhenEverythingIsOn() {
+        assertEquals(emptySet<Module>(), modulesNeeded(listOf(yearWithTests()), Features.ALL))
+    }
+
+    @Test fun testsNeedWorkWhenOff() {
+        assertEquals(setOf(Module.WORK, Module.BOOK_TOOLS), modulesNeeded(listOf(yearWithTests()), Features(emptySet())))
+    }
+
+    @Test fun onlyMissingModulesAreNamed() {
+        assertEquals(setOf(Module.WORK), modulesNeeded(listOf(yearWithTests()), Features(setOf(Module.BOOK_TOOLS))))
+        assertEquals(emptySet<Module>(), modulesNeeded(listOf(seedYear()), Features(emptySet())))
     }
 }

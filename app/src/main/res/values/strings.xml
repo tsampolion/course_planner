@@ -346,6 +346,15 @@
     <string name="settings_name_separator">", "</string>
     <string name="settings_no_years">There are no school years on this phone yet.</string>
     <string name="settings_import_body">%1$s.\n\n%2$s You can undo it straight after.</string>
+    <string name="settings_import_modules_title">Turn on these tools?</string>
+    <string name="settings_import_modules_body">This backup uses %1$s. Turn them on to bring it in?</string>
+    <string name="settings_import_modules_confirm">Turn on and import</string>
+    <string name="settings_import_modules_two">%1$s and %2$s</string>
+    <string name="settings_import_modules_three">%1$s, %2$s and %3$s</string>
+    <string name="module_work_named">homework and tests</string>
+    <string name="module_book_tools_named">book tools</string>
+    <string name="module_planning_named">planning tools</string>
+    <string name="module_output_named">print and share</string>
     <string name="settings_no_picker">This phone has no file picker.</string>
     <string name="guide_step_1_title">School year</string>
     <string name="guide_step_1_detail">Its first and last teaching day, and the days off.</string>

@@ -1,6 +1,9 @@
 package gr.edusuite.pacer.data
 
+import gr.edusuite.pacer.model.Features
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.SchoolYear
+import gr.edusuite.pacer.model.modulesInUse
 import gr.edusuite.pacer.model.newId
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -88,3 +91,10 @@ fun addYears(current: List<SchoolYear>, incoming: List<SchoolYear>): List<School
     }
     return current + added
 }
+
+/**
+ * The modules [incoming] years use that are off here, in declaration order. Import asks to turn them on first, and
+ * Cancel imports nothing (`docs/FEATURE_MODULES_BRIEF.md`, Imports). Only the teacher's modules count, not the data here.
+ */
+fun modulesNeeded(incoming: List<SchoolYear>, features: Features): Set<Module> =
+    Module.entries.filterTo(linkedSetOf()) { it in modulesInUse(incoming) && it !in features.on }
