@@ -31,6 +31,7 @@ Docs only: the approved design for feature modules ([`FEATURE_MODULES_BRIEF.md`]
 
 ### Added
 - `docs/FEATURE_MODULES_BRIEF.md`: teachers start with pacing alone and turn on Work, Book tools, Planning tools and Output as they need them. It records the presets, moment-of-need hints, the import question, the What's new cards, release names, the motion, and the journeys each change must shorten.
+- Features as bricks: each feature names its module, what it needs and what data means it is in use, and every control names its brick, so modules and presets can be regrouped without changing screens.
 - The build plan for the modules foundation, in `docs/superpowers/plans/` while the work is open.
 
 ### Changed

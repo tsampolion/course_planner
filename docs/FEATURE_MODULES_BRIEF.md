@@ -26,9 +26,35 @@ Teachers also differ: an exam class needs tests on day one, another group only h
 | **Planning tools** | my plan and its tools (re-pace, tidy, fit, copy), own pace, extra lessons, supplementary books |
 | **Output** | print, copy, share |
 
-Parts sit where nothing crosses: unit revisions are Work (the Units screen hides that step until Work is on), and supplementary books are Planning tools.
+Nothing here changes pacing. Each engine extension already leaves the schedule unchanged when unused (its parity test), so a module that is off hides only ways to add things that do not exist yet. The engine is already built of separate pieces; the bricks below make the screens match it.
 
-Nothing here changes pacing. Each engine extension already leaves the schedule unchanged when unused (its parity test), so a module that is off hides only ways to add things that do not exist yet.
+## Bricks
+
+Each feature is a **brick**: it belongs to a module (or to the core), may need other bricks, and knows which saved data means it is in use. Every button, menu item, pill and form field names its brick, and a screen shows only the controls whose brick is on. Nothing on a screen tests a module directly.
+
+| Brick | Module | Needs |
+|---|---|---|
+| Pacing | core | |
+| Plan base (a group's own plan, as fixes write it) | core | |
+| Catch-up and other warning fixes | core | Plan base |
+| Homework | Work | |
+| Tests and worksheets | Work | |
+| Unit revisions | Work | Units |
+| Lead book | Book tools | |
+| Units | Book tools | |
+| Optional books | Book tools | |
+| Group book rules (removed books, own skips and finish-by) | Book tools | |
+| Plan editor | Planning tools | Plan base |
+| Own pace | Planning tools | Plan base |
+| Extra lessons | Planning tools | |
+| Supplementary books | Planning tools | Plan editor |
+| Print | Output | |
+| Copy and share | Output | |
+
+- **A brick is on** when its module is on (core always is) and every brick it needs is on. Unit revisions therefore show only with both Work and Book tools; the Units screen hides that step otherwise.
+- **Two baseplates** limit where bricks can go. The plan base carries the fixes, the plan editor, own pace and supplementary books. One assignment record carries homework, tests, worksheets and revisions, which is why those share Work.
+- **Data in use always shows.** A brick whose data exists counts as on for showing that data, whatever its module.
+- **Presets and modules are groupings of bricks.** Regrouping later (into levels, or more modules) changes the table above, not the screens. A new control cannot be built without naming its brick.
 
 ## Presets
 
@@ -146,6 +172,7 @@ No engine change, no schema change, no new dependency. Each step takes the versi
 - A lasting lean app for teachers who only pace.
 - Safe by construction: unused extensions change nothing, and modules only grow.
 - One feature registry that every future control reads, which a rebuild would otherwise be the reason for.
+- Regrouping is a change to the brick table, not to every screen.
 - The deck and the module map give Help its shape.
 
 **Costs and risks.**
@@ -153,7 +180,9 @@ No engine change, no schema change, no new dependency. Each step takes the versi
 - The gain is smaller than it looks: units, the lead book, custom plans and supplementary books already hide until used.
 - A hidden tool cannot be found by exploring; hints and the Features sheet must carry discovery.
 - A teacher who turned on too much cannot tidy back down (the owner's choice, to keep it simple).
-- Every future feature names its module, and its NAVIGATION.md rows gain a "When" condition.
+- Every future feature names its brick, and its NAVIGATION.md rows gain a "When" condition.
+- The two baseplates (the plan base and the assignment record) limit how freely bricks can be regrouped.
+- The brick registry is a little more work in the foundation than per-screen conditions.
 - The modules are stored per phone; two phones can differ until the teacher turns the same ones on.
 - The Compose-only gates have no automated UI tests until planned feature 10.
 

@@ -4,7 +4,7 @@
 
 **Goal:** Build step 2 of the modules order, the invisible foundation: a module registry, stored modules, gates in the pure menu models, the import question and the slim catch-up bar, with every module on for every install until the Welcome presets ship (UI audit PR 8).
 
-**Architecture:** A pure `model/Features.kt` decides what each module covers and what data uses it. `Settings.modules` stores the teacher's set; `PacerViewModel.features` combines it with the data and Compose reads it through `LocalFeatures`. Gates live in the pure `*Model.kt` files so they are unit-tested; Compose call sites only pass `features` in.
+**Architecture:** A pure `model/Features.kt` holds the bricks (brief, "Bricks"): each names its module, its needs and the data that means it is in use. `Settings.modules` stores the teacher's set; `PacerViewModel.features` combines it with the data and Compose reads it through `LocalFeatures`. Every control names its brick through an exhaustive `when`, and the pure `*Model.kt` files filter by `features.has(brick)`, so gates are unit-tested and no screen tests a module directly.
 
 **Tech Stack:** Kotlin, Jetpack Compose (Material 3), JUnit 4, SharedPreferences. No new dependency.
 
@@ -29,10 +29,11 @@ Later steps (audit PRs 6, 7, 8, 9 with their module work) get their own plan whe
 3. Importing a backup that uses tests while Work is off asks first, and Cancel leaves the data exactly as it was (Task 4 tests).
 4. Importing into a phone with every module on never asks (Task 4 test `noQuestionWhenEverythingIsOn`).
 5. Undo after turning a module on leaves it on, because modules live in Settings, outside undo (Task 3 test `undoKeepsModulesOn`).
+6. A brick whose module is on but whose need is off stays hidden: unit revisions with Work on and Book tools off (Task 1 test `needsAreHonoured`).
 
 ---
 
-### Task 1: The module registry
+### Task 1: Bricks and modules
 
 **Files:**
 - Create: `app/src/main/java/gr/edusuite/pacer/model/Features.kt`
@@ -41,30 +42,34 @@ Later steps (audit PRs 6, 7, 8, 9 with their module work) get their own plan whe
 **Interfaces:**
 - Produces:
   - `enum class Module { WORK, BOOK_TOOLS, PLANNING, OUTPUT }` with `companion object { fun parse(name: String?): Module? }`
-  - `fun modulesInUse(years: List<SchoolYear>): Set<Module>`
+  - `enum class Brick(val module: Module?, val needs: Set<Brick> = emptySet())` (`module == null` is core), entries exactly as the brief's Bricks table: `PACING`, `PLAN_BASE`, `CATCH_UP(needs PLAN_BASE)`, `HOMEWORK`, `TESTS`, `UNIT_REVISIONS(needs UNITS)`, `LEAD_BOOK`, `UNITS`, `OPTIONAL_BOOKS`, `GROUP_BOOK_RULES`, `PLAN_EDITOR(needs PLAN_BASE)`, `OWN_PACE(needs PLAN_BASE)`, `EXTRA_LESSONS`, `SUPPLEMENTARY(needs PLAN_EDITOR)`, `PRINT`, `COPY_SHARE`. Declare `needs` as a function or lazy property so forward references compile.
+  - `fun Brick.inUse(years: List<SchoolYear>): Boolean`
+  - `fun modulesInUse(years: List<SchoolYear>): Set<Module>` = the modules of the bricks in use
   - `fun CustomPlan.handPlanned(): Boolean` = any lesson `touched`
-  - `data class Features(val on: Set<Module>) { fun has(m: Module): Boolean; companion object { val ALL: Features } }`
+  - `data class Features(val on: Set<Module>, val inUse: Set<Brick> = emptySet()) { fun has(b: Brick): Boolean; companion object { val ALL: Features } }`. `has` is true when `b` is in `inUse`, or when its module is null or in `on` and every brick in `needs` `has` too.
 
-`modulesInUse` reads existing fields only:
-- WORK: any `Group.assignments` or `Group.unitRevisions`.
-- BOOK_TOOLS: a class `lead`, `unitsEnabled`, a book with `units`, any `Group.extraBooks`, `removedBooks`, non-blank `Group.skip` value, `bookDue`, `unitsOverride != null`.
-- PLANNING: a book with `supplementary`, any `Group.extras`, a `Group.custom` whose `handPlanned()` is true.
-- OUTPUT: never.
+`Brick.inUse` reads existing fields only:
+- HOMEWORK / TESTS: a `Group.assignments` entry of that type (WORKSHEET counts as TESTS); UNIT_REVISIONS: any `Group.unitRevisions`.
+- LEAD_BOOK: a class `lead`; UNITS: `unitsEnabled`, a book with `units`, or `unitsOverride != null`; OPTIONAL_BOOKS: any `Group.extraBooks`; GROUP_BOOK_RULES: `removedBooks`, a non-blank `Group.skip` value or `bookDue`.
+- PLAN_EDITOR: a `Group.custom` whose `handPlanned()` is true; SUPPLEMENTARY: a book with `supplementary`; EXTRA_LESSONS: any `Group.extras`.
+- Core bricks, OWN_PACE and the OUTPUT bricks: never (they hold no data of their own).
 Class-level `Book.skip`, `Book.due` and `Group.end` are core and never count.
 
 - [ ] **Step 1: Write the failing tests** in `FeaturesTest` using `model/SampleYear.kt` fixtures:
   - `emptyYearUsesNothing`: `modulesInUse(listOf(sampleYear))` == `emptySet()`
-  - `assignmentMeansWork`, `unitRevisionMeansWork`
-  - `leadBookMeansBookTools`, `groupSkipMeansBookTools`, `classSkipAndDueAreCore` (expects `emptySet()`)
-  - `supplementaryBookMeansPlanning`, `extraLessonMeansPlanning`
-  - `catchUpPlanIsNotPlanning`: a group whose `custom` comes from `GroupReport.catchUpPlan(2)` → no PLANNING
-  - `oneTouchedLessonIsPlanning`: same plan with one lesson `touched = true` → PLANNING
-  - `allHasEveryModule`: `Module.entries.all { Features.ALL.has(it) }`
+  - `assignmentMeansWork`, `unitRevisionMeansWork`, `leadBookMeansBookTools`, `groupSkipMeansBookTools`, `classSkipAndDueAreCore` (expects `emptySet()`), `supplementaryBookMeansPlanning`, `extraLessonMeansPlanning`
+  - `catchUpPlanIsNotPlanning`: a group whose `custom` comes from `GroupReport.catchUpPlan(2)` → `!Brick.PLAN_EDITOR.inUse(...)`
+  - `oneTouchedLessonIsPlanning`: the same plan with one lesson `touched = true` → `Brick.PLAN_EDITOR.inUse(...)`
+  - `coreBricksAlwaysOn`: at `Features(emptySet())`, `has(PACING)`, `has(PLAN_BASE)` and `has(CATCH_UP)`
+  - `needsAreHonoured`: `Features(setOf(Module.WORK)).has(Brick.UNIT_REVISIONS)` is false; with `BOOK_TOOLS` added it is true
+  - `everyNeedIsAcyclic`: walking `needs` from every brick never returns to it
+  - `inUseRevealsBrick`: `Features(emptySet(), inUse = setOf(Brick.HOMEWORK)).has(Brick.HOMEWORK)`
+  - `allHasEveryBrick`: `Brick.entries.all { Features.ALL.has(it) }`
   - `parseIgnoresUnknown`: `Module.parse("NOPE") == null`
 - [ ] **Step 2: Run** `./gradlew testDebugUnitTest --tests 'gr.edusuite.pacer.model.FeaturesTest'`; expect compile failure.
-- [ ] **Step 3: Implement** `Features.kt` with the interfaces above. KDoc on `Module` names each module's contents as in the brief's table.
+- [ ] **Step 3: Implement** `Features.kt` with the interfaces above. KDoc on `Brick` points to the brief's table instead of repeating it.
 - [ ] **Step 4: Run the same command;** expect PASS.
-- [ ] **Step 5: Commit** `git commit -m "Module registry and modulesInUse"`.
+- [ ] **Step 5: Commit** `git commit -m "Bricks, modules and modulesInUse"`.
 
 ### Task 2: Stored modules
 
@@ -79,7 +84,7 @@ Class-level `Book.skip`, `Book.due` and `Group.end` are core and never count.
   - `Settings.modules: Set<Module>? = null` (null = never chosen)
   - `fun Settings.features(): Features` = `Features(modules ?: Module.entries.toSet())`
 
-- [ ] **Step 1: Write the failing tests:** `missingModulesMeanEverything` (`Settings().features() == Features.ALL`), `storedModulesAreKept` (`Settings(modules = setOf(Module.WORK)).features().has(Module.WORK)` and not `PLANNING`), `sanitisedKeepsModules`.
+- [ ] **Step 1: Write the failing tests:** `missingModulesMeanEverything` (`Settings().features() == Features.ALL`), `storedModulesAreKept` (`Settings(modules = setOf(Module.WORK)).features().on == setOf(Module.WORK)`, so `has(Brick.HOMEWORK)` and not `has(Brick.PLAN_EDITOR)`), `sanitisedKeepsModules`.
 - [ ] **Step 2: Run** `--tests 'gr.edusuite.pacer.ui.SettingsTest'`; expect FAIL.
 - [ ] **Step 3: Implement** the field, `features()`, and the store: load with `getStringSet("modules", null)?.mapNotNull(Module::parse)?.toSet()`, save with `remove` when null. `data_extraction_rules.xml` needs no change (same file).
 - [ ] **Step 4: Run;** expect PASS.
@@ -95,7 +100,7 @@ Class-level `Book.skip`, `Book.due` and `Group.end` are core and never count.
 - Consumes: `Settings.features()`, `modulesInUse` (Tasks 1–2)
 - Produces:
   - `fun turnOn(vararg modules: Module)` (adds to the stored set, starting from `features().on`; never removes)
-  - `val features: StateFlow<Features>` from `settings`
+  - `val features: StateFlow<Features>` from `settings` and the open year's data: `Features(settings.features().on, Brick.entries.filter { it.inUse(listOfNotNull(data.year)) }.toSet())`
 
 - [ ] **Step 1: Write the failing tests:** `turnOnAddsAndNeverRemoves` (start `setOf(WORK)`, `turnOn(OUTPUT)` → `{WORK, OUTPUT}`, saved to `FakeSettings`), `undoKeepsModulesOn` (turn on, make an edit, `undo()`, module still on).
 - [ ] **Step 2: Run** `--tests 'gr.edusuite.pacer.ui.PacerViewModelTest'`; expect FAIL.
@@ -132,20 +137,24 @@ Copy (the brief's wording): title "Turn on {modules}?", body "This backup uses {
 - Test: `GroupMenuModelTest` (new, `ui/`), `LessonMenuModelTest`, `GroupHomeModelTest`, `HomeModelTest`
 
 **Interfaces:**
-- Consumes: `Features` (Task 1), `vm.features` (Task 3)
-- Produces: a trailing `features: Features = Features.ALL` parameter on `groupMenuItems`, `lessonMenuItems`, and the Home and group-home builders, so every existing call and test is unchanged.
+- Consumes: `Brick`, `Features.has` (Task 1), `vm.features` (Task 3)
+- Produces:
+  - `fun GroupMenuItem.brick(): Brick`, `fun MenuItemKind.brick(): Brick`, `fun GroupDestination.brick(): Brick`, each an exhaustive `when` beside the enum (as `GroupDestination.titleRes()` is), so a new item does not compile until it names its brick
+  - a trailing `features: Features = Features.ALL` parameter on `groupMenuItems`, `lessonMenuItems`, and the Home and group-home builders, which end with `.filter { features.has(it.brick()) }`; every existing call and test is unchanged
 
-Gates (from the brief's tables):
-- `groupMenuItems`: MY_PLAN, REPACE, COPY_PLAN, DELETE_PLAN, CREATE_PLAN, OWN_PACE and EXTRA need PLANNING; COPY, SHARE, PRINT need OUTPUT; CATCH_UP and TIPS always.
-- `lessonMenuItems`: ADD/EDIT/DELETE_HOMEWORK need WORK (EDIT and DELETE also show when the lesson has homework, since data in use always shows); ADD_SUPPLEMENTARY and the MY_PLAN section need PLANNING; EDIT_EXTRA and DELETE_EXTRA show whenever the lesson is an extra.
-- Group home: the WORK destination needs WORK or any assignment in the group.
-- Home: the upcoming card needs WORK or any upcoming item.
+Brick per control (from the brief):
+- `GroupMenuItem`: MY_PLAN, REPACE, COPY_PLAN, DELETE_PLAN, CREATE_PLAN → PLAN_EDITOR; OWN_PACE → OWN_PACE; EXTRA → EXTRA_LESSONS; COPY, SHARE → COPY_SHARE; PRINT → PRINT; CATCH_UP → CATCH_UP; TIPS → PACING.
+- `MenuItemKind`: ADD/EDIT/DELETE_HOMEWORK → HOMEWORK; ADD_SUPPLEMENTARY → SUPPLEMENTARY; PLAN_LESSON, ADD_BEFORE, MOVE_EARLIER, MOVE_LATER, REPACE, REMOVE → PLAN_EDITOR; EDIT_EXTRA, DELETE_EXTRA → EXTRA_LESSONS; RECORD_TAUGHT, NOT_TAUGHT, DONE_UP_TO, NOT_DONE_FROM → PACING.
+- `GroupDestination`: WORK → HOMEWORK if the group has homework, otherwise TESTS (shown when either `has`); PLAN, STATS, SETTINGS → PACING.
+- Home's upcoming card → TESTS.
 
-- [ ] **Step 1: Write the failing tests**, one per gate above at `Features(emptySet())`, plus `justPacingMenuKeepsCatchUpAndTips` (`groupMenuItems(hasRows = true, hasCustom = false, otherGroups = 1, large = false, catchUp = true, features = Features(emptySet()))` == `listOf(CATCH_UP, TIPS)`) and `existingHomeworkStaysEditable`.
+Existing homework and extra lessons stay editable because `vm.features` marks their bricks in use.
+
+- [ ] **Step 1: Write the failing tests**, one per brick above at `Features(emptySet())`, plus `justPacingMenuKeepsCatchUpAndTips` (`groupMenuItems(hasRows = true, hasCustom = false, otherGroups = 1, large = false, catchUp = true, features = Features(emptySet()))` == `listOf(CATCH_UP, TIPS)`) and `existingHomeworkStaysEditable` (`Features(emptySet(), inUse = setOf(Brick.HOMEWORK))` keeps EDIT_HOMEWORK).
 - [ ] **Step 2: Run** the four test classes; expect FAIL.
-- [ ] **Step 3: Implement** the parameters and filters; wire `LocalFeatures.current` at the pass-through call sites.
+- [ ] **Step 3: Implement** the `brick()` mappings and the generic filter; wire `LocalFeatures.current` at the pass-through call sites. Compose-only fields call `LocalFeatures.current.has(Brick.X)` in the later PRs that redesign them.
 - [ ] **Step 4: Run** `./gradlew testDebugUnitTest`; expect PASS with no existing test changed.
-- [ ] **Step 5: Commit** `git commit -m "Module gates in the menu models"`.
+- [ ] **Step 5: Commit** `git commit -m "Every menu control names its brick"`.
 
 ### Task 6: The slim catch-up bar
 
@@ -158,7 +167,7 @@ Gates (from the brief's tables):
 - Consumes: `CustomPlan.handPlanned()` (Task 1), `LocalFeatures`
 - Produces: `fun planBarMode(custom: CustomPlan?, features: Features): PlanBarMode` with `enum class PlanBarMode { NONE, CATCH_UP_ONLY, EDITOR }`
 
-Rule: no custom → NONE; PLANNING on or `handPlanned()` → EDITOR; else CATCH_UP_ONLY. Copy for CATCH_UP_ONLY: "Catch-up: {n} more pages a lesson until {date}." and a text button "Undo catch-up" that calls the existing `vm.deleteCustomPlan(groupId)` (`PacerViewModel.kt:813`).
+Rule: no custom → NONE; `features.has(Brick.PLAN_EDITOR)` (true when Planning tools are on or `handPlanned()` marks it in use) → EDITOR; else CATCH_UP_ONLY. Copy for CATCH_UP_ONLY: "Catch-up: {n} more pages a lesson until {date}." and a text button "Undo catch-up" that calls the existing `vm.deleteCustomPlan(groupId)` (`PacerViewModel.kt:813`).
 
 - [ ] **Step 1: Write the failing tests:** `noPlanNoBar`, `catchUpOnlyAtJustPacing`, `handPlannedShowsEditor`, `planningOnShowsEditor`.
 - [ ] **Step 2: Run** `--tests 'gr.edusuite.pacer.ui.GroupModelTest'`; expect FAIL.
