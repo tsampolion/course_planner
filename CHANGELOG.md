@@ -25,6 +25,16 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.11.0] - 2026-10-29
+
+The foundation for feature modules ([`FEATURE_MODULES_BRIEF.md`](docs/FEATURE_MODULES_BRIEF.md), step 2). Every install keeps every module on, so nothing changes on screen until the Welcome presets ship with UI audit PR 8.
+
+### Added
+- Features as bricks (`model/Features.kt`): each feature names its module, what it needs and which saved data means it is in use. The teacher's modules are stored in Settings and only ever turn on.
+- The ⋮ group menu, the lesson menu, group home's pages, Plan's Create line, the Day strip's + and a day off's Add extra lesson name the feature each belongs to, and show only the features that are on or already in use.
+- Import asks “Turn on these tools?” when a file uses modules that are off here; Cancel imports nothing.
+- While Planning tools are off, a plan written only by a fix shows a slim catch-up bar with “Back to the proposed plan” instead of the plan editor.
+
 ## [0.4.10.1] - 2026-10-29
 
 Docs only: the approved design for feature modules ([`FEATURE_MODULES_BRIEF.md`](docs/FEATURE_MODULES_BRIEF.md)) and its place in the UI audit's order of work.
@@ -1057,7 +1067,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.10.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...HEAD
+[0.4.11.0]: https://github.com/tsampolion/course_planner/compare/v0.4.10.1...v0.4.11.0
 [0.4.10.1]: https://github.com/tsampolion/course_planner/compare/v0.4.10.0...v0.4.10.1
 [0.4.10.0]: https://github.com/tsampolion/course_planner/compare/v0.4.9.1...v0.4.10.0
 [0.4.9.1]: https://github.com/tsampolion/course_planner/compare/v0.4.9.0...v0.4.9.1

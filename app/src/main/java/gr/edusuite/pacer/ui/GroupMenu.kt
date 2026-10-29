@@ -146,8 +146,9 @@ private fun FoldedItems(folded: FoldedActions, close: () -> Unit) {
 internal fun GroupMenuButton(menu: GroupMenu?, folded: FoldedActions? = null) {
     var open by remember { mutableStateOf(false) }
     var copying by remember { mutableStateOf(false) }
+    val features = LocalFeatures.current
     val available = menu?.let { m ->
-        groupMenuItems(m.hasRows, m.hasCustom, m.others.size, m.large, m.catchUp).filter { it != GroupMenuItem.PRINT || m.canPrint }
+        groupMenuItems(m.hasRows, m.hasCustom, m.others.size, m.large, m.catchUp, features).filter { it != GroupMenuItem.PRINT || m.canPrint }
     }.orEmpty()
     val sections = menu?.let { groupMenuSections(available, it.page) }.orEmpty()
     val warnings = folded?.warnings ?: 0

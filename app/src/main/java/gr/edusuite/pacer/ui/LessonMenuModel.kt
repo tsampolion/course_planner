@@ -2,6 +2,8 @@ package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
+import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.Features
 import gr.edusuite.pacer.engine.collapse
 import gr.edusuite.pacer.engine.fmt
 
@@ -32,7 +34,10 @@ internal fun homeworkActionNames(work: List<Assignment>, bookIds: List<String>, 
     }
 
 /** [isPast] includes today; [ticksItself] is a lesson before today, which ticks itself, so there is no "not done" for it. Both the long-press menu and TalkBack use this choice of actions. */
-internal fun lessonMenuItems(lesson: Lesson, isPast: Boolean, hasCustomPlan: Boolean, canTick: Boolean, ticksItself: Boolean = false): List<MenuItemKind> = buildList {
+internal fun lessonMenuItems(
+    lesson: Lesson, isPast: Boolean, hasCustomPlan: Boolean, canTick: Boolean, ticksItself: Boolean = false,
+    features: Features = Features.ALL,
+): List<MenuItemKind> = buildList {
     add(MenuItemKind.ADD_HOMEWORK)
     if (homeworkForLesson(lesson).isNotEmpty()) {
         add(MenuItemKind.EDIT_HOMEWORK)
@@ -59,6 +64,16 @@ internal fun lessonMenuItems(lesson: Lesson, isPast: Boolean, hasCustomPlan: Boo
         add(MenuItemKind.DONE_UP_TO)
         if (!ticksItself) add(MenuItemKind.NOT_DONE_FROM)
     }
+}.filter { features.has(it.brick()) }
+
+/** The feature each lesson action belongs to; a screen offers only those [Features.has]. */
+internal fun MenuItemKind.brick(): Brick = when (this) {
+    MenuItemKind.ADD_HOMEWORK, MenuItemKind.EDIT_HOMEWORK, MenuItemKind.DELETE_HOMEWORK -> Brick.HOMEWORK
+    MenuItemKind.ADD_SUPPLEMENTARY -> Brick.SUPPLEMENTARY
+    MenuItemKind.PLAN_LESSON, MenuItemKind.ADD_BEFORE, MenuItemKind.MOVE_EARLIER,
+    MenuItemKind.MOVE_LATER, MenuItemKind.REPACE, MenuItemKind.REMOVE -> Brick.PLAN_EDITOR
+    MenuItemKind.EDIT_EXTRA, MenuItemKind.DELETE_EXTRA -> Brick.EXTRA_LESSONS
+    MenuItemKind.RECORD_TAUGHT, MenuItemKind.NOT_TAUGHT, MenuItemKind.DONE_UP_TO, MenuItemKind.NOT_DONE_FROM -> Brick.PACING
 }
 
 /** The custom plan's actions sit in "My plan", behind one item; everything else is about the lesson itself. */

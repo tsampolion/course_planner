@@ -2,7 +2,10 @@ package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.update.Update
 import gr.edusuite.pacer.model.PaletteChoice
+import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.Features
 import gr.edusuite.pacer.model.Hints
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.Settings
 import gr.edusuite.pacer.model.ThemeMode
 import gr.edusuite.pacer.model.seedPlan
@@ -44,6 +47,31 @@ class SettingsTest {
         assertEquals(Settings(), Settings(lessonMins = 10_000, pace = -1.0).sanitised())
         val ok = Settings(ThemeMode.LIGHT, 45, 3.5)
         assertEquals(ok, ok.sanitised())
+    }
+
+    @Test fun missingModulesMeanEverything() {
+        assertNull(Settings().modules)
+        assertEquals(Features.ALL, Settings().features())
+    }
+
+    @Test fun storedModulesAreKept() {
+        val f = Settings(modules = setOf(Module.WORK)).features()
+        assertEquals(setOf(Module.WORK), f.on)
+        assertTrue(f.has(Brick.HOMEWORK))
+        assertFalse(f.has(Brick.PLAN_EDITOR))
+    }
+
+    @Test fun storedModulesReadBack() {
+        assertNull(Settings.readModules(null))
+        assertEquals(setOf(Module.WORK), Settings.readModules(setOf("WORK", "RETIRED")))
+        assertEquals(emptySet<Module>(), Settings.readModules(emptySet()))
+        // Names this version doesn't know never switch every module off.
+        assertNull(Settings.readModules(setOf("RETIRED")))
+    }
+
+    @Test fun sanitisedKeepsModules() {
+        assertEquals(setOf(Module.OUTPUT), Settings(modules = setOf(Module.OUTPUT)).sanitised().modules)
+        assertEquals(emptySet<Module>(), Settings(modules = emptySet()).sanitised().modules)
     }
 
     @Test fun welcomeShowsUntilSeen() {

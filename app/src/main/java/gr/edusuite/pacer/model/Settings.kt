@@ -66,7 +66,15 @@ data class Settings(
     val autoTickFrom: LocalDate? = null,
     /** On a tablet 840dp wide or more, the menu stays open beside the screens (pinned, the default) or collapses behind ☰. */
     val drawerPinned: Boolean = true,
+    /**
+     * The modules the teacher turned on (`docs/FEATURE_MODULES_BRIEF.md`). Null until chosen, which means every module,
+     * so an install from before modules keeps every control.
+     */
+    val modules: Set<Module>? = null,
 ) {
+    /** The modules on, before the data in use is added (see [Features]). */
+    fun features(): Features = Features(modules ?: Module.entries.toSet())
+
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(
         lessonMins = lessonMins.takeIf { it in 1..MAX_MINS } ?: DEFAULT_MINS,
@@ -82,6 +90,16 @@ data class Settings(
         const val DEFAULT_PACE = 4.0
         const val MAX_MINS = 600
         const val MAX_NAME = 40
+
+        /**
+         * Stored module names back as [Settings.modules]. Unknown names are dropped; a set holding only unknown names
+         * reads as never chosen (every module), so a renamed module can never switch everything off.
+         */
+        fun readModules(stored: Set<String>?): Set<Module>? {
+            if (stored == null) return null
+            val known = stored.mapNotNullTo(mutableSetOf(), Module::parse)
+            return if (known.isEmpty() && stored.isNotEmpty()) null else known
+        }
 
         /** A name as typed: one line, no edge spaces, at most [MAX_NAME] characters. */
         fun cleanName(text: String): String =

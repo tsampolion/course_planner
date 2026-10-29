@@ -1,6 +1,6 @@
 # Feature modules
 
-Status: approved 2026-10-29 (design and order); not built. The build is planned in `docs/superpowers/plans/2026-10-29-feature-modules.md` and rides the remaining UI audit pull requests (see [Order of work](#order-of-work)).
+Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, with every module on for every install; the launch waits for UI audit PR 8. The build is planned in `docs/superpowers/plans/2026-10-29-feature-modules.md` and rides the remaining UI audit pull requests (see [Order of work](#order-of-work)).
 
 A new teacher meets every tool at once. This feature lets them start with pacing alone and turn on more as they need it, and lets a teacher who only paces keep a lean app for good. Modules only ever turn on.
 
@@ -86,7 +86,7 @@ Cancel imports nothing. The same words serve the teacher's own backup on a new p
 
 ## Warning fixes at every preset
 
-A fix that writes a custom plan works without Planning tools. While no lesson is planned by hand, Plan shows one slim bar instead of the plan editor: "Catch-up: 2 more pages a lesson until 14 Mar. Undo". The editor appears with Planning tools, or after the teacher turns them on from that bar.
+A fix that writes a custom plan works without Planning tools. While no lesson is planned by hand, Plan shows one slim bar instead of the plan editor: "Catch-up: 2 more pages a lesson until the group is back on pace" (or "A fix has adjusted this group's plan"), with **Back to the proposed plan**, which deletes the fix's plan with Undo. The editor appears once Planning tools are on, or once any group in the open year has a lesson planned by hand (data in use always shows). The launch adds a way to turn Planning tools on from the bar.
 
 ## What's new
 

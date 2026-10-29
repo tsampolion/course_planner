@@ -236,4 +236,36 @@ class GroupModelTest {
         assertEquals(mapOf("wb" to 21), report.inStepPages())
     }
 
+
+    @Test fun justPacingMenuKeepsCatchUpAndTips() {
+        val none = gr.edusuite.pacer.model.Features(emptySet())
+        assertEquals(listOf(GroupMenuItem.CATCH_UP, GroupMenuItem.TIPS), groupMenuItems(true, false, 1, false, catchUp = true, features = none))
+        assertEquals(listOf(GroupMenuItem.TIPS), groupMenuItems(true, true, 1, true, features = none))
+    }
+
+    @Test fun outputBricksGateCopyShareAndPrint() {
+        val output = gr.edusuite.pacer.model.Features(setOf(gr.edusuite.pacer.model.Module.OUTPUT))
+        assertEquals(listOf(GroupMenuItem.COPY, GroupMenuItem.SHARE, GroupMenuItem.PRINT, GroupMenuItem.TIPS), groupMenuItems(true, false, 1, false, features = output))
+    }
+
+    private val fixMade = gr.edusuite.pacer.model.CustomPlan(true, listOf(gr.edusuite.pacer.model.PlannedLesson("a")), catchUpBoost = 2)
+    private val handMade = fixMade.copy(lessons = listOf(gr.edusuite.pacer.model.PlannedLesson("a", touched = true)))
+
+    @Test fun noPlanNoBar() {
+        assertEquals(PlanBarMode.NONE, planBarMode(null, gr.edusuite.pacer.model.Features(emptySet())))
+    }
+
+    @Test fun catchUpOnlyAtJustPacing() {
+        assertEquals(PlanBarMode.CATCH_UP_ONLY, planBarMode(fixMade, gr.edusuite.pacer.model.Features(emptySet())))
+    }
+
+    @Test fun handPlannedShowsEditor() {
+        val inUse = gr.edusuite.pacer.model.Features(emptySet(), inUse = setOf(gr.edusuite.pacer.model.Brick.PLAN_EDITOR))
+        assertEquals(PlanBarMode.EDITOR, planBarMode(handMade, inUse))
+    }
+
+    @Test fun planningOnShowsEditor() {
+        assertEquals(PlanBarMode.EDITOR, planBarMode(fixMade, gr.edusuite.pacer.model.Features(setOf(gr.edusuite.pacer.model.Module.PLANNING))))
+        assertEquals(PlanBarMode.EDITOR, planBarMode(fixMade, gr.edusuite.pacer.model.Features.ALL))
+    }
 }

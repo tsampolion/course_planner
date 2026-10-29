@@ -18,6 +18,7 @@ import gr.edusuite.pacer.data.addYears
 import gr.edusuite.pacer.engine.pendingUnitRevisions
 import gr.edusuite.pacer.engine.withUnitRevision
 import gr.edusuite.pacer.engine.withoutUnitRevision
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.UnitRevision
 import gr.edusuite.pacer.model.RevisionKind
 import gr.edusuite.pacer.engine.withExtra
@@ -521,6 +522,12 @@ class PacerViewModel(
     /** The pin on a wide tablet's menu: kept open beside the screens, or collapsed behind ☰. */
     fun setDrawerPinned(v: Boolean) = editSettings { it.copy(drawerPinned = v) }
     fun setName(v: String) = editSettings { it.copy(name = v) }
+
+    /** Turns modules on. Modules only ever turn on; nothing turns one off (`docs/FEATURE_MODULES_BRIEF.md`). */
+    fun turnOn(vararg modules: Module) = editSettings { it.copy(modules = it.features().on + modules) }
+
+    /** The first choice of modules, from the Welcome presets. Ignored once a choice exists, so it can't take one away. */
+    fun chooseModules(modules: Set<Module>) = editSettings { if (it.modules == null) it.copy(modules = modules) else it }
     fun markHintSeen(id: String) = editSettings { Hints.markSeen(it, id) }
     fun showTipsAgain() = editSettings { Hints.reset(it) }
 

@@ -22,6 +22,7 @@ import gr.edusuite.pacer.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,8 @@ import gr.edusuite.pacer.data.BoundedText
 import gr.edusuite.pacer.data.megabytes
 import gr.edusuite.pacer.data.readBoundedText
 import gr.edusuite.pacer.data.backupFileName
+import gr.edusuite.pacer.data.modulesNeeded
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.PaletteChoice
 import gr.edusuite.pacer.model.Settings
@@ -187,7 +190,12 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
         Hint(stringResource(R.string.settings_uninstall_hint))
     }
 
-    importing?.let { years ->
+    val settings by vm.settings.collectAsState()
+    val needed = importing?.let { remember(it, settings.modules) { modulesNeeded(it, settings.features()) } }.orEmpty()
+    importing?.takeIf { needed.isNotEmpty() }?.let { _ ->
+        ModulesForImportDialog(needed, onTurnOn = { vm.turnOn(*needed.toTypedArray()) }, onDismiss = { importing = null })
+    }
+    importing?.takeIf { needed.isEmpty() }?.let { years ->
         ImportDialog(
             years, yearCount,
             onAdd = { vm.addImportedYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_added, years.size, years.size)) },
@@ -195,6 +203,35 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
             onDismiss = { importing = null },
         )
     }
+}
+
+/** Asked before an import whose data uses modules that are off. Turning them on leads to the usual import question. */
+@Composable
+private fun ModulesForImportDialog(needed: Set<Module>, onTurnOn: () -> Unit, onDismiss: () -> Unit) {
+    val names = needed.map { stringResource(it.namedRes()) }
+    val list = when (names.size) {
+        1 -> names[0]
+        2 -> stringResource(R.string.settings_import_modules_two, names[0], names[1])
+        else -> stringResource(R.string.settings_import_modules_three, names.dropLast(2).joinToString(stringResource(R.string.settings_name_separator)), names[names.size - 2], names.last())
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_import_modules_title)) },
+        text = { Text(stringResource(R.string.settings_import_modules_body, list)) },
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = Pacer.colors.surface,
+        tonalElevation = 0.dp,
+        confirmButton = { PrimaryButton(stringResource(R.string.settings_import_modules_confirm), onTurnOn) },
+        dismissButton = { PaletteTextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_cancel)) } },
+    )
+}
+
+/** The words for a module inside a sentence, such as "homework and tests". */
+private fun Module.namedRes(): Int = when (this) {
+    Module.WORK -> R.string.module_work_named
+    Module.BOOK_TOOLS -> R.string.module_book_tools_named
+    Module.PLANNING -> R.string.module_planning_named
+    Module.OUTPUT -> R.string.module_output_named
 }
 
 @Composable

@@ -184,3 +184,12 @@ Rule: no custom → NONE; `features.has(Brick.PLAN_EDITOR)` (true when Planning 
 - [ ] **Step 2:** Bump the version per Global Constraints and add the CHANGELOG section ("Added: the groundwork for feature modules; nothing changes on screen yet").
 - [ ] **Step 3:** Run `./gradlew testDebugUnitTest lint assembleRelease`; expect BUILD SUCCESSFUL.
 - [ ] **Step 4: Commit** `git commit -m "Docs and version for the modules foundation"`.
+
+## Built in 0.4.11.0, and what is left
+
+Tasks 1 to 7 are built. Carried to the later steps:
+
+- Home's tests card has no gate: it lists only tests that exist, so data in use already decides it.
+- Compose-only gates (the book form, Group settings, the hero's Homework button, the Units revision step) land with audit PRs 6 and 7; the Day strip's +, a day off's Add extra lesson and Plan's Create line are gated here.
+- "Turn on and import" keeps the modules on if the Add or Replace question is then cancelled; acceptable while modules only turn on.
+

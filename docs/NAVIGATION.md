@@ -4,6 +4,8 @@ Every control in Course Pacer: the gesture it takes, when it is there, and what 
 
 Read it before changing any screen, and change it in the same pull request as the control (see `CLAUDE.md`). Labels are the app's English strings; *name* and *N* stand for values the app fills in.
 
+A module named in **When** (Work, Book tools, Planning tools, Output) means that module is on, or the open year's data already uses that feature ([FEATURE_MODULES_BRIEF.md](FEATURE_MODULES_BRIEF.md)). Every install has every module on until the Welcome presets ship.
+
 **What happens** starts with the result: **→ Screen** pushes a screen, **↑ Opens** a sheet, menu or dialog over it, **Undo:** a message with Undo, **Message:** one without, **Edit** a change saved at once, **View** a change to what is shown only, **Leaves app** for Android or the browser, **Closes**.
 
 ## Screen graph
@@ -425,6 +427,16 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Replace all | Tap | The phone already has years | Deletes those and keeps only the file's. Undo: “Replaced your school years with N…” |
 | Cancel | Tap |  | Closes. Closes. |
 
+<a id="import-modules"></a>
+### Turn on these tools?
+
+*Dialog* · reached from [Settings](#app-settings). Opens before [Import N school years?](#import) when the file uses modules that are off here (“This backup uses homework and tests. Turn them on to bring it in?”).
+
+| Control | Gesture | When | What happens |
+| --- | --- | --- | --- |
+| Turn on and import | Tap |  | Edit. Turns those modules on, then ↑ Opens [Import N school years?](#import). |
+| Cancel | Tap |  | Closes. Imports nothing. |
+
 <a id="recovery"></a>
 ### Your school years couldn't be read
 
@@ -578,7 +590,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Pace track (compact) | Tap | Books, units off | → Screen [Stats](#stats). Opens Stats. |
 | Due soon: an assignment row | Tap |  | → Screen [Work](#work). Opens Work. |
 | Plan pill | Tap |  | → Screen [Plan](#plan). Opens Plan. In large text the pills become rows. |
-| Work pill | Tap |  | → Screen [Work](#work). Opens Work. |
+| Work pill | Tap | Work | → Screen [Work](#work). Opens Work. |
 | Stats pill | Tap |  | → Screen [Stats](#stats). Opens Stats. |
 | Settings pill | Tap |  | → Screen [Group settings](#group-settings). Opens Group settings. |
 
@@ -593,23 +605,24 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Weekly: the round ‹ › buttons, or swipe the day strip | Tap |  | View. Pages the week strip by one week. |
 | Weekly: the week label (dates, with the month under them) | Tap |  | ↑ Opens [Month picker](#month-menu). Jumps the strip to the first week of the month. |
 | Weekly: a day in the strip | Tap |  | View. Scrolls the list to that day's row (or the next listed day) and highlights it. The strip opens on the lesson after the one in the box. |
-| Weekly: + at the end of the strip | Tap |  | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet for the selected day; on a taught day it says “That day is already taught”. |
+| Weekly: + at the end of the strip | Tap | Planning tools | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet for the selected day; on a taught day it says “That day is already taught”. |
 | Monthly: Previous month / Next month | Tap |  | View. Moves a month with a slide. |
 | Monthly: the month name | Tap |  | ↑ Opens [Month picker](#month-menu). Opens a menu of the term's months. |
 | N earlier lessons › / Hide earlier lessons | Tap |  | View. Shows or folds taught lessons. |
 | Today box | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Lesson menu; Done and Pages taught work as on group home. |
-| Make it yours: Create | Tap | No custom plan, has lessons, not large text | Copies the proposed plan into a custom plan; its lessons lift in one by one. Undo: “Custom plan created” |
-| My plan · In use / Proposed | Toggle | Has a custom plan | View. Shows either plan. The one not in use is a preview, and can't be ticked. |
+| Make it yours: Create | Tap | No custom plan, has lessons, not large text; Planning tools | Copies the proposed plan into a custom plan; its lessons lift in one by one. Undo: “Custom plan created” |
+| Catch-up bar (“Catch-up: N more pages a lesson…”) · Back to the proposed plan | Tap | A plan written only by a fix, without Planning tools | Deletes the fix's plan; the proposed plan takes over. Undo: “Custom plan deleted” |
+| My plan · In use / Proposed | Toggle | Has a custom plan; Planning tools or a lesson planned by hand | View. Shows either plan. The one not in use is a preview, and can't be ticked. |
 | Use this plan | Tap | Previewing the plan not in use | Edit. Makes the shown plan the one you teach from. |
 | A lesson row: the round tick | Tap | Shown plan in use | Marks done or not done. TalkBack: the row is a checkbox. Undo: “Lesson updated” |
 | A lesson row | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). A ring draws around your finger, then the lesson menu opens. TalkBack offers the same items as actions. |
 | A custom-plan lesson's ⠿ grip | Drag | Custom plan shown | Drag up or down; the others make room. Release to move it, or cancel to drop it back. Undo: “Lesson moved” |
 | A test or worksheet row (as tall as a lesson, kind in bold) | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Takes the lesson; has the tick and the lesson menu. |
 | A day-off row (slim) | Tap |  | Nothing happens. |
-| A day-off row (slim) | Long-press |  | ↑ Opens [Day-off row menu](#day-off-menu). A one-item menu: Add extra lesson…. Once added, the day is a lesson row whose menu has Edit extra lesson… and Delete extra lesson. |
+| A day-off row (slim) | Long-press | Planning tools | ↑ Opens [Day-off row menu](#day-off-menu). A one-item menu: Add extra lesson…. Once added, the day is a lesson row whose menu has Edit extra lesson… and Delete extra lesson. |
 | Unit N revision row: Add a revision / Edit (a finished unit with no decision asks “Unit N is finished. Plan its revision?”) | Tap | After a unit's last lesson | ↑ Opens [Unit N revision](#unit-revision). Opens the unit revision sheet; finishing a unit never opens it by itself. |
 | Tip: Long-press a lesson… · Got it | Tap |  | Edit. Hides the tip until Show tips again. |
-| Tablet: Work · Stats · Group settings rows | Tap | 600dp and wider, where Plan stands in for group home | → Screen [Work](#work). The group home links, at the top of Plan. |
+| Tablet: Work · Stats · Group settings rows | Tap | 600dp and wider, where Plan stands in for group home; the Work row needs Work | → Screen [Work](#work). The group home links, at the top of Plan. |
 
 <a id="month-menu"></a>
 ### Month picker
@@ -636,17 +649,17 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Add homework… | Tap |  | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens the assignment sheet as Homework, set on this lesson. |
+| Add homework… | Tap | Work | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens the assignment sheet as Homework, set on this lesson. |
 | Edit homework: name… | Tap | Homework set or due this lesson (one per item) | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens it in the assignment sheet. |
 | Delete homework: name | Tap | Homework set or due this lesson | Removes it. Undo: “Assignment removed” |
 | Edit extra lesson… | Tap | An extra lesson, not yet taught | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet. |
 | Delete extra lesson | Tap | An extra lesson | Deletes it; its pages return to the plan. Undo: “Extra lesson deleted” |
-| Add book pages… (one per supplementary book) | Tap | Not done, not a test, class has supplementary books | ↑ Opens [Lesson sheet with supplementary books](#plan-lesson-supp). Opens the lesson sheet with supplementary fields. |
-| Change planned pages… / Plan a lesson here… | Tap | Custom plan, future lesson (or a free day) | ↑ Opens [Lesson N · Fri 23 Oct / New lesson](#plan-lesson). Opens the planned lesson sheet. |
-| Add a lesson before | Tap | Custom plan lesson | ↑ Opens [Lesson N · Fri 23 Oct / New lesson](#plan-lesson). Opens a New lesson sheet that inserts before this one. |
-| Move earlier / Move later | Tap | Custom plan lesson; greyed at the first or last place | Swaps it with its neighbour. Undo: “Lesson moved” |
-| Re-pace from here | Tap | Custom plan lesson | Spreads the remaining pages again from this lesson, keeping lessons changed by hand. Undo: “Plan re-paced” |
-| Remove lesson | Tap | Custom plan lesson | Removes it; its pages join the next lesson. Undo: “Lesson removed; its pages joined the next one” |
+| Add book pages… (one per supplementary book) | Tap | Not done, not a test, class has supplementary books; Planning tools | ↑ Opens [Lesson sheet with supplementary books](#plan-lesson-supp). Opens the lesson sheet with supplementary fields. |
+| Change planned pages… / Plan a lesson here… | Tap | Custom plan, future lesson (or a free day); Planning tools | ↑ Opens [Lesson N · Fri 23 Oct / New lesson](#plan-lesson). Opens the planned lesson sheet. |
+| Add a lesson before | Tap | Custom plan lesson; Planning tools | ↑ Opens [Lesson N · Fri 23 Oct / New lesson](#plan-lesson). Opens a New lesson sheet that inserts before this one. |
+| Move earlier / Move later | Tap | Custom plan lesson; Planning tools; greyed at the first or last place | Swaps it with its neighbour. Undo: “Lesson moved” |
+| Re-pace from here | Tap | Custom plan lesson; Planning tools | Spreads the remaining pages again from this lesson, keeping lessons changed by hand. Undo: “Plan re-paced” |
+| Remove lesson | Tap | Custom plan lesson; Planning tools | Removes it; its pages join the next lesson. Undo: “Lesson removed; its pages joined the next one” |
 | Record what I taught… | Tap | Today or past | ↑ Opens [Pages taught on Fri 23 Oct](#pages-taught). Opens Pages taught. |
 | Lesson didn't happen | Tap | Today or past lesson that is not a test, extra or already not taught | Asks first, with the pages a lesson before and after. Confirming records it as taught with no pages: no day off is added and its pages move to the lessons left. Undo: “Lesson recorded as not taught” |
 | Done up to here | Tap | Greyed when nothing up to this date is open | Marks every lesson up to this one done. Undo: “Lessons marked done” |
@@ -891,16 +904,16 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Warnings (N) / Undo (N) | Tap | The bar has folded them | As the bar buttons: opens the group's Warnings sheet, or steps back one edit. |
-| Copy | Tap | Has lessons | Leaves app. Copies the schedule as a table. Message: “Copied. Paste into a spreadsheet or Word. (before Android 13)” |
-| Share | Tap | Has lessons | Leaves app. Opens the Android share sheet with the schedule. |
-| Print | Tap | Some scope has lessons to print | ↑ Opens [Print or save PDF](#print). Opens Print or save PDF. |
-| Make a custom plan | Tap | Large text, no custom plan | Creates one from the proposed plan. Undo: “Custom plan created”, as Create on Plan gives. |
-| Re-pace untouched lessons | Tap | Has a custom plan | Re-spreads pages over lessons you haven't changed by hand. Undo: “Plan re-paced” |
-| Copy to… | Tap | Custom plan and other groups | ↑ Opens [Copy to…](#copy-to). Opens the list of the class's other groups. |
-| Delete my plan | Tap | Has a custom plan | Deletes it; the proposed plan takes over. Undo: “Custom plan deleted” |
-| Own pace… | Tap | Large text, has lessons | ↑ Opens [My own pace](#own-pace). Opens My own pace. |
+| Copy | Tap | Has lessons; Output | Leaves app. Copies the schedule as a table. Message: “Copied. Paste into a spreadsheet or Word. (before Android 13)” |
+| Share | Tap | Has lessons; Output | Leaves app. Opens the Android share sheet with the schedule. |
+| Print | Tap | Some scope has lessons to print; Output | ↑ Opens [Print or save PDF](#print). Opens Print or save PDF. |
+| Make a custom plan | Tap | Large text, no custom plan; Planning tools | Creates one from the proposed plan. Undo: “Custom plan created”, as Create on Plan gives. |
+| Re-pace untouched lessons | Tap | Has a custom plan; Planning tools | Re-spreads pages over lessons you haven't changed by hand. Undo: “Plan re-paced” |
+| Copy to… | Tap | Custom plan and other groups; Planning tools | ↑ Opens [Copy to…](#copy-to). Opens the list of the class's other groups. |
+| Delete my plan | Tap | Has a custom plan; Planning tools | Deletes it; the proposed plan takes over. Undo: “Custom plan deleted” |
+| Own pace… | Tap | Large text, has lessons; Planning tools | ↑ Opens [My own pace](#own-pace). Opens My own pace. |
 | Adjust catch-up… | Tap | Catch-up available | ↑ Opens [Catch up](#catch-up). Opens Catch up. |
-| Add extra lesson… | Tap |  | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet with a date field. |
+| Add extra lesson… | Tap | Planning tools | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet with a date field. |
 | Tips | Tap |  | ↑ Opens [Tips](#tips). Opens the tips sheet. |
 
 <a id="copy-to"></a>

@@ -81,6 +81,7 @@ import gr.edusuite.pacer.engine.notTaught
 import gr.edusuite.pacer.engine.eventsOn
 import gr.edusuite.pacer.engine.fmtShort
 import gr.edusuite.pacer.engine.short
+import gr.edusuite.pacer.model.Brick
 import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.Assignment
@@ -271,7 +272,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     }
     val editHomework = workNames.map { stringResource(R.string.homework_edit_named, it) }
     val deleteHomework = workNames.map { stringResource(R.string.homework_delete_named, it) }
-    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(rememberToday()), hasCustomPlan = ca != null, canTick = actions.canTick, ticksItself = l.date.isBefore(rememberToday()))
+    val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(rememberToday()), hasCustomPlan = ca != null, canTick = actions.canTick, ticksItself = l.date.isBefore(rememberToday()), features = LocalFeatures.current)
     return buildList {
         kinds.forEach { kind ->
             when (kind) {
@@ -614,7 +615,9 @@ internal fun SlimRow(entry: Entry, actions: LessonActions, selected: Boolean = f
     val large = rememberLargeText()
     var menu by rememberSaveable(entry.date.toString()) { mutableStateOf(false) }
     val addLabel = stringResource(R.string.extra_add)
-    val items = if (lesson != null) lessonMenu(lesson, actions) else listOf(MenuItem(addLabel) { actions.addExtra(entry.date) })
+    // A day off offers only Add extra lesson, which needs the Extra lessons brick.
+    val canAddExtra = LocalFeatures.current.has(Brick.EXTRA_LESSONS)
+    val items = if (lesson != null) lessonMenu(lesson, actions) else if (canAddExtra) listOf(MenuItem(addLabel) { actions.addExtra(entry.date) }) else emptyList()
     val text = when (entry) {
         is Entry.DayOff -> stringResource(R.string.ledger_day_off, entry.label)
         is Entry.Item -> if (entry.lesson.kind(actions.supplementary) == LessonKind.WORKSHEET)
@@ -646,12 +649,13 @@ internal fun SlimRow(entry: Entry, actions: LessonActions, selected: Boolean = f
             Row(
                 Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (selected) c.accentSoft else c.surface).heightIn(min = 48.dp).then(
                     if (lesson != null) Modifier.lessonNode(spoken, lesson.done, if (actions.canTick) ({ actions.toggle(lesson.date) }) else null, items) { menu = true }
-                    else Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { longPress() }) }
+                    else if (canAddExtra) Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { longPress() }) }
                         .clearAndSetSemantics {
                             contentDescription = spoken
                             onLongClick(addLabel) { menu = true; true }
                             customActions = listOf(CustomAccessibilityAction(addLabel) { actions.addExtra(entry.date); true })
-                        },
+                        }
+                    else Modifier.clearAndSetSemantics { contentDescription = spoken },
                 ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

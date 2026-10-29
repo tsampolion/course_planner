@@ -136,10 +136,7 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
 /** The four page pills: Plan, Work, Stats, Settings, outlined so they read as buttons (X5). 2×2 on phones, one row on tablets, one column at large text. */
 @Composable
 internal fun GroupHomePills(showPlan: Boolean = true, onOpen: (GroupDestination) -> Unit) {
-    val pills = listOf(
-        GroupDestination.PLAN to R.string.group_tab_plan, GroupDestination.WORK to R.string.work_title,
-        GroupDestination.STATS to R.string.group_tab_stats, GroupDestination.SETTINGS to R.string.group_settings_title,
-    ).filter { showPlan || it.first != GroupDestination.PLAN }
+    val pills = groupDestinations(LocalFeatures.current).filter { showPlan || it != GroupDestination.PLAN }.map { it to it.titleRes() }
     val layout = rememberHomePills()
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
         pills.chunked(layout.perLine()).forEach { line ->
@@ -166,7 +163,7 @@ private fun HomePill(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 @Composable
 internal fun GroupHomeLinks(onOpen: (GroupDestination) -> Unit) {
     RowGroup {
-        listOf(GroupDestination.WORK to R.string.work_title, GroupDestination.STATS to R.string.group_tab_stats, GroupDestination.SETTINGS to R.string.group_settings_title).forEachIndexed { i, (page, title) ->
+        groupDestinations(LocalFeatures.current).filter { it != GroupDestination.PLAN }.map { it to it.titleRes() }.forEachIndexed { i, (page, title) ->
             if (i > 0) RowDivider()
             LedgerRow(stringResource(title), onClick = { onOpen(page) }) { Chevron() }
         }

@@ -164,4 +164,11 @@ class GroupHomeModelTest {
         assertEquals(Screen.GroupSettings("g"), GroupDestination.SETTINGS.screen("g"))
         assertEquals(Screen.Group("g", GroupPage.STATS), GroupDestination.STATS.screen("g"))
     }
+
+    @Test fun workPageNeedsWorkOrWorkInUse() {
+        val none = Features(emptySet())
+        assertEquals(listOf(GroupDestination.PLAN, GroupDestination.STATS, GroupDestination.SETTINGS), groupDestinations(none))
+        assertTrue(GroupDestination.WORK in groupDestinations(Features(emptySet(), inUse = setOf(Brick.TESTS))))
+        assertEquals(GroupDestination.entries, groupDestinations(Features.ALL))
+    }
 }

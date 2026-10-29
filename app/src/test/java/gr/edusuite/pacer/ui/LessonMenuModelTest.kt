@@ -1,6 +1,11 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.model.Assignment
+import gr.edusuite.pacer.model.AssignmentType
+import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.Features
 import java.time.LocalDate
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -52,5 +57,32 @@ class LessonMenuModelTest {
         val future = lessonMenuItems(lesson, isPast = false, hasCustomPlan = false, canTick = true)
         assertFalse(MenuItemKind.NOT_TAUGHT in future)
         assertTrue(MenuItemKind.NOT_DONE_FROM in future)
+    }
+
+    private val justPacing = Features(emptySet())
+
+    @Test fun justPacingFutureLessonOffersTickingOnly() {
+        val items = lessonMenuItems(lesson, isPast = false, hasCustomPlan = false, canTick = true, features = justPacing)
+        assertEquals(listOf(MenuItemKind.DONE_UP_TO, MenuItemKind.NOT_DONE_FROM), items)
+    }
+
+    @Test fun planToolsNeedThePlanEditor() {
+        val items = lessonMenuItems(lesson, isPast = false, hasCustomPlan = true, canTick = true, features = justPacing)
+        assertFalse(MenuItemKind.PLAN_LESSON in items)
+        assertFalse(MenuItemKind.MOVE_LATER in items)
+        assertFalse(MenuItemKind.ADD_SUPPLEMENTARY in items)
+    }
+
+    @Test fun existingHomeworkStaysEditable() {
+        val hw = Assignment("h", AssignmentType.HOMEWORK, "HW", setOn = lesson.date)
+        val withHw = lesson.copy(assignments = listOf(hw))
+        val items = lessonMenuItems(withHw, false, false, true, features = Features(emptySet(), inUse = setOf(Brick.HOMEWORK)))
+        assertTrue(MenuItemKind.EDIT_HOMEWORK in items)
+        assertTrue(MenuItemKind.ADD_HOMEWORK in items)
+    }
+
+    @Test fun everyMenuItemNamesABrick() {
+        assertTrue(MenuItemKind.entries.all { it.brick() in Brick.entries })
+        assertTrue(GroupMenuItem.entries.all { it.brick() in Brick.entries })
     }
 }
