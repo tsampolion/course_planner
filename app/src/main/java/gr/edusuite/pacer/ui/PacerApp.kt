@@ -56,6 +56,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -338,42 +339,46 @@ fun PacerApp(vm: PacerViewModel) {
     }
     val pin: ((Boolean) -> Unit)? = if (layout == WindowLayout.EXPANDED) vm::setDrawerPinned else null
     val plansStandIn = layout != WindowLayout.COMPACT
-    if (permanent) Row(Modifier.fillMaxSize()) {
-        AppDrawer(ui.data, screen, vm, onClose = {}, permanent = true, updateBadge = update != null, plansStandIn = plansStandIn, pin = pin, pinned = true)
-        Box(Modifier.weight(1f)) { body() }
-    } else ModalNavigationDrawer(
-        drawerContent = {
-            AppDrawer(
-                ui.data, screen, vm, onClose = { scope.launch { drawer.close() } }, updateBadge = update != null,
-                opening = drawer.targetValue == DrawerValue.Open, plansStandIn = plansStandIn, pin = pin, pinned = false,
-            )
-        },
-        drawerState = drawer,
-        // Swiping only closes it, so an edge swipe never fights the month pager or the system Back gesture.
-        gesturesEnabled = drawer.isOpen,
-    ) { body() }
-    val year = ui.data.year
-    if (switching && screen.groupId != null && year != null) {
-        GroupSwitcherSheet(year, ui.data.activeClass, screen, plansStandIn, vm) { switching = false }
-    }
-    if (problemsOpen && screen == Screen.Overview && year != null) {
-        YearProblemsSheet(year, vm) { problemsOpen = false }
-    }
-    val plan = ui.data.plan(today)
-    if (problemsOpen && screen == Screen.Class && plan != null) {
-        ClassProblemsSheet(plan, vm) { problemsOpen = false }
-    }
-    if (printing && year != null && groupReport != null) {
-        PrintDialog(year, ui.data.activeClass, groupReport.group.id) { printing = false }
-    }
-    revisionTarget?.let { target ->
+    // What the screens may show: the teacher's modules plus the open year's data in use (FEATURE_MODULES_BRIEF.md).
+    val features = remember(settings.modules, ui.data.year) { featuresOf(settings, ui.data) }
+    CompositionLocalProvider(LocalFeatures provides features) {
+        if (permanent) Row(Modifier.fillMaxSize()) {
+            AppDrawer(ui.data, screen, vm, onClose = {}, permanent = true, updateBadge = update != null, plansStandIn = plansStandIn, pin = pin, pinned = true)
+            Box(Modifier.weight(1f)) { body() }
+        } else ModalNavigationDrawer(
+            drawerContent = {
+                AppDrawer(
+                    ui.data, screen, vm, onClose = { scope.launch { drawer.close() } }, updateBadge = update != null,
+                    opening = drawer.targetValue == DrawerValue.Open, plansStandIn = plansStandIn, pin = pin, pinned = false,
+                )
+            },
+            drawerState = drawer,
+            // Swiping only closes it, so an edge swipe never fights the month pager or the system Back gesture.
+            gesturesEnabled = drawer.isOpen,
+        ) { body() }
         val year = ui.data.year
-        val cls = year?.classes?.firstOrNull { it.id == target.classId }
-        val group = cls?.groups?.firstOrNull { it.id == target.groupId }
-        if (year != null && cls != null && group != null) androidx.compose.runtime.key(target) { UnitRevisionSheet(GroupReport(year.planFor(cls, today), group), target, vm, undoToast) }
+        if (switching && screen.groupId != null && year != null) {
+            GroupSwitcherSheet(year, ui.data.activeClass, screen, plansStandIn, vm) { switching = false }
+        }
+        if (problemsOpen && screen == Screen.Overview && year != null) {
+            YearProblemsSheet(year, vm) { problemsOpen = false }
+        }
+        val plan = ui.data.plan(today)
+        if (problemsOpen && screen == Screen.Class && plan != null) {
+            ClassProblemsSheet(plan, vm) { problemsOpen = false }
+        }
+        if (printing && year != null && groupReport != null) {
+            PrintDialog(year, ui.data.activeClass, groupReport.group.id) { printing = false }
+        }
+        revisionTarget?.let { target ->
+            val year = ui.data.year
+            val cls = year?.classes?.firstOrNull { it.id == target.classId }
+            val group = cls?.groups?.firstOrNull { it.id == target.groupId }
+            if (year != null && cls != null && group != null) androidx.compose.runtime.key(target) { UnitRevisionSheet(GroupReport(year.planFor(cls, today), group), target, vm, undoToast) }
+        }
+        setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
+        if (setAside == null) pastLessons?.let { PastLessonsDialog(it, { vm.answerPastLessons(true) }, { vm.answerPastLessons(false) }) }
     }
-    setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
-    if (setAside == null) pastLessons?.let { PastLessonsDialog(it, { vm.answerPastLessons(true) }, { vm.answerPastLessons(false) }) }
 }
 
 @Composable

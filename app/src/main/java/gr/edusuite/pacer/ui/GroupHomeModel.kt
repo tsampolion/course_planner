@@ -6,6 +6,8 @@ import gr.edusuite.pacer.engine.Verdict
 import gr.edusuite.pacer.engine.verdict
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
+import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.Features
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -80,6 +82,16 @@ enum class GroupDestination {
         SETTINGS -> Screen.GroupSettings(groupId)
     }
 }
+
+/** The features a destination serves; it shows when any of them [Features.has]. The Work page serves homework and tests. */
+fun GroupDestination.bricks(): Set<Brick> = when (this) {
+    GroupDestination.WORK -> setOf(Brick.HOMEWORK, Brick.TESTS)
+    GroupDestination.PLAN, GroupDestination.STATS, GroupDestination.SETTINGS -> setOf(Brick.PACING)
+}
+
+/** Group home's pages, in order, for the teacher's [features]. */
+fun groupDestinations(features: Features): List<GroupDestination> =
+    GroupDestination.entries.filter { d -> d.bricks().any(features::has) }
 
 enum class ProgressStatus { ON_PACE, SHORT, UNMEASURED }
 

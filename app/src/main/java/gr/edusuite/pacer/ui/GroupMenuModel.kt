@@ -1,9 +1,15 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.Features
+
 enum class GroupMenuItem { CREATE_PLAN, MY_PLAN, REPACE, COPY_PLAN, DELETE_PLAN, OWN_PACE, CATCH_UP, COPY, SHARE, PRINT, EXTRA, TIPS }
 
 /** Available actions independent of Compose; [catchUp] comes from the report (a custom plan that can be caught up). */
-fun groupMenuItems(hasRows: Boolean, hasCustom: Boolean, otherGroups: Int, large: Boolean, catchUp: Boolean = false): List<GroupMenuItem> = buildList {
+fun groupMenuItems(
+    hasRows: Boolean, hasCustom: Boolean, otherGroups: Int, large: Boolean, catchUp: Boolean = false,
+    features: Features = Features.ALL,
+): List<GroupMenuItem> = buildList {
     if (large && hasRows && !hasCustom) add(GroupMenuItem.CREATE_PLAN)
     if (hasCustom) {
         add(GroupMenuItem.MY_PLAN)
@@ -17,6 +23,17 @@ fun groupMenuItems(hasRows: Boolean, hasCustom: Boolean, otherGroups: Int, large
     if (hasRows) { add(GroupMenuItem.COPY); add(GroupMenuItem.SHARE) }
     add(GroupMenuItem.PRINT)
     add(GroupMenuItem.TIPS)
+}.filter { features.has(it.brick()) }
+
+/** The feature each ⋮ item belongs to; the menu offers only those [Features.has]. */
+fun GroupMenuItem.brick(): Brick = when (this) {
+    GroupMenuItem.CREATE_PLAN, GroupMenuItem.MY_PLAN, GroupMenuItem.REPACE, GroupMenuItem.COPY_PLAN, GroupMenuItem.DELETE_PLAN -> Brick.PLAN_EDITOR
+    GroupMenuItem.OWN_PACE -> Brick.OWN_PACE
+    GroupMenuItem.CATCH_UP -> Brick.CATCH_UP
+    GroupMenuItem.EXTRA -> Brick.EXTRA_LESSONS
+    GroupMenuItem.COPY, GroupMenuItem.SHARE -> Brick.COPY_SHARE
+    GroupMenuItem.PRINT -> Brick.PRINT
+    GroupMenuItem.TIPS -> Brick.PACING
 }
 
 /** The ⋮ menu's sections, in order. */

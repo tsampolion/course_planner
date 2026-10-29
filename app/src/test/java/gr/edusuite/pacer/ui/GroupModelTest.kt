@@ -236,4 +236,15 @@ class GroupModelTest {
         assertEquals(mapOf("wb" to 21), report.inStepPages())
     }
 
+
+    @Test fun justPacingMenuKeepsCatchUpAndTips() {
+        val none = gr.edusuite.pacer.model.Features(emptySet())
+        assertEquals(listOf(GroupMenuItem.CATCH_UP, GroupMenuItem.TIPS), groupMenuItems(true, false, 1, false, catchUp = true, features = none))
+        assertEquals(listOf(GroupMenuItem.TIPS), groupMenuItems(true, true, 1, true, features = none))
+    }
+
+    @Test fun outputBricksGateCopyShareAndPrint() {
+        val output = gr.edusuite.pacer.model.Features(setOf(gr.edusuite.pacer.model.Module.OUTPUT))
+        assertEquals(listOf(GroupMenuItem.COPY, GroupMenuItem.SHARE, GroupMenuItem.PRINT, GroupMenuItem.TIPS), groupMenuItems(true, false, 1, false, features = output))
+    }
 }
