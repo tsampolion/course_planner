@@ -10,12 +10,15 @@ import gr.edusuite.pacer.model.AppData
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
 import gr.edusuite.pacer.model.Book
+import gr.edusuite.pacer.model.Brick
 import gr.edusuite.pacer.model.Closure
 import gr.edusuite.pacer.model.Group
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.SchoolClass
 import gr.edusuite.pacer.model.RevisionKind
 import gr.edusuite.pacer.model.SchoolYear
 import gr.edusuite.pacer.model.Settings
+import gr.edusuite.pacer.model.ALL_GROUPS
 import gr.edusuite.pacer.update.UpdateChecker
 import java.io.File
 import java.io.IOException
@@ -502,5 +505,47 @@ class PacerViewModelTest {
         r.dispatcher.advanceBy(400)
         r.vm.flush()
         assertEquals("the file that was just read is never overwritten", 0, r.file.writes.size)
+    }
+
+    @Test fun turnOnAddsAndNeverRemoves() {
+        val r = Rig()
+        r.vm.chooseModules(setOf(Module.WORK))
+        r.vm.turnOn(Module.OUTPUT)
+        assertEquals(setOf(Module.WORK, Module.OUTPUT), r.vm.settings.value.modules)
+        assertEquals(setOf(Module.WORK, Module.OUTPUT), r.settings.saved.modules)
+        r.vm.turnOn(Module.WORK)
+        assertEquals(setOf(Module.WORK, Module.OUTPUT), r.vm.settings.value.modules)
+    }
+
+    @Test fun choosingModulesHappensOnceAndNeverTakesAnyAway() {
+        val r = Rig()
+        r.vm.chooseModules(setOf(Module.WORK, Module.OUTPUT))
+        r.vm.chooseModules(setOf(Module.PLANNING))
+        assertEquals(setOf(Module.WORK, Module.OUTPUT), r.vm.settings.value.modules)
+    }
+
+    @Test fun turningOnFromNothingChosenKeepsEverything() {
+        val r = Rig()
+        r.vm.turnOn(Module.WORK)
+        assertEquals(Module.entries.toSet(), r.vm.settings.value.modules)
+    }
+
+    @Test fun undoKeepsModulesOn() {
+        val r = Rig()
+        r.vm.chooseModules(emptySet())
+        r.vm.turnOn(Module.PLANNING)
+        r.vm.addClosure("Trip", d("2026-11-02"), null, ALL_GROUPS)
+        r.vm.undo()
+        assertEquals(setOf(Module.PLANNING), r.vm.settings.value.modules)
+    }
+
+    @Test fun featuresAddTheOpenYearsBricksInUse() {
+        val r = Rig()
+        r.vm.chooseModules(emptySet())
+        assertFalse(featuresOf(r.vm.settings.value, r.vm.state.value.data).has(Brick.HOMEWORK))
+        r.vm.saveAssignment(r.group.id, Assignment("h", AssignmentType.HOMEWORK, "HW"))
+        val f = featuresOf(r.vm.settings.value, r.vm.state.value.data)
+        assertTrue(f.has(Brick.HOMEWORK))
+        assertFalse(f.has(Brick.TESTS))
     }
 }
