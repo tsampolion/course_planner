@@ -38,6 +38,7 @@ class ExtraLessonCodecTest : Instrumentation() {
             "unknownBookTypeReadsAsUnclassified" to ::testUnknownBookTypeReadsAsUnclassified,
             "malformedRemovedBooksAndBookDueEntriesAreDropped" to ::testMalformedRemovedBooksAndBookDueEntriesAreDropped,
             "newerSchemaIsRefusedAndNotDecodedAsCurrent" to ::testNewerSchemaIsRefusedAndNotDecodedAsCurrent,
+            "schemaSixteenKeepsHomeworkDoneAndFifteenReadsNotDone" to ::testSchemaSixteenKeepsHomeworkDoneAndFifteenReadsNotDone,
             "smallBackupRoundTrips" to BackupRoundTripChecks::smallBackupRoundTrips,
             "aBackupAboveTheOldLimitRoundTripsWithNothingMissing" to BackupRoundTripChecks::aBackupAboveTheOldLimitRoundTripsWithNothingMissing,
             "aBackupExactlyAtTheLimitReadsAndOneByteOverIsRefused" to BackupRoundTripChecks::aBackupExactlyAtTheLimitReadsAndOneByteOverIsRefused,
@@ -209,6 +210,20 @@ class ExtraLessonCodecTest : Instrumentation() {
         assertEquals(emptySet<String>(), none.removedBooks)
         assertEquals(emptyMap<String, LocalDate>(), none.bookDue)
         assertEquals(schema15().firstGroup().done, none.done)
+    }
+
+    fun testSchemaSixteenKeepsHomeworkDoneAndFifteenReadsNotDone() {
+        val base = schema15()
+        val done = Assignment("h", AssignmentType.HOMEWORK, "Practice", date, date.plusDays(7), completed = true)
+        val input = base.copy(years = base.years.map { y -> y.copy(classes = y.classes.map { c -> c.copy(groups = c.groups.map { it.copy(assignments = listOf(done)) }) }) })
+        val written = JSONObject(JsonCodec.encode(input))
+        assertEquals(16, written.getInt("version"))
+        assertEquals(input, JsonCodec.decode(written.toString()))
+        // A schema-15 file has no `completed`: its homework reads as not done, everything else unchanged.
+        val old = JSONObject(written.toString()).put("version", 15)
+        old.firstGroup().getJSONArray("assignments").getJSONObject(0).remove("completed")
+        assertEquals(listOf(done.copy(completed = false)), JsonCodec.decode(old.toString()).firstGroup().assignments)
+        check(JsonCodec.readImport(old.toString()) is ImportResult.Years) { "schema 15 refused" }
     }
 
     fun testNewerSchemaIsRefusedAndNotDecodedAsCurrent() {
