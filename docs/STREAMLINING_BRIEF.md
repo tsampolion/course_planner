@@ -141,3 +141,21 @@ Welcome → Create school year (dialog) → Home "Add your first class" → Clas
 ## Order
 
 These ride the audit brief's fix PRs: M1 with PR 4 (menu), D1–D3 with PR 1 (group home), R3 and P3 with PR 2 (Plan), H1 and D2 with PR 3 (Home), S4 with PR 5 (sheets), R1–R2, R4, S1–S3 and S6 with PR 6 (set-up), S5 with PR 7 (Stats), R5 and F1 with PR 8. Each PR names the removals it carries so the owner can say yes or no to each.
+
+## PR6 setup journeys
+
+R1, R4, S1, S2, S3 and S6 are implemented in 0.4.12.0. Removals and added safety steps were approved by the owner.
+
+Counts below measure action taps, excluding typing, date-picker navigation and selecting individual weekdays, from the same screen and starting state.
+
+| Journey | Before | After | Preset |
+| --- | --- | --- | --- |
+| Class pencil to full group settings | 2 | 1 | Every preset |
+| Class to Book units | 1 | 1 | Book tools, or saved Units data |
+| Choose a group's days after adding it | Add + pencil + selections | Add + selections + save | Every preset; days chosen before creation |
+| Group day off to Edit | Long-press + Edit (2) | ⋮ + Edit (2) | Every preset |
+| Select optional book | 1 | 1 | Book tools, or saved optional data |
+| Delete year/class/group | 1 | 2 | Every preset; approved confirmation |
+| Switch year with nonempty Undo | 1 | 2 | Every preset; approved warning |
+
+The approved creation and safety steps are explicit exceptions to the original no-extra-taps rule. Phone checks still cover light/dark, Bone/Saffron, large text and narrow/tablet widths.

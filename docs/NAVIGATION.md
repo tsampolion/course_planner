@@ -208,7 +208,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | --- | --- | --- | --- |
 | ☰ | Tap | Below 840dp | ↑ Opens [☰ Menu](#drawer). Opens the menu. |
 | Welcome page | Automatic | First run | ↑ Opens [Welcome to Course Pacer](#welcome). Opens over Home once. |
-| New school year | Tap | No school year yet | ↑ Opens [New school year](#new-year). Opens the New school year dialog. |
+| New school year | Tap | No school year yet | ↑ Opens [New school year](#new-year). Warns before clearing nonempty Undo, then opens the New school year dialog. |
 | Add a class | Tap | Year without classes | → Screen [Classes](#classes). Opens Classes. |
 | Pacing overview board: a cell (Group, −N when behind; “● Today” under the name when the group has a lesson today) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. The dot blinks three times when Home opens, then stays lit (steady with animations off). Groups run most behind first inside each class, as on Pacing overview. TalkBack reads class, group, “on pace” or “short by N lessons”, and “has a lesson today”. |
 | See all › / N groups on pace › / N set-up needed › | Tap | The large-text board counts only measured groups as on pace; groups with nothing to measure are “set-up needed” | → Screen [Pacing overview](#overview). Opens Pacing overview. |
@@ -340,15 +340,15 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Year chips | Tap |  | Edit. Switches to that year and stays on this screen. Clears Undo history. |
-| New school year | Tap |  | ↑ Opens [New school year](#new-year). Opens the New school year dialog. |
+| Year chips | Tap |  | Edit. Switches to that year and stays on this screen; warns before clearing nonempty Undo history. |
+| New school year | Tap |  | ↑ Opens [New school year](#new-year). Warns before clearing nonempty Undo, then opens the New school year dialog. |
 | Term: Edit / the term row | Tap |  | ↑ Opens [Term](#term). Opens the term sheet. |
 | Days off: Add | Tap |  | ↑ Opens [Add a day off](#day-off). Opens Add a day off. |
-| A day-off row | Swipe |  | Swipe from the end, or long-press for Remove. Undo: “Removed “reason”” |
+| A day-off row | Swipe |  | Swipe from the end to remove; visible ⋮ or long-press opens Edit/Delete. Undo: “Removed “reason”” |
 | Add Greek public holidays | Tap | Both term dates set | Adds the holidays for every calendar year the term touches. Message: “N holidays added / Already there” |
 | Print or save PDF | Tap | Some group this year has lessons to print | ↑ Opens [Print or save PDF](#print), on Every group this year. |
 | Rename | Tap |  | ↑ Opens [Rename school year](#rename-year). Opens Rename school year. |
-| Delete this school year | Tap |  |  [Home](#home). Deletes it at once, with no confirmation, and returns Home. Undo: “Deleted “name”” |
+| Delete this school year | Tap |  |  [Home](#home). Asks for confirmation, then deletes and returns Home. Undo: “Deleted “name”” |
 
 <a id="term"></a>
 ### Term
@@ -371,7 +371,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Reason | Type |  | Placeholder “Christmas break”. |
 | From / To (optional) | Tap |  | ↑ Opens [Date picker](#date-picker). Date pickers; To makes it a range. |
 | Applies to | Choose |  | All groups, a class (all groups), or one group. |
-| Add | Tap | From set | Edit. Adds the day off; every affected plan re-paces. |
+| Add / Save | Tap | From set; To absent or on/after From | Adds or edits the day off; invalid dates show an inline reason. |
 
 <a id="rename-year"></a>
 ### Rename school year
@@ -457,17 +457,16 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Edit (beside “N min lessons · P pages a lesson”) | Tap |  | ↑ Opens [Class settings](#class-settings). Opens Class settings. |
-| Book units (On / Off) | Tap |  | → Screen [Book units](#units). Opens Book units. |
+| Book units (On / Off), under Books | Tap | Units | → Screen [Book units](#units). Opens Book units. |
 | Add a book (guide card or Books › Add) | Tap |  | ↑ Opens [Add a book](#add-book). Opens Add a book. |
 | A book row (pages, skips, finish-by, tags) | Tap |  | ↑ Opens [Book (editor)](#book-editor). Opens the book editor. |
-| Lead book | Choose | Two or more core books | Edit. None, or a book the others keep step with. |
-| Add group (guide card or Groups › Add) | Tap |  | Edit. Adds “Group B”, “Group C”… on Mon, Wed, Fri. |
+| Lead book | Choose | Lead book; two or more core books | Edit. None, or a book the others keep step with. |
+| Add group (guide card or Groups › Add) | Tap |  | Opens Add group: name and lesson-day chips; Add saves both in one undo step. |
 | A group row (Next date) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. |
-| Edit name (beside a group) | Tap |  | ↑ Opens [Group (editor)](#group-editor). Opens the group editor. |
-| Work: a group row | Tap |  | → Screen [Work](#work). Assignments now live in each group; opens that group's Work. |
+| Edit name (beside a group) | Tap |  | → Opens [Group settings](#group-settings) directly. |
 | Print or save PDF | Tap | Some group of the class or year has lessons to print | ↑ Opens [Print or save PDF](#print), on Every group in class. |
 | Reset all positions | Tap |  | Clears every group's resume page. Undo: “Positions reset” |
-| Delete this class | Tap |  | Deletes at once, with no confirmation, and closes its screens. Undo: “Deleted “name”” |
+| Delete this class | Tap |  | Asks for confirmation, then deletes and closes its screens. Undo: “Deleted “name”” |
 | ⚠ in the top bar | Tap | The class has problems | ↑ Opens [Problems in this class](#class-problems). Opens Problems in this class. |
 
 <a id="class-settings"></a>
@@ -480,8 +479,6 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Name | Type |  | Saved as you type. |
 | Lesson length (min) | Type |  | Saved as you type. |
 | Pace you can sustain | Type |  | The benchmark the verdict measures against. |
-| Enable book units? | Toggle |  | Turns units on or off for the class. |
-| Book units | Tap |  | → Screen [Book units](#units). Closes the sheet and opens Book units. |
 | Warn when a book is this many lessons behind | Type | Two or more books | When Bring in step warnings start. |
 | ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
@@ -493,9 +490,9 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Title | Type |  | Placeholder “Companion”. |
-| Book type | Choose |  | Core types, or Supplementary (never paced; placed by hand). |
-| First page / Last page | Type | Core book | Last page required, 1 to the maximum. |
-| Pages you'll use | Type | Supplementary book | Pages or ranges, like 4-7, 12. |
+| Book type | Choose | Supplementary choice requires Supplementary, or existing supplementary data | Core types, or Supplementary (never paced; placed by hand). |
+| First page / Last page | Type | Core book | Both required: 1 ≤ first ≤ last ≤ MAX_PAGE; inline errors prevent saving. |
+| Pages you'll use | Type | Supplementary; Supplementary book | Pages or ranges, like 4-7, 12. |
 | Add | Tap |  | Edit. Adds the book; every group re-paces. |
 
 <a id="book-editor"></a>
@@ -506,30 +503,20 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Title | Type |  | Renames the book. |
-| Book type | Choose |  | Changing to or from Supplementary changes which fields show. |
+| Book type | Choose | Supplementary choice requires Supplementary, or existing supplementary data | Changing to or from Supplementary changes which fields show. |
 | First page / Last page | Type | Core | The page range. |
 | Skip pages | Type | Core | Like 8, 24–27; applies to every group. |
 | Finish by | Tap | Core | Edit [Date picker](#date-picker). Date picker with Clear. Only this book re-paces. |
-| Units (N units) | Type | Core, units on | Start pages, like 1, 13, 25, 37. |
-| Book units | Tap | Core, units on | → Screen [Book units](#units). Opens Book units. |
-| Pages you'll use | Type | Supplementary | The pages it can place. |
+| Book units | Tap | Core; Units | → Screen [Book units](#units). Opens Book units. |
+| Pages you'll use | Type | Supplementary; Supplementary | The pages it can place. |
 | Count in the lesson by default | Toggle | Supplementary | Off: new placements come on top of the lesson. |
 | Remove book | Tap |  | Closes the sheet and removes the book. Undo: “Removed “name”” |
 | ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
 
 <a id="group-editor"></a>
-### Group (editor)
+### Group editor
 
-*Sheet* · reached from [Class](#class). Titled with the group's name.
-
-| Control | Gesture | When | What happens |
-| --- | --- | --- | --- |
-| Name | Type |  | Saved as you type. |
-| Weekday chips Mon–Sun | Toggle |  | Turns that lesson day on or off; the plan re-paces. |
-| Next lesson | Tap |  | Edit [Date picker](#date-picker). Date picker; sets where the group's lessons start. |
-| Group settings | Tap |  | → Screen [Group settings](#group-settings). Closes the sheet and opens Group settings. |
-| Open schedule | Tap |  | → Screen [Group home](#group-home). Opens the group. |
-| ✕ Close | Tap |  | Closes. Closes. Its fields were already saved as you typed. |
+The Class pencil opens [Group settings](#group-settings), which owns name, lesson days and dates.
 
 <a id="class-problems"></a>
 ### Problems in this class
@@ -544,7 +531,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="units"></a>
 ### Book units
 
-*Screen* · reached from [Class](#class), [Class settings](#class-settings), [Book (editor)](#book-editor), [Group settings](#group-settings). Three steps: choose the lead book, set each book's units, link books. Reached from Class, Class settings, the book editor, Group settings and the Warnings sheet.
+*Screen* · reached from [Class](#class), [Book (editor)](#book-editor), [Group settings](#group-settings). Three steps: choose the lead book, set each book's units, link books. Reached from Class, Class settings, the book editor, Group settings and the Warnings sheet.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -795,6 +782,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
+| Mark done / Mark not done | Tap | Homework | Stores completion without changing date-based pacing; status and banking date appear in Work; lesson menus and TalkBack offer the same completion action. |
 | Edit assignment | Tap |  | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens the assignment sheet. |
 | Remove | Tap |  | Removes it. Undo: “Assignment removed” |
 
@@ -838,19 +826,20 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
+| Name / lesson-day chips | Type / Toggle |  | Saves the group name and lesson days. |
 | Next lesson | Tap |  | Edit [Date picker](#date-picker). Date picker with Clear (back to the term start). |
 | End date (optional) | Tap |  | Edit [Date picker](#date-picker). Date picker with Clear; never past the term end. |
 | School year and class days off | Shows |  | Read-only rows. |
 | Group days off: Add | Tap |  | ↑ Opens [Add a day off / Edit day off](#group-day-off). Opens the group day-off sheet. |
 | An own day off | Long-press |  | ↑ Opens [Day-off options](#group-day-off-menu). Opens its menu (also the ⋮ Options button). |
 | Add Greek public holidays | Tap |  | Message:. Adds the ones the group doesn't already inherit. |
-| Additional skipped pages: per book | Type |  | Added to the class skips; clear to use only the class's. |
-| Books › Add a book | Tap |  | ↑ Opens [Add a book (group)](#group-add-book). Opens the group book sheet. |
-| A class book row | Long-press |  | ↑ Opens [Book options (group)](#book-options). Opens its options. |
-| An optional book row | Tap |  | Edit. Selects or deselects it for this group; long-press for options. |
-| Book units for this group | Choose |  | Edit. Follow class setting, On or Off. |
-| Book units | Tap |  | → Screen [Book units](#units). Opens Book units. |
-| Delete group | Tap |  | Deletes at once, with no confirmation; its screens close. Undo: “Removed “name”” |
+| Additional skipped pages: per book | Type | Group book rules | Added to the class skips; clear to use only the class's. |
+| Books › Add a book | Tap | Optional books | ↑ Opens [Add a book (group)](#group-add-book). Opens the group book sheet. |
+| A book row’s ⋮ (Options for name) | Tap | Group book rules | ↑ Opens [Book options (group)](#book-options). Long-pressing the row opens the same options. |
+| Use name / Stop using name | Tap | Optional books; optional book | Edit. Includes or leaves out this book for this group. The row states whether the group uses it. |
+| Book units for this group | Choose | Units | Edit. Follow class setting, On or Off. |
+| Book units | Tap | Units | → Screen [Book units](#units). Opens Book units. |
+| Delete group | Tap |  | Asks for confirmation, then deletes; its screens close. Undo: “Removed “name”” |
 
 <a id="group-day-off-menu"></a>
 ### Day-off options
@@ -997,3 +986,5 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Save | Tap |  | Saves the revision. Undo: “Revision saved” |
 | Remove revision | Tap | One exists | Removes it. Undo: “Revision removed” |
 | ✕ / tap outside | Tap |  | Closes. Dismisses without saving. |
+
+Setup module gates retain controls for bricks in use by saved data. Unit revision actions require Unit revisions (Work and Units); existing revisions remain editable. Skip pages and finish-by at class level, lesson days, days off and group end date remain core.

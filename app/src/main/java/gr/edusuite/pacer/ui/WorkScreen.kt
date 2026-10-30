@@ -45,10 +45,14 @@ internal fun assignmentEdge(type: AssignmentType) = when (type) {
 @Composable
 internal fun AssignmentRow(a: Assignment, report: GroupReport, onOpen: () -> Unit, trailing: (@Composable RowScope.() -> Unit)? = null) {
     val pages = report.plan.books.mapNotNull { b -> a.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { "${b.name} ${collapse(it)}" } }
-    val details = listOf(assignmentTypeName(a.type)) + pages + listOfNotNull(
+    val details = listOf(assignmentTypeName(a.type)) + (if (a.completed) listOf(stringResource(R.string.pr6_done)) else emptyList()) + pages + listOfNotNull(
         a.setOn?.let { stringResource(R.string.work_set_date, it.fmtShort()) },
         a.due?.let { stringResource(R.string.work_due_date, it.fmtShort()) },
         if (a.takesLesson && a.type != AssignmentType.HOMEWORK) stringResource(R.string.class_takes_lesson) else null,
+        if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) {
+            (a.due ?: a.setOn)?.let { stringResource(R.string.pr6_homework_pacing, it.fmtShort()) }
+                ?: stringResource(R.string.pr6_homework_immediate)
+        } else null,
         a.note.takeIf { it.isNotBlank() },
     )
     LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface), detail = details.joinToString(" · "),
@@ -101,6 +105,10 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                                 Box {
                                     PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) }
                                     PacerDropdownMenu(menu, { menu = false }) {
+                                        if (a.type == AssignmentType.HOMEWORK) DropdownMenuItem(
+                                            text = { Text(stringResource(if (a.completed) R.string.pr6_mark_not_done else R.string.pr6_mark_done)) },
+                                            onClick = { menu = false; vm.saveAssignment(report.group.id, a.copy(completed = !a.completed)) },
+                                        )
                                         DropdownMenuItem(text = { Text(stringResource(R.string.work_edit)) }, onClick = { menu = false; editing = a.id })
                                         DropdownMenuItem(text = { Text(stringResource(R.string.component_remove), color = Pacer.colors.warn) }, onClick = { menu = false; remove() })
                                     }
@@ -152,7 +160,7 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
         onSave(Assignment(id, type, title.trim(), setOn, due,
             assignmentEditedPages(initial?.pages.orEmpty(), books.mapIndexed { i, b -> b.id to pages[i].orEmpty() }.toMap()),
             note.trim(), type != AssignmentType.HOMEWORK && takesLesson,
-            contentType.takeIf { type == AssignmentType.HOMEWORK }, initial?.linkedId))
+            contentType.takeIf { type == AssignmentType.HOMEWORK }, initial?.linkedId, initial?.completed ?: false))
     }, dirty = rememberDraftChanged(type, title, setText, dueText, note, takesLesson, contentType, texts.toList())) {
         SegmentedToggle(typeLabels, typeOptions.indexOf(type), { selected ->
             if (title == typeLabels[typeOptions.indexOf(type)]) title = typeLabels[selected]

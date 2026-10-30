@@ -5,6 +5,8 @@ Status: shipped in 4.0.0 (0.4.0.0 in the four-part format), schema 13.
 Native Operate surface; extend the
 existing ledger, TalkBack custom actions, assignment editor and Bone/Saffron tokens.
 
+Homework can be marked done or not done in Work and from lesson menus (including TalkBack actions). Completion is optional assignment metadata, persisted with a false default for old files; it never changes date-based banking. Editing keeps the completion record. Work states the banking date beside page homework.
+
 Lessons offer Add homework and one Edit/Delete action per homework set on or due
 that date. The editor starts with that lesson's set-on date. Ordinary, slim and
 hero lesson rows name homework, its pages/content and due date in words.

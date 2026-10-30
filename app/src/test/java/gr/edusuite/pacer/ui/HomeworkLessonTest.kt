@@ -23,6 +23,7 @@ class HomeworkLessonTest {
         val l = lesson.copy(assignments = listOf(h, due, unrelated, test))
         assertEquals(listOf("h", "due"), homeworkForLesson(l).map { it.id })
         val menu = lessonMenuItems(l, true, false, true)
+        assertTrue(MenuItemKind.TOGGLE_HOMEWORK in menu)
         assertTrue(MenuItemKind.EDIT_HOMEWORK in menu)
         assertTrue(MenuItemKind.DELETE_HOMEWORK in menu)
         assertFalse(MenuItemKind.EDIT_HOMEWORK in lessonMenuItems(lesson, true, false, true))

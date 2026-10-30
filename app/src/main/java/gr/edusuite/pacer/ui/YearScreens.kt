@@ -11,6 +11,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
+import gr.edusuite.pacer.model.Closure
 import androidx.compose.material3.RadioButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -79,8 +80,12 @@ internal fun dayOffDates(from: LocalDate, to: LocalDate): String =
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
+    val confirmDelete = rememberSetupConfirmation()
+    val confirmSwitch = rememberSetupConfirmation(R.string.pr6_undo_warning)
+    val ui by vm.state.collectAsState()
     val context = LocalContext.current
     val tick = rememberSegmentHaptic()
+    var editingDay by rememberSaveable { mutableStateOf<String?>(null) }
     var adding by rememberSaveable { mutableStateOf(false) }
     var newYear by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf(false) }
@@ -98,9 +103,9 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 verticalArrangement = Arrangement.Center,
             ) {
                 sorted.forEach { y ->
-                    YearChip(y.name.ifBlank { stringResource(R.string.home_year) }, y.id == year.id) { tick(); vm.switchYear(y.id) }
+                    YearChip(y.name.ifBlank { stringResource(R.string.home_year) }, y.id == year.id) { tick(); if (y.id != year.id && ui.undoDepth > 0) confirmSwitch { vm.switchYear(y.id) } else vm.switchYear(y.id) }
                 }
-                PaletteTextButton(onClick = { newYear = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                PaletteTextButton(onClick = { if (ui.undoDepth > 0) confirmSwitch { newYear = true } else newYear = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                     AppIcon(AppIcons.Add, Modifier.size(18.dp).padding(end = Space.xs))
                     Text(stringResource(R.string.home_new_year), style = MaterialTheme.typography.labelLarge, color = Pacer.colors.accentText)
                 }
@@ -133,7 +138,16 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                         val remove = { vm.removeClosure(c.id); undoToast(context.getString(R.string.year_removed, title)) }
                         val who = whoTag(context, year, c.who)?.let { stringResource(R.string.year_group_only, it) } ?: stringResource(R.string.year_all_groups)
                         SwipeRow(title, remove) {
-                            LedgerRow(title, detail = who, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface))
+                            var menu by remember { mutableStateOf(false) }
+                            Box {
+                                LedgerRow(title, detail = who, date = dayOffDates(minOf(c.from, c.to), maxOf(c.from, c.to)), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface), onLongClick = { menu = true }) {
+                                    PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) }
+                                }
+                                PacerDropdownMenu(menu, { menu = false }) {
+                                    DropdownMenuItem(text = { Text(stringResource(R.string.class_edit)) }, onClick = { menu = false; editingDay = c.id })
+                                    DropdownMenuItem(text = { Text(stringResource(R.string.rows_delete)) }, onClick = { menu = false; remove() })
+                                }
+                            }
                         }
                     }
                 }
@@ -154,14 +168,14 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 start = stringResource(R.string.home_rename) to { renaming = true },
                 end = stringResource(R.string.year_delete) to {
                     val name = year.name.ifBlank { context.getString(R.string.year_school_year) }
-                    vm.deleteYear(year.id)
-                    onDeleted(name)
+                    confirmDelete { vm.deleteYear(year.id); onDeleted(name) }
                 },
             )
         }
     }
 
     if (adding) AddClosureSheet(year, vm) { adding = false }
+    year.closures.firstOrNull { it.id == editingDay }?.let { day -> AddClosureSheet(year, vm, day) { editingDay = null } }
     if (newYear) NewYearDialog(years, vm) { newYear = false }
     if (renaming) RenameYearSheet(year, vm) { renaming = false }
     if (editingTerm) PacerSheet(stringResource(R.string.year_term), { editingTerm = false }) {
@@ -189,22 +203,23 @@ private fun YearChip(name: String, selected: Boolean, onClick: () -> Unit) {
 
 /** Reason and From up front; the end date and who it applies to sit behind More options (§14 Progressive disclosure). */
 @Composable
-private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, onDismiss: () -> Unit) {
+private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, editing: Closure? = null, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val segmentHaptic = rememberSegmentHaptic()
-    var label by rememberSaveable { mutableStateOf("") }
-    var fromText by rememberSaveable { mutableStateOf<String?>(null) }
-    var toText by rememberSaveable { mutableStateOf<String?>(null) }
+    var label by rememberSaveable { mutableStateOf(editing?.label.orEmpty()) }
+    var fromText by rememberSaveable { mutableStateOf(editing?.from?.toString()) }
+    var toText by rememberSaveable { mutableStateOf(editing?.to?.toString()) }
     val from = fromText?.let(LocalDate::parse)
     val to = toText?.let(LocalDate::parse)
-    var who by rememberSaveable { mutableStateOf(ALL_GROUPS) }
-    PacerSheet(stringResource(R.string.year_add_day_off), onDismiss, SheetAction(stringResource(R.string.year_add), from != null) { vm.addClosure(label.trim(), from!!, to, who) },
+    var who by rememberSaveable { mutableStateOf(editing?.who ?: ALL_GROUPS) }
+    PacerSheet(stringResource(if (editing == null) R.string.year_add_day_off else R.string.year_edit_day_off), onDismiss, SheetAction(stringResource(if (editing == null) R.string.year_add else R.string.component_save), from != null && (to == null || to >= from)) { if (editing == null) vm.addClosure(label.trim(), from!!, to, who) else vm.editClosure(editing.id, editing.who, label.trim(), from!!, to) },
         dirty = rememberDraftChanged(label, fromText, toText, who)) {
         CommitField(label, { label = it }, stringResource(R.string.year_reason), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_reason_example))
         DateField(from, { fromText = it?.toString() }, stringResource(R.string.year_from), Modifier.fillMaxWidth())
         MoreOptions {
             DateField(to, { toText = it?.toString() }, stringResource(R.string.year_to_optional), Modifier.fillMaxWidth(), clearable = true)
-            Picker(stringResource(R.string.year_applies_to), whoOptions(context, year), who, { segmentHaptic(); who = it }, Modifier.fillMaxWidth())
+            if (from != null && to != null && to < from) Hint(stringResource(R.string.pr6_day_range), color = Pacer.colors.warn)
+            if (editing == null) Picker(stringResource(R.string.year_applies_to), whoOptions(context, year), who, { segmentHaptic(); who = it }, Modifier.fillMaxWidth())
         }
     }
 }
@@ -310,8 +325,10 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
         PacerSheet(stringResource(R.string.year_new_class), { adding = false }, SheetAction(stringResource(R.string.year_add), true) { vm.newClass(name.trim(), unitsEnabled) },
             dirty = rememberDraftChanged(name, unitsEnabled)) {
             CommitField(name, { name = it }, stringResource(R.string.year_name), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_class_example))
-            SwitchRow(stringResource(R.string.units_enable), unitsEnabled) { unitsEnabled = it }
-            Hint(stringResource(R.string.units_creation_hint))
+            if (LocalFeatures.current.has(gr.edusuite.pacer.model.Brick.UNITS)) {
+                SwitchRow(stringResource(R.string.units_enable), unitsEnabled) { unitsEnabled = it }
+                Hint(stringResource(R.string.units_creation_hint))
+            }
         }
     }
 }

@@ -164,7 +164,7 @@ class NavTest {
         assertEquals(listOf(Screen.Class), Nav.problems(plan(groups = emptyList())).map { it.fix })
         assertEquals(listOf(Screen.Class), Nav.problems(plan(books = emptyList())).map { it.fix })
         assertEquals(
-            listOf(Screen.Class),
+            listOf(Screen.GroupSettings("g")),
             Nav.problems(plan(groups = listOf(Group("g", "Group A", emptySet(), null)))).map { it.fix },
         )
         assertEquals(listOf(Screen.Class), Nav.problems(plan(books = listOf(Book("b", "Workbook", 9, 3)))).map { it.fix })

@@ -78,15 +78,15 @@ class ExtraLessonCodecTest : Instrumentation() {
         val c = y.classes.single()
         val work = listOf(
             Assignment("h", AssignmentType.HOMEWORK, "Practice", date, date.plusDays(7),
-                contentType = AssignmentType.WORKSHEET, linkedId = "w"),
+                contentType = AssignmentType.WORKSHEET, linkedId = "w", completed = true),
             Assignment("w", AssignmentType.WORKSHEET, "Practice", due = date.plusDays(7), linkedId = "h"))
         val input = base.copy(years = listOf(y.copy(classes = listOf(c.copy(groups = listOf(c.groups.single().copy(assignments = work)))))))
         assertEquals(input, JsonCodec.decode(JsonCodec.encode(input)))
         val old = JSONObject(JsonCodec.encode(input)).put("version", 12)
         val rows = old.getJSONArray("years").getJSONObject(0).getJSONArray("classes").getJSONObject(0)
             .getJSONArray("groups").getJSONObject(0).getJSONArray("assignments")
-        for (i in 0 until rows.length()) { rows.getJSONObject(i).remove("contentType"); rows.getJSONObject(i).remove("linkedId") }
-        assertEquals(work.map { it.copy(contentType = null, linkedId = null) },
+        for (i in 0 until rows.length()) { rows.getJSONObject(i).remove("contentType"); rows.getJSONObject(i).remove("linkedId"); rows.getJSONObject(i).remove("completed") }
+        assertEquals(work.map { it.copy(contentType = null, linkedId = null, completed = false) },
             JsonCodec.decode(old.toString()).years.single().classes.single().groups.single().assignments)
         rows.getJSONObject(0).put("contentType", "UNKNOWN").put("linkedId", "missing")
         assertEquals(null, JsonCodec.decode(old.toString()).years.single().classes.single().groups.single().assignments.first().contentType)

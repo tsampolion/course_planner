@@ -182,7 +182,7 @@ object JsonCodec {
                 JSONObject().put("id", a.id).put("type", a.type.name).put("title", a.title)
                     .put("setOn", a.setOn?.toString() ?: "").put("due", a.due?.toString() ?: "")
                     .put("pages", pages(a.pages)).put("note", a.note).put("takesLesson", a.takesLesson)
-                    .put("contentType", a.contentType?.name ?: "").put("linkedId", a.linkedId ?: "")
+                    .put("contentType", a.contentType?.name ?: "").put("linkedId", a.linkedId ?: "").put("completed", a.completed)
             }))
             .apply { g.custom?.let { put("custom", custom(it)) } }
     })
@@ -247,7 +247,7 @@ object JsonCodec {
                 Assignment(a.id(), type, a.optString("title", ""), a.date("setOn"), a.date("due"),
                     pages(a.optJSONObject("pages")), a.optString("note", ""), a.optBoolean("takesLesson", false),
                     runCatching { AssignmentType.valueOf(a.optString("contentType", "")) }.getOrNull(),
-                    a.optString("linkedId", "").takeIf { it.isNotBlank() })
+                    a.optString("linkedId", "").takeIf { it.isNotBlank() }, a.optBoolean("completed", false))
             },
         )
     }

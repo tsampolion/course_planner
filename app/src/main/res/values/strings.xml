@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="pr6_mark_done_named">Mark done: %1$s</string>
+    <string name="pr6_mark_not_done_named">Mark not done: %1$s</string>
+    <string name="pr6_repace_preserves">Re-pacing keeps edited lessons unchanged. A warning can remain when those lessons or the available teaching time prevent a full repair.</string>
+    <string name="pr6_delete_confirmation">Delete this item and its contents?</string>
+    <string name="pr6_continue">Continue</string>
+    <string name="pr6_undo_warning">Changing school years clears Undo. Continue?</string>
+    <string name="pr6_lesson_days">Lesson days</string>
+    <string name="pr6_day_range">The end date must be on or after the start date.</string>
+    <string name="pr6_done">Done</string>
+    <string name="pr6_mark_done">Mark done</string>
+    <string name="pr6_mark_not_done">Mark not done</string>
+    <string name="pr6_homework_pacing">Pages leave future pacing from %1$s, whether marked done or not.</string>
+    <string name="pr6_homework_immediate">These pages are already out of future pacing; marking done does not change pacing.</string>
+    <string name="group_settings_book_used">Used by this group</string>
+    <string name="group_settings_book_not_used">Not used by this group</string>
+    <string name="group_settings_use_book">Use %1$s</string>
+    <string name="group_settings_stop_using_book">Stop using %1$s</string>
     <string name="app_name">Course Pacer</string>
     <string name="app_settings">Settings</string>
     <string name="app_year_settings">School year settings</string>

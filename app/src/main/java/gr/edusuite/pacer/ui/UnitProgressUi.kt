@@ -70,6 +70,7 @@ internal fun UnitProgressStrip(report: GroupReport) {
 @Composable
 internal fun UnitRevisionRow(report: GroupReport, vm: PacerViewModel, index: Int) {
     val revision = report.group.unitRevisions.firstOrNull { it.unitIndex == index }
+    if (!LocalFeatures.current.has(gr.edusuite.pacer.model.Brick.UNIT_REVISIONS) && revision == null) return
     LedgerRow(stringResource(R.string.units_revision_title, index + 1),
         detail = if (revision == null && index in pendingUnitRevisions(report.plan, report.group)) stringResource(R.string.units_revision_prompt, index + 1)
         else if (revision == null) stringResource(R.string.units_revision_add) else if (revision.kind == gr.edusuite.pacer.model.RevisionKind.NONE) stringResource(R.string.units_revision_none) else
