@@ -25,6 +25,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.13.0] - 2026-10-30
+
+### Changed
+- Work's assignment types and filter chips follow their feature bricks; a single available type needs no selector, while saved assignments stay visible and editable.
+- The lesson hero's Homework button follows the Homework brick. With every module on, these controls keep their existing appearance and behavior.
+
 ## [0.4.12.1] - 2026-10-30
 
 ### Fixed
@@ -1081,7 +1087,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.12.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.13.0...HEAD
+[0.4.13.0]: https://github.com/tsampolion/course_planner/compare/v0.4.12.1...v0.4.13.0
 [0.4.12.1]: https://github.com/tsampolion/course_planner/compare/v0.4.12.0...v0.4.12.1
 [0.4.12.0]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...v0.4.12.0
 [0.4.11.0]: https://github.com/tsampolion/course_planner/compare/v0.4.10.1...v0.4.11.0

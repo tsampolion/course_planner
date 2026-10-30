@@ -25,6 +25,28 @@ import gr.edusuite.pacer.ui.theme.Rhythm
 import gr.edusuite.pacer.ui.theme.Space
 import java.time.LocalDate
 
+private fun AssignmentType.brick(): Brick = when (this) {
+    AssignmentType.HOMEWORK -> Brick.HOMEWORK
+    AssignmentType.TEST, AssignmentType.WORKSHEET -> Brick.TESTS
+}
+
+/** Keep the editor's order and any saved type, even when it is unavailable for new work. */
+fun workAssignmentTypes(features: Features, existing: AssignmentType? = null): List<AssignmentType> =
+    listOf(AssignmentType.HOMEWORK, AssignmentType.WORKSHEET, AssignmentType.TEST)
+        .filter { features.has(it.brick()) || it == existing }
+
+/** All stays first; saved work always has a filter, independent of creation availability. */
+fun workFilterTypes(features: Features, work: List<Assignment>): List<AssignmentType?> =
+    listOf(null, AssignmentType.HOMEWORK, AssignmentType.TEST, AssignmentType.WORKSHEET)
+        .filter { type -> type == null || features.has(type.brick()) || work.any { it.type == type } }
+
+fun workDefaultType(types: List<AssignmentType>, preferred: AssignmentType): AssignmentType? =
+    preferred.takeIf { it in types } ?: types.firstOrNull()
+
+/** A removed chip must not change the selected type to its new neighbor. */
+fun workSelectedFilter(types: List<AssignmentType?>, selected: AssignmentType?): AssignmentType? =
+    selected.takeIf { it in types }
+
 @Composable
 internal fun assignmentTypeName(type: AssignmentType): String = stringResource(when (type) {
     AssignmentType.HOMEWORK -> R.string.work_homework
@@ -66,23 +88,34 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
     var filter by rememberSaveable(report.group.id) { mutableIntStateOf(0) }
     var adding by rememberSaveable(report.group.id) { mutableStateOf(false) }
     var editing by rememberSaveable(report.group.id) { mutableStateOf<String?>(null) }
-    val types = listOf(null, AssignmentType.HOMEWORK, AssignmentType.TEST, AssignmentType.WORKSHEET)
-    val labels = listOf(stringResource(R.string.work_all), stringResource(R.string.work_homework), stringResource(R.string.work_tests), stringResource(R.string.work_worksheets))
+    val features = LocalFeatures.current
+    val types = workFilterTypes(features, report.group.assignments)
+    val selectedType = workSelectedFilter(types, AssignmentType.entries.getOrNull(filter - 1))
+    val canAdd = workAssignmentTypes(features).isNotEmpty()
+    val labels = types.map { stringResource(when (it) {
+        null -> R.string.work_all
+        AssignmentType.HOMEWORK -> R.string.work_homework
+        AssignmentType.TEST -> R.string.work_tests
+        AssignmentType.WORKSHEET -> R.string.work_worksheets
+    }) }
+    LaunchedEffect(types) { if (selectedType == null) filter = 0 }
     val today = rememberToday()
     val motion = animationsEnabled()
     val revealed = remember(report.group.id) { mutableSetOf<String>() }
-    val sections = workSections(report.group.assignments, today, types[filter])
+    val sections = workSections(report.group.assignments, today, selectedType)
     Box(Modifier.fillMaxSize()) {
         LazyColumn(contentPadding = PaddingValues(top = padding.calculateTopPadding() + Space.m,
             bottom = padding.calculateBottomPadding() + Space.xxl * 3)) {
             item {
                 LazyRow(Modifier.padding(bottom = Rhythm.inSection), contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                    items(labels.indices.toList()) { index -> FilterChip(selected = filter == index, onClick = { filter = index }, label = { Text(labels[index]) }) }
+                    items(labels.indices.toList()) { index -> FilterChip(selected = selectedType == types[index],
+                        onClick = { filter = types[index]?.ordinal?.plus(1) ?: 0 }, label = { Text(labels[index]) }) }
                 }
             }
             if (sections.isEmpty()) item {
                 Column(Modifier.padding(Space.l)) {
-                    EmptyState(AppIcons.Homework, stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint), stringResource(R.string.work_add)) { adding = true }
+                    EmptyState(AppIcons.Homework, stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint),
+                        if (canAdd) stringResource(R.string.work_add) else null) { adding = true }
                 }
             }
             sections.forEachIndexed { sectionIndex, section ->
@@ -119,7 +152,7 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                 }
             }
         }
-        if (sections.isNotEmpty()) ExtendedFloatingActionButton(
+        if (sections.isNotEmpty() && canAdd) ExtendedFloatingActionButton(
             onClick = { adding = true }, icon = { AppIcon(AppIcons.Add) }, text = { Text(stringResource(R.string.work_add)) },
             containerColor = Pacer.colors.accent, contentColor = Pacer.colors.onAccent,
             modifier = Modifier.align(Alignment.BottomEnd).padding(end = Space.l, bottom = padding.calculateBottomPadding() + Space.l),
@@ -127,7 +160,7 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
     }
     val assignment = report.group.assignments.firstOrNull { it.id == editing }
     if (adding || assignment != null) key(editing) {
-        AssignmentEditor(report, vm, assignment, defaultType = types[filter] ?: AssignmentType.HOMEWORK,
+        AssignmentEditor(report, vm, assignment, defaultType = selectedType ?: AssignmentType.HOMEWORK,
             undoToast = undoToast, onDismiss = { adding = false; editing = null })
     }
 }
@@ -135,11 +168,12 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
 @Composable
 fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: AssignmentType = AssignmentType.HOMEWORK,
     defaultSetOn: LocalDate? = null, onSave: (Assignment) -> Unit, onDismiss: () -> Unit) {
-    val typeOptions = listOf(AssignmentType.HOMEWORK, AssignmentType.WORKSHEET, AssignmentType.TEST)
+    val typeOptions = workAssignmentTypes(LocalFeatures.current, initial?.type)
+    val startingType = workDefaultType(typeOptions, initial?.type ?: defaultType) ?: return
     val typeLabels = typeOptions.map { assignmentTypeName(it) }
-    val defaultTitle = assignmentTypeName(initial?.type ?: defaultType)
+    val defaultTitle = assignmentTypeName(startingType)
     val id = rememberSaveable { initial?.id ?: newId() }
-    var type by rememberSaveable { mutableStateOf(initial?.type ?: defaultType) }
+    var type by rememberSaveable { mutableStateOf(startingType) }
     var title by rememberSaveable { mutableStateOf(initial?.title?.takeIf { it.isNotBlank() } ?: defaultTitle) }
     var setText by rememberSaveable { mutableStateOf((initial?.setOn ?: if (initial == null) defaultSetOn else null)?.toString()) }
     var dueText by rememberSaveable { mutableStateOf(initial?.due?.toString()) }
@@ -162,7 +196,7 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
             note.trim(), type != AssignmentType.HOMEWORK && takesLesson,
             contentType.takeIf { type == AssignmentType.HOMEWORK }, initial?.linkedId, initial?.completed ?: false))
     }, dirty = rememberDraftChanged(type, title, setText, dueText, note, takesLesson, contentType, texts.toList())) {
-        SegmentedToggle(typeLabels, typeOptions.indexOf(type), { selected ->
+        if (typeOptions.size > 1) SegmentedToggle(typeLabels, typeOptions.indexOf(type), { selected ->
             if (title == typeLabels[typeOptions.indexOf(type)]) title = typeLabels[selected]
             type = typeOptions[selected]
         })

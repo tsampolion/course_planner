@@ -159,3 +159,16 @@ Counts below measure action taps, excluding typing, date-picker navigation and s
 | Switch year with nonempty Undo | 1 | 2 | Every preset; approved warning |
 
 The approved creation and safety steps are explicit exceptions to the original no-extra-taps rule. Phone checks still cover light/dark, Bone/Saffron, large text and narrow/tablet widths.
+
+## PR7 journeys
+
+PR7 implements only the approved Work module gates in 0.4.13.0. The owner declined the shared plan choice, Stats action changes and Work empty-state redesign. Counts use the PR6 convention above, from the same screen and starting state; these are source-traced action counts, with device validation pending.
+
+| Journey | Before | After | Availability |
+| --- | --- | --- | --- |
+| Stats to Own pace | 1 | 1 | Unchanged |
+| Stats to set a book's position | 1 | 1 | Unchanged |
+| Switch the source on Stats, then match it on Plan | 2 source selections + navigation | 2 source selections + navigation | Independent selections retained |
+| Empty Work to the assignment sheet | 1 | 1 | Homework or Tests brick, including saved data in use |
+| Empty Work to the homework-only sheet | 1 | 1 | Homework brick only; the sheet omits the redundant selector |
+| Lesson hero to Homework sheet | 1 | 1 | Homework brick, including saved data in use; otherwise absent |

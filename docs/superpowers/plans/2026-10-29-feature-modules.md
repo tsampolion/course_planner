@@ -190,6 +190,6 @@ Rule: no custom → NONE; `features.has(Brick.PLAN_EDITOR)` (true when Planning 
 Tasks 1 to 7 are built. Carried to the later steps:
 
 - Home's tests card has no gate: it lists only tests that exist, so data in use already decides it.
-- Compose-only gates (the book form, Group settings, the hero's Homework button, the Units revision step) land with audit PRs 6 and 7; the Day strip's +, a day off's Add extra lesson and Plan's Create line are gated here.
+- The book form, Group settings and Units revision step are gated in 0.4.12.0. Work's assignment types and filters, and the hero's Homework button, are gated in 0.4.13.0. The Day strip's +, a day off's Add extra lesson and Plan's Create line are gated here.
 - "Turn on and import" keeps the modules on if the Add or Replace question is then cancelled; acceptable while modules only turn on.
 
