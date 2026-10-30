@@ -25,6 +25,11 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.12.1] - 2026-10-30
+
+### Fixed
+- The saved-file version is now 16. 0.4.12.0 began saving whether homework is done (`completed`) without raising the schema version, as `CLAUDE.md` requires for any schema change. Files from 0.4.12.0 and older still open (homework missing the field reads as not done). A backup made by this version is refused, with the usual "newer version" message, by copies older than 0.4.12.1.
+
 ## [0.4.12.0] - 2026-10-30
 
 ### Changed
@@ -1076,7 +1081,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.12.1...HEAD
+[0.4.12.1]: https://github.com/tsampolion/course_planner/compare/v0.4.12.0...v0.4.12.1
 [0.4.12.0]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...v0.4.12.0
 [0.4.11.0]: https://github.com/tsampolion/course_planner/compare/v0.4.10.1...v0.4.11.0
 [0.4.10.1]: https://github.com/tsampolion/course_planner/compare/v0.4.10.0...v0.4.10.1

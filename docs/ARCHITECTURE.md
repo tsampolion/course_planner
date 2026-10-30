@@ -142,6 +142,7 @@ Reading is lenient per record: one it can't read is left out and one without an 
 | 13 | optional homework `contentType` and `linkedId` | 4.0.0 |
 | 14 | class units and book links; per-group overrides and revisions | 4.1.0 |
 | 15 | `Book.type`; `Group.removedBooks` and `Group.bookDue` | 0.4.2.0 |
+| 16 | `Assignment.completed` (homework marked done); written since 0.4.12.0, versioned in 0.4.12.1 | 0.4.12.1 |
 
 Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHANGELOG.md` explains the mapping).
 

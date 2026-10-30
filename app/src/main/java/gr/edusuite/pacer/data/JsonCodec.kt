@@ -40,11 +40,11 @@ import org.json.JSONObject
  * lessons a book may fall behind before a warning (missing reads as the default); version 8 adds supplementary books
  * (`supplementary`, `include`, `countInLesson`) and, on a custom plan's lessons, the books that count in the lesson
  * (`inLesson`) and the core pages to restore (`replacementBase`); version 9 adds the chosen catch-up boost
- * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`); version 11 adds group end/skip/optional books and class collections. Version 12 adds group assignments. Missing reads as none. Version 15 adds each book's `type` (missing reads from the name) and a group's `removedBooks` and `bookDue`. Version 1
+ * (`catchUpBoost`) on custom plans; version 10 adds date-pinned extra lessons (`extras`); version 11 adds group end/skip/optional books and class collections. Version 12 adds group assignments. Missing reads as none. Version 15 adds each book's `type` (missing reads from the name) and a group's `removedBooks` and `bookDue`. Version 16 adds an assignment's `completed` (homework marked done; missing reads as not done). Version 1
  * files and the web page's localStorage export store a flat list of plans; those still read, through [migratePlans].
  */
 object JsonCodec {
-    const val VERSION = 15
+    const val VERSION = 16
 
     fun encode(data: AppData): String = JSONObject()
         .put("version", VERSION)
