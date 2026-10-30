@@ -4,7 +4,9 @@ Status: shipped in 3.10.0 alongside class collections; extended in 0.4.2.0 with 
 
 ## Intent
 
-A dedicated Group settings screen collects Next lesson, an optional earlier end date, group days off, additional skipped pages, optional books and Delete group. Class defaults remain visible. Clearing an override restores the class/year default. Group end dates cannot extend the school year. Skip ranges add to class book skips. Every mutation follows existing undo/save helpers.
+A dedicated Group settings screen collects group name, lesson days, Next lesson, an optional earlier end date, group days off, additional skipped pages, optional books and Delete group. Class defaults remain visible. Clearing an override restores the class/year default. Group end dates cannot extend the school year. Skip ranges add to class book skips. Every mutation follows existing undo/save helpers.
+
+Optional books state whether the group uses them, with a named Use / Stop using action instead of a checkbox. Each book has a visible options button; long-press opens the same options.
 
 ## Book approaches
 

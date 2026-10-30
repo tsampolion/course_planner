@@ -209,7 +209,7 @@ Each is its own session and PR, approved by the owner one at a time. Redesign wo
 | 4 | **Menu and top bar** (built, 0.4.9.0) | N1–N3, D-proposal 2, X1 (update dot), X16, X18 | M |
 | 5 | **One sheet frame** (built, 0.4.10.0) | X7, D1, D2, X12, X13, F18 (streamlining S4); every sheet ends the same way | L |
 | 5a | **Modules foundation** (built, 0.4.11.0) | [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md): the module registry, stored modules, gates in the menu models, the import question, the slim catch-up bar; no visible change for existing installs | M |
-| 6 | **Set-up screens** | C1–C5 (with F17), X6 (Group settings), X17, X20, D-proposal 5; removals only with the owner's yes; the book form, Class, Group settings and Units module gates | L |
+| 6 | **Set-up screens — implemented in 0.4.12.0; device validation pending** | C1–C5 (with F17), X6 (Group settings), X17, X20, D-proposal 5; removals only with the owner's yes; the book form, Class, Group settings and Units module gates | L |
 | 7 | **Stats and Work** | S1–S3, W1; Work's module gates and the hero's Homework button | S |
 | 8 | **Settings, welcome, empty states** | D3, D4, X8, X10, X11; the modules launch: Welcome presets, Settings › Features, hints, What's new, the first release name | M |
 | 9 | **Polish and record** | dark-mode and tablet pass over all screens (module screens included), X15 and D-proposal 9, `PACER_DESIGN.md` updated with what was approved, the deck and the module motion | M |

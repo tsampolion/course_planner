@@ -13,6 +13,15 @@ class HomeworkPacingTest {
     private fun plan(a: Assignment) = base.copy(groups = listOf(group.copy(assignments = listOf(a))))
     private fun hw() = Assignment("h", AssignmentType.HOMEWORK, "Read", today.minusDays(2), today.plusDays(1), mapOf(book.id to listOf(2, 3)))
 
+    @Test fun completionNeverChangesBankingDatesOrSchedule() {
+        val open = hw()
+        val done = open.copy(completed = true)
+        for (date in listOf(today, today.plusDays(1), today.plusDays(2))) {
+            assertEquals(plan(open).homeworkPages(group.id, book.id, date), plan(done).homeworkPages(group.id, book.id, date))
+        }
+        val a = plan(open); val b = plan(done)
+        assertEquals(GroupReport(a, a.groups.first()).rows, GroupReport(b, b.groups.first()).rows)
+    }
     @Test fun homeworkPagesWaitForDueInclusive() {
         val p = plan(hw())
         assertEquals(emptySet<Int>(), p.homeworkPages(group.id, book.id, today))

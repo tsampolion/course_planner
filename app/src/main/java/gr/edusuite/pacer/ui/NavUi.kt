@@ -449,6 +449,7 @@ fun WarningsSheet(report: GroupReport, warnings: List<GroupWarning>, fixes: Warn
                         pluralStringResource(R.plurals.warn_behind, w.pages, w.pages, plan.pace.plain()),
                         stringResource(R.string.warn_catch_up), strong = true,
                     ) { close(); fixes.catchUp() }
+                    if (report.custom != null) Hint(stringResource(R.string.pr6_repace_preserves))
                     if (report.custom != null) TertiaryButton(
                         stringResource(R.string.warnings_repace_to_fit), { close(); fixes.repaceToFit() },
                         Modifier.fillMaxWidth(), color = Pacer.colors.accentText,

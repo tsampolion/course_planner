@@ -10,7 +10,7 @@ import gr.edusuite.pacer.engine.fmt
 internal enum class MenuItemKind {
     ADD_SUPPLEMENTARY, PLAN_LESSON, ADD_BEFORE, MOVE_EARLIER, MOVE_LATER, REPACE, REMOVE,
     RECORD_TAUGHT, NOT_TAUGHT, DONE_UP_TO, NOT_DONE_FROM, EDIT_EXTRA, DELETE_EXTRA,
-    ADD_HOMEWORK, EDIT_HOMEWORK, DELETE_HOMEWORK,
+    ADD_HOMEWORK, EDIT_HOMEWORK, DELETE_HOMEWORK, TOGGLE_HOMEWORK,
 }
 
 internal fun homeworkForLesson(l: Lesson): List<Assignment> = l.assignments.filter {
@@ -40,6 +40,7 @@ internal fun lessonMenuItems(
 ): List<MenuItemKind> = buildList {
     add(MenuItemKind.ADD_HOMEWORK)
     if (homeworkForLesson(lesson).isNotEmpty()) {
+        add(MenuItemKind.TOGGLE_HOMEWORK)
         add(MenuItemKind.EDIT_HOMEWORK)
         add(MenuItemKind.DELETE_HOMEWORK)
     }
@@ -68,7 +69,7 @@ internal fun lessonMenuItems(
 
 /** The feature each lesson action belongs to; a screen offers only those [Features.has]. */
 internal fun MenuItemKind.brick(): Brick = when (this) {
-    MenuItemKind.ADD_HOMEWORK, MenuItemKind.EDIT_HOMEWORK, MenuItemKind.DELETE_HOMEWORK -> Brick.HOMEWORK
+    MenuItemKind.ADD_HOMEWORK, MenuItemKind.EDIT_HOMEWORK, MenuItemKind.DELETE_HOMEWORK, MenuItemKind.TOGGLE_HOMEWORK -> Brick.HOMEWORK
     MenuItemKind.ADD_SUPPLEMENTARY -> Brick.SUPPLEMENTARY
     MenuItemKind.PLAN_LESSON, MenuItemKind.ADD_BEFORE, MenuItemKind.MOVE_EARLIER,
     MenuItemKind.MOVE_LATER, MenuItemKind.REPACE, MenuItemKind.REMOVE -> Brick.PLAN_EDITOR

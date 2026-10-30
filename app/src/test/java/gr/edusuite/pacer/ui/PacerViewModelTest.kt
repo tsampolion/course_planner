@@ -132,6 +132,28 @@ class PacerViewModelTest {
         val undoDepth get() = vm.state.value.undoDepth
     }
 
+    @Test fun setupRejectsInvalidBookAndDayOffWithoutUndo() {
+        val r = Rig()
+        val before = r.vm.state.value.data
+        val depth = r.undoDepth
+        r.vm.addBook("Invalid", 20, 10)
+        r.vm.setFirstPage("sb", 0)
+        r.vm.addClosure("Invalid", d("2026-11-20"), d("2026-11-10"), ALL_GROUPS)
+        assertEquals(before, r.vm.state.value.data)
+        assertEquals(depth, r.undoDepth)
+    }
+
+    @Test fun addingGroupStoresChosenDaysInOneUndoStep() {
+        val r = Rig()
+        val depth = r.undoDepth
+        val days = setOf(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY)
+        r.vm.addGroup("New group", days)
+        val added = r.vm.state.value.data.schoolClass!!.groups.last()
+        assertEquals("New group", added.name)
+        assertEquals(days, added.days)
+        assertEquals(depth + 1, r.undoDepth)
+    }
+
     @Test fun todayFlowAdvancesWithClock() {
         val r = Rig()
         assertEquals(d("2026-10-24"), r.vm.today.value)

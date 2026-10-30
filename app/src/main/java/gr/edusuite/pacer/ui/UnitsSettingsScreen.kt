@@ -19,6 +19,7 @@ import gr.edusuite.pacer.ui.theme.Space
 /** Three steps stay editable after setup; links are always optional. */
 @Composable
 fun UnitsSettingsScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues) {
+    if (!LocalFeatures.current.has(gr.edusuite.pacer.model.Brick.UNITS)) return
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     val lead = plan.coreBooks.firstOrNull { it.id == plan.lead }
     val leadStarts = lead?.validUnitStarts()

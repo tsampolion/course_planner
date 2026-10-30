@@ -152,7 +152,7 @@ object Nav {
         msg.startsWith("Add at least one group") || msg.startsWith("Add at least one book") -> Screen.Class
         plan.books.any { msg.startsWith("${it.name}:") } -> Screen.Class
         plan.groups.any { msg.startsWith("${it.name}'s plan") } -> Screen.Group(plan.groups.first { msg.startsWith("${it.name}'s plan") }.id)
-        plan.groups.any { msg.startsWith("${it.name} has") } -> Screen.Class
+        plan.groups.firstOrNull { msg.startsWith("${it.name} has") } != null -> Screen.GroupSettings(plan.groups.first { msg.startsWith("${it.name} has") }.id)
         else -> null
     }
 }

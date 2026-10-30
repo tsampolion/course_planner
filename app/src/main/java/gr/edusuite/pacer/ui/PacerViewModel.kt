@@ -582,7 +582,7 @@ class PacerViewModel(
     // ---- closures ----------------------------------------------------------
 
     fun addClosure(label: String, from: LocalDate, to: LocalDate?, who: String) = editYear { y ->
-        y.copy(closures = y.closures + Closure(newId(), label.ifBlank { "Day off" }, from, to ?: from, who))
+        if (to != null && to < from) y else y.copy(closures = y.closures + Closure(newId(), label.ifBlank { "Day off" }, from, to ?: from, who))
     }
 
     /** Changes one of the group's own days off in a single undo step. False when it isn't the group's or the dates are reversed. */
@@ -668,9 +668,9 @@ class PacerViewModel(
 
     // ---- groups ------------------------------------------------------------
 
-    fun addGroup() = editClass { c ->
-        val name = "Group " + ('A' + c.groups.size)
-        c.copy(groups = c.groups + Group(newId(), name, setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), data.year?.start))
+    fun addGroup(nameInput: String = "", days: Set<DayOfWeek> = setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY)) = editClass { c ->
+        val name = nameInput.ifBlank { "Group " + ('A' + c.groups.size) }
+        c.copy(groups = c.groups + Group(newId(), name, days, data.year?.start))
     }
 
     /** Removes the group with its homework and the days off and tests aimed only at it. */
@@ -903,6 +903,7 @@ class PacerViewModel(
 
     /** Adds a supplementary book with the pages in [include]; its first and last pages are the lowest and highest. Ignores an unreadable list. */
     fun addSupplementaryBook(name: String, include: String) {
+        if (!validSetupInclude(include)) return
         val pages = parseInclude(include)?.takeIf { it.isNotEmpty() } ?: return
         editClass { c ->
             c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, pages.first(), pages.last(), supplementary = true, include = include.trim(), type = BookType.SUPPLEMENTARY))
@@ -911,6 +912,7 @@ class PacerViewModel(
 
     /** Sets a supplementary book's pages, with its first and last pages. Ignores an empty or unreadable list. */
     fun setInclude(id: String, v: String) {
+        if (!validSetupInclude(v)) return
         val pages = parseInclude(v)?.takeIf { it.isNotEmpty() } ?: return
         editBook(id, "binclude:$id") { it.copy(include = v.trim(), first = pages.first(), last = pages.last()) }
     }
@@ -918,7 +920,7 @@ class PacerViewModel(
     fun setCountInLesson(id: String, v: Boolean) = editBook(id, "bcount:$id") { it.copy(countInLesson = v) }
 
     fun addBook(name: String, first: Int, last: Int, type: BookType = BookType.UNCLASSIFIED) = editClass { c ->
-        c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, first.coerceAtMost(MAX_PAGE), last.coerceAtMost(MAX_PAGE), type = type))
+        if (first !in 1..MAX_PAGE || last !in first..MAX_PAGE) c else c.copy(books = c.books + Book(newId(), name.ifBlank { "Book ${c.books.size + 1}" }, first.coerceAtMost(MAX_PAGE), last.coerceAtMost(MAX_PAGE), type = type))
     }
 
     /**
@@ -957,8 +959,8 @@ class PacerViewModel(
     }
 
     fun renameBook(id: String, name: String) = editBook(id, "bname:$id") { it.copy(name = name) }
-    fun setFirstPage(id: String, v: Int) = editBook(id, "bfirst:$id") { it.copy(first = v.coerceAtMost(MAX_PAGE)) }
-    fun setLastPage(id: String, v: Int) = editBook(id, "blast:$id") { it.copy(last = v.coerceAtMost(MAX_PAGE)) }
+    fun setFirstPage(id: String, v: Int) = editBook(id, "bfirst:$id") { if (v in 1..it.last) it.copy(first = v) else it }
+    fun setLastPage(id: String, v: Int) = editBook(id, "blast:$id") { if (v in it.first..MAX_PAGE) it.copy(last = v) else it }
     fun setSkip(id: String, v: String) = editBook(id, "bskip:$id") { it.copy(skip = v) }
     fun setDue(id: String, v: LocalDate?) = editBook(id, "bdue:$id") { it.copy(due = v) }
     fun setUnits(id: String, v: String) = editBook(id, "bunits:$id") { it.copy(units = v) }

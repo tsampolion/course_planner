@@ -139,52 +139,11 @@ The allocation rule doesn't change: within each book, lesson *i* of *m* ends at 
 8. **Display:** is a "Focus: Grammar" tag with "—" in the other columns enough, or should block lessons be shaded like test lessons?
 9. **Relation to pinned lessons:** fixing the pages of a single future lesson was left out of 1.5.0 (`docs/LESSON_PAGES_BRIEF.md`, "Out of scope"). A one-lesson focus block covers part of that idea. Is that enough, or is a separate "plan this lesson's pages" still wanted?
 
-## 6. Setup checks that match the rest of the app (F05, F06)
+## 6. Home on-pace count
 
-**Status:** proposed (audit P2). No pacing change. Not approved.
+**Status:** proposed. Not approved.
 
-### The problem
-
-**Add book (F05)** (`ui/ClassScreens.kt:416-438`):
-
-- Add is enabled when Last is valid. First is ignored.
-- A First of 0, blank or above `MAX_PAGE` (`model/Model.kt:13`, 100,000) silently becomes 1 (line 426).
-- First 100 / Last 10 is saved reversed. The engine only reports it afterwards ("the last page is before the first", `engine/Pacer.kt:427`).
-- The book editor has the same gap (`ClassScreens.kt:339-340`, `PacerViewModel.kt:827-868` only cap the maximum).
-- The optional group book already does it right: inline errors and `lastN >= firstN` (`ui/GroupSettingsScreen.kt:235-252`), backed by `addGroupBook`'s `first !in 1..MAX_PAGE || last !in first..MAX_PAGE` (`PacerViewModel.kt:630`).
-
-**Year day off (F06).** Year settings → Add day off → More options accepts From 20 Nov, To 10 Nov.
-
-- Add only needs From (`ui/YearScreens.kt:196-200`). `addClosure` stores it as given (`PacerViewModel.kt:488-490`).
-- The list shows "20 Nov – 10 Nov" (`YearScreens.kt:70-71`), while the engine closes the whole span either way round (`engine/Pacer.kt:144-153`).
-- The group day-off sheet already refuses this (`GroupSettingsScreen.kt:193`), as does `withClosureEdited` (`model/GroupBooks.kt:33-37`).
-
-### Proposal
-
-- One shared page-range check, `1 ≤ first ≤ last ≤ MAX_PAGE`, used by Add book, the book editor, the supplementary page fields and the optional group book.
-- Inline reasons on both fields, and Add disabled until the range is valid. Imported invalid data keeps today's warning.
-- The year day-off sheet reuses the group sheet's `to >= from` rule with an inline message. A reversed closure already stored keeps working; its row shows the effective span in order.
-- Count only measured groups (`short == 0`) as on pace. Show unmeasured groups as "set-up needed", or use a neutral "See all N groups ›". Update the two tests.
-
-### Alternative
-
-- For ranges: offer an explicit suggested correction ("Swap to 10–100?") that the teacher must accept. Never correct silently.
-
-### Acceptance
-
-- Blank, boundary, invalid and reversed inputs never change data or close the sheet. Accepted values are stored exactly.
-- Ordinary and supplementary paths are tested separately.
-- Single-day, open-ended and valid ranges still work; a reversed range is disabled.
-- Scope, Greek holiday deduplication and Undo are unaffected.
-- With null-only data, Home never says "on pace", and mixed null, zero and behind totals are right. Every group stays reachable, and 100% and 200% text agree.
-- Parity is unchanged.
-
-### Risk
-
-- **Fits with:** the range and day-off checks fit UI fix PR 6 (set-up screens) in [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md).
-- **Ranges:** low to medium.
-- **Year closures:** medium, because a closure affects every group under it.
-- **Rollback:** two independent reverts, no data change.
+Count only measured groups (`short == 0`) as on pace. Unmeasured groups need neutral wording. Setup range and day-off validation is implemented; see [SETUP_CHECKS_BRIEF.md](SETUP_CHECKS_BRIEF.md).
 
 ## 9. Device and accessibility check pass
 

@@ -180,6 +180,7 @@ fun GroupScreen(
             editExtra = { extraDate = it.date.toString() },
             deleteExtra = { l -> l.extraId?.let { changed(vm.removeExtra(g.id, it), context.getString(R.string.extra_deleted)) } },
             addHomework = { homeworkDate = it.date.toString(); homeworkId = null },
+            toggleHomework = { changed(vm.saveAssignment(g.id, it.copy(completed = !it.completed)), context.getString(if (it.completed) R.string.pr6_mark_not_done else R.string.pr6_mark_done)) },
             editHomework = { homeworkId = it.id; homeworkDate = null },
             deleteHomework = { changed(vm.removeAssignment(g.id, it.id), context.getString(R.string.work_deleted)) },
             notTaught = { notTaughtDate = it.date.toString() },

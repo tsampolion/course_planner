@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import gr.edusuite.pacer.model.Brick
 import gr.edusuite.pacer.R
 import gr.edusuite.pacer.engine.endFor
 import gr.edusuite.pacer.engine.fmt
@@ -43,6 +43,8 @@ fun GroupSettingsScreen(
     undoToast: (String) -> Unit = {},
     toast: (String) -> Unit = {},
 ) {
+    val confirmDelete = rememberSetupConfirmation()
+    val features = LocalFeatures.current
     val context = LocalContext.current
     var addingClosure by rememberSaveable(group.id) { mutableStateOf(false) }
     var editingClosure by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
@@ -55,7 +57,7 @@ fun GroupSettingsScreen(
     ScreenList(padding) {
         item(key = 1) {
             SectionColumn {
-                SectionHead(stringResource(R.string.group_settings_dates))
+                GroupFields(group, vm)
                 DateField(nextLesson, { vm.setNextLesson(group.id, it) }, stringResource(R.string.class_next_lesson), Modifier.fillMaxWidth(), clearable = true)
                 Hint(stringResource(R.string.group_settings_default_start, plan.start?.fmt() ?: stringResource(R.string.component_not_set)))
                 DateField(group.end, { date -> vm.setGroupEnd(group.id, date) }, stringResource(R.string.group_settings_end), Modifier.fillMaxWidth(), clearable = true)
@@ -87,7 +89,7 @@ fun GroupSettingsScreen(
                             LedgerRow(
                                 title, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff,
                                 onLongClick = { menu = true }, longClickLabel = stringResource(R.string.component_options),
-                            ) { RemoveMenu(title, remove) }
+                            ) { PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) } }
                             PacerDropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.class_edit)) }, leadingIcon = { AppIcon(AppIcons.Edit) },
@@ -110,7 +112,7 @@ fun GroupSettingsScreen(
                 }
             }
         }
-        item(key = 3) {
+        if (features.has(Brick.GROUP_BOOK_RULES)) item(key = 3) {
             SectionColumn {
                 SectionHead(stringResource(R.string.group_settings_skipped_pages))
                 Hint(stringResource(R.string.group_settings_skip_hint))
@@ -124,32 +126,39 @@ fun GroupSettingsScreen(
         }
         item(key = 4) {
             SectionColumn {
-                SectionHead(stringResource(R.string.group_settings_books), action = stringResource(R.string.class_add_a_book), onAction = { addingBook = true })
+                SectionHead(stringResource(R.string.group_settings_books), action = stringResource(R.string.class_add_a_book), onAction = if (features.has(Brick.OPTIONAL_BOOKS)) ({ addingBook = true }) else null)
                 Hint(stringResource(R.string.group_settings_books_hint))
-                Hint(stringResource(R.string.group_settings_books_long_press))
                 RowGroup {
-                    plan.books.forEachIndexed { i, book ->
+                    plan.books.filter { !it.groupOnly || features.has(Brick.OPTIONAL_BOOKS) }.forEachIndexed { i, book ->
                         if (i > 0) RowDivider()
                         val title = book.name.ifBlank { stringResource(R.string.class_book) }
                         val removed = book.id in group.removedBooks
+                        val selected = book.id in group.extraBooks
                         val own = group.bookDue[book.id]
                         val detail = listOfNotNull(
                             stringResource(if (removed) R.string.group_settings_removed_book else if (book.groupOnly) R.string.group_settings_optional_book else R.string.group_settings_default_book),
+                            if (book.groupOnly) stringResource(if (selected) R.string.group_settings_book_used else R.string.group_settings_book_not_used) else null,
                             own?.takeIf { !removed && !book.supplementary }?.let { stringResource(R.string.class_due_by, it.fmtShort()) },
                         ).joinToString(" · ")
                         val options = stringResource(R.string.component_options)
-                        if (!book.groupOnly) LedgerRow(title, detail = detail, onLongClick = { optionsBook = book.id }, longClickLabel = options)
-                        else {
-                            val selected = book.id in group.extraBooks
-                            LedgerRow(title, detail = detail, onClick = { vm.setGroupExtraBook(group.id, book.id, !selected) }, onLongClick = { optionsBook = book.id }, longClickLabel = options) {
-                                Checkbox(checked = selected, onCheckedChange = null)
+                        Column {
+                            LedgerRow(title, detail = detail, onLongClick = if (features.has(Brick.GROUP_BOOK_RULES)) ({ optionsBook = book.id }) else null, longClickLabel = options) {
+                                if (features.has(Brick.GROUP_BOOK_RULES)) PillIconButton(stringResource(R.string.rows_options, title), { optionsBook = book.id }) {
+                                    AppIcon(AppIcons.MoreVert)
+                                }
+                            }
+                            if (book.groupOnly) {
+                                TertiaryButton(
+                                    stringResource(if (selected) R.string.group_settings_stop_using_book else R.string.group_settings_use_book, title),
+                                    { vm.setGroupExtraBook(group.id, book.id, !selected) },
+                                )
                             }
                         }
                     }
                 }
             }
         }
-        item(key = "units") {
+        if (features.has(Brick.UNITS)) item(key = "units") {
             SectionColumn {
                 SectionHead(stringResource(R.string.units_title))
                 Picker(stringResource(R.string.units_group_setting), listOf(
@@ -166,8 +175,7 @@ fun GroupSettingsScreen(
         item(key = 5) {
             FootActions(null, stringResource(R.string.group_settings_delete) to {
                 val name = group.name.ifBlank { context.getString(R.string.class_group) }
-                vm.removeGroup(group.id)
-                undoToast(context.getString(R.string.class_removed, name))
+                confirmDelete { vm.removeGroup(group.id); undoToast(context.getString(R.string.class_removed, name)) }
             })
         }
     }
@@ -199,6 +207,7 @@ private fun GroupClosureSheet(groupId: String, editing: Closure?, vm: PacerViewM
         CommitField(label, { label = it }, stringResource(R.string.year_reason), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_reason_example))
         DateField(from, { fromText = it?.toString() }, stringResource(R.string.year_from), Modifier.fillMaxWidth())
         DateField(to, { toText = it?.toString() }, stringResource(R.string.year_to_optional), Modifier.fillMaxWidth(), clearable = true)
+        if (from != null && to != null && to < from) Hint(stringResource(R.string.pr6_day_range), color = Pacer.colors.warn)
     }
 }
 
@@ -213,13 +222,13 @@ private fun GroupBookOptionsSheet(plan: Plan, group: Group, book: Book, vm: Pace
     val own = group.bookDue[book.id]
     val end = plan.endFor(group)
     PacerSheet(book.name.ifBlank { stringResource(R.string.class_book) }, onDismiss) {
-        if (!removed && !book.supplementary) {
+        if (LocalFeatures.current.has(Brick.GROUP_BOOK_RULES) && !removed && !book.supplementary) {
             DateField(own, { vm.setGroupBookDue(group.id, book.id, it) }, stringResource(R.string.class_finish_by), Modifier.fillMaxWidth())
             Hint(stringResource(R.string.group_settings_class_date, book.due?.fmt() ?: stringResource(R.string.component_not_set)))
             if (own != null && end != null && own > end) Hint(stringResource(R.string.group_settings_book_due_clamped, end.fmt()), color = Pacer.colors.warn)
             if (own != null) TertiaryButton(stringResource(R.string.group_settings_use_class_date), { vm.setGroupBookDue(group.id, book.id, null) })
         }
-        if (!book.groupOnly) {
+        if (LocalFeatures.current.has(Brick.GROUP_BOOK_RULES) && !book.groupOnly) {
             if (removed) TertiaryButton(stringResource(R.string.group_settings_add_back), { vm.setGroupBookRemoved(group.id, book.id, false) })
             else TertiaryButton(stringResource(R.string.group_settings_remove_book), {
                 if (vm.setGroupBookRemoved(group.id, book.id, true)) onDismiss()

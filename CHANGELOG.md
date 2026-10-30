@@ -25,6 +25,15 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.12.0] - 2026-10-30
+
+### Changed
+- Setup: one group editor, lesson days chosen on creation, Units under Books, consolidated day-off menus, and confirmations for deleting a school year, class or group.
+- Setup forms reject invalid book ranges and reversed day-off dates inline; switching years warns before clearing Undo.
+- Setup controls follow feature-module gates while saved data remains editable. The duplicate unit-start field is removed.
+- Homework has a persistent Done record and explains its unchanged date-based pacing. Re-pacing explains why edited lessons can leave a warning unresolved.
+- Group settings names whether an optional book is used, with Use / Stop using actions instead of an unexplained checkbox. Every book has a visible options button alongside the existing long-press shortcut.
+
 ## [0.4.11.0] - 2026-10-29
 
 The foundation for feature modules ([`FEATURE_MODULES_BRIEF.md`](docs/FEATURE_MODULES_BRIEF.md), step 2). Every install keeps every module on, so nothing changes on screen until the Welcome presets ship with UI audit PR 8.
@@ -1068,6 +1077,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...HEAD
+[0.4.12.0]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...v0.4.12.0
 [0.4.11.0]: https://github.com/tsampolion/course_planner/compare/v0.4.10.1...v0.4.11.0
 [0.4.10.1]: https://github.com/tsampolion/course_planner/compare/v0.4.10.0...v0.4.10.1
 [0.4.10.0]: https://github.com/tsampolion/course_planner/compare/v0.4.9.1...v0.4.10.0

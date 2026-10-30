@@ -148,6 +148,7 @@ data class Assignment(
     val contentType: AssignmentType? = null,
     /** The paired homework/class assignment, within the same group. */
     val linkedId: String? = null,
+    val completed: Boolean = false,
 )
 
 data class Homework(

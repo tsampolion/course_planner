@@ -150,3 +150,22 @@ fun classSectionKey(id: String?): String = if (id == null) "uncollected" else "c
 
 fun classSections(year: SchoolYear, classes: List<ClassSummary>, order: ClassOrder): List<ClassSection> =
     classSections(classes, year.collections, order)
+
+/** Strict setup input: invalid values never become defaults. */
+fun validSetupRange(first: String, last: String): Boolean {
+    val a = first.trim().toIntOrNull() ?: return false
+    val b = last.trim().toIntOrNull() ?: return false
+    return a in 1..gr.edusuite.pacer.model.MAX_PAGE && b in a..gr.edusuite.pacer.model.MAX_PAGE
+}
+
+fun validSetupInclude(text: String): Boolean {
+    if (gr.edusuite.pacer.engine.parseInclude(text).isNullOrEmpty()) return false
+    return text.split(',', ';').filter { it.isNotBlank() }.all { part ->
+        val values = part.trim().split('-', '–', '—').map { it.trim() }
+        when (values.size) {
+            1 -> validSetupRange(values[0], values[0])
+            2 -> validSetupRange(values[0], values[1])
+            else -> false
+        }
+    }
+}

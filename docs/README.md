@@ -15,6 +15,8 @@ Briefs give versions in the old three-part form up to 4.1.0 (4.1.0 is `0.4.1.0` 
 - [STRING_INVENTORY.md](STRING_INVENTORY.md): every string the app shows, says or prints, grouped by screen, with a blank column for the owner's proposed wording.
 - [../PRODUCT.md](../PRODUCT.md): the product record (users, purpose, constraints, principles).
 
+- [SETUP_CHECKS_BRIEF.md](SETUP_CHECKS_BRIEF.md): strict book ranges and day-off dates.
+
 ## Decision records
 
 Each one records why a feature was built, and starts with a `Status:` line.

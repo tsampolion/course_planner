@@ -193,3 +193,7 @@ Owner-approved proposals from [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md):
 - **Today's lesson is the accent fill** wherever it is the focal point (proposal 1). Home has none: its board marks the groups that teach today.
 - **Marks on light paper use `mark`** (proposal 3): progress fills and ticks never use the fill accent where it falls under 3:1. `mark` is the accent in Bone and in both dark sets, and `accentText` in Saffron light; `ContrastTest` checks it against paper, surface and surfaceContainer.
 - **Pills have a visible edge** (proposal 6): a transparent pill with a 1px `outline` stroke, which reaches 3:1 against the ground.
+
+## Visible actions
+
+No action by long-press alone. Every long-press action also has a visible entry point.
