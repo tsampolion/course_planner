@@ -569,7 +569,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Today / Next · lesson N box | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Opens the lesson menu for that lesson. |
 | Done (in the box, the dark button) | Tap | The shown plan is the one in use | Marks the lesson done with a drawn tick. Undo: “Lesson marked done” |
 | Pages taught (tap the pages in the box, shown with an edit icon) | Tap | Today or past lesson | ↑ Opens [Pages taught on Fri 23 Oct](#pages-taught). Opens Pages taught for it. TalkBack: a named “Pages taught” action on the pages. |
-| Homework (under Done, in the box, the light button) | Tap |  | ↑ Opens [Add homework](#assignment) for that lesson. The same action as the lesson menu's Add homework…. |
+| Homework (under Done, in the box, the light button) | Tap | Work · Homework brick (including saved Homework in use) | ↑ Opens [Add homework](#assignment) for that lesson. The same action as the lesson menu's Add homework…. |
 | Homework due today / set today lines | Shows |  | Under the box. |
 | Progress strip (Lesson N of M · status) | Tap |  | → Screen [Stats](#stats). Opens Stats (read as “Open book stats”). |
 | Fix (round button beside the progress strip) | Tap | The group is short and Warnings has a lateness fix | ↑ Opens the Warnings sheet, as the top bar's warning button does. The sheet's repairs keep hand-edited lessons. |
@@ -742,7 +742,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Homework / Worksheet / Test | Toggle |  | Changes the type; an untouched title follows it. |
+| Homework / Worksheet / Test | Toggle | More than one available type; Homework needs Work · Homework brick; Worksheet and Test need Work · Tests brick; an existing assignment keeps its type available | Changes the type; an untouched title follows it. With one available type the selector is absent. |
 | Homework content | Choose | Homework | Pages or notes, Worksheet, or Test. |
 | Title | Type |  | Required. |
 | Set-on lesson / Due lesson (optional) | Tap |  | ↑ Opens [Date picker](#date-picker). Date pickers with Clear. Warns when due is before set, or a date has no lesson. |
@@ -769,8 +769,8 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| All / Homework / Tests / Worksheets chips | Tap |  | View. Filters the list; a new assignment starts as the filtered type. |
-| Add assignment (empty state or floating button) | Tap |  | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens the assignment sheet. |
+| All / Homework / Tests / Worksheets chips | Tap | All always; Homework needs Work · Homework brick; Tests and Worksheets need Work · Tests brick; a type with saved assignments stays available | View. Filters the list; a new assignment starts as the filtered type when available. If a selected type disappears, the view returns to All. |
+| Add assignment (empty state or floating button) | Tap | Work · Homework or Tests brick | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens with the filtered type, or the first available type if that type cannot be added. |
 | An assignment row | Tap |  | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens it in the assignment sheet. |
 | A row's ⋮ (Options for name) | Tap |  | ↑ Opens [Assignment ⋮](#work-row-menu). Opens its menu. |
 | Swipe a row from the end | Swipe |  | Removes it. Undo: “Assignment removed” |

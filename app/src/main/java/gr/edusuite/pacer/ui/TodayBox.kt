@@ -82,6 +82,7 @@ import gr.edusuite.pacer.model.Group
 import gr.edusuite.pacer.model.Plan
 import gr.edusuite.pacer.model.Assignment
 import gr.edusuite.pacer.model.AssignmentType
+import gr.edusuite.pacer.model.Brick
 import gr.edusuite.pacer.engine.assignmentsOn
 import gr.edusuite.pacer.model.TestEvent
 import gr.edusuite.pacer.ui.theme.Figures
@@ -159,7 +160,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                 Column(m, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     val doneModifier = Modifier.fillMaxWidth().then(if (actions.canTick) Modifier else Modifier.alpha(0f).clearAndSetSemantics {})
                     HeroButton(stringResource(R.string.today_done), actions.canTick && !completing, complete, doneModifier, height, strong.first, strong.second) { DrawingCheck(tickPulse, strong.second, Modifier.size(18.dp)) }
-                    HeroButton(stringResource(R.string.today_homework), true, { actions.addHomework(next) }, Modifier.fillMaxWidth().semantics { contentDescription = addHomework }, height, soft.first, soft.second) { AppIcon(AppIcons.Homework, Modifier.size(18.dp)) }
+                    if (LocalFeatures.current.has(Brick.HOMEWORK)) HeroButton(stringResource(R.string.today_homework), true, { actions.addHomework(next) }, Modifier.fillMaxWidth().semantics { contentDescription = addHomework }, height, soft.first, soft.second) { AppIcon(AppIcons.Homework, Modifier.size(18.dp)) }
                 }
             }
             if (large) Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
