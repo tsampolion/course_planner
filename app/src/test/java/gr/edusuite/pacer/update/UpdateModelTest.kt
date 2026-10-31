@@ -96,7 +96,7 @@ class UpdateModelTest {
 
     @Test fun toUpdateBuildsFromAGoodRelease() {
         assertEquals(
-            Update("3.11.0", "Added\nUpdate check in Settings.\nA dot on the menu.", apk, page),
+            Update("3.11.0", "Update check in Settings.\nA dot on the menu.", apk, page),
             toUpdate(release()),
         )
     }
@@ -123,18 +123,26 @@ class UpdateModelTest {
         assertTrue(isDue(10 * day, 9 * day))
     }
 
-    @Test fun shortNotesStripsMarkdownAndKeepsThreeLines() {
-        val md = "### Added\n\n- **Updates**: check in [Settings](https://x.y/z).\n* Second\n1. Third\n- Fourth"
-        assertEquals("Added\nUpdates: check in Settings.\nSecond", shortNotes(md))
+    @Test fun shortNotesKeepsOnlyBulletsAndCapsThem() {
+        val md = "### Added\n\n- **Updates**: check in [Settings](https://x.y/z).\n* Second\n- Third\n- Fourth\n- Fifth\nPlain line"
+        assertEquals("Updates: check in Settings.\nSecond\nThird\nFourth", shortNotes(md))
         assertEquals("", shortNotes(""))
         assertEquals("", shortNotes(null))
     }
 
-    @Test fun shortNotesHandlesCrLfAndImages() {
-        val md = "### Added\r\n\r\n- ![shot](https://x.y/a.png) New *badge*\r\n- _Quiet_ `notice`\r\n"
+    @Test fun shortNotesHandlesCrLfAndImagesAndDropsCodeBullets() {
+        val md = "### Added\r\n\r\n- ![shot](https://x.y/a.png) New *badge*\r\n- _Quiet_ `notice`\r\n- Calm"
         val out = shortNotes(md)
-        assertEquals("Added\nNew badge\nQuiet notice", out)
+        assertEquals("New badge\nCalm", out)
         listOf("\r", "![", "**", "](", "`").forEach { assertFalse(it, out.contains(it)) }
+    }
+
+    @Test fun shortNotesNeverShowsTheDeveloperText() {
+        val body = "### Fixed\nThe saved-file version is now 16. 0.4.12.0 began saving whether homework is done.\n" +
+            "- Homework you tick as done is now remembered.\n" +
+            "- The saved-file version is now 16 (`JsonCodec.VERSION`).\n\n" +
+            "Signed with certificate SHA-256 `f8cb5004`."
+        assertEquals("Homework you tick as done is now remembered.", shortNotes(body))
     }
 
     @Test fun pendingUpdateKeepsOnlyNewer() {

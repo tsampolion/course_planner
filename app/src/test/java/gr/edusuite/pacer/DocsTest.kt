@@ -63,6 +63,32 @@ class DocsTest {
         assertEquals(name, top)
     }
 
+    /** The Updates card in Settings shows these bullets to teachers, so they are plain English (0.4.14.1 on). */
+    @Test
+    fun changelogBulletsReadAsPlainEnglishFrom04141() {
+        val jargon = Regex("""(?i)\b(schema|json|sha|certificate|apk|gradle|ci|pr|claude|viewmodel|refactor|api|migration|codec)\b""")
+        fun atLeast(v: String): Boolean {
+            val a = v.split('.').map { it.toInt() }; val b = listOf(0, 4, 14, 1)
+            for (i in 0 until 4) if (a[i] != b[i]) return a[i] > b[i]
+            return true
+        }
+        val sections = Regex("""(?m)^## \[(\d+(?:\.\d+){3})][^\n]*\n(.*?)(?=^## \[|\z)""", RegexOption.DOT_MATCHES_ALL)
+            .findAll(File(root, "CHANGELOG.md").readText()).filter { atLeast(it.groupValues[1]) }
+        val problems = sections.flatMap { m ->
+            val bullets = m.groupValues[2].lines().filter { it.trimStart().startsWith("- ") }
+            val none = if (bullets.isEmpty()) listOf("${m.groupValues[1]}: no bullets") else emptyList()
+            none + bullets.mapNotNull { b ->
+                when {
+                    '`' in b -> "${m.groupValues[1]}: code span in \"$b\""
+                    b.length > 162 -> "${m.groupValues[1]}: over 160 characters: \"$b\""
+                    jargon.containsMatchIn(b) -> "${m.groupValues[1]}: jargon in \"$b\""
+                    else -> null
+                }
+            }
+        }.toList()
+        assertTrue("CHANGELOG bullets must be short, plain English: $problems", problems.isEmpty())
+    }
+
     @Test
     fun plansAndSpecsAreTemporary() {
         val dir = File(docs, "superpowers")

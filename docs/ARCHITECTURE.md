@@ -165,7 +165,7 @@ Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHAN
 
 - Version parsing of three-part and four-part versions. A three-part `X.Y.Z` compares as `[X, Y, Z, 0]` and a four-part `0.X.Y.Z` as itself, so every old version counts as newer than any `0.x.y.z`.
 - Release validation against this repository's release URLs.
-- The once-a-day throttle, note trimming, and folding a result into `Settings`.
+- The once-a-day throttle, note trimming (`shortNotes` keeps up to four plain bullets of the changelog section), and folding a result into `Settings`.
 
 `GitHubReleases.kt` is the only network code (`HttpURLConnection`, `org.json`, one GET to `releases/latest`). `PacerViewModel` checks on launch and on Check now. `Settings` holds `autoUpdateCheck`, `lastUpdateCheck` and `availableUpdate`. Debuggable builds never check. The ☰ dot is `MenuButton` (`NavUi.kt`); Settings → Updates is `UpdatesSection` (`UpdatesUi.kt`).
 
