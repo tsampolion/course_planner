@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
+import android.content.pm.ApplicationInfo
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -169,7 +170,11 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
 fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: AssignmentType = AssignmentType.HOMEWORK,
     defaultSetOn: LocalDate? = null, onSave: (Assignment) -> Unit, onDismiss: () -> Unit) {
     val typeOptions = workAssignmentTypes(LocalFeatures.current, initial?.type)
-    val startingType = workDefaultType(typeOptions, initial?.type ?: defaultType) ?: return
+    val startingType = workDefaultType(typeOptions, initial?.type ?: defaultType)
+    // Work is gated off before this opens, so no type is a bug: fail loudly in debug builds, close the sheet in release.
+    val debuggable = LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+    check(startingType != null || !debuggable)
+    if (startingType == null) { LaunchedEffect(Unit) { onDismiss() }; return }
     val typeLabels = typeOptions.map { assignmentTypeName(it) }
     val defaultTitle = assignmentTypeName(startingType)
     val id = rememberSaveable { initial?.id ?: newId() }

@@ -25,6 +25,12 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.13.1] - 2026-10-31
+
+### Fixed
+- At Just pacing (Work off, no work saved) the ☰ menu and the title switcher no longer list Work, which had opened an empty page with no way to add anything. A saved or restored Work screen whose place is gone opens group home instead.
+- The assignment sheet no longer returns silently when no assignment type is on: it fails loudly in debug builds and closes in release.
+
 ## [0.4.13.0] - 2026-10-30
 
 ### Changed
@@ -1087,7 +1093,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.13.0...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.13.1...HEAD
+[0.4.13.1]: https://github.com/tsampolion/course_planner/compare/v0.4.13.0...v0.4.13.1
 [0.4.13.0]: https://github.com/tsampolion/course_planner/compare/v0.4.12.1...v0.4.13.0
 [0.4.12.1]: https://github.com/tsampolion/course_planner/compare/v0.4.12.0...v0.4.12.1
 [0.4.12.0]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...v0.4.12.0
