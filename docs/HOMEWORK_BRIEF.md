@@ -5,7 +5,7 @@ Status: shipped in 4.0.0 (0.4.0.0 in the four-part format), schema 13.
 Native Operate surface; extend the
 existing ledger, TalkBack custom actions, assignment editor and Bone/Saffron tokens.
 
-Homework can be marked done or not done in Work and from lesson menus (including TalkBack actions). Completion is optional assignment metadata, persisted with a false default for old files; it never changes date-based banking. Editing keeps the completion record. Work states the banking date beside page homework.
+Homework can be marked done or not done in Work and from lesson menus (including TalkBack actions). Completion is optional assignment metadata, persisted with a false default for old files; it never changes date-based banking. Editing keeps the completion record. Work states beside page homework that its pages are out of pacing.
 
 Lessons offer Add homework and one Edit/Delete action per homework set on or due
 that date. The editor starts with that lesson's set-on date. Ordinary, slim and
@@ -24,10 +24,8 @@ links survive only as reciprocal homework/class pairs; ambiguous links are clear
 Menus use content, dates and an ordinal to distinguish identical homework titles.
 Notes are included in the shared visible/spoken summaries.
 
-Homework banking begins on due, falling back to set-on, inclusive of today.
-Undated homework retains immediate banking. Legacy in-memory homework fixtures
-retain their old semantics; files migrate through Part C. No homework means no
-scheduling change. Existing custom content is preserved; no implicit re-pace.
+Homework pages leave pacing as soon as the homework is saved, whatever its dates
+or Done state (owner decision, 0.4.13.2). No homework means no scheduling change. Existing custom content is preserved; no implicit re-pace.
 
 Schema 13 adds optional contentType and linkedId to assignments, with old defaults.
 Version 4.0.0 (48): scheduling changes intentionally, per CHANGELOG version rules.

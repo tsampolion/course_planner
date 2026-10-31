@@ -232,7 +232,7 @@ class PacerViewModelTest {
         assertTrue(nextLessonDate(r).isAfter(d("2026-09-07")))
     }
 
-    @Test fun midnightMovesPlansBankingAndRevisionDatesTogether() {
+    @Test fun midnightMovesPlansAndRevisionDatesTogether() {
         val lead = sb.copy(units = "1, 26, 51, 76")
         val linked = wb.copy(units = "1, 21, 41, 61")
         val homework = Assignment("hw", AssignmentType.HOMEWORK, "Read", due = d("2026-10-26"), pages = mapOf("sb" to listOf(2, 3)))
@@ -244,16 +244,16 @@ class PacerViewModelTest {
         fun plan() = r.vm.state.value.data.plan(r.vm.today.value)!!
         val target = UnitRevisionTarget("c", "g1", 0)
 
-        // 23:59 on Saturday: the homework is not due yet, so its pages are still to teach.
+        // 23:59 on Saturday: the homework is not due yet, but its pages are already out of pacing.
         val before = plan()
         val beforeGroup = before.groups.single()
         assertEquals(d("2026-10-24"), before.today)
-        assertEquals(0, before.bankedPages(beforeGroup, lead))
-        assertTrue(2 in before.remainingPages(beforeGroup, lead))
+        assertEquals(2, before.bankedPages(beforeGroup, lead))
+        assertFalse(2 in before.remainingPages(beforeGroup, lead))
         val monday = revisionDates(GroupReport(before, beforeGroup), 0, before.today).first()
         assertTrue(monday > before.today)
 
-        // The day that revision date arrives (the homework is due by then): its pages are banked and the date has passed.
+        // The day that revision date arrives: the plan reads the new date, the pages stay banked and the date has passed.
         r.date = monday
         r.vm.refreshToday()
         val after = plan()

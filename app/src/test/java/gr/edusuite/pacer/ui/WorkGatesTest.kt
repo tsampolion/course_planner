@@ -76,3 +76,11 @@ class WorkGatesTest {
         assertEquals(AssignmentType.HOMEWORK, workSelectedFilter(filters, AssignmentType.HOMEWORK))
     }
 }
+
+class AssignmentBookFieldsTest {
+    @Test fun onlyHomeworkCarriesBookPages() {
+        assertTrue(assignmentHasBookFields(AssignmentType.HOMEWORK))
+        assertFalse(assignmentHasBookFields(AssignmentType.WORKSHEET))
+        assertFalse(assignmentHasBookFields(AssignmentType.TEST))
+    }
+}
