@@ -429,6 +429,8 @@ private fun ScreenContent(
         is Screen.Group -> {
             if (plan == null) return
             val group = plan.groups.firstOrNull { it.id == s.id } ?: return
+            val features = LocalFeatures.current
+            if (s.withoutGonePlace(features) != s) { LaunchedEffect(s) { vm.goTo(s.withoutGonePlace(features)) }; return }
             val report = remember(plan, group) { GroupReport(plan, group) }
             GroupScreen(
                 report, vm, padding,

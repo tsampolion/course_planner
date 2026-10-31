@@ -1,6 +1,9 @@
 package gr.edusuite.pacer.ui
 
 import gr.edusuite.pacer.engine.GroupReport
+import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.Features
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.TEST_TODAY
 import gr.edusuite.pacer.model.Book
 import gr.edusuite.pacer.model.CustomPlan
@@ -117,6 +120,37 @@ class NavModelTest {
         assertEquals(GroupPlace.PLAN, tablet.single { it.current }.place)
         assertEquals(listOf(GroupPlace.PLAN, GroupPlace.WORK, GroupPlace.STATS, GroupPlace.SETTINGS), tablet.map { it.place })
         assertEquals(GroupPlace.HOME, switcherPages(Screen.Group("a"), plansStandIn = false).single { it.current }.place)
+    }
+
+    // ---- Work follows its bricks everywhere, like group home's pills ---------------------
+
+    private val justPacing = Features(emptySet())
+    private val workOn = Features(setOf(Module.WORK))
+    private val withoutWork = listOf(GroupPlace.HOME, GroupPlace.PLAN, GroupPlace.STATS, GroupPlace.SETTINGS)
+
+    @Test fun atJustPacingNeitherTheSwitcherNorTheMenuListsWork() {
+        assertEquals(withoutWork, switcherPages(Screen.Group("ga"), features = justPacing).map { it.place })
+        val menu = menuRows(twoClasses, MenuLevel.Group("c1", "ga"), Screen.Group("ga"), features = justPacing)
+        assertEquals(withoutWork, menu.filterIsInstance<MenuRow.PlaceItem>().map { it.place })
+        assertEquals(withoutWork.drop(1), groupPlaces(justPacing, plansStandIn = true))
+    }
+
+    @Test fun withWorkOnBothListIt() {
+        assertEquals(GroupPlace.entries.toList(), switcherPages(Screen.Group("ga"), features = workOn).map { it.place })
+        assertEquals(GroupPlace.entries.toList(), menuRows(twoClasses, MenuLevel.Group("c1", "ga"), Screen.Group("ga"), features = workOn).filterIsInstance<MenuRow.PlaceItem>().map { it.place })
+    }
+
+    @Test fun withWorkOffButAnAssignmentSavedWorkShows() {
+        val saved = Features(emptySet(), setOf(Brick.HOMEWORK))
+        assertTrue(GroupPlace.WORK in groupPlaces(saved))
+        assertTrue(GroupPlace.WORK in switcherPages(Screen.Group("ga"), features = saved).map { it.place })
+    }
+
+    @Test fun aWorkScreenWhoseThePlaceIsGoneFallsBackToGroupHome() {
+        assertEquals(Screen.Group("ga"), Screen.Group("ga", GroupPage.WORK).withoutGonePlace(justPacing))
+        assertEquals(Screen.Group("ga", GroupPage.WORK), Screen.Group("ga", GroupPage.WORK).withoutGonePlace(workOn))
+        assertEquals(Screen.Group("ga", GroupPage.STATS), Screen.Group("ga", GroupPage.STATS).withoutGonePlace(justPacing))
+        assertEquals(Screen.Class, Screen.Class.withoutGonePlace(justPacing))
     }
 
     @Test fun switcherOffersTheOpenClassesOtherGroupsAfterThePlaces() {

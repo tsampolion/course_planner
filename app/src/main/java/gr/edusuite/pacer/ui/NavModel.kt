@@ -14,6 +14,7 @@ import gr.edusuite.pacer.engine.bookLags
 import gr.edusuite.pacer.engine.shortfallCoverage
 import gr.edusuite.pacer.engine.coverage
 import gr.edusuite.pacer.engine.verdict
+import gr.edusuite.pacer.model.Features
 import gr.edusuite.pacer.model.SchoolYear
 import java.time.LocalDate
 import java.text.Normalizer
@@ -163,14 +164,19 @@ fun Screen.place(plansStandIn: Boolean = false): GroupPlace? = when (this) {
  * The places the menu and the switcher list. On a tablet group home is shown as Plan, so listing both would offer two
  * rows for one view: [plansStandIn] leaves Group home out.
  */
-fun groupPlaces(plansStandIn: Boolean = false): List<GroupPlace> = GroupPlace.entries.filter { !plansStandIn || it != GroupPlace.HOME }
+fun groupPlaces(features: Features = Features.ALL, plansStandIn: Boolean = false): List<GroupPlace> =
+    GroupPlace.entries.filter { (!plansStandIn || it != GroupPlace.HOME) && (it != GroupPlace.WORK || GroupDestination.WORK in groupDestinations(features)) }
+
+/** Where [screen] goes when its place is gone (Work with its bricks off and no work saved): group home, else [screen] itself. */
+fun Screen.withoutGonePlace(features: Features): Screen =
+    if (this is Screen.Group && page == GroupPage.WORK && GroupPlace.WORK !in groupPlaces(features)) Screen.Group(id) else this
 
 /** One row of the title switcher: a place of the open group, with a mark on the one the teacher is on. */
 data class SwitcherPage(val place: GroupPlace, val current: Boolean)
 
 /** The switcher's first part: every place of the open group in fixed order, the current one marked. */
-fun switcherPages(current: Screen, plansStandIn: Boolean = false): List<SwitcherPage> =
-    groupPlaces(plansStandIn).map { SwitcherPage(it, it == current.place(plansStandIn)) }
+fun switcherPages(current: Screen, plansStandIn: Boolean = false, features: Features = Features.ALL): List<SwitcherPage> =
+    groupPlaces(features, plansStandIn).map { SwitcherPage(it, it == current.place(plansStandIn)) }
 
 /** The switcher's second part: the open class's other groups. */
 fun switcherGroups(groups: List<gr.edusuite.pacer.model.Group>, openGroupId: String?): List<gr.edusuite.pacer.model.Group> =
@@ -226,7 +232,7 @@ sealed interface MenuRow {
  * The rows under Classes & Groups at [level]. A class or group that no longer exists falls back to the classes, so a
  * delete never leaves the menu pointing at nothing.
  */
-fun menuRows(year: SchoolYear, level: MenuLevel, screen: Screen, plansStandIn: Boolean = false): List<MenuRow> {
+fun menuRows(year: SchoolYear, level: MenuLevel, screen: Screen, plansStandIn: Boolean = false, features: Features = Features.ALL): List<MenuRow> {
     val cl = when (level) {
         MenuLevel.Classes -> null
         is MenuLevel.Class -> year.classes.firstOrNull { it.id == level.classId }
@@ -237,7 +243,7 @@ fun menuRows(year: SchoolYear, level: MenuLevel, screen: Screen, plansStandIn: B
         if (g != null) {
             val here = screen.place(plansStandIn).takeIf { screen.groupId == g.id }
             return listOf(MenuRow.Up(MenuLevel.Class(cl.id), cl.name), MenuRow.Heading(g.name, isClass = false)) +
-                groupPlaces(plansStandIn).map { MenuRow.PlaceItem(g.id, it, it == here) }
+                groupPlaces(features, plansStandIn).map { MenuRow.PlaceItem(g.id, it, it == here) }
         }
     }
     if (cl != null && level !is MenuLevel.Classes) {

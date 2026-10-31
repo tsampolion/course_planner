@@ -271,7 +271,7 @@ private fun DrawerClasses(
     ) { AppIcon(if (expanded) AppIcons.ExpandLess else AppIcons.ExpandMore) }
     if (!expanded) return
     val indent = Modifier.padding(start = Space.xl)
-    menuRows(year, level, screen, plansStandIn).forEach { row ->
+    menuRows(year, level, screen, plansStandIn, LocalFeatures.current).forEach { row ->
         when (row) {
             is MenuRow.Up -> {
                 val name = row.name?.let { it.ifBlank { stringResource(R.string.app_class) } } ?: stringResource(R.string.app_classes)
@@ -372,7 +372,7 @@ fun GroupSwitcherSheet(year: SchoolYear, classId: String, screen: Screen, plansS
     val here = open?.groups?.firstOrNull { it.id == groupId }
     PacerSheet(stringResource(R.string.switcher_title), onDismiss) { close ->
         Eyebrow(here?.name?.ifBlank { null } ?: stringResource(R.string.app_group))
-        switcherPages(screen, plansStandIn).forEach { p ->
+        switcherPages(screen, plansStandIn, LocalFeatures.current).forEach { p ->
             GroupRow(stringResource(p.place.titleRes()), null, current = p.current) { vm.goTo(p.place.screen(groupId)); close() }
         }
         val others = open?.let { switcherGroups(it.groups, groupId) }.orEmpty()
