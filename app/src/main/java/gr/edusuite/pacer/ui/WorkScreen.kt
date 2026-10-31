@@ -72,10 +72,7 @@ internal fun AssignmentRow(a: Assignment, report: GroupReport, onOpen: () -> Uni
         a.setOn?.let { stringResource(R.string.work_set_date, it.fmtShort()) },
         a.due?.let { stringResource(R.string.work_due_date, it.fmtShort()) },
         if (a.takesLesson && a.type != AssignmentType.HOMEWORK) stringResource(R.string.class_takes_lesson) else null,
-        if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) {
-            (a.due ?: a.setOn)?.let { stringResource(R.string.pr6_homework_pacing, it.fmtShort()) }
-                ?: stringResource(R.string.pr6_homework_immediate)
-        } else null,
+        if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) stringResource(R.string.pr6_homework_immediate) else null,
         a.note.takeIf { it.isNotBlank() },
     )
     LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface), detail = details.joinToString(" · "),
@@ -166,6 +163,9 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
     }
 }
 
+/** Worksheets and tests are announced in notes; only homework carries book pages. */
+internal fun assignmentHasBookFields(type: AssignmentType) = type == AssignmentType.HOMEWORK
+
 @Composable
 fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: AssignmentType = AssignmentType.HOMEWORK,
     defaultSetOn: LocalDate? = null, onSave: (Assignment) -> Unit, onDismiss: () -> Unit) {
@@ -184,32 +184,28 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
     var dueText by rememberSaveable { mutableStateOf(initial?.due?.toString()) }
     var note by rememberSaveable { mutableStateOf(initial?.note.orEmpty()) }
     var takesLesson by rememberSaveable { mutableStateOf(initial?.takesLesson ?: false) }
-    var contentType by rememberSaveable { mutableStateOf(initial?.contentType) }
     val books = report.plan.books
     val texts = rememberSaveable(saver = listSaver(save = { it.toList() }, restore = { it.toMutableStateList() })) {
         mutableStateListOf(*books.map { b -> collapse(initial?.pages?.get(b.id).orEmpty()).takeUnless { initial?.pages?.get(b.id).isNullOrEmpty() }.orEmpty() }.toTypedArray())
     }
+    val showsBooks = assignmentHasBookFields(type)
     val pages = books.mapIndexed { i, b -> assignmentPages(texts[i], b) }
     val setOn = setText?.let(LocalDate::parse)
     val due = dueText?.let(LocalDate::parse)
     val datesValid = due == null || setOn == null || due >= setOn
     val datedLesson = type == AssignmentType.HOMEWORK || !takesLesson || due != null
-    val valid = title.isNotBlank() && assignmentDatesValid(Assignment(id, type, title, setOn, due, takesLesson = takesLesson)) && pages.all { it != null }
+    val valid = title.isNotBlank() && assignmentDatesValid(Assignment(id, type, title, setOn, due, takesLesson = takesLesson)) && (!showsBooks || pages.all { it != null })
     PacerSheet(stringResource(if (initial == null) R.string.work_add else R.string.work_edit), onDismiss, SheetAction(stringResource(R.string.component_save), valid) {
         onSave(Assignment(id, type, title.trim(), setOn, due,
-            assignmentEditedPages(initial?.pages.orEmpty(), books.mapIndexed { i, b -> b.id to pages[i].orEmpty() }.toMap()),
+            if (showsBooks) assignmentEditedPages(initial?.pages.orEmpty(), books.mapIndexed { i, b -> b.id to pages[i].orEmpty() }.toMap())
+            else initial?.pages.orEmpty(),
             note.trim(), type != AssignmentType.HOMEWORK && takesLesson,
-            contentType.takeIf { type == AssignmentType.HOMEWORK }, initial?.linkedId, initial?.completed ?: false))
-    }, dirty = rememberDraftChanged(type, title, setText, dueText, note, takesLesson, contentType, texts.toList())) {
+            initial?.contentType.takeIf { type == AssignmentType.HOMEWORK }, initial?.linkedId, initial?.completed ?: false))
+    }, dirty = rememberDraftChanged(type, title, setText, dueText, note, takesLesson, texts.toList())) {
         if (typeOptions.size > 1) SegmentedToggle(typeLabels, typeOptions.indexOf(type), { selected ->
             if (title == typeLabels[typeOptions.indexOf(type)]) title = typeLabels[selected]
             type = typeOptions[selected]
         })
-        if (type == AssignmentType.HOMEWORK) Picker(stringResource(R.string.homework_content), listOf(
-            "" to stringResource(R.string.homework_pages_notes),
-            AssignmentType.WORKSHEET.name to assignmentTypeName(AssignmentType.WORKSHEET),
-            AssignmentType.TEST.name to assignmentTypeName(AssignmentType.TEST)), contentType?.name.orEmpty(),
-            { value -> contentType = AssignmentType.entries.firstOrNull { it.name == value } })
         OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text(stringResource(R.string.class_title)) },
             colors = paletteFieldColors(), singleLine = true, modifier = Modifier.fillMaxWidth())
         DateField(setOn, { setText = it?.toString() }, stringResource(R.string.work_set_on), Modifier.fillMaxWidth(), clearable = true)
@@ -218,14 +214,14 @@ fun AssignmentSheet(report: GroupReport, initial: Assignment?, defaultType: Assi
         if (!datedLesson) Hint(stringResource(R.string.work_needs_date))
         val lessonDates = report.lessons.toSet() + report.group.done.map { it.date }
         if ((setOn != null && setOn !in lessonDates) || (due != null && due !in lessonDates)) Hint(stringResource(R.string.work_not_lesson))
-        books.forEachIndexed { i, b ->
+        if (showsBooks) books.forEachIndexed { i, b ->
             val bad = pages[i] == null
             OutlinedTextField(value = texts[i], onValueChange = { texts[i] = it }, label = { Text(b.name) }, singleLine = true,
                 colors = paletteFieldColors(), isError = bad, textStyle = MaterialTheme.typography.bodyLarge.merge(Figures),
                 supportingText = if (bad) ({ Text(stringResource(if (b.supplementary) R.string.supp_page_error else R.string.group_page_error, b.first, b.last)) }) else null,
                 modifier = Modifier.fillMaxWidth().fieldFeedback(bad))
         }
-        if (initial?.pages?.keys.orEmpty().any { bookId -> books.none { it.id == bookId } }) {
+        if (showsBooks && initial?.pages?.keys.orEmpty().any { bookId -> books.none { it.id == bookId } }) {
             Hint(stringResource(R.string.work_unselected_books))
         }
         OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text(stringResource(R.string.custom_note)) },

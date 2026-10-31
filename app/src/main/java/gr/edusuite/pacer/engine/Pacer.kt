@@ -97,9 +97,10 @@ fun allocatePages(pages: List<Int>, lessons: Int): List<List<Int>> {
     return out
 }
 
-fun Plan.homeworkPages(groupId: String, bookId: String, today: LocalDate): Set<Int> {
+/** Pages set as homework leave pacing as soon as they are assigned, whatever their dates or Done state. */
+fun Plan.homeworkPages(groupId: String, bookId: String): Set<Int> {
     val out = groups.firstOrNull { it.id == groupId }?.assignments.orEmpty()
-        .filter { it.type == AssignmentType.HOMEWORK && (it.due ?: it.setOn)?.isAfter(today) != true }
+        .filter { it.type == AssignmentType.HOMEWORK }
         .flatMapTo(HashSet()) { it.pages[bookId].orEmpty() }
     for (h in homework) {
         if (h.groupId != groupId || h.bookId != bookId) continue
@@ -125,7 +126,7 @@ fun Group.taughtPages(bookId: String): Set<Int> = done.flatMapTo(HashSet()) { it
 fun Plan.remainingPages(g: Group, b: Book): List<Int> {
     if (b.supplementary || !g.usesBook(b)) return emptyList()
     val skip = parseRanges(b.skip) + parseRanges(g.skip[b.id].orEmpty())
-    val hw = homeworkPages(g.id, b.id, today)
+    val hw = homeworkPages(g.id, b.id)
     val taught = g.taughtPages(b.id)
     val pinned = activeExtras(g).flatMapTo(HashSet()) { it.pages[b.id].orEmpty() }
     val out = ArrayList<Int>()
@@ -137,7 +138,7 @@ fun Plan.remainingPages(g: Group, b: Book): List<Int> {
 fun Plan.bankedPages(g: Group, b: Book): Int {
     if (b.supplementary || !g.usesBook(b)) return 0
     val skip = parseRanges(b.skip) + parseRanges(g.skip[b.id].orEmpty())
-    val hw = homeworkPages(g.id, b.id, today)
+    val hw = homeworkPages(g.id, b.id)
     return (position(g, b)..b.last).count { it !in skip && it in hw }
 }
 

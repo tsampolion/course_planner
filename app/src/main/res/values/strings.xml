@@ -11,7 +11,6 @@
     <string name="pr6_done">Done</string>
     <string name="pr6_mark_done">Mark done</string>
     <string name="pr6_mark_not_done">Mark not done</string>
-    <string name="pr6_homework_pacing">Pages leave future pacing from %1$s, whether marked done or not.</string>
     <string name="pr6_homework_immediate">These pages are already out of future pacing; marking done does not change pacing.</string>
     <string name="group_settings_book_used">Used by this group</string>
     <string name="group_settings_book_not_used">Not used by this group</string>
@@ -901,8 +900,6 @@
     <string name="homework_add">Add homework…</string>
     <string name="homework_edit_named">Edit homework: %1$s…</string>
     <string name="homework_delete_named">Delete homework: %1$s</string>
-    <string name="homework_content">Homework content</string>
-    <string name="homework_pages_notes">Pages or notes</string>
     <string name="homework_row">HW: %1$s</string>
     <string name="homework_due_short">due %1$s</string>
     <string name="homework_schedule_title">Schedule it in class?</string>
