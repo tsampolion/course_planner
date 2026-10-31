@@ -743,11 +743,10 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Homework / Worksheet / Test | Toggle | More than one available type; Homework needs Work · Homework brick; Worksheet and Test need Work · Tests brick; an existing assignment keeps its type available | Changes the type; an untouched title follows it. With one available type the selector is absent. |
-| Homework content | Choose | Homework | Pages or notes, Worksheet, or Test. |
 | Title | Type |  | Required. |
 | Set-on lesson / Due lesson (optional) | Tap |  | ↑ Opens [Date picker](#date-picker). Date pickers with Clear. Warns when due is before set, or a date has no lesson. |
-| Pages per book | Type |  | Optional ranges. |
-| Note | Type |  | Free text. |
+| Pages per book | Type | Homework | Optional ranges. Pages set as homework leave lesson pacing at once. Absent for worksheets and tests (pages saved on them earlier are kept). |
+| Note | Type |  | Free text. For a worksheet or test, say what to study. |
 | takes the lesson | Toggle | Test or worksheet | Reserves the whole lesson; needs a due lesson. |
 | Save | Tap | Valid |  [Schedule it in class? / Also set it as homework?](#link). Saves; then may offer to link a class lesson or homework. Undo: “Assignment saved” |
 

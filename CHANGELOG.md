@@ -25,6 +25,13 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.13.2] - 2026-10-31
+
+### Changed
+- Pages set as homework leave the lesson pacing as soon as the homework is saved, instead of on its due date. Marking it done still changes nothing.
+- The assignment sheet no longer has the "Homework content" dropdown that repeated the Homework / Worksheet / Test toggle. Existing worksheet or test homework keeps its label and links.
+- Worksheets and tests no longer show book page fields, only Notes. Pages already saved on them are kept.
+
 ## [0.4.13.1] - 2026-10-31
 
 ### Fixed
@@ -1093,7 +1100,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.13.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.13.2...HEAD
+[0.4.13.2]: https://github.com/tsampolion/course_planner/compare/v0.4.13.1...v0.4.13.2
 [0.4.13.1]: https://github.com/tsampolion/course_planner/compare/v0.4.13.0...v0.4.13.1
 [0.4.13.0]: https://github.com/tsampolion/course_planner/compare/v0.4.12.1...v0.4.13.0
 [0.4.12.1]: https://github.com/tsampolion/course_planner/compare/v0.4.12.0...v0.4.12.1

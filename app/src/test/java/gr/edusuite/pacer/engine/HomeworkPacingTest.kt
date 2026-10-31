@@ -13,24 +13,22 @@ class HomeworkPacingTest {
     private fun plan(a: Assignment) = base.copy(groups = listOf(group.copy(assignments = listOf(a))))
     private fun hw() = Assignment("h", AssignmentType.HOMEWORK, "Read", today.minusDays(2), today.plusDays(1), mapOf(book.id to listOf(2, 3)))
 
-    @Test fun completionNeverChangesBankingDatesOrSchedule() {
+    @Test fun completionNeverChangesPagesOrSchedule() {
         val open = hw()
         val done = open.copy(completed = true)
-        for (date in listOf(today, today.plusDays(1), today.plusDays(2))) {
-            assertEquals(plan(open).homeworkPages(group.id, book.id, date), plan(done).homeworkPages(group.id, book.id, date))
-        }
+        assertEquals(plan(open).homeworkPages(group.id, book.id), plan(done).homeworkPages(group.id, book.id))
         val a = plan(open); val b = plan(done)
         assertEquals(GroupReport(a, a.groups.first()).rows, GroupReport(b, b.groups.first()).rows)
     }
-    @Test fun homeworkPagesWaitForDueInclusive() {
-        val p = plan(hw())
-        assertEquals(emptySet<Int>(), p.homeworkPages(group.id, book.id, today))
-        assertEquals(setOf(2, 3), p.homeworkPages(group.id, book.id, today.plusDays(1)))
-    }
-    @Test fun setOnFallbackAndUndatedKeepTheirContract() {
-        assertEquals(emptySet<Int>(), plan(hw().copy(due = null, setOn = today.plusDays(1))).homeworkPages(group.id, book.id, today))
-        assertEquals(setOf(2, 3), plan(hw().copy(due = null, setOn = today)).homeworkPages(group.id, book.id, today))
-        assertEquals(setOf(2, 3), plan(hw().copy(due = null, setOn = null)).homeworkPages(group.id, book.id, today))
+    @Test fun homeworkPagesLeavePacingAtOnceWhateverTheDates() {
+        val dated = listOf(
+            hw(), hw().copy(due = today.plusDays(30)), hw().copy(due = null, setOn = today.plusDays(1)),
+            hw().copy(due = null, setOn = today), hw().copy(due = null, setOn = null))
+        for (a in dated) {
+            val p = plan(a)
+            assertEquals(setOf(2, 3), p.homeworkPages(group.id, book.id))
+            assertFalse(p.remainingPages(p.groups.first(), book).any { it in setOf(2, 3) })
+        }
     }
     @Test fun homeworkAbsentChangesNothing() {
         val before = GroupReport(base, group)

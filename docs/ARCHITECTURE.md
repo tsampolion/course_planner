@@ -107,13 +107,13 @@ A catch-up plan saves its chosen `catchUpBoost`. Re-pacing keeps that policy whi
 
 - `migrateAssignments` converts legacy class homework and test lists on load, import and save, including one copy of each class-wide test per group. New JSON writes assignments only.
 - `Plan.homeworkPages` reads homework assignment pages. Tests and worksheets project to existing lesson and export events, and only their `takesLesson` blocks dates.
-- Homework banks on due ?: setOn, inclusive of today. Undated assignments and legacy in-memory homework keep immediate banking (`HomeworkPacingTest` guards no-homework parity).
+- Homework pages leave pacing as soon as the assignment exists, whatever its dates or Done state (`HomeworkPacingTest` guards this and no-homework parity). Worksheets and tests carry no book pages in the editor.
 - Legacy `Plan` lists remain supported for parity fixtures.
 - `AssignmentTest.migratedAssignmentsChangeNothing` guards scheduling, labels, figures and custom rows.
 
 ### Lesson homework
 
-`HOMEWORK_BRIEF.md`. Assignments store an optional `completed` flag, defaulting to false for older data. Completion has no scheduling effect. `AssignmentLinks.kt` suggests eligible class and homework dates, skipping blocked dates and closures, and prevents repeated links. `withLinkedAssignment` changes both records in one edit; deleting a counterpart clears surviving links. `AssignmentEditor` saves first, then offers an optional native pairing dialog with Skip/Back. The lesson menu and TalkBack share named actions for every homework set or due that date; ordinary, slim and hero rows show HW content and due dates. Manual custom-plan content is preserved without automatic re-pacing.
+`HOMEWORK_BRIEF.md`. Assignments store an optional `completed` flag, defaulting to false for older data. Completion has no scheduling effect. Homework content type (worksheet or test) is no longer chosen in the editor; saved values keep their label and links. `AssignmentLinks.kt` suggests eligible class and homework dates, skipping blocked dates and closures, and prevents repeated links. `withLinkedAssignment` changes both records in one edit; deleting a counterpart clears surviving links. `AssignmentEditor` saves first, then offers an optional native pairing dialog with Skip/Back. The lesson menu and TalkBack share named actions for every homework set or due that date; ordinary, slim and hero rows show HW content and due dates. Manual custom-plan content is preserved without automatic re-pacing.
 
 ### Book units
 

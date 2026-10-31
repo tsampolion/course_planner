@@ -36,9 +36,10 @@ class PacerTest {
         assertEquals(due.minusDays(1), before.today)
         assertEquals(due, onDue.today)
         val g = before.groups.first()
-        assertEquals(0, before.bankedPages(g, book))
+        // Homework pages are out of pacing from the day it is assigned, so the date no longer moves them.
+        assertEquals(2, before.bankedPages(g, book))
         assertEquals(2, onDue.bankedPages(g, book))
-        assertEquals(before.remainingPages(g, book).size - 2, onDue.remainingPages(g, book).size)
+        assertEquals(before.remainingPages(g, book), onDue.remainingPages(g, book))
     }
 
     @Test fun disabledUnitMetadataPreservesTheOriginalAllocator() {
