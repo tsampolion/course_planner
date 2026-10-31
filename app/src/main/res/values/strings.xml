@@ -972,6 +972,7 @@
     <string name="updates_available">Version %1$s is available</string>
     <string name="updates_download">Download</string>
     <string name="updates_first_time">The first time, Android may ask you to allow installs from your browser.</string>
+    <string name="updates_notes_fallback">Improvements and fixes.</string>
     <string name="updates_see_changes">See all changes</string>
     <string name="updates_auto">Check for updates automatically</string>
     <string name="updates_auto_hint">Once a day, Course Pacer asks GitHub for the latest version. Nothing about you or your school years is sent.</string>

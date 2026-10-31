@@ -107,7 +107,7 @@ jobs:
             || gh run download "$run" --repo "$GITHUB_REPOSITORY" --name coursebook-pacer-apk --dir apk \
             || echo "::warning::Android run $run no longer has its APK (artifacts expire after 90 days)"
 
-      # Refuses an APK that isn't signed with the release certificate, and names the certificate in the notes.
+      # Refuses an APK that isn't signed with the release certificate.
       # Refuses to publish with no APK at all, unless a manual run allows it.
       - name: Create tag and release
         if: steps.existing.outputs.exists == 'false'
@@ -134,7 +134,6 @@ jobs:
             # Installed apps look for exactly this asset name on the vX.Y.Z release (docs/UPDATES_BRIEF.md); don't rename it.
             cp "$f" "course-pacer-$VERSION.apk"
             apks+=("course-pacer-$VERSION.apk")
-            printf '\nSigned with certificate SHA-256 `%s`.\n' "$digest" >> notes.md
           done
           if [ "${#apks[@]}" -eq 0 ] && [ "$ALLOW_NO_APK" != "true" ]; then
             echo "::error::No APK for $SHA, so $TAG was not created. Run it manually with allow_no_apk to publish without one."

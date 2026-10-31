@@ -10,8 +10,8 @@ const val PAGE_URL_PREFIX = "https://github.com/tsampolion/course_planner/releas
 const val RELEASE_LATEST_URL = PAGE_URL_PREFIX + "latest"
 /** Automatic checks are separated by one day. */
 const val CHECK_INTERVAL_MS = 86_400_000L
-/** Maximum number of nonempty release-note lines shown. */
-const val NOTE_LINES = 3
+/** Maximum number of release-note bullets shown. */
+const val NOTE_LINES = 4
 
 /**
  * A numeric release version: three parts (`X.Y.Z`, up to 4.1.0) or four (`0.X.Y.Z`, from 0.4.1.1).
@@ -68,14 +68,18 @@ fun toUpdate(release: Release): Update? {
 /** Due after a day, on first launch, or after the clock moved backwards. */
 fun isDue(lastCheck: Long, now: Long): Boolean = lastCheck <= 0 || now < lastCheck || now - lastCheck >= CHECK_INTERVAL_MS
 
-/** A short plain-text preview of Markdown notes. */
+/**
+ * The release notes as a teacher reads them: only the changelog's bullet lines, as plain text, one per line.
+ * Headings, prose, the build's own lines and any bullet with a code span (developer wording) are left out.
+ */
 fun shortNotes(markdown: String?): String = markdown.orEmpty().replace("\r\n", "\n").replace("\r", "\n")
-    .lineSequence().map { line ->
+    .lineSequence().map { it.trim() }
+    .filter { it.matches(Regex("^([-*+])\\s+\\S.*")) && '`' !in it }
+    .map { line ->
         line.replace(Regex("!\\[[^\\]]*]\\([^)]*\\)"), "")
             .replace(Regex("\\[([^\\]]*)]\\([^)]*\\)"), "$1")
-            .replace(Regex("^#+\\s*"), "")
-            .replace(Regex("^\\s*([-*+]|\\d+\\.)\\s+"), "")
-            .replace(Regex("[*_`]"), "")
+            .replace(Regex("^([-*+])\\s+"), "")
+            .replace(Regex("[*_]"), "")
             .replace(Regex("\\s+"), " ").trim()
     }.filter { it.isNotEmpty() }.take(NOTE_LINES).joinToString("\n")
 

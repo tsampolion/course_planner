@@ -391,6 +391,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Updates: Download | Tap | A newer version is available | Leaves app. Opens the APK download in the browser (or copies the link when there is no browser). |
+| Updates: What's new | Read | A newer version is available | Shows up to four plain bullets from the release notes, or "Improvements and fixes.". Not tappable. |
 | Updates: See all changes | Tap | A newer version is available | Leaves app. Opens the release page in the browser. |
 | Check for updates automatically | Toggle |  | Edit. Once a day, asks GitHub for the latest version. |
 | Check now | Tap |  | View. Shows Checking…, then up to date, a new version, or a failure message. |

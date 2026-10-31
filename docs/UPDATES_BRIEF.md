@@ -23,7 +23,7 @@ can try again. Settings → Updates also offers **Check now**, regardless of the
 switch or the daily limit.
 
 A newer release adds a dot to ☰ and an **Update** tag to Settings in the menu.
-The first section of Settings shows its version and a short preview of the changes.
+The first section of Settings shows its version and up to four of the changelog's bullets as a plain list ("Improvements and fixes." when there are none; bullets with code are skipped).
 **Download** opens the APK in the browser; Android then installs it over the current
 release, keeping school years and settings. **See all changes** opens the release
 page. There is nothing to dismiss: the notice clears when the installed version
