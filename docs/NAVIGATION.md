@@ -116,7 +116,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | ‹ Classes / ‹ Class name (back row) | Tap | Class and group levels | View. Goes up one level of the list without leaving the screen (read as “Back to …”). |
 | Class settings | Tap | Class level | → Screen [Class](#class). Opens that class. |
 | A group row (with status) | Tap | Class level | → Screen [Group home](#group-home). Opens that group's home and closes the menu. |
-| Group home · Plan · Work · Stats · Group settings | Tap | Group level | → Screen [Group home](#group-home) / [Plan](#plan) / [Work](#work) / [Stats](#stats) / [Group settings](#group-settings). Opens that place of the group. On a tablet Group home is not listed twice: it is shown as Plan. |
+| Group home · Plan · Work · Stats · Group settings | Tap | Group level; Work only while Work is on or the group has work saved | → Screen [Group home](#group-home) / [Plan](#plan) / [Work](#work) / [Stats](#stats) / [Group settings](#group-settings). Opens that place of the group. On a tablet Group home is not listed twice: it is shown as Plan. |
 | School year · short name | Tap | While a year is open | → Screen [School year settings](#school-year). Opens School year settings. A long name is shortened (“2026–2027” becomes “2026–27”). |
 | Settings (Update tag) | Tap |  | → Screen [Settings](#app-settings). Opens Settings. The tag shows while an update is available. |
 | Swipe the drawer away / tap outside / Back | Swipe |  | Closes. Closes the drawer. |
@@ -156,7 +156,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Group home · Plan · Work · Stats · Group settings | Tap |  | → Screen [Group home](#group-home) / [Plan](#plan) / [Work](#work) / [Stats](#stats) / [Group settings](#group-settings). Opens that place; the one you are on is ticked and read as “Current page”. On a tablet Group home is left out (it is shown as Plan). |
+| Group home · Plan · Work · Stats · Group settings | Tap | Work only while Work is on or the group has work saved | → Screen [Group home](#group-home) / [Plan](#plan) / [Work](#work) / [Stats](#stats) / [Group settings](#group-settings). Opens that place; the one you are on is ticked and read as “Current page”. On a tablet Group home is left out (it is shown as Plan). |
 | The open class's other groups (with status) | Tap | The class has other groups | → Screen [Group home](#group-home). Opens that group's home. |
 
 <a id="date-picker"></a>

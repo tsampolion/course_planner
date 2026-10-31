@@ -32,6 +32,12 @@ Keep `[Unreleased]` empty between pull requests.
 - The assignment sheet no longer has the "Homework content" dropdown that repeated the Homework / Worksheet / Test toggle. Existing worksheet or test homework keeps its label and links.
 - Worksheets and tests no longer show book page fields, only Notes. Pages already saved on them are kept.
 
+## [0.4.13.1] - 2026-10-31
+
+### Fixed
+- At Just pacing (Work off, no work saved) the ☰ menu and the title switcher no longer list Work, which had opened an empty page with no way to add anything. A saved or restored Work screen whose place is gone opens group home instead.
+- The assignment sheet no longer returns silently when no assignment type is on: it fails loudly in debug builds and closes in release.
+
 ## [0.4.13.0] - 2026-10-30
 
 ### Changed
@@ -1096,6 +1102,7 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 
 [Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.13.2...HEAD
 [0.4.13.2]: https://github.com/tsampolion/course_planner/compare/v0.4.13.1...v0.4.13.2
+[0.4.13.1]: https://github.com/tsampolion/course_planner/compare/v0.4.13.0...v0.4.13.1
 [0.4.13.0]: https://github.com/tsampolion/course_planner/compare/v0.4.12.1...v0.4.13.0
 [0.4.12.1]: https://github.com/tsampolion/course_planner/compare/v0.4.12.0...v0.4.12.1
 [0.4.12.0]: https://github.com/tsampolion/course_planner/compare/v0.4.11.0...v0.4.12.0
