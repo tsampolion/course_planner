@@ -165,9 +165,9 @@ Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHAN
 
 - Version parsing of three-part and four-part versions. A three-part `X.Y.Z` compares as `[X, Y, Z, 0]` and a four-part `0.X.Y.Z` as itself, so every old version counts as newer than any `0.x.y.z`.
 - Release validation against this repository's release URLs.
-- The once-a-day throttle, note trimming (`shortNotes` keeps up to four plain bullets of the changelog section), and folding a result into `Settings`.
+- The once-a-day throttle, note trimming (`toUpdate` builds up to four plain bullets from every release since the installed one, written since 0.4.14.0: the biggest release's lead bullet first, A over B over C, a release's size judged by the version part that changed; drafts, prereleases and old three-part tags are ignored), and folding a result into `Settings`.
 
-`GitHubReleases.kt` is the only network code (`HttpURLConnection`, `org.json`, one GET to `releases/latest`). `PacerViewModel` checks on launch and on Check now. `Settings` holds `autoUpdateCheck`, `lastUpdateCheck` and `availableUpdate`. Debuggable builds never check. The ☰ dot is `MenuButton` (`NavUi.kt`); Settings → Updates is `UpdatesSection` (`UpdatesUi.kt`).
+`GitHubReleases.kt` is the only network code (`HttpURLConnection`, `org.json`, one GET to the 30 newest releases, `releases?per_page=30`). `PacerViewModel` checks on launch and on Check now. `Settings` holds `autoUpdateCheck`, `lastUpdateCheck` and `availableUpdate`. Debuggable builds never check. The ☰ dot is `MenuButton` (`NavUi.kt`); Settings → Updates is `UpdatesSection` (`UpdatesUi.kt`).
 
 ## UI
 

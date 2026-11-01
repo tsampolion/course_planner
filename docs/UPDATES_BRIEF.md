@@ -9,7 +9,7 @@ after that, they can find and install updates themselves.
 
 ## What the app relies on
 
-Every installed copy checks `releases/latest` in the public repository
+Every installed copy checks the 30 newest releases (`releases?per_page=30`) of the public repository
 `tsampolion/course_planner`. A release has tag `v0.X.Y.Z`, exactly one asset named
 `course-pacer-0.X.Y.Z.apk` signed with the permanent release key, and its matching
 changelog section as the release body. Renaming the asset, changing the tag format,
@@ -23,7 +23,7 @@ can try again. Settings → Updates also offers **Check now**, regardless of the
 switch or the daily limit.
 
 A newer release adds a dot to ☰ and an **Update** tag to Settings in the menu.
-The first section of Settings shows its version and up to four of the changelog's bullets as a plain list ("Improvements and fixes." when there are none; bullets with code are skipped).
+The first section of Settings shows the newest version and up to four bullets as a plain list, drawn from every release since the installed one: the biggest release's lead bullet first (A, then B, then C), then the next biggest releases' lead bullets, then their second bullets. Only releases from 0.4.14.0 on count, and bullets with code are skipped; with none the card says "Improvements and fixes.".
 **Download** opens the APK in the browser; Android then installs it over the current
 release, keeping school years and settings. **See all changes** opens the release
 page. There is nothing to dismiss: the notice clears when the installed version

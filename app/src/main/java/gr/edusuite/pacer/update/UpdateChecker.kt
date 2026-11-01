@@ -2,8 +2,8 @@ package gr.edusuite.pacer.update
 
 import gr.edusuite.pacer.model.Settings
 
-/** Where the latest release comes from; null means the request failed. */
-fun interface ReleaseSource { fun latest(): Release? }
+/** Where the recent releases come from, newest first; null means the request failed. */
+fun interface ReleaseSource { fun releases(): List<Release>? }
 
 /** One check's outcome. */
 sealed interface Fetched {
@@ -37,8 +37,8 @@ class UpdateChecker(
     /** Blocking; call on Dispatchers.IO. Request failures never escape. */
     fun fetch(): Fetched {
         if (!enabled) return Fetched.Failed
-        val release = runCatching { source.latest() }.getOrNull() ?: return Fetched.Failed
-        val update = pendingUpdate(toUpdate(release), installed) ?: return Fetched.UpToDate
+        val releases = runCatching { source.releases() }.getOrNull() ?: return Fetched.Failed
+        val update = pendingUpdate(toUpdate(releases, installed), installed) ?: return Fetched.UpToDate
         return Fetched.Found(update)
     }
 

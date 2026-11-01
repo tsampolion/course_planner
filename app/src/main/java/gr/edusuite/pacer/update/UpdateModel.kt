@@ -1,7 +1,7 @@
 package gr.edusuite.pacer.update
 
-/** The single public endpoint used for update checks. */
-const val RELEASES_API = "https://api.github.com/repos/tsampolion/course_planner/releases/latest"
+/** The single public endpoint used for update checks: the 30 newest releases of this repository. */
+const val RELEASES_API = "https://api.github.com/repos/tsampolion/course_planner/releases?per_page=30"
 /** Only release downloads from this repository are accepted. */
 const val APK_URL_PREFIX = "https://github.com/tsampolion/course_planner/releases/download/"
 /** Only release pages from this repository are accepted. */
@@ -52,7 +52,10 @@ fun shareText(message: String, url: String = RELEASE_LATEST_URL): String = "$mes
 /** Validated details of an available release. */
 data class Update(val version: String, val notes: String, val apkUrl: String, val pageUrl: String)
 /** Fields copied from GitHub's latest-release response. */
-data class Release(val tag: String?, val body: String?, val pageUrl: String?, val assets: List<Pair<String, String>>)
+data class Release(
+    val tag: String?, val body: String?, val pageUrl: String?, val assets: List<Pair<String, String>>,
+    val prerelease: Boolean = false, val draft: Boolean = false,
+)
 
 /** Picks the exact release APK asset name. */
 fun pickApk(assets: List<Pair<String, String>>, version: String): String? =
@@ -65,6 +68,43 @@ fun toUpdate(release: Release): Update? {
     return storedUpdate(version, shortNotes(release.body), pickApk(release.assets, version), release.pageUrl)
 }
 
+/** The first release whose changelog bullets are written for teachers; older notes are never shown. */
+val NOTES_FROM = Version(listOf(0, 4, 14, 0))
+
+/** How big a release is, from the version part that changed: A (0), B (1) or C (2); lower is bigger. */
+private fun tier(from: Version, to: Version): Int {
+    val a = from.parts.let { if (it.size == 3) it + 0 else it }
+    return (1..3).firstOrNull { a[it] != to.parts[it] }?.minus(1) ?: 2
+}
+
+/** `v0.X.Y.Z` releases only: not a draft or prerelease, and the old three-part tags are left out. */
+private fun fourPart(release: Release): Version? =
+    parseVersion(release.tag)?.takeIf { it.parts.size == 4 && it.parts[0] == 0 && !release.prerelease && !release.draft }
+
+/**
+ * The update shown to a teacher on [installed]: the newest release with a trusted APK, and notes of up to
+ * [NOTE_LINES] bullets from every release since [installed] that has teacher-written notes. The first bullet is
+ * the lead bullet of the biggest release (A, then B, then C; the newest on a tie); the rest are the next biggest
+ * releases' lead bullets, then their second bullets, and so on. A release's size is judged against the one before it.
+ */
+fun toUpdate(releases: List<Release>, installed: String): Update? {
+    val current = parseVersion(installed) ?: return null
+    val newer = releases.mapNotNull { r -> fourPart(r)?.let { it to r } }
+        .filter { isNewer(it.first, current) }.sortedBy { it.first }
+    val newest = newer.lastOrNull { toUpdate(it.second) != null } ?: return null
+    val base = toUpdate(newest.second)!!
+    val byBiggest = newer.mapIndexed { i, (v, r) -> Triple(v, r, tier(if (i == 0) current else newer[i - 1].first, v)) }
+        .filter { it.first >= NOTES_FROM }.sortedWith(compareBy<Triple<Version, Release, Int>> { it.third }.thenByDescending { it.first })
+    val bullets = byBiggest.map { noteBullets(it.second.body) }
+    val picked = LinkedHashSet<String>()
+    var round = 0
+    while (picked.size < NOTE_LINES && bullets.any { round < it.size }) {
+        for (list in bullets) if (round < list.size && picked.size < NOTE_LINES) picked.add(list[round])
+        round++
+    }
+    return base.copy(notes = picked.joinToString("\n"))
+}
+
 /** Due after a day, on first launch, or after the clock moved backwards. */
 fun isDue(lastCheck: Long, now: Long): Boolean = lastCheck <= 0 || now < lastCheck || now - lastCheck >= CHECK_INTERVAL_MS
 
@@ -72,7 +112,10 @@ fun isDue(lastCheck: Long, now: Long): Boolean = lastCheck <= 0 || now < lastChe
  * The release notes as a teacher reads them: only the changelog's bullet lines, as plain text, one per line.
  * Headings, prose, the build's own lines and any bullet with a code span (developer wording) are left out.
  */
-fun shortNotes(markdown: String?): String = markdown.orEmpty().replace("\r\n", "\n").replace("\r", "\n")
+fun shortNotes(markdown: String?): String = noteBullets(markdown).take(NOTE_LINES).joinToString("\n")
+
+/** Every plain bullet of a release's notes, in order. */
+fun noteBullets(markdown: String?): List<String> = markdown.orEmpty().replace("\r\n", "\n").replace("\r", "\n")
     .lineSequence().map { it.trim() }
     .filter { it.matches(Regex("^([-*+])\\s+\\S.*")) && '`' !in it }
     .map { line ->
@@ -81,7 +124,7 @@ fun shortNotes(markdown: String?): String = markdown.orEmpty().replace("\r\n", "
             .replace(Regex("^([-*+])\\s+"), "")
             .replace(Regex("[*_]"), "")
             .replace(Regex("\\s+"), " ").trim()
-    }.filter { it.isNotEmpty() }.take(NOTE_LINES).joinToString("\n")
+    }.filter { it.isNotEmpty() }.toList()
 
 /** Keeps a stored release only while it is newer than the installed app. */
 fun pendingUpdate(stored: Update?, installed: String): Update? {

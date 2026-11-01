@@ -17,21 +17,21 @@ class UpdateCheckerTest {
         "v$v", "- Notes", "https://github.com/tsampolion/course_planner/releases/tag/v$v",
         listOf("course-pacer-$v.apk" to "https://github.com/tsampolion/course_planner/releases/download/v$v/course-pacer-$v.apk"),
     )
-    private fun checker(result: Release?, installed: String = "3.10.0", enabled: Boolean = true) =
-        UpdateChecker({ calls++; result }, installed, enabled) { clock }
-    private val found = toUpdate(rel("3.11.0"))!!
+    private fun checker(result: Release?, installed: String = "0.4.10.0", enabled: Boolean = true) =
+        UpdateChecker({ calls++; result?.let(::listOf) }, installed, enabled) { clock }
+    private val found = toUpdate(rel("0.4.11.0"))!!
 
-    @Test fun fetchFindsNewer() = assertEquals(Fetched.Found(found), checker(rel("3.11.0")).fetch())
+    @Test fun fetchFindsNewer() = assertEquals(Fetched.Found(found.copy(notes = "")), checker(rel("0.4.11.0")).fetch())  // too old for teacher notes
     @Test fun fetchSameOrOlderIsUpToDate() {
-        assertEquals(Fetched.UpToDate, checker(rel("3.10.0")).fetch())
-        assertEquals(Fetched.UpToDate, checker(rel("3.9.0")).fetch())
+        assertEquals(Fetched.UpToDate, checker(rel("0.4.10.0")).fetch())
+        assertEquals(Fetched.UpToDate, checker(rel("0.4.9.0")).fetch())
     }
-    @Test fun fetchWithoutApkIsUpToDate() = assertEquals(Fetched.UpToDate, checker(rel("3.11.0").copy(assets = emptyList())).fetch())
+    @Test fun fetchWithoutApkIsUpToDate() = assertEquals(Fetched.UpToDate, checker(rel("0.4.11.0").copy(assets = emptyList())).fetch())
     @Test fun fetchFailureIsFailed() = assertEquals(Fetched.Failed, checker(null).fetch())
     @Test fun fetchSwallowsExceptions() =
-        assertEquals(Fetched.Failed, UpdateChecker({ error("boom") }, "3.10.0", true) { clock }.fetch())
+        assertEquals(Fetched.Failed, UpdateChecker({ error("boom") }, "0.4.10.0", true) { clock }.fetch())
     @Test fun disabledNeverFetches() {
-        assertEquals(Fetched.Failed, checker(rel("3.11.0"), enabled = false).fetch())
+        assertEquals(Fetched.Failed, checker(rel("0.4.11.0"), enabled = false).fetch())
         assertEquals(0, calls)
     }
 
@@ -68,10 +68,10 @@ class UpdateCheckerTest {
     }
 
     @Test fun launchClearsCaughtUpUpdate() {
-        assertNull(checker(null, installed = "3.11.0").atLaunch(Settings(availableUpdate = found)).availableUpdate)
-        assertNull(checker(null, installed = "3.12.0").atLaunch(Settings(availableUpdate = found)).availableUpdate)
+        assertNull(checker(null, installed = "0.4.11.0").atLaunch(Settings(availableUpdate = found)).availableUpdate)
+        assertNull(checker(null, installed = "0.4.12.0").atLaunch(Settings(availableUpdate = found)).availableUpdate)
         val keep = Settings(availableUpdate = found)
-        assertSame(keep, checker(null, installed = "3.10.0").atLaunch(keep))
+        assertSame(keep, checker(null, installed = "0.4.10.0").atLaunch(keep))
         assertNull(checker(null, enabled = false).atLaunch(keep).availableUpdate)
     }
 
@@ -79,6 +79,6 @@ class UpdateCheckerTest {
         val s = Settings(availableUpdate = found)
         assertEquals(found, checker(null).pending(s))
         assertNull(checker(null, enabled = false).pending(s))
-        assertNull(checker(null, installed = "3.11.0").pending(s))
+        assertNull(checker(null, installed = "0.4.11.0").pending(s))
     }
 }
