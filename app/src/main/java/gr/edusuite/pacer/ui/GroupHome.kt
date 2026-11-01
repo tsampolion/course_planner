@@ -119,7 +119,7 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
                 Text(text, style = MaterialTheme.typography.titleSmall.merge(Figures), color = if (line.status == ProgressStatus.SHORT) c.warn else c.ink, modifier = Modifier.weight(1f))
                 if (onFix == null) Chevron()
             }
-            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.surfaceContainer)
+            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth(), color = fill, trackColor = c.progressTrack)
         }
         // D1: a short group's repair is one tap away; the sheet it opens offers only repairs that keep the teacher's lessons.
         if (onFix != null) Box(
@@ -133,7 +133,7 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
     }
 }
 
-/** The four page pills: Plan, Work, Stats, Settings, outlined so they read as buttons (X5). 2×2 on phones, one row on tablets, one column at large text. */
+/** The four page pills: Plan, Work, Stats, Settings, filled with the accent's soft colour and outlined so they read as buttons (X5, D14). 2×2 on phones, one row on tablets, one column at large text. */
 @Composable
 internal fun GroupHomePills(showPlan: Boolean = true, onOpen: (GroupDestination) -> Unit) {
     val pills = groupDestinations(LocalFeatures.current).filter { showPlan || it != GroupDestination.PLAN }.map { it to it.titleRes() }
@@ -153,7 +153,7 @@ private fun HomePill(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     val interaction = remember { MutableInteractionSource() }
     Button(
         onClick = onClick, interactionSource = interaction, shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Pacer.colors.ink),
+        colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.accentSoft, contentColor = Pacer.colors.onAccentSoft),
         border = BorderStroke(1.dp, Pacer.colors.outline),
         modifier = modifier.heightIn(min = 48.dp).pressFeedback(interaction),
     ) { Text(text, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center) }

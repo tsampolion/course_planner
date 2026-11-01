@@ -202,7 +202,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="home"></a>
 ### Home
 
-*Screen* · reached from [☰ Menu](#drawer), [Back, windows and start](#system), [School year settings](#school-year). The root of the stack. A greeting (Hello, or Hello, your name), today's date and the year, then the Pacing overview board and the next tests and worksheets.
+*Screen* · reached from [☰ Menu](#drawer), [Back, windows and start](#system), [School year settings](#school-year). The root of the stack. A greeting (Hello, or Hello, your name), today's date and the year on a band of the accent's soft colour, then the Pacing overview board and the next tests and worksheets.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -210,9 +210,9 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Welcome page | Automatic | First run | ↑ Opens [Welcome to Course Pacer](#welcome). Opens over Home once. |
 | New school year | Tap | No school year yet | ↑ Opens [New school year](#new-year). Warns before clearing nonempty Undo, then opens the New school year dialog. |
 | Add a class | Tap | Year without classes | → Screen [Classes](#classes). Opens Classes. |
-| Pacing overview board: a cell (Group, −N when behind; “● Today” under the name when the group has a lesson today) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. The dot blinks three times when Home opens, then stays lit (steady with animations off). Groups run most behind first inside each class, as on Pacing overview. TalkBack reads class, group, “on pace” or “short by N lessons”, and “has a lesson today”. |
+| Pacing overview board: a cell (Group, −N when behind; “● Today” under the name when the group has a lesson today) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. An on-pace cell wears its class's colour (a swatch beside the class name), a behind cell the warning colour, and the Today dot the second primary. The dot blinks three times when Home opens, then stays lit (steady with animations off). Groups run most behind first inside each class, as on Pacing overview. TalkBack reads class, group, “on pace” or “short by N lessons”, and “has a lesson today”. |
 | See all › / N groups on pace › / N set-up needed › | Tap | The large-text board counts only measured groups as on pace; groups with nothing to measure are “set-up needed” | → Screen [Pacing overview](#overview). Opens Pacing overview. |
-| Legend (on pace · behind, lessons short · Today) | Shows |  | Explains the board; each swatch looks like its cell, and the dot blinks like the cells'. |
+| Legend (behind, lessons short · Today) | Shows |  | Explains the board; each swatch looks like its cell, and the dot blinks like the cells'. On-pace cells are named by the class swatch instead. |
 | Tests & worksheets card: a row (date, title, class · group, kind) | Tap | Some test or worksheet is still to come; the card is hidden otherwise | → Screen [Work](#work). Opens the Work page of its group (the class's first group for a test that is for every group; the Class screen if it has none). Shows the next four. |
 
 <a id="welcome"></a>
@@ -397,7 +397,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Check now | Tap |  | View. Shows Checking…, then up to date, a new version, or a failure message. |
 | Your name | Type |  | Edit. Home greets you by it. |
 | Theme: System / Light / Dark | Toggle |  | Edit. Switches the theme at once. |
-| Palette cards (Bone / Saffron) | Tap |  | Edit. Chooses the palette. |
+| Palette cards (Freetown / Arusha / Oxford), one under another | Tap |  | Edit. Chooses the palette and repaints the app at once. Each card shows paper, both primaries and ink; the chosen one is filled and has a check. |
 | New classes: Class defaults | Tap |  | ↑ Opens [New class defaults](#class-defaults). Opens the defaults sheet. |
 | Export… | Tap | At least one year | Leaves app. Opens the system Save dialog with a dated .json name. Message: “Saved name to folder” |
 | Import… | Tap |  | Leaves app [Import N school years?](#import). Opens the system file picker; a readable file opens the import dialog. A file over 50 MiB shows “This backup is too large to open (N MB; the limit is M MB).” |
@@ -585,7 +585,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 <a id="plan"></a>
 ### Plan
 
-*Screen* · reached from [Go to](#group-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row starts with a gutter (the day number over the weekday) and an edge colour that shows its kind: test, worksheet, day off, edited, by hand, free, supplementary. A taught lesson also lists, greyed and marked “(not in plan)”, pages taught from a book the group has since dropped; TalkBack says the book is no longer in the plan.
+*Screen* · reached from [Go to](#group-switcher), [Group home](#group-home). Opens on today's lesson, with taught lessons above and the lessons to come below in week or month sections. Each row starts with a gutter (the day number over the weekday) and an edge colour that shows its kind, with a tint of it across the row: test, worksheet, day off, edited, by hand, free, supplementary. Today's row is the second primary's soft colour. A taught lesson also lists, greyed and marked “(not in plan)”, pages taught from a book the group has since dropped; TalkBack says the book is no longer in the plan.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |

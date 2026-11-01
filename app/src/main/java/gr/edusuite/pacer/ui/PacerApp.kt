@@ -120,6 +120,13 @@ private fun Screen.context(d: AppData, context: Context): String = when (this) {
     is Screen.GroupSettings -> listOfNotNull(d.schoolClass?.name, d.schoolClass?.groups?.firstOrNull { it.id == id }?.name).joinToString(" · ")
 }
 
+/** A class's own pages (the class, its groups and their settings) wear the class's colour in the top bar (D14); other screens keep paper. */
+@Composable
+private fun Screen.band(d: AppData): androidx.compose.ui.graphics.Color? = when (this) {
+    Screen.Class, is Screen.Group, is Screen.GroupSettings -> d.schoolClass?.let { cls -> Pacer.colors.classTile(d.year?.classes?.indexOfFirst { it.id == cls.id } ?: 0) }
+    else -> null
+}
+
 /** Keys each screen's saved state (scroll position, open dialogs) while it stays on the back stack. */
 private fun Screen.key(): String = toString()
 
@@ -496,7 +503,7 @@ private fun ScreenBar(
         } else TopAppBarDefaults.TopAppBarExpandedHeight
         TopAppBar(
             expandedHeight = barHeight,
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = screen.band(data) ?: MaterialTheme.colorScheme.background),
             navigationIcon = {
                 if (showMenu) MenuButton(onMenu, menuBadge)
             },

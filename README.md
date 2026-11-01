@@ -4,7 +4,7 @@
 
 Documentation index: [docs/README.md](docs/README.md)
 
-Course Pacer is part of the **EduSuite** apps, with [Course Invoicer](https://github.com/tsampolion/EduInvoiceApp). Both share one look, set out in [docs/EDUSUITE_STYLE_GUIDE.md](docs/EDUSUITE_STYLE_GUIDE.md); each has its own palette. Course Pacer offers Bone & green (default) and Saffron & ink, each in light and dark.
+Course Pacer is part of the **EduSuite** apps, with [Course Invoicer](https://github.com/tsampolion/EduInvoiceApp). Both share one look, set out in [docs/EDUSUITE_STYLE_GUIDE.md](docs/EDUSUITE_STYLE_GUIDE.md); each has its own palette. Course Pacer offers three palettes, Freetown (default), Arusha and Oxford, each in light and dark.
 
 It started as an Android version of the Coursebook Pacer web page, for teachers who must get through coursebooks by the end of term. For each group, it counts the lessons left, removes skipped pages and homework pages whose due or set-on date has arrived, and splits the rest so every book lands on the final lesson.
 
@@ -34,7 +34,7 @@ Each line links to where the feature is explained: a decision record in `docs/` 
 - **Large text and tablets**: screens show less from font scale 1.5; list and detail panes on tablets. [Layout](docs/ARCHITECTURE.md#large-text-and-tablets)
 - **Undo**: up to 60 steps within the open school year. [Edits and undo](docs/ARCHITECTURE.md#view-model-edits-and-undo)
 - **Backup**: export every school year to a file, import it or the web page's export. [Brief](docs/BACKUP_BRIEF.md)
-- **Two palettes**: Bone & green and Saffron & ink, light and dark. [Design](docs/PACER_DESIGN.md)
+- **Three palettes**: Freetown, Arusha and Oxford, light and dark, each with two main colours, a colour for every class and tinted lesson kinds. [Design](docs/PACER_DESIGN.md)
 - **Updates**: a daily check against GitHub releases, with **Download** in Settings. [Brief](docs/UPDATES_BRIEF.md) **Share Course Pacer** in Settings → About sends another teacher a link to the latest release.
 
 School years and settings are saved on the device and included in Android backup and device-to-device transfer. Uninstalling deletes them, so export first.

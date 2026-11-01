@@ -25,15 +25,25 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
-## [0.4.14.2] - 2026-10-31
-
-### Changed
-- Behind-the-scenes housekeeping only: nothing changes in how the app works.
-
-## [0.4.14.1] - 2026-10-31
+## [0.4.15.0] - 2026-11-01 - Great Expectations
 
 ### Changed
 - The update notice in Settings now lists what is new or fixed in a few short, plain bullets, instead of showing the start of the technical release notes.
+
+## [0.4.14.0] - 2026-11-01 - To the Lighthouse
+
+### Added
+- A third palette, Oxford: white paper with flag navy and red. Red only ever marks today and new things, never a problem.
+- Every palette now has a second colour: blue in Freetown, teal in Arusha and red in Oxford. It marks today and the buttons that add something.
+- Each class has its own colour. Its groups wear it on the Home board, and its pages wear it in the bar at the top.
+
+### Changed
+- Bone & green is now called Freetown and Saffron & ink is now called Arusha. Both have new, clearer colours. Your chosen palette stays selected.
+- Lessons, homework, tests and worksheets are tinted in their kind's colour across the whole row, not only with a thin stripe.
+- Today's lesson stands out in the plan, and today has a ring of its own on the week strip.
+- Selected switches, days and filters use the palette's main colour instead of black, and the group page buttons are filled.
+- Home's greeting sits on a band of colour, and section labels are in the palette's colour.
+- The Palette setting lists the three palettes one under another, each with four colour dots.
 
 ## [0.4.13.2] - 2026-10-31
 
@@ -1110,9 +1120,9 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.14.2...HEAD
-[0.4.14.2]: https://github.com/tsampolion/course_planner/compare/v0.4.14.1...v0.4.14.2
-[0.4.14.1]: https://github.com/tsampolion/course_planner/compare/v0.4.13.2...v0.4.14.1
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.15.0...HEAD
+[0.4.15.0]: https://github.com/tsampolion/course_planner/compare/v0.4.14.0...v0.4.15.0
+[0.4.14.0]: https://github.com/tsampolion/course_planner/compare/v0.4.13.2...v0.4.14.0
 [0.4.13.2]: https://github.com/tsampolion/course_planner/compare/v0.4.13.1...v0.4.13.2
 [0.4.13.1]: https://github.com/tsampolion/course_planner/compare/v0.4.13.0...v0.4.13.1
 [0.4.13.0]: https://github.com/tsampolion/course_planner/compare/v0.4.12.1...v0.4.13.0

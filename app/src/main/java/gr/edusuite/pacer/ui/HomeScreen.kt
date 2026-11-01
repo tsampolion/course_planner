@@ -161,11 +161,12 @@ fun HomeScreen(
     if (adding) NewYearDialog(data.years, vm) { adding = false }
 }
 
-/** D3: ☰ for the menu (which holds Settings), the logo, "Hello, name" and, under it, today's date and the open year. */
+/** D3: ☰ for the menu (which holds Settings), the logo, "Hello, name" and, under it, today's date and the open year, on the accent's soft field. */
 @Composable
 private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: (() -> Unit)?, menuBadge: Boolean) {
     val context = LocalContext.current
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = Pacer.colors.accentSoft, contentColor = Pacer.colors.ink) {
+    Row(Modifier.padding(Space.l), verticalAlignment = Alignment.CenterVertically) {
         // On a tablet with the menu always open there is no ☰.
         if (onMenu != null) {
             MenuButton(onMenu, menuBadge)
@@ -186,9 +187,10 @@ private fun Header(name: String, year: SchoolYear?, today: LocalDate, onMenu: ((
             Text(
                 if (year == null) date else stringResource(R.string.home_pair, date, year.name.ifBlank { context.getString(R.string.home_year) }),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Pacer.colors.muted,
+                color = Pacer.colors.onAccentSoft,
             )
         }
+    }
     }
 }
 
@@ -207,8 +209,8 @@ private fun HomeCard(title: String, link: String?, onLink: () -> Unit, content: 
 }
 
 /**
- * The Pacing overview board (decisions 5, 12): one line per class, one cell per group. On-pace cells are neutral
- * (surfaceContainer with ink) and behind cells are rust with "−N" whole lessons. A cell opens its group, and TalkBack
+ * The Pacing overview board (decisions 5, 12): one line per class, one cell per group. On-pace cells wear their class's
+ * colour (D14, a swatch beside the class name says which) and behind cells are the warning colour with "−N" whole lessons. A cell opens its group, and TalkBack
  * reads it as one item ("FCE Wed–Fri, short by 2 lessons"). Under it, the legend and "See all ›" to Pacing overview.
  */
 @Composable
@@ -240,18 +242,19 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
             if (board.isEmpty()) Hint(stringResource(R.string.home_board_empty))
             board.forEach { row ->
                 val className = row.className.ifBlank { context.getString(R.string.home_class) }
+                val tile = Pacer.colors.classTile(year.classes.indexOfFirst { it.id == row.classId })
                 if (large) Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
-                    Text(className, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    row.cells.forEach { cell -> BoardCellView(className, cell, Modifier.fillMaxWidth()) { vm.openGroup(cell.classId, cell.groupId) } }
+                    ClassName(className, tile)
+                    row.cells.forEach { cell -> BoardCellView(className, cell, tile, Modifier.fillMaxWidth()) { vm.openGroup(cell.classId, cell.groupId) } }
                 } else Row(verticalAlignment = Alignment.Top) {
                     // Level with the first line of cells.
                     Box(Modifier.weight(1f).heightIn(min = 48.dp).padding(end = Space.s), contentAlignment = Alignment.CenterStart) {
-                        Text(className, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        ClassName(className, tile)
                     }
                     Column(Modifier.weight(if (perLine == 1) 1.5f else 2f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                         row.cells.chunked(perLine).forEach { line ->
                             Row(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-                                line.forEach { cell -> BoardCellView(className, cell, Modifier.weight(1f)) { vm.openGroup(cell.classId, cell.groupId) } }
+                                line.forEach { cell -> BoardCellView(className, cell, tile, Modifier.weight(1f)) { vm.openGroup(cell.classId, cell.groupId) } }
                                 repeat(perLine - line.size) { Spacer(Modifier.weight(1f)) }
                             }
                         }
@@ -274,9 +277,18 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
     }
 }
 
-/** One group's cell: its name, and "−N" when it is behind. One touch target and one TalkBack item. */
+/** A class's name on the board, after a swatch of its colour. */
 @Composable
-private fun BoardCellView(className: String, cell: BoardCell, modifier: Modifier, onClick: () -> Unit) {
+private fun ClassName(name: String, tile: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+        Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(tile).border(1.dp, Pacer.colors.line, MaterialTheme.shapes.extraSmall))
+        Text(name, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/** One group's cell, in its class's colour: its name, and "−N" when it is behind. One touch target and one TalkBack item. */
+@Composable
+private fun BoardCellView(className: String, cell: BoardCell, tile: Color, modifier: Modifier, onClick: () -> Unit) {
     val context = LocalContext.current
     val c = Pacer.colors
     val group = cell.groupName.ifBlank { context.getString(R.string.home_group) }
@@ -291,8 +303,8 @@ private fun BoardCellView(className: String, cell: BoardCell, modifier: Modifier
     Surface(
         onClick = onClick,
         shape = MaterialTheme.shapes.small,
-        color = if (cell.behind) c.warn else c.surfaceContainer,
-        contentColor = if (cell.behind) c.onWarn else c.ink,
+        color = if (cell.behind) c.warn else tile,
+        contentColor = if (cell.behind) c.onWarn else c.onTile,
         modifier = modifier.heightIn(min = 48.dp).clearAndSetSemantics {
             contentDescription = spoken
             role = Role.Button
@@ -307,25 +319,22 @@ private fun BoardCellView(className: String, cell: BoardCell, modifier: Modifier
                 overflow = TextOverflow.Ellipsis,
             )
             if (cell.today) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-                BlinkingDot(if (cell.behind) c.onWarn else c.accentText)
+                BlinkingDot(if (cell.behind) c.onWarn else c.second)
                 Text(stringResource(R.string.home_cell_today), style = MaterialTheme.typography.labelSmall)
             }
         }
     }
 }
 
-/** The board's key, each swatch drawn like its cell (on-pace cells have no outline): a neutral square for on pace, a rust one for behind and the blinking dot for a lesson today. The cells say it in words for TalkBack. */
+/** The board's key: the warning square for behind and the blinking dot for a lesson today. On-pace cells wear their class's colour, named by the swatch beside the class. The cells say it in words for TalkBack. */
 @Composable
 private fun Legend(modifier: Modifier) {
     val c = Pacer.colors
     Row(modifier.clearAndSetSemantics { }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-        Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(c.surfaceContainer))
-        Text(stringResource(R.string.status_on_pace), style = MaterialTheme.typography.labelSmall, color = c.muted)
-        Spacer(Modifier.width(Space.s))
         Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(c.warn))
         Text(stringResource(R.string.home_legend_behind), style = MaterialTheme.typography.labelSmall, color = c.muted, maxLines = 2)
         Spacer(Modifier.width(Space.s))
-        Box(Modifier.size(6.dp).clip(CircleShape).background(c.accentText))
+        Box(Modifier.size(6.dp).clip(CircleShape).background(c.second))
         Text(stringResource(R.string.home_cell_today), style = MaterialTheme.typography.labelSmall, color = c.muted)
     }
 }
@@ -378,7 +387,9 @@ private fun UpcomingCard(year: SchoolYear, vm: PacerViewModel) {
                     Text(title, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(where, style = MaterialTheme.typography.labelSmall, color = c.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                Text(kind, style = MaterialTheme.typography.labelSmall, color = c.onAccentSoft, modifier = Modifier.clip(CircleShape).background(c.accentSoft).padding(horizontal = Space.s, vertical = Space.xs))
+                // The chip wears its kind's colour, as the lesson rows do.
+                val edge = if (item.kind == UpcomingKind.WORKSHEET) c.edgeWorksheet else c.edgeTest
+                Text(kind, style = MaterialTheme.typography.labelSmall, color = c.ink, modifier = Modifier.clip(CircleShape).background(c.kindTint(edge)).border(1.dp, edge, CircleShape).padding(horizontal = Space.s, vertical = Space.xs))
             }
         }
     }

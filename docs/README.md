@@ -11,7 +11,7 @@ Briefs give versions in the old three-part form up to 4.1.0 (4.1.0 is `0.4.1.0` 
 - [BRIEF.md](BRIEF.md): the original port brief and the feature-parity checklist.
 - [EDUSUITE_STYLE_GUIDE.md](EDUSUITE_STYLE_GUIDE.md): the shared EduSuite look. A copy of the canonical guide.
 - [PACER_DESIGN.md](PACER_DESIGN.md): Course Pacer's own design language and its departures from the shared guide.
-- [PACER_ACCENT_CONTRAST.md](PACER_ACCENT_CONTRAST.md): measured contrast pairs for all four Bone/Saffron sets.
+- [PACER_ACCENT_CONTRAST.md](PACER_ACCENT_CONTRAST.md): measured contrast pairs for all six palette sets (Freetown, Arusha, Oxford, light and dark).
 - [STRING_INVENTORY.md](STRING_INVENTORY.md): every string the app shows, says or prints, grouped by screen, with a blank column for the owner's proposed wording.
 - [../PRODUCT.md](../PRODUCT.md): the product record (users, purpose, constraints, principles).
 

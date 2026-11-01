@@ -158,7 +158,7 @@ Counts below measure action taps, excluding typing, date-picker navigation and s
 | Delete year/class/group | 1 | 2 | Every preset; approved confirmation |
 | Switch year with nonempty Undo | 1 | 2 | Every preset; approved warning |
 
-The approved creation and safety steps are explicit exceptions to the original no-extra-taps rule. Phone checks still cover light/dark, Bone/Saffron, large text and narrow/tablet widths.
+The approved creation and safety steps are explicit exceptions to the original no-extra-taps rule. Phone checks still cover light/dark, every palette, large text and narrow/tablet widths.
 
 ## PR7 journeys
 
