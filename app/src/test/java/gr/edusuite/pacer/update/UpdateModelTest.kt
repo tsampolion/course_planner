@@ -168,4 +168,38 @@ class UpdateModelTest {
         assertNull(storedUpdate("3.11.0", "n", "https://example.com/a.apk", page))
         assertNull(storedUpdate("3.11.0", "n", apk, "https://example.com/"))
     }
+
+    private fun r(v: String, vararg bullets: String, pre: Boolean = false) = Release(
+        "v$v", bullets.joinToString("\n") { "- $it" }, "https://github.com/tsampolion/course_planner/releases/tag/v$v",
+        listOf("course-pacer-$v.apk" to "https://github.com/tsampolion/course_planner/releases/download/v$v/course-pacer-$v.apk"),
+        prerelease = pre,
+    )
+
+    @Test fun noticeLeadsWithTheBiggestReleaseThenFillsToFour() {
+        val list = listOf(
+            r("0.4.15.0", "Choose features.", "Release names."), r("0.4.14.1", "Class colours."),
+            r("0.4.14.0", "Third palette."), r("0.4.13.2", "Old homework."),
+        )
+        assertEquals("Choose features.\nThird palette.\nClass colours.\nRelease names.", toUpdate(list, "0.4.13.2")!!.notes)
+        assertEquals("0.4.15.0", toUpdate(list, "0.4.13.2")!!.version)
+    }
+
+    @Test fun anAReleaseOutranksB() {
+        val list = listOf(r("0.5.0.0", "Files change."), r("0.4.15.0", "New feature."), r("0.4.14.1", "Fix."))
+        assertEquals("Files change.\nNew feature.\nFix.", toUpdate(list, "0.4.14.0")!!.notes)
+    }
+
+    @Test fun noticeIgnoresNotesWrittenBeforeThePlainEnglishRule() {
+        val list = listOf(r("0.4.14.1", "Class colours."), r("0.4.13.2", "Feature bricks follow modules."))
+        assertEquals("Class colours.", toUpdate(list, "0.4.10.0")!!.notes)
+        assertEquals("", toUpdate(listOf(r("0.4.13.2", "Feature bricks.")), "0.4.10.0")!!.notes)
+    }
+
+    @Test fun noticeSkipsOldTagsPrereleasesAndOlderReleases() {
+        val list = listOf(r("0.4.16.0", "Beta.", pre = true), r("0.4.15.0", "Real."), r("4.1.0", "Ancient."), r("0.4.14.0", "Seen."))
+        val u = toUpdate(list, "0.4.14.0")!!
+        assertEquals("0.4.15.0", u.version)
+        assertEquals("Real.", u.notes)
+        assertNull(toUpdate(listOf(r("4.1.0", "Ancient.")), "0.4.14.0"))
+    }
 }
