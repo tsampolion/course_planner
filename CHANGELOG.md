@@ -27,7 +27,17 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [0.4.15.0] - 2026-11-01 - Great Expectations
 
+### Added
+- Choose the tools you start with: just pacing, pacing and work, everything, or pick them one by one. You can turn on more any time in Settings.
+- Settings has a Features row that shows what each tool adds and turns it on. Once a tool is on, it stays on.
+- A short hint offers Work or Planning tools once, at the moment you would use them, with a Turn on button right there.
+- After an update, a few swipeable cards say what is new. Reopen them from Settings, under What's new.
+- Each big release now has a name, shown beside its version. A version that ends in .0 shows without it, so 0.4.15.0 reads 0.4.15.
+
 ### Changed
+- With only pacing on, a group has no ⋮ menu until a tool adds something to it. Tips moved to Settings, under How pacing works.
+- When Work is off, the Work page offers to turn it on instead of telling you to add homework you cannot add.
+- The first start shows the tool choices instead of the four steps. The steps stay in Settings, under Getting started.
 - The update notice in Settings now lists what is new or fixed in a few short, plain bullets, instead of showing the start of the technical release notes.
 
 ## [0.4.14.1] - 2026-11-01

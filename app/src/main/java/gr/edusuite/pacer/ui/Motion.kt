@@ -104,6 +104,13 @@ fun rememberToggleHaptic(): (Boolean) -> Unit {
     return remember(haptic) { { on -> haptic.performHapticFeedback(if (on) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff) } }
 }
 
+/** The confirm tick when a tool turns on. */
+@Composable
+fun rememberConfirmHaptic(): () -> Unit {
+    val haptic = LocalHapticFeedback.current
+    return remember(haptic) { { haptic.performHapticFeedback(HapticFeedbackType.Confirm) } }
+}
+
 @Composable
 fun rememberSegmentHaptic(): () -> Unit {
     val haptic = LocalHapticFeedback.current

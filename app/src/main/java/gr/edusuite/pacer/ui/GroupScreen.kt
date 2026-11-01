@@ -143,6 +143,10 @@ fun GroupScreen(
     var selectedDay by rememberSaveable(g.id) { mutableStateOf((report.lessons.drop(1).firstOrNull() ?: report.lessons.firstOrNull() ?: today).toString()) }
     var extraDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var editingDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
+    // The moment-of-need offers (ModuleHints.kt): pages recorded ahead of the plan, and lessons changed by hand.
+    var hintAhead by rememberSaveable(g.id) { mutableIntStateOf(0) }
+    var handEdits by rememberSaveable(g.id) { mutableIntStateOf(0) }
+    var hintDone by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var homeworkDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var homeworkId by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
     var notTaughtDate by rememberSaveable(g.id) { mutableStateOf<String?>(null) }
@@ -337,6 +341,14 @@ fun GroupScreen(
                             val left = remember(report, b) { report.unplacedPages(b) }
                             if (left.isNotEmpty()) Hint(stringResource(R.string.supp_left, b.name, collapse(left)))
                         }
+                        val offer = dueModuleHint(LocalFeatures.current, seenTips, hintAhead, handEdits)
+                        val confirm = rememberConfirmHaptic()
+                        if (offer != null) ModuleHintCard(
+                            offer, hintAhead,
+                            onTurnOn = { vm.turnOn(offer.module); vm.markHintSeen(offer.id); hintDone = offer.name; confirm() },
+                            onNotNow = { vm.markHintSeen(offer.id) },
+                        )
+                        hintDone?.let { ModuleHintDone(ModuleHint.valueOf(it)) }
                         if (lessons.isNotEmpty()) ShowOnceHint(Hints.LESSON_MENU, seenTips, stringResource(R.string.hint_lesson_menu), vm::markHintSeen)
                         if (plan.books.isEmpty()) {
                             GuideCard(stringResource(R.string.group_add_books), stringResource(R.string.group_add_books_hint))
@@ -482,7 +494,15 @@ fun GroupScreen(
         val date = LocalDate.parse(ds)
         NotTaughtDialog(report, date, { vm.lessonNotTaught(g.id, date); undoToast(context.getString(R.string.group_not_taught_done)) }, { notTaughtDate = null })
     }
-    editing?.let { l -> PagesTaughtDialog(report, l, { vm.recordLesson(g.id, l.date, it); undoToast(context.getString(R.string.group_saved)) }, { editingDate = null }) }
+    editing?.let { l ->
+        PagesTaughtDialog(report, l, {
+            val planned = report.plannedPages(l.date).orEmpty()
+            hintAhead = pagesAhead(planned, it)
+            if (isHandEdit(planned, it)) handEdits++
+            vm.recordLesson(g.id, l.date, it)
+            undoToast(context.getString(R.string.group_saved))
+        }, { editingDate = null })
+    }
 }
 
 /** A stable key for a ledger line: the custom plan's lesson, else its date. */

@@ -157,7 +157,10 @@ fun HomeScreen(
         }
     }
 
-    if (welcome) WelcomePage(onStart = { adding = true }, onDismiss = vm::setWelcomeSeen)
+    if (welcome) {
+        val deck = deckId(rememberVersionName())
+        FirstRunPage(onStart = { vm.finishWelcome(it, deck); adding = true }, onNotNow = { vm.finishWelcome(it, deck) })
+    }
     if (adding) NewYearDialog(data.years, vm) { adding = false }
 }
 
