@@ -854,10 +854,12 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `settings_import_explanation` | one: Add puts them beside the %d school year on this phone. Replace all deletes it and keeps only the file's. / other: Add puts them beside the %d school years on this phone. Replace all deletes those and keeps only the file's. |  | Plural, Has placeholders |
 | `settings_import_title` | one: Import %d school year? / other: Import %d school years? |  | Plural, Has placeholders |
 | `settings_palette` | Palette |  |  |
-| `palette_bone` | Bone & green |  |  |
-| `palette_bone_body` | Warm paper, bottle-green accent |  |  |
-| `palette_saffron` | Saffron & ink |  |  |
-| `palette_saffron_body` | Cool paper, saffron signal, bottle-green ink |  |  |
+| `palette_bone` | Freetown |  |  |
+| `palette_bone_body` | Bone paper, chalkboard green and ballpoint blue |  |  |
+| `palette_saffron` | Arusha |  |  |
+| `palette_saffron_body` | Graphite, pencil yellow and teal |  |  |
+| `palette_oxford` | Oxford |  |  |
+| `palette_oxford_body` | White paper, flag navy and red |  |  |
 | `palette_selected` | Selected |  |  |
 | `palette_unselected` | Not selected |  |  |
 | `palette_description` | %1$s. %2$s |  | TalkBack, Has placeholders |

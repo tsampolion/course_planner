@@ -126,10 +126,10 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
     val fill = c.accent
     val hero = heroActions(next, actions.canTick)
     val addHomework = stringResource(R.string.homework_add)
-    // Done is the strong button (dark on the fill), Homework the light one; in the dark themes the two swap values so Done stays dark.
+    // Done is the strong button (dark on the fill; in the dark themes surface, so it stays dark). Homework adds, so it is the second primary (D14).
     val dark = c.paper.luminance() < .5f
     val strong = if (dark) c.surface to c.ink else c.ink to c.surface
-    val soft = strong.second to strong.first
+    val soft = c.second to c.onSecond
     val onEdit: (() -> Unit)? = if (hero.canEditPages && !completing) onPagesTaught else null
     Box(modifier) {
         Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = fill, contentColor = c.onAccent) {

@@ -61,7 +61,7 @@ catch-up and supplementary books build on it without breaking that parity.
 
 ## Brand Commitments
 
-- The name is Course Pacer, part of EduSuite. The accent is Bone & green (default) or Saffron & ink, chosen in Settings. The typeface is the bundled Outfit. Wallpaper
+- The name is Course Pacer, part of EduSuite. The palette is Freetown (default), Arusha or Oxford, chosen in Settings; each has two primaries and class colours. The typeface is the bundled Outfit. Wallpaper
   (dynamic) colour stays off, so the accent identifies the app.
 - Voice: plain, short and warm. Sentence case. No exclamation marks, no blame.
 - The launcher icon is an open book with three pacing lines.

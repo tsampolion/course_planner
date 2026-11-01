@@ -50,7 +50,7 @@ internal fun UnitProgressStrip(report: GroupReport) {
             progress.forEach { unit ->
                 val fill by animateFloatAsState(unitCompletion(report.plan, unit), if (motion) Motion.work(MotionSpec.Step.PACE) else snap())
                 LinearProgressIndicator(progress = { fill }, modifier = Modifier.weight(1f),
-                    color = fillColor, trackColor = Pacer.colors.surfaceContainer)
+                    color = fillColor, trackColor = Pacer.colors.progressTrack)
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.l), verticalArrangement = Arrangement.spacedBy(Space.s)) {

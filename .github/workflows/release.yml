@@ -140,7 +140,9 @@ jobs:
             echo "::error::No APK for $SHA, so $TAG was not created. Run it manually with allow_no_apk to publish without one."
             exit 1
           fi
+          # A release name follows the date in the changelog heading (## [0.4.14.0] - 2026-11-01 - To the Lighthouse).
+          name=$(awk -v v="$VERSION" 'index($0, "## [" v "]") == 1 { n = split($0, p, " - "); if (n >= 3) { s = p[3]; for (i = 4; i <= n; i++) s = s " - " p[i]; print s } exit }' CHANGELOG.md)
           gh release create "$TAG" "${apks[@]}" \
             --target "$SHA" \
-            --title "Course Pacer $VERSION" \
+            --title "Course Pacer $VERSION${name:+ · $name}" \
             --notes-file notes.md

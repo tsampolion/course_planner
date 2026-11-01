@@ -47,7 +47,7 @@ fun SetAsideDialog(file: File, toast: (String) -> Unit, onDismiss: () -> Unit) {
         title = { Text(stringResource(R.string.recovery_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.m)) {
-                Tile(color = Pacer.colors.tileApricot) {
+                Tile(color = Pacer.colors.tile3) {
                     Text(stringResource(R.string.recovery_original_safe), style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(R.string.recovery_explanation, stringResource(R.string.app_name)),
                         style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.onTileMuted)

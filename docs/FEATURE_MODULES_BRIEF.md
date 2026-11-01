@@ -103,7 +103,7 @@ The deck can be skipped from the first card and reopened from Settings › Help.
 From the release that launches this feature, A and B releases (`0.A.0.0`, `0.x.B.0`) carry a title from English literature, classic or contemporary; a C release keeps the name of the release it fixes and never adds or changes one.
 
 - The name follows the date in the changelog heading: `## [0.4.13.0] - 2026-12-01 - Great Expectations`.
-- `release.yml` puts it in the GitHub release title; the update notice and the What's new deck show it.
+- Names start early, with 0.4.14.0 “To the Lighthouse” (the palette release), before this feature launches. `release.yml` already puts a name in the GitHub release title (“Course Pacer 0.4.14.0 · To the Lighthouse”; a heading without one keeps “Course Pacer <version>”); the update notice and the What's new deck show it once this feature ships.
 - Installed apps read only the tag and the APK name, `release.yml` finds notes by the `## [version]` prefix and `DocsTest` reads the bracket, so the update contract does not change.
 - Prefer titles that are not brands or series trademarks.
 

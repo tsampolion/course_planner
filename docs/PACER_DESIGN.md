@@ -1,6 +1,6 @@
 # Course Pacer design language
 
-> **Status: built.** Agreed with the owner on 2026-10-21 and shipped in 3.1.0 to 3.9.0 (see `CHANGELOG.md`). The background pattern (D12) was dropped before it was built. D13 adds the selectable Bone and Saffron palettes. The UI/UX audit ([`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md)) proposes changes to it, each to be approved on its own.
+> **Status: built.** Agreed with the owner on 2026-10-21 and shipped in 3.1.0 to 3.9.0 (see `CHANGELOG.md`). The background pattern (D12) was dropped before it was built. D13 adds the selectable palettes (Freetown, Arusha, Oxford) and D14 carries their colour into the screens (0.4.14.0). The UI/UX audit ([`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md)) proposes changes to it, each to be approved on its own.
 
 `docs/EDUSUITE_STYLE_GUIDE.md` stays the shared EduSuite guide and a byte-for-byte copy of the one in Course Invoicer.
 This file records where Course Pacer departs from it. Every departure is Pacer-only for now. Together they are
@@ -9,69 +9,91 @@ candidates for the next suite guide, which Course Invoicer may adopt later, one 
 ## The idea
 
 A plain ledger with one focal point per screen. Today's lesson always comes first. Lists are one line per item on
-hairline rows, with few boxes. Colour is for what needs attention: groups behind and the kind of each lesson. Figures
-are whole lessons, rounded up. The look is bright and friendly, and precise like an instrument.
+hairline rows, with few boxes. Colour is part of the experience, because the app is for teachers of children, teenagers
+and adults: every palette has two primaries, every class has a colour and every lesson kind tints its row (D14). Words
+still carry every meaning, so colour is never the only signal. Figures are whole lessons, rounded up. The look is bright
+and friendly, and precise like an instrument.
 
 ## Departures from the shared guide
 
 | # | Guide | Course Pacer |
 |---|---|---|
-| D1 | §2.1/§2.2/§10: the dark set is deep, low-light versions | Deep green-tinted grounds and soft ink in both Pacer palettes (D13) |
+| D1 | §2.1/§2.2/§10: the dark set is deep, low-light versions | Each palette's dark set is the same palette at night: a deep ground tinted toward its own hue (never pure black or navy) and soft ink (D13) |
 | D2 | §1/§3: figures in monospace | Outfit with tabular figures |
 | D3 | §6 Home header: "Hello" with a Settings button | "Hello, name" with the date and year. ☰ opens the menu. Settings is in the menu. |
 | D4 | §6 Tile grid (bento) on Home | The Pacing overview board, with a blinking dot and "Today" on groups that teach today, and a card of the next tests and worksheets |
 | D5 | §15: a back arrow on every screen; no drawer | ☰ menu on every screen, no back arrow; System Back still works. The menu keeps five items in a fixed order, and Classes & Groups opens at the teacher's place (class, group, or the group's pages) with the current page marked and a back row up. On tablets 840dp and wider the menu is a drawer the teacher can pin open (the default) or let collapse behind ☰. |
 | D6 | §6 List row: a leading icon | Ledger rows with no icon. Edge colours mark the kind. |
 | D7 | §6 Warning banner on the screen | A warning button with a count, and the Warnings sheet |
-| D8 | §2: no kind colours | Six non-violet lesson-kind edge tokens, with words retained (D13) |
+| D8 | §2: no kind colours | Seven non-violet lesson-kind colours: a 4dp edge and a tint across the row, with words retained (D13, D14) |
 | D9 | §6 GuideCard or dialog for the welcome | A full first-run page |
-| D10 | §6 segmented control | A filled segmented switch with an ink selected side, 48dp |
-| D11 | §2.2 tiles carry status (mint for done) | On-pace is neutral; behind keeps its word and pale pill, with rust/red distinct from the accent. |
+| D10 | §6 segmented control | A filled segmented switch with an accent selected side, 48dp |
+| D11 | §2.2 tiles carry status (mint for done) | Tiles are class colours, not status. Behind keeps its word and its pill, in a warning colour at least 40° of hue from both primaries; a palette's primary is never moved to make room for a warning. |
 | D12 | §1 Flat, colour blocks only | ~~A light-mode background pattern of school icons, under solid sheets~~ Dropped by the owner (3.6.0): the app stays flat, with no pattern |
-| D13 | §2 shared light neutrals, tiles and accent | Pacer-owned Bone & green (default) and Saffron & ink, each light/dark. No dynamic colour. The suite guide still shows the old palette; other suite apps may adopt these later. |
+| D13 | §2 shared light neutrals, tiles and accent | Pacer-owned palettes, each light/dark: Freetown (default, stored as `BONE`), Arusha (`SAFFRON`) and Oxford (`OXFORD`). No dynamic colour. The suite guide still shows the old palette; other suite apps may adopt these later. |
+| D14 | §1 colour blocks for status only | Colour across the app: two primaries per palette, class colours, kind tints, accent controls and tinted neutrals (below). |
 
 ## Tokens
 
-The palette is saved outside undo and changes the whole Compose theme immediately. Surface steps sit close to their ground. Saffron is a fill, never text on pale paper; foreground controls use accentText, derived from onAccentSoft. Legacy tile names remain for source compatibility, with new non-violet values. Values were tuned for text and edge contrast, edge separation and warning/accent hue separation. The Saffron warnings use a redder rust to reach the required 40° hue separation while keeping the seed accent.
+The palette is saved outside undo and changes the whole Compose theme immediately. Each palette is named after a town whose flag carries its colours:
 
-| Token | Bone light | Bone dark | Saffron light | Saffron dark |
-|---|---|---|---|---|
-| paper | `#E9E6DD` | `#161C1A` | `#F6F4EC` | `#0E1A14` |
-| surface | `#F4F2EC` | `#1F2725` | `#FFFFFF` | `#16251D` |
-| surfaceContainer | `#E1DED4` | `#2A3330` | `#E9E9DF` | `#24352B` |
-| line | `#CDCABF` | `#3B4540` | `#D5D9CE` | `#35493B` |
-| outline | `#7D766C` | `#89908D` | `#738078` | `#828A85` |
-| muted | `#6B5B51` | `#9AA097` | `#5A6A60` | `#9DB0A4` |
-| ink | `#2A1D17` | `#E3E2DA` | `#0D2A1C` | `#EEF0E8` |
-| tileLilac | `#D7DFCA` | `#303E31` | `#F4E7AA` | `#454025` |
-| tileMint | `#E0DCD1` | `#3A3C34` | `#DCE7D9` | `#2D3F30` |
-| tileSky | `#D1DEE0` | `#2C3E42` | `#DCE7E5` | `#293D39` |
-| tileApricot | `#E5D9CB` | `#45382D` | `#EBE3CE` | `#413B2A` |
-| tilePink | `#DDE3BF` | `#3B4128` | `#E1E2D9` | `#363C32` |
-| onTile | `#2A1D17` | `#E3E2DA` | `#0D2A1C` | `#EEF0E8` |
-| onTileMuted | `#574D42` | `#C6C9BE` | `#42574A` | `#C8D4C8` |
-| warn | `#91421F` | `#FF8F6B` | `#9A2F24` | `#FF7C70` |
-| onWarn | `#F4F2EC` | `#3A1206` | `#FFFFFF` | `#3A1206` |
-| warnSoft | `#E9DCD0` | `#432B21` | `#F0DED4` | `#43291D` |
-| onWarnSoft | `#542811` | `#F8CBB6` | `#5F2416` | `#F8CBB6` |
-| ok | `#37622F` | `#9FC98E` | `#315F40` | `#A1CAA3` |
-| onOk | `#F4F2EC` | `#0F1A0C` | `#FFFFFF` | `#102719` |
-| okSoft | `#D9E1CF` | `#2C3F29` | `#DEE8D9` | `#283F2D` |
-| onOkSoft | `#233C1E` | `#CEE7C0` | `#1D4028` | `#D7EACF` |
-| accent | `#3F6B34` | `#9FC98E` | `#F0BF1A` | `#F2C94C` |
-| onAccent | `#F4F2EC` | `#0F1A0C` | `#0D2A1C` | `#0E1A14` |
-| accentSoft | `#D9E3D0` | `#2D4129` | `#F4E7AE` | `#423C1E` |
-| onAccentSoft | `#253F1F` | `#D4E8C8` | `#344522` | `#F1E2A8` |
-| edgeTest | `#994B39` | `#D77D60` | `#9A2F24` | `#D77D60` |
-| edgeDayOff | `#7D766C` | `#89908D` | `#738078` | `#828A85` |
-| edgeEdited | `#3F6B34` | `#9FC98E` | `#315F40` | `#F2C94C` |
-| edgeHand | `#2D6C84` | `#77B2C2` | `#2D6C84` | `#77B2C2` |
-| edgeFree | `#896900` | `#D8C26A` | `#896900` | `#9FC98E` |
-| edgeSupp | `#414700` | `#E0DDD0` | `#414700` | `#E0DDD0` |
+- **Freetown** (Sierra Leone: green, white, blue): bone paper, chalkboard green and ballpoint blue. Behind is oxblood; a test is raspberry.
+- **Arusha** (Tanzania: green, gold, black, blue): graphite neutrals, pencil yellow and deep teal. Behind is crimson.
+- **Oxford** (the Union flag: blue, red, white): cool white paper, flag navy and flag red as equal primaries. Red is only the second primary; behind and Remove are amber and the test edge is teal.
 
-The launcher icon and first-frame window background are static and always Bone (the background follows light/dark). Saffron users see that neutral Bone background only until Compose draws; it contains no launch text. The in-app logo follows the chosen palette, using accent and onAccent. Today's lesson is the accent fill wherever it is the screen's focal point (group home and Plan). Home has no lesson block; its board marks the groups that teach today.
+## Colour across the app (D14)
 
-Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distance is at least 60. Every set excludes violet/indigo. `docs/PACER_ACCENT_CONTRAST.md` lists all measured pairs. ![Palette swatches, not app screenshots](images/palettes.svg)
+- **Two primaries.** The accent is the first: the lesson hero, Done ticks, the selected side of every switch, the selected day and filter, primary buttons and the logo. `second` is the second: today (today's lesson row, the today dot on the Home board and its key, the ring and dot on the week strip), the actions that add (Add assignment, Homework on the hero, the extra-lesson button) and, in Freetown and Arusha, progress bars (`mark`). Oxford keeps progress navy, so red never reads as a score.
+- **One meaning per hue.** No lesson edge sits within 25° of hue of `second`, and warnings sit at least 40° from both primaries. A palette's primary is never removed because a warning shares its hue: the warning moves.
+- **Class colours.** `tile1` to `tile5` are class colours. A class takes one by its position in the class list (`classTile`), so nothing new is stored. On-pace cells on the Home board wear their class's colour, with a swatch beside the class name; a class's pages (the class, its groups, group settings) wear it in the top bar.
+- **Kind tints.** A lesson kind's colour is a 4dp edge and a 12% tint across the row (`kindTint`, `KIND_TINT`), on Plan, Work, Due soon and every ledger row with an edge. Today's lesson row is `secondSoft`.
+- **Soft fields.** Home's greeting sits on `accentSoft`; the group page pills are `accentSoft` with an outline; the selected palette card is `accentSoft`. Section labels (Eyebrow) are `accentText`.
+- **Tinted neutrals.** Paper, containers and hairlines lean toward each palette's hue; Arusha keeps true graphite neutrals.
+
+Arusha's saffron is a fill, never text on pale paper; foreground controls use accentText, derived from onAccentSoft. The launcher icon and first-frame window background are static and always Freetown (the background follows light/dark); Arusha and Oxford users see that neutral background only until Compose draws. The in-app logo follows the chosen palette, using accent and onAccent.
+
+| Token | Freetown light | Freetown dark | Arusha light | Arusha dark | Oxford light | Oxford dark |
+|---|---|---|---|---|---|---|
+| paper | `#E9EBE4` | `#161A17` | `#F1F1EE` | `#161615` | `#F4F5F8` | `#141619` |
+| surface | `#F7F8F3` | `#1F2420` | `#FFFFFF` | `#1F1F1D` | `#FFFFFF` | `#1C1F24` |
+| surfaceContainer | `#DCE3D9` | `#283029` | `#E6E6E1` | `#2A2A27` | `#E4E8F0` | `#252A33` |
+| line | `#C8D0C4` | `#374038` | `#D4D4CF` | `#3B3B37` | `#CFD6E2` | `#363D49` |
+| outline | `#6F786E` | `#8A928A` | `#787874` | `#8D8D88` | `#6E7787` | `#8A93A3` |
+| muted | `#535C54` | `#A6AEA5` | `#565652` | `#A9A9A3` | `#4F596A` | `#A7AFBD` |
+| ink | `#17211C` | `#E6E9E1` | `#161615` | `#EDEDE8` | `#121A2C` | `#E9ECF2` |
+| tile1 | `#C9E4CF` | `#21402E` | `#FCE9AE` | `#3D3416` | `#DCE3F4` | `#1E2C4A` |
+| tile2 | `#D2DDF7` | `#22305A` | `#CFEAE6` | `#173A35` | `#F9DCE0` | `#4A1C24` |
+| tile3 | `#F1DCA8` | `#46391A` | `#F8DCC4` | `#52281A` | `#C6E6F2` | `#133D45` |
+| tile4 | `#F3D0DF` | `#4A2440` | `#D7E3F7` | `#1E2B45` | `#E6E6E0` | `#2E2E2A` |
+| tile5 | `#BDE3EE` | `#163E4A` | `#DDE8C8` | `#2B3420` | `#D2EBD9` | `#1C3828` |
+| onTile | `#17211C` | `#E6E9E1` | `#161615` | `#EDEDE8` | `#121A2C` | `#E9ECF2` |
+| onTileMuted | `#46514A` | `#C3CBC1` | `#4A4A46` | `#C9C9C3` | `#465065` | `#C3C9D4` |
+| warn | `#9E2A2B` | `#EF8E86` | `#B0213A` | `#F2828F` | `#8A5600` | `#E6B04E` |
+| onWarn | `#F7F8F3` | `#2A0B0A` | `#FFFFFF` | `#2C0A10` | `#FFFFFF` | `#2B1D00` |
+| warnSoft | `#F2DCD8` | `#402322` | `#F8DEE2` | `#42222A` | `#F6E7C8` | `#3A2E14` |
+| onWarnSoft | `#5A1515` | `#F6CFCB` | `#5E0F1C` | `#F8CFD5` | `#4A2E00` | `#F5DFA8` |
+| ok | `#1E5C43` | `#86C3A3` | `#2B6A3D` | `#8CC69C` | `#1E6B4A` | `#7FC4A2` |
+| onOk | `#F7F8F3` | `#0F1E17` | `#FFFFFF` | `#0F2015` | `#FFFFFF` | `#0C2219` |
+| okSoft | `#CFE3D6` | `#21392D` | `#DCEBDF` | `#22382A` | `#D8EBE1` | `#1E352B` |
+| onOkSoft | `#123B2A` | `#CDE6D7` | `#163C21` | `#CFE8D6` | `#0F3D29` | `#CBE8DA` |
+| accent | `#1E5C43` | `#86C3A3` | `#F5B800` | `#F7C531` | `#012169` | `#8EAEF2` |
+| onAccent | `#F7F8F3` | `#0F1E17` | `#161615` | `#161615` | `#FFFFFF` | `#0A1430` |
+| accentSoft | `#CFE3D6` | `#21392D` | `#FBEAB0` | `#3D3416` | `#DCE3F4` | `#1E2C4A` |
+| onAccentSoft | `#123B2A` | `#CDE6D7` | `#2A2822` | `#F6E3A6` | `#12296B` | `#D3DFFA` |
+| second | `#2550C4` | `#93B0FF` | `#006B61` | `#4CC7B6` | `#C8102E` | `#FF6F7F` |
+| onSecond | `#F7F8F3` | `#0E1A3D` | `#FFFFFF` | `#0B2622` | `#FFFFFF` | `#330810` |
+| secondSoft | `#DCE4F8` | `#1F2C52` | `#CFEAE6` | `#173A35` | `#F9DCE0` | `#4A1C24` |
+| onSecondSoft | `#142F78` | `#D6E0FF` | `#00403A` | `#C7EEE8` | `#7A0A1C` | `#FFD3D8` |
+| mark | `#2550C4` | `#93B0FF` | `#006B61` | `#4CC7B6` | `#012169` | `#8EAEF2` |
+| edgeTest | `#A8336A` | `#E17DAE` | `#A8336A` | `#E17DAE` | `#0E6E78` | `#4FC0C9` |
+| edgeDayOff | `#6F786E` | `#8E8A84` | `#787874` | `#8D8D88` | `#6E7787` | `#8A93A3` |
+| edgeEdited | `#1E5C43` | `#86C3A3` | `#7A5C00` | `#E0C04A` | `#012169` | `#8EAEF2` |
+| edgeHand | `#1C6E8A` | `#4FB8D0` | `#2D5DB8` | `#86A8F0` | `#2F6FC4` | `#4F86E0` |
+| edgeFree | `#8A6A00` | `#D8BC4E` | `#3A3A36` | `#C9C9C3` | `#8A6A00` | `#D8BC4E` |
+| edgeSupp | `#4C5600` | `#8FB33A` | `#3C7A2A` | `#9CCB7A` | `#4C6A00` | `#8FB33A` |
+| edgeWorksheet | `#C25E16` | `#EC8034` | `#C25E16` | `#EC8034` | `#C25E16` | `#EC8034` |
+
+Text is at least 4.5:1, on every ground, class colour, kind tint and today's row; outlines, edges and progress marks are at least 3:1. Pairwise edge RGB distance is at least 60, class colours at least 20 apart. Every set excludes violet/indigo. `ContrastTest` checks all of it; `docs/PACER_ACCENT_CONTRAST.md` lists the measured pairs. ![Palette swatches, not app screenshots](images/palettes.svg)
 
 ## Rules
 
@@ -79,8 +101,8 @@ Text is at least 4.5:1 and outlines/edges at least 3:1; pairwise edge RGB distan
   - Lesson counts are whole lessons rounded up, and anything under 1 shows as 1. One verdict feeds every label, so a
     group reads the same everywhere.
   - Pages per lesson keep two decimals, and only on Stats.
-- **Status:** one mark per row. On pace is neutral. Behind is rust (a filled cell on the board, a pale pill in lists).
-- **Lesson kinds:** a 4dp edge in the kind's token, and the words still say the kind.
+- **Status:** one mark per row. On pace is the class's colour on the board and plain in lists. Behind is the warning colour (a filled cell on the board, a pale pill in lists).
+- **Lesson kinds:** a 4dp edge in the kind's token and a tint of it across the row, and the words still say the kind.
 - **Undo:** in the top bar only where school-year data changes. Timed snackbars show an emptying bar, with no words.
 - **Large text** (font scale 1.5 and up, `largeText`):
   - layouts reflow: buttons go full width under their text, and a row's date sits over its pages;
@@ -169,7 +191,7 @@ Updates are quiet: the shared menu button's dot and accessible description, the
 drawer Settings tag, and the first Settings section. The section has notes,
 Download/See all changes, automatic-check switch, Check now feedback and one
 installed-version line. Debug builds retain About's version and hide Updates.
-Use the existing Material components, Outfit, Bone/Saffron roles and large-text
+Use the existing Material components, Outfit, palette roles and large-text
 layout. Native runtime/screenshot checks remain pending without a device.
 
 ## One sheet frame (0.4.10.0)
@@ -183,7 +205,7 @@ layout. Native runtime/screenshot checks remain pending without a device.
 - **One hue per kind in every mode** (proposal 4): each lesson kind keeps its hue family between light and dark, a worksheet has an ochre edge of its own, and a test is never the warning colour. `ContrastTest` checks the families, the distinctness of the seven edges and the 3:1 contrast.
 - **Day-number gutters:** each lesson row starts with a gutter of one width: the day number in figures over the weekday. Rows keep their height; the kind edge is the only colour.
 - **Tests and worksheets are full lessons:** as tall and as large as any lesson, with the kind word in bold. A day off stays slim.
-- **Hero buttons:** Done is the strong (dark) button and Homework the light one in every mode. Both are 40dp so the box keeps its size. The hero's pages go two books to a line.
+- **Hero buttons:** Done is the strong (dark) button in every mode and Homework is the second primary (D14). Both are 40dp so the box keeps its size. The hero's pages go two books to a line.
 - **Week and month controls** use round chevron pills, in one row with a label that opens the month picker.
 
 ## Group home redesign (0.4.5.0)
@@ -191,8 +213,8 @@ layout. Native runtime/screenshot checks remain pending without a device.
 Owner-approved proposals from [`UI_AUDIT_BRIEF.md`](UI_AUDIT_BRIEF.md):
 
 - **Today's lesson is the accent fill** wherever it is the focal point (proposal 1). Home has none: its board marks the groups that teach today.
-- **Marks on light paper use `mark`** (proposal 3): progress fills and ticks never use the fill accent where it falls under 3:1. `mark` is the accent in Bone and in both dark sets, and `accentText` in Saffron light; `ContrastTest` checks it against paper, surface and surfaceContainer.
-- **Pills have a visible edge** (proposal 6): a transparent pill with a 1px `outline` stroke, which reaches 3:1 against the ground.
+- **Marks on light paper use `mark`** (proposal 3): progress fills and ticks never use the fill accent where it falls under 3:1. `mark` is the second primary in Freetown and Arusha and the accent in Oxford; `ContrastTest` checks it against paper, surface, surfaceContainer and its progress track.
+- **Pills have a visible edge** (proposal 6): an `accentSoft` pill (D14) with a 1px `outline` stroke, which reaches 3:1 against the ground.
 
 ## Visible actions
 

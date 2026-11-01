@@ -411,6 +411,21 @@ private fun LessonKind.edge(): Color = when (this) {
     LessonKind.SUPP -> Pacer.colors.edgeSupp
 }
 
+/**
+ * A lesson row's ground (D14): the selected row is the accent's soft colour, today's row the second primary's, and a row
+ * of any other kind a tint of its kind's colour; a plain lesson stays on surface.
+ */
+@Composable
+private fun rowGround(kind: LessonKind?, date: LocalDate, selected: Boolean): Color {
+    val c = Pacer.colors
+    return when {
+        selected -> c.accentSoft
+        date == rememberToday() -> c.secondSoft
+        kind == null || kind == LessonKind.PLAIN -> c.surface
+        else -> c.kindTint(kind.edge())
+    }
+}
+
 private val EdgeW = 4.dp
 /** One width for the date gutter of every lesson row, day-off rows and tests included. */
 private val GutterW = 56.dp
@@ -576,7 +591,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
     Box {
         Column {
             Row(
-                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (selected) c.accentSoft else c.surface)
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(rowGround(l.kind(actions.supplementary), l.date, selected))
                     .lessonNode(description, l.done, if (actions.canTick) ({ actions.toggle(l.date) }) else null, items) { menu = true },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -594,7 +609,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
                     Text(date, style = MaterialTheme.typography.titleSmall.merge(Figures), color = ink)
                     details()
                 } else {
-                    DateGutter(l.date, ink)
+                    DateGutter(l.date, if (l.date == rememberToday() && !l.done) c.onSecondSoft else ink)
                     Column(Modifier.weight(1f).padding(vertical = Space.m), verticalArrangement = Arrangement.spacedBy(2.dp)) { details() }
                 }
                 if (grip != null) grip(stringResource(R.string.custom_drag, l.n))
@@ -651,7 +666,7 @@ internal fun SlimRow(entry: Entry, actions: LessonActions, selected: Boolean = f
     Box {
         Column {
             Row(
-                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(if (selected) c.accentSoft else c.surface).heightIn(min = 48.dp).then(
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(rowGround(lesson?.kind(actions.supplementary) ?: LessonKind.DAY_OFF, entry.date, selected)).heightIn(min = 48.dp).then(
                     if (lesson != null) Modifier.lessonNode(spoken, lesson.done, if (actions.canTick) ({ actions.toggle(lesson.date) }) else null, items) { menu = true }
                     else if (canAddExtra) Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { longPress() }) }
                         .clearAndSetSemantics {

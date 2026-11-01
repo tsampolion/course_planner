@@ -116,7 +116,7 @@ fun ShowOnceHint(id: String, seen: Set<String>, text: String, onSeen: (String) -
 @Composable
 fun GuideCard(title: String, text: String, modifier: Modifier = Modifier, action: Pair<String, () -> Unit>? = null, onDismiss: (() -> Unit)? = null) {
     val c = Pacer.colors
-    Tile(color = c.tileSky, modifier = modifier) {
+    Tile(color = c.tile2, modifier = modifier) {
         Text(stringResource(R.string.guide_next_step), style = MaterialTheme.typography.labelMedium, color = c.onTileMuted)
         Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
         Text(text, style = MaterialTheme.typography.bodyMedium, color = c.onTileMuted)

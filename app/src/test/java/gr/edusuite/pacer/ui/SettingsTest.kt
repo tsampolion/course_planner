@@ -104,6 +104,9 @@ class SettingsTest {
     @Test fun unknownPaletteNameFallsBackToBone() {
         for (name in listOf("neon", null, "", "123")) assertEquals(PaletteChoice.BONE, PaletteChoice.parse(name))
         assertEquals(PaletteChoice.SAFFRON, PaletteChoice.parse("SAFFRON"))
+        // Oxford is stored by its own name; the old names keep their palettes (Freetown is BONE, Arusha is SAFFRON).
+        assertEquals(PaletteChoice.OXFORD, PaletteChoice.parse("OXFORD"))
+        assertEquals(PaletteChoice.BONE, PaletteChoice.parse("BONE"))
     }
     @Test fun sanitisedKeepsAValidPalette() {
         for (palette in PaletteChoice.entries) assertEquals(palette, Settings(palette = palette).sanitised().palette)
