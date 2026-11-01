@@ -242,7 +242,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="overview"></a>
 ### Pacing overview
 
-*Screen* · reached from [☰ Menu](#drawer), [Home](#home). Every group in every class of the year, by class. On a tablet it is the list pane, with the selected group highlighted.
+*Screen* · reached from [☰ Menu](#drawer), [Home](#home). Every group in every class of the year, by class, each class headed by its colour's swatch. On a tablet it is the list pane, with the selected group highlighted.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |

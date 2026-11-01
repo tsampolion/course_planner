@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.heightIn
@@ -115,6 +116,16 @@ fun Section(
 @Composable
 fun ListGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = Pacer.colors.surface, content = content)
+}
+
+/** The colour of class [classId] in [year], by its position in the class list (D14); an unknown class takes the first colour. */
+fun gr.edusuite.pacer.ui.theme.PacerColors.classTile(year: gr.edusuite.pacer.model.SchoolYear?, classId: String): Color =
+    classTile(year?.classes?.indexOfFirst { it.id == classId } ?: -1)
+
+/** A class's colour as a small square beside its name (D14): decorative, the name says which class. */
+@Composable
+fun ClassSwatch(tile: Color) {
+    Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(tile).border(1.dp, Pacer.colors.line, MaterialTheme.shapes.extraSmall))
 }
 
 /** The label above a group (§6 Eyebrow): `labelMedium`, sentence case, in the accent's text colour (D14), and a heading for TalkBack. */

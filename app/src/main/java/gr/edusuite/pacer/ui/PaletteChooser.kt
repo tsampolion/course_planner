@@ -36,8 +36,13 @@ fun PaletteChooser(selected: PaletteChoice, onSelect: (PaletteChoice) -> Unit) {
 
 @Composable
 private fun PaletteCard(choice: PaletteChoice, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
-    val name = stringResource(when (choice) { PaletteChoice.BONE -> R.string.palette_bone; PaletteChoice.SAFFRON -> R.string.palette_saffron; PaletteChoice.OXFORD -> R.string.palette_oxford })
-    val body = stringResource(when (choice) { PaletteChoice.BONE -> R.string.palette_bone_body; PaletteChoice.SAFFRON -> R.string.palette_saffron_body; PaletteChoice.OXFORD -> R.string.palette_oxford_body })
+    val (nameRes, bodyRes) = when (choice) {
+        PaletteChoice.BONE -> R.string.palette_bone to R.string.palette_bone_body
+        PaletteChoice.SAFFRON -> R.string.palette_saffron to R.string.palette_saffron_body
+        PaletteChoice.OXFORD -> R.string.palette_oxford to R.string.palette_oxford_body
+    }
+    val name = stringResource(nameRes)
+    val body = stringResource(bodyRes)
     val description = stringResource(R.string.palette_description, name, body)
     val state = stringResource(if (selected) R.string.palette_selected else R.string.palette_unselected)
     val t = Tokens.of(choice, Pacer.dark)
