@@ -1,6 +1,6 @@
 # Feature modules
 
-Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, and the launch (UI audit PR 8) is built in 0.4.15.0: Welcome presets, Settings › Features, two hints, What's new and the release name. Deck wording and the hint placement wait for the owner's check on a phone. The build is planned in `docs/superpowers/plans/2026-10-29-feature-modules.md` and rides the remaining UI audit pull requests (see [Order of work](#order-of-work)).
+Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, and the launch (UI audit PR 8) is built in 0.4.15.0: Welcome presets, Settings › Features, two hints, What's new and the release name. Deck wording and the hint placement wait for the owner's check on a phone.
 
 A new teacher meets every tool at once. This feature lets them start with pacing alone and turn on more as they need it, and lets a teacher who only paces keep a lean app for good. Modules only ever turn on.
 
