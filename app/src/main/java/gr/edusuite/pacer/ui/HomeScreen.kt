@@ -242,7 +242,7 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
             if (board.isEmpty()) Hint(stringResource(R.string.home_board_empty))
             board.forEach { row ->
                 val className = row.className.ifBlank { context.getString(R.string.home_class) }
-                val tile = Pacer.colors.classTile(year.classes.indexOfFirst { it.id == row.classId })
+                val tile = Pacer.colors.classTile(year, row.classId)
                 if (large) Column(verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     ClassName(className, tile)
                     row.cells.forEach { cell -> BoardCellView(className, cell, tile, Modifier.fillMaxWidth()) { vm.openGroup(cell.classId, cell.groupId) } }
@@ -281,7 +281,7 @@ private fun PacingBoard(year: SchoolYear, vm: PacerViewModel) {
 @Composable
 private fun ClassName(name: String, tile: Color) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-        Box(Modifier.size(10.dp).clip(MaterialTheme.shapes.extraSmall).background(tile).border(1.dp, Pacer.colors.line, MaterialTheme.shapes.extraSmall))
+        ClassSwatch(tile)
         Text(name, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }

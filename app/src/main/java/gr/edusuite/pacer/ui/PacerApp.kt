@@ -123,7 +123,7 @@ private fun Screen.context(d: AppData, context: Context): String = when (this) {
 /** A class's own pages (the class, its groups and their settings) wear the class's colour in the top bar (D14); other screens keep paper. */
 @Composable
 private fun Screen.band(d: AppData): androidx.compose.ui.graphics.Color? = when (this) {
-    Screen.Class, is Screen.Group, is Screen.GroupSettings -> d.schoolClass?.let { cls -> Pacer.colors.classTile(d.year?.classes?.indexOfFirst { it.id == cls.id } ?: 0) }
+    Screen.Class, is Screen.Group, is Screen.GroupSettings -> d.schoolClass?.let { Pacer.colors.classTile(d.year, it.id) }
     else -> null
 }
 

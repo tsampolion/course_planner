@@ -75,7 +75,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
                 item(key = "class:${lc.shown.classId}") {
                     val open = lc.shown.classId in opened
                     SectionColumn(Modifier.animateItem()) {
-                        ClassHead(lc.shown, if (lc.onPace.isEmpty()) null else {
+                        ClassHead(year, lc.shown, if (lc.onPace.isEmpty()) null else {
                             { TertiaryButton(if (open) stringResource(R.string.overview_hide_on_pace) else when {
                                 lc.setUp == 0 -> pluralStringResource(R.plurals.overview_on_pace_link, lc.onPace.size, lc.onPace.size)
                                 lc.setUp == lc.onPace.size -> stringResource(R.string.home_set_up_needed, lc.setUp)
@@ -93,7 +93,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
                         { allOpen = !allOpen }, Modifier.fillMaxWidth(), color = Pacer.colors.accentText,
                     )
                     if (allOpen) l.allOnPace.forEach { c ->
-                        ClassHead(c, null)
+                        ClassHead(year, c, null)
                         GroupRows(c, vm, selected)
                     }
                 }
@@ -101,7 +101,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
         } else classes.forEach { c ->
             item(key = "class:${c.classId}") {
                 SectionColumn(Modifier.animateItem()) {
-                    ClassHead(c, null)
+                    ClassHead(year, c, null)
                     GroupRows(c, vm, selected)
                 }
             }
@@ -109,10 +109,11 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
     }
 }
 
-/** A class's heading, with how many of its groups are behind (or "All on pace") and an optional [link] at the end. */
+/** A class's heading after its colour's swatch (as on the Home board), with how many of its groups are behind (or "All on pace") and an optional [link] at the end. */
 @Composable
-private fun ClassHead(c: OverviewClass, link: (@Composable () -> Unit)?) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = Space.s), verticalAlignment = Alignment.CenterVertically) {
+private fun ClassHead(year: SchoolYear, c: OverviewClass, link: (@Composable () -> Unit)?) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = Space.s), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+        ClassSwatch(Pacer.colors.classTile(year, c.classId))
         Text(
             c.name.ifBlank { stringResource(R.string.overview_class) }, style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f).semantics { heading() },

@@ -2,6 +2,9 @@ package gr.edusuite.pacer.ui.theme
 
 import gr.edusuite.pacer.model.PaletteChoice
 
+/** Which of [count] class colours the class at [position] takes: they repeat, and an unknown position (-1) takes the first. */
+internal fun classIndex(position: Int, count: Int): Int = if (position < 0) 0 else position % count
+
 /** How strongly a lesson kind tints its row: the edge colour laid over surface at this share (ContrastTest checks the result). */
 const val KIND_TINT = 0.12
 
@@ -65,7 +68,7 @@ data class Tokens(
     val classTiles: List<Long> get() = listOf(tile1, tile2, tile3, tile4, tile5)
 
     /** The colour of the class at [position] in the class list; the five colours repeat, and an unknown position (-1) takes the first. */
-    fun classTile(position: Int): Long = classTiles[if (position < 0) 0 else position % classTiles.size]
+    fun classTile(position: Int): Long = classTiles[classIndex(position, classTiles.size)]
 
     companion object {
         val BoneLight = Tokens(
