@@ -101,7 +101,7 @@ data class PacerColors(
     private val classTiles: List<Color>,
 ) {
     /** The colour of the class at [position] in the class list (Tokens.classTile). */
-    fun classTile(position: Int): Color = classTiles[if (position < 0) 0 else position % classTiles.size]
+    fun classTile(position: Int): Color = classTiles[classIndex(position, classTiles.size)]
 
     /** The track under a progress fill: the soft colour of the primary the fill is drawn in. */
     val progressTrack: Color get() = if (mark == second) secondSoft else accentSoft
