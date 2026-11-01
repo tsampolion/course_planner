@@ -77,7 +77,7 @@ fun RowDivider() {
 }
 
 /**
- * One ledger row: an optional [edge] for its kind (or a leading [icon] on a row that opens another screen), an optional [date] column in figures, the [title] over a muted
+ * One ledger row: an optional [edge] for its kind (which also tints the row) (or a leading [icon] on a row that opens another screen), an optional [date] column in figures, the [title] over a muted
  * [detail], and [trailing] (a status, a chevron, a ⋮). With [onClick] the row is one target; TalkBack reads it as one
  * item. [warn] turns the detail rust. [onLongClick] adds a long-press (named for TalkBack by [longClickLabel]) beside the tap.
  */
@@ -101,7 +101,9 @@ fun LedgerRow(
     val large = rememberLargeText()
     val side = date != null && !large
     Row(
+        // A row with a kind's edge wears a tint of that colour across its width (D14).
         modifier.fillMaxWidth().height(IntrinsicSize.Min).heightIn(min = 56.dp)
+            .then(if (edge != null) Modifier.background(c.kindTint(edge)) else Modifier)
             .then(
                 if (onLongClick != null) Modifier.combinedClickable(role = Role.Button, onLongClickLabel = longClickLabel, onLongClick = onLongClick, onClick = onClick ?: {})
                 else if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick)

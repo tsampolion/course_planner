@@ -10,7 +10,7 @@ This brief records the taste-skill UI/UX audit (`PLANNED_FEATURES.md` §2 until 
 |---|---|
 | Which screens first | Group home and Plan |
 | May the audit change `PACER_DESIGN.md` | Yes, item by item: each proposal below goes in only when the owner says yes in its fix PR; contradictions get fixed |
-| Visual direction | Push further, inside the same palettes (Bone & green, Saffron & ink) and font (Outfit). Token values may be tuned while `ContrastTest` stays green |
+| Visual direction | Push further, inside the app's palettes (now Freetown, Arusha and Oxford, D13) and font (Outfit). Token values may be tuned while `ContrastTest` stays green |
 | Dark theme | Equal attention: every fix is checked in light and dark, Bone and Saffron |
 | Back arrow | Keep ☰ on every screen (D5), but make the menu do more (see N1) |
 | Home | Lists all of today's lessons, not only the next one (see H1) |

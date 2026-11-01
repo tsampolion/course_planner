@@ -3,7 +3,7 @@
 Status: shipped.
 
 Native Operate surface; extend the
-existing ledger, TalkBack custom actions, assignment editor and Bone/Saffron tokens.
+existing ledger, TalkBack custom actions, assignment editor and palette tokens.
 
 Homework can be marked done or not done in Work and from lesson menus (including TalkBack actions). Completion is optional assignment metadata, persisted with a false default for old files; it never changes pacing. Editing keeps the completion record. Work states beside page homework that its pages are out of pacing.
 

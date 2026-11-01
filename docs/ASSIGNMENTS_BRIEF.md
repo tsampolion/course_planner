@@ -42,7 +42,7 @@ dates, names, blocked rows, pages, figures and custom-plan contents must agree.
 
 ## Design and validation
 
-Use current Bone/Saffron tokens and strings.xml; no dependencies, signing or
+Use current palette tokens and strings.xml; no dependencies, signing or
 application-id changes. The supplied mock files are absent; the written design
 addendum supplies section order and interactions. Committed redesign boards use
 an older palette, so current Tokens.kt and PACER_DESIGN.md D13 take precedence.

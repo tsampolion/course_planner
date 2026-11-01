@@ -117,13 +117,13 @@ fun ListGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = Pacer.colors.surface, content = content)
 }
 
-/** The label above a group (§6 Eyebrow): `labelMedium`, sentence case, muted, and a heading for TalkBack. */
+/** The label above a group (§6 Eyebrow): `labelMedium`, sentence case, in the accent's text colour (D14), and a heading for TalkBack. */
 @Composable
 fun Eyebrow(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
         style = MaterialTheme.typography.labelMedium,
-        color = Pacer.colors.muted,
+        color = Pacer.colors.accentText,
         modifier = modifier.semantics { heading() },
     )
 }
@@ -218,7 +218,7 @@ fun EmptyState(symbol: ImageVector, title: String, message: String, action: Stri
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Space.l),
     ) {
-        Surface(shape = CircleShape, color = Pacer.colors.tileSky, contentColor = Pacer.colors.onTile, modifier = Modifier.size(120.dp)) {
+        Surface(shape = CircleShape, color = Pacer.colors.tile2, contentColor = Pacer.colors.onTile, modifier = Modifier.size(120.dp)) {
             Box(contentAlignment = Alignment.Center) { AppIcon(symbol, Modifier.size(48.dp)) }
         }
         Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })

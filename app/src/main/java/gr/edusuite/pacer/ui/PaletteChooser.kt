@@ -25,42 +25,43 @@ import gr.edusuite.pacer.ui.theme.Tokens
 
 @Composable
 fun PaletteChooser(selected: PaletteChoice, onSelect: (PaletteChoice) -> Unit) {
-    val large = rememberLargeText()
+    // Three cards don't fit side by side at phone width with their descriptions, so they stack at every size.
     Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
         Text(stringResource(R.string.settings_palette), style = MaterialTheme.typography.titleSmall)
-        if (large) Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
             PaletteChoice.entries.forEach { PaletteCard(it, it == selected, { onSelect(it) }, Modifier.fillMaxWidth()) }
-        } else Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-            PaletteChoice.entries.forEach { PaletteCard(it, it == selected, { onSelect(it) }, Modifier.weight(1f)) }
         }
     }
 }
 
 @Composable
 private fun PaletteCard(choice: PaletteChoice, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
-    val name = stringResource(if (choice == PaletteChoice.BONE) R.string.palette_bone else R.string.palette_saffron)
-    val body = stringResource(if (choice == PaletteChoice.BONE) R.string.palette_bone_body else R.string.palette_saffron_body)
+    val name = stringResource(when (choice) { PaletteChoice.BONE -> R.string.palette_bone; PaletteChoice.SAFFRON -> R.string.palette_saffron; PaletteChoice.OXFORD -> R.string.palette_oxford })
+    val body = stringResource(when (choice) { PaletteChoice.BONE -> R.string.palette_bone_body; PaletteChoice.SAFFRON -> R.string.palette_saffron_body; PaletteChoice.OXFORD -> R.string.palette_oxford_body })
     val description = stringResource(R.string.palette_description, name, body)
     val state = stringResource(if (selected) R.string.palette_selected else R.string.palette_unselected)
     val t = Tokens.of(choice, Pacer.dark)
     val shape = MaterialTheme.shapes.medium
     Surface(
-        modifier.clip(shape).border(if (selected) 2.dp else 1.dp, if (selected) Pacer.colors.ink else Pacer.colors.outline, shape)
+        modifier.clip(shape).border(if (selected) 2.dp else 1.dp, if (selected) Pacer.colors.accentText else Pacer.colors.outline, shape)
             .heightIn(min = 48.dp).selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
             .clearAndSetSemantics {
                 contentDescription = description; stateDescription = state; this.selected = selected; role = Role.RadioButton
                 onClick { onSelect(); true }
             },
-        color = Pacer.colors.surface, shape = shape,
+        color = if (selected) Pacer.colors.accentSoft else Pacer.colors.surface, contentColor = Pacer.colors.ink, shape = shape,
     ) {
-        Column(Modifier.padding(Space.m), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(name, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                if (selected) AppIcon(AppIcons.Check, Modifier.size(Space.l))
+        Row(Modifier.padding(Space.m), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    Text(name, style = MaterialTheme.typography.titleSmall, color = Pacer.colors.ink)
+                    if (selected) AppIcon(AppIcons.Check, Modifier.size(Space.l))
+                }
+                Text(body, style = MaterialTheme.typography.bodySmall, color = if (selected) Pacer.colors.onAccentSoft else Pacer.colors.muted)
             }
-            Text(body, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
+            // Paper, the two primaries and ink: the palette at a glance.
             Row(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-                listOf(t.paper,t.accent,t.ink).forEach { swatch ->
+                listOf(t.paper, t.accent, t.second, t.ink).forEach { swatch ->
                     Box(Modifier.size(Space.l).clip(CircleShape).background(Color(swatch)).border(1.dp, Pacer.colors.outline, CircleShape))
                 }
             }

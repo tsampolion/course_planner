@@ -28,7 +28,7 @@ enum class ThemeMode {
 }
 
 enum class PaletteChoice {
-    BONE, SAFFRON;
+    BONE, SAFFRON, OXFORD;
     companion object {
         fun parse(name: String?): PaletteChoice = entries.firstOrNull { it.name == name } ?: BONE
     }

@@ -15,6 +15,7 @@ import gr.edusuite.pacer.R
 import gr.edusuite.pacer.ui.theme.MotionSpec
 import gr.edusuite.pacer.ui.theme.Motion
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -48,7 +49,7 @@ import kotlinx.coroutines.launch
 
 /** A responsive stat block; labels and units stay plain while figures use Figures. */
 @Composable
-fun StatTile(label: String, value: String, modifier: Modifier = Modifier, color: Color = Pacer.colors.tileSky, unit: String? = null) {
+fun StatTile(label: String, value: String, modifier: Modifier = Modifier, color: Color = Pacer.colors.tile2, unit: String? = null) {
     Surface(modifier, shape = MaterialTheme.shapes.medium, color = color, contentColor = Pacer.colors.onTile) {
         Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.xs)) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.onTileMuted)
@@ -75,7 +76,7 @@ fun MoreOptions(title: String = stringResource(R.string.component_more_options),
 }
 
 /**
- * A row of mutually exclusive choices (docs/PACER_DESIGN.md D10): a filled 48dp switch whose ink selected side slides
+ * A row of mutually exclusive choices (docs/PACER_DESIGN.md D10): a filled 48dp switch whose accent selected side slides
  * from the old choice to the new one and never jumps. Each choice is a full-height 48dp tab for accessibility, and
  * switching ticks like a segment.
  */
@@ -88,12 +89,12 @@ fun SegmentedToggle(options: List<String>, selected: Int, onSelect: (Int) -> Uni
         val width = maxWidth / options.size.coerceAtLeast(1)
         val offset by animateDpAsState(width * selected.coerceIn(0, options.lastIndex.coerceAtLeast(0)), if (motion) Motion.work(MotionSpec.Step.SEGMENT) else snap(), label = "segment")
         val measured = with(LocalDensity.current) { height.toDp() }
-        // The ink side sits inset in the track; the tabs under it fill the whole 48dp height.
-        Box(Modifier.offset { IntOffset(offset.roundToPx(), 0) }.width(width).height(measured).padding(Space.xs).background(Pacer.colors.ink, CircleShape))
+        // The accent side sits inset in the track; the tabs under it fill the whole 48dp height.
+        Box(Modifier.offset { IntOffset(offset.roundToPx(), 0) }.width(width).height(measured).padding(Space.xs).background(Pacer.colors.accent, CircleShape))
         Row(Modifier.fillMaxWidth().onSizeChanged { height = it.height }.selectableGroup()) {
             options.forEachIndexed { i, label ->
                 val on = i == selected
-                val ink by animateColorAsState(if (on) Pacer.colors.paper else Pacer.colors.ink, if (motion) Motion.quick() else snap(), label = "segment ink")
+                val ink by animateColorAsState(if (on) Pacer.colors.onAccent else Pacer.colors.ink, if (motion) Motion.quick() else snap(), label = "segment ink")
                 Box(
                     Modifier.weight(1f).heightIn(min = 48.dp).clip(CircleShape)
                         .selectable(selected = on, role = Role.Tab) { if (!on) { haptic(); onSelect(i) } },
@@ -131,7 +132,7 @@ fun DateBadge(date: LocalDate, modifier: Modifier = Modifier) {
     }
 }
 
-/** Seven accessible day pills per term week, paged horizontally. Dots distinguish today and lessons. */
+/** Seven accessible day pills per term week, paged horizontally. The selected day is the accent; today has a ring and a dot in the second primary (D14); a lesson day has a dot below. */
 @Composable
 fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates: Set<LocalDate>, onSelect: (LocalDate) -> Unit, modifier: Modifier = Modifier, today: LocalDate = rememberToday(), onAdd: (() -> Unit)? = null) {
     val first = start.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
@@ -192,16 +193,20 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
             Row(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
                 repeat(7) { Box(Modifier.width(dayWidth).height(measuredHeight).background(Pacer.colors.surfaceContainer, CircleShape)) }
             }
-            if (index in 0..6) Box(Modifier.offset(x = indicator).width(dayWidth).height(measuredHeight).background(Pacer.colors.ink, CircleShape))
+            if (index in 0..6) Box(Modifier.offset(x = indicator).width(dayWidth).height(measuredHeight).background(Pacer.colors.accent, CircleShape))
             Row(Modifier.onSizeChanged { stripHeight = it.height }, horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
                 (0L..6L).forEach { offset ->
                     val date = weekStart.plusDays(offset)
                     val isSelected = date == selected
                     val valid = !date.isBefore(start) && !date.isAfter(end)
-                    val ink = if (isSelected) Pacer.colors.paper else Pacer.colors.ink
+                    val ink = if (isSelected) Pacer.colors.onAccent else Pacer.colors.ink
+                    // On the accent the today dot takes the label's colour: the two primaries side by side can be too close.
+                    val todayDot = if (isSelected) ink else Pacer.colors.second
                     val description = stringResource(R.string.component_day_description, date.toString(), if (date == today) todayLabel else "", if (date in lessonDates) lessonLabel else "")
                     Box(
-                        modifier = Modifier.width(dayWidth).heightIn(min = Space.xxl * 2).semantics(mergeDescendants = true) {
+                        modifier = Modifier.width(dayWidth).heightIn(min = Space.xxl * 2)
+                            .then(if (date == today) Modifier.border(2.dp, Pacer.colors.second, CircleShape) else Modifier)
+                            .semantics(mergeDescendants = true) {
                             this.selected = isSelected
                             contentDescription = description
                         }.clickable(enabled = valid, role = Role.Tab) { haptic(); onSelect(date) },
@@ -209,7 +214,7 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
                     ) {
                         androidx.compose.runtime.CompositionLocalProvider(LocalContentColor provides ink) {
                             Column(Modifier.padding(vertical = Space.s), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(Modifier.size(Space.xs).background(if (date == today) ink else Color.Transparent, CircleShape))
+                                Box(Modifier.size(Space.xs).background(if (date == today) todayDot else Color.Transparent, CircleShape))
                                 Text(date.dayOfWeek.short(), style = MaterialTheme.typography.labelSmall)
                                 Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.bodySmall.merge(Figures))
                                 Box(Modifier.size(Space.xs).background(if (date in lessonDates) ink else Color.Transparent, CircleShape))
@@ -218,10 +223,10 @@ fun DayStrip(start: LocalDate, end: LocalDate, selected: LocalDate, lessonDates:
                     }
                 }
                 if (onAdd != null) Box(
-                    Modifier.width(dayWidth).height(measuredHeight).clip(CircleShape).background(Pacer.colors.accentSoft)
+                    Modifier.width(dayWidth).height(measuredHeight).clip(CircleShape).background(Pacer.colors.secondSoft)
                         .clickable(onClickLabel = addLabel, role = Role.Button) { haptic(); onAdd() }.semantics { contentDescription = addLabel },
                     contentAlignment = Alignment.Center,
-                ) { CompositionLocalProvider(LocalContentColor provides Pacer.colors.onAccentSoft) { AppIcon(AppIcons.Add, Modifier.size(24.dp)) } }
+                ) { CompositionLocalProvider(LocalContentColor provides Pacer.colors.onSecondSoft) { AppIcon(AppIcons.Add, Modifier.size(24.dp)) } }
             }
         }
       }

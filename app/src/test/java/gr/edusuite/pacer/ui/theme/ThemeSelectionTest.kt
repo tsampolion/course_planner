@@ -39,7 +39,7 @@ class ThemeSelectionTest {
                     }
                 }
             }
-            assertEquals(4, seen.size)
+            assertEquals(6, seen.size)
         } finally { composition.dispose(); recomposer.cancel() }
     }
 }

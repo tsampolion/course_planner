@@ -107,7 +107,9 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
             item {
                 LazyRow(Modifier.padding(bottom = Rhythm.inSection), contentPadding = PaddingValues(horizontal = Space.l), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                     items(labels.indices.toList()) { index -> FilterChip(selected = selectedType == types[index],
-                        onClick = { filter = types[index]?.ordinal?.plus(1) ?: 0 }, label = { Text(labels[index]) }) }
+                        onClick = { filter = types[index]?.ordinal?.plus(1) ?: 0 }, label = { Text(labels[index]) },
+                        // The chosen filter is the accent, like every selected control (D14).
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Pacer.colors.accent, selectedLabelColor = Pacer.colors.onAccent, selectedLeadingIconColor = Pacer.colors.onAccent)) }
                 }
             }
             if (sections.isEmpty()) item {
@@ -152,7 +154,8 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
         }
         if (sections.isNotEmpty() && canAdd) ExtendedFloatingActionButton(
             onClick = { adding = true }, icon = { AppIcon(AppIcons.Add) }, text = { Text(stringResource(R.string.work_add)) },
-            containerColor = Pacer.colors.accent, contentColor = Pacer.colors.onAccent,
+            // Adding is the second primary's job (D14).
+            containerColor = Pacer.colors.second, contentColor = Pacer.colors.onSecond,
             modifier = Modifier.align(Alignment.BottomEnd).padding(end = Space.l, bottom = padding.calculateBottomPadding() + Space.l),
         )
     }
