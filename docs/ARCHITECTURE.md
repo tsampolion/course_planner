@@ -165,7 +165,7 @@ Releases up to 4.1.0 used three-part numbers; from 0.4.1.1 they have four (`CHAN
 
 - Version parsing of three-part and four-part versions. A three-part `X.Y.Z` compares as `[X, Y, Z, 0]` and a four-part `0.X.Y.Z` as itself, so every old version counts as newer than any `0.x.y.z`.
 - Release validation against this repository's release URLs.
-- The once-a-day throttle, note trimming, and folding a result into `Settings`.
+- The once-a-day throttle, note trimming (`shortNotes` keeps up to four plain bullets of the changelog section), and folding a result into `Settings`.
 
 `GitHubReleases.kt` is the only network code (`HttpURLConnection`, `org.json`, one GET to `releases/latest`). `PacerViewModel` checks on launch and on Check now. `Settings` holds `autoUpdateCheck`, `lastUpdateCheck` and `availableUpdate`. Debuggable builds never check. The ☰ dot is `MenuButton` (`NavUi.kt`); Settings → Updates is `UpdatesSection` (`UpdatesUi.kt`).
 
@@ -181,7 +181,7 @@ Only the open year, class and group persist (`activeYear`, `activeClass`, `view`
 
 ### Feature modules
 
-`model/Features.kt` holds the bricks and modules of [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md): each `Brick` names its `Module` (null for the core) and its `needs`, and `Brick.inUse` reads which saved data uses it. `Settings.modules` stores the teacher's modules (null means every one, so older installs keep every control); `turnOn` only adds and `chooseModules` applies once. `featuresOf` adds the open year's bricks in use, and `PacerApp` provides the result as `LocalFeatures`. Each menu control names its brick (`GroupMenuItem.brick()`, `MenuItemKind.brick()`, `GroupDestination.bricks()`), and the menu models filter by `Features.has`, so saved data always shows. Import asks to turn on what a file needs (`modulesNeeded`), and a plan written only by fixes gets the slim `FixPlanBar` while Planning tools are off (`planBarMode`).
+`model/Features.kt` holds the bricks and modules of [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md): each `Brick` names its `Module` (null for the core) and its `needs`, and `Brick.inUse` reads which saved data uses it. `Settings.modules` stores the teacher's modules (null means every one, so older installs keep every control); `turnOn` only adds and `chooseModules` applies once. `featuresOf` adds the open year's bricks in use, and `PacerApp` provides the result as `LocalFeatures`. Each menu control names its brick (`GroupMenuItem.brick()`, `MenuItemKind.brick()`, `GroupDestination.bricks()`), and the menu models filter by `Features.has`, so saved data always shows. Import asks to turn on what a file needs (`modulesNeeded`), and a plan written only by fixes gets the slim `FixPlanBar` while Planning tools are off (`planBarMode`). The launch adds `Preset` (`model/Presets.kt`) and `FirstRunPage` for a fresh install (`finishWelcome` keeps the choice and skips the deck), `FeaturesSheet` in Settings, two moment-of-need hints (`ModuleHints.kt`, remembered in `Settings.seenTips`), the `WhatsNewDeck` pager shown once per version (`UpdateDeck`, id `Hints.whatsNew`), `shortVersion` for release labels, `groupMenuShown` (no group ⋮ at Just pacing) and `workOffOffer` (the Work page's Turn on Work).
 
 ### Navigation
 

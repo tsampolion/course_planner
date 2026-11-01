@@ -125,6 +125,15 @@ object Hints {
     /** The group's Stats tab: what the pace track's tick means, and tapping a book. */
     const val PACE_TRACK = "group.paceTrack"
 
+    /** Pages recorded ahead of the plan: the offer to turn on Work. */
+    const val WORK_AHEAD = "modules.workAhead"
+
+    /** A lesson's pages edited by hand twice: the offer to turn on Planning tools. */
+    const val PLAN_BY_HAND = "modules.planByHand"
+
+    /** The id that remembers the What's new deck of a version (as shown to the teacher, such as 0.4.15). */
+    fun whatsNew(version: String): String = "whatsnew.$version"
+
     /** True once the hint [id] was shown and dismissed, until "Show tips again". */
     fun seen(settings: Settings, id: String): Boolean = id in settings.seenTips
 

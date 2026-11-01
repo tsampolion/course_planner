@@ -4,7 +4,7 @@ Every control in Course Pacer: the gesture it takes, when it is there, and what 
 
 Read it before changing any screen, and change it in the same pull request as the control (see `CLAUDE.md`). Labels are the app's English strings; *name* and *N* stand for values the app fills in.
 
-A module named in **When** (Work, Book tools, Planning tools, Output) means that module is on, or the open year's data already uses that feature ([FEATURE_MODULES_BRIEF.md](FEATURE_MODULES_BRIEF.md)). Every install has every module on until the Welcome presets ship.
+A module named in **When** (Work, Book tools, Planning tools, Output) means that module is on, or the open year's data already uses that feature ([FEATURE_MODULES_BRIEF.md](FEATURE_MODULES_BRIEF.md)). A fresh install picks its starting modules on Welcome; an install that already had data or had seen Welcome keeps every module on. Modules only ever turn on.
 
 **What happens** starts with the result: **→ Screen** pushes a screen, **↑ Opens** a sheet, menu or dialog over it, **Undo:** a message with Undo, **Message:** one without, **Edit** a change saved at once, **View** a change to what is shown only, **Leaves app** for Android or the browser, **Closes**.
 
@@ -207,7 +207,8 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | ☰ | Tap | Below 840dp | ↑ Opens [☰ Menu](#drawer). Opens the menu. |
-| Welcome page | Automatic | First run | ↑ Opens [Welcome to Course Pacer](#welcome). Opens over Home once. |
+| Welcome page | Automatic | First run | ↑ Opens [Start with what you need](#first-run). Opens over Home once. |
+| What's new deck | Automatic | After an update, on an install that already had data; once | ↑ Opens [What's new](#whats-new). Opens over the screen the teacher was on and returns there. |
 | New school year | Tap | No school year yet | ↑ Opens [New school year](#new-year). Warns before clearing nonempty Undo, then opens the New school year dialog. |
 | Add a class | Tap | Year without classes | → Screen [Classes](#classes). Opens Classes. |
 | Pacing overview board: a cell (Group, −N when behind; “● Today” under the name when the group has a lesson today) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. An on-pace cell wears its class's colour (a swatch beside the class name), a behind cell the warning colour, and the Today dot the second primary. The dot blinks three times when Home opens, then stays lit (steady with animations off). Groups run most behind first inside each class, as on Pacing overview. TalkBack reads class, group, “on pace” or “short by N lessons”, and “has a lesson today”. |
@@ -215,16 +216,48 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Legend (behind, lessons short · Today) | Shows |  | Explains the board; each swatch looks like its cell, and the dot blinks like the cells'. On-pace cells are named by the class swatch instead. |
 | Tests & worksheets card: a row (date, title, class · group, kind) | Tap | Some test or worksheet is still to come; the card is hidden otherwise | → Screen [Work](#work). Opens the Work page of its group (the class's first group for a test that is for every group; the Class screen if it has none). Shows the next four. |
 
-<a id="welcome"></a>
-### Welcome to Course Pacer
+<a id="first-run"></a>
+### Start with what you need
 
-*Dialog* · reached from [Home](#home), [Settings](#app-settings). A full-screen dialog: what the app does and four steps to a first schedule. Also opened by Settings › Getting started.
+*Dialog* · reached from [Home](#home). A full-screen dialog on a fresh install: three presets and Choose tools…. Just pacing is selected. A preset is only a starting set of modules.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Create your school year | Tap | From Home on first run | ↑ Opens [New school year](#new-year). Closes the guide and opens New school year. |
-| Not now | Tap | From Home | Closes. Closes the guide for good. |
-| Got it | Tap | From Settings | Closes. Closes the guide. |
+| Just pacing / Pacing and work / Everything | Tap | | Edit. Selects that starting set (none, Work, or all four modules); the check draws in. Nothing is saved until a button below is tapped. |
+| Choose tools… | Tap | | ↑ Opens [Choose your tools](#choose-tools). The card reads the chosen tools once they match no preset. |
+| Create your school year | Tap | | ↑ Opens [New school year](#new-year). Keeps the selection, marks Welcome seen and skips the What's new deck. |
+| Not now | Tap | | Closes. Keeps the selection, as the other button does. |
+
+<a id="choose-tools"></a>
+### Choose your tools
+
+*Sheet* · reached from [Start with what you need](#first-run), [Features](#features). A checklist of the four modules, with what each is for; nothing is checked at first.
+
+| Control | Gesture | When | What happens |
+| --- | --- | --- | --- |
+| A tool row | Tap | | Edit. Checks or unchecks it. |
+| Use these | Tap | | Closes. Takes the checked tools as the selection. |
+
+<a id="whats-new"></a>
+### What's new
+
+*Dialog* · reached from [Home](#home) (automatic, once after an update), [Settings](#app-settings) › What's new. Swipeable cards: a greeting, one per tool with a real piece of its screen, then where to choose. There is no Skip and no close: every card has Continue and the last one finishes. System Back steps to the previous card.
+
+| Control | Gesture | When | What happens |
+| --- | --- | --- | --- |
+| Continue | Tap | | View. Next card; on the last card closes the deck. |
+| Back | Tap | Not the first card | View. Previous card. |
+| Swipe | Swipe | | View. Moves between cards; the buttons do the same. |
+| Choose tools now | Tap | Last card | ↑ Opens [Features](#features) over the deck; closing it returns to the deck. |
+
+<a id="welcome"></a>
+### Welcome to Course Pacer
+
+*Dialog* · reached from [Settings](#app-settings). A full-screen dialog: what the app does and four steps to a first schedule. Opened by Settings › Getting started.
+
+| Control | Gesture | When | What happens |
+| --- | --- | --- | --- |
+| Got it | Tap | | Closes. Closes the guide. |
 
 <a id="new-year"></a>
 ### New school year
@@ -391,6 +424,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Updates: Download | Tap | A newer version is available | Leaves app. Opens the APK download in the browser (or copies the link when there is no browser). |
+| Updates: What's new | Read | A newer version is available | Shows up to four plain bullets from the release notes, or "Improvements and fixes.". Not tappable. |
 | Updates: See all changes | Tap | A newer version is available | Leaves app. Opens the release page in the browser. |
 | Check for updates automatically | Toggle |  | Edit. Once a day, asks GitHub for the latest version. |
 | Check now | Tap |  | View. Shows Checking…, then up to date, a new version, or a failure message. |
@@ -400,10 +434,23 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | New classes: Class defaults | Tap |  | ↑ Opens [New class defaults](#class-defaults). Opens the defaults sheet. |
 | Export… | Tap | At least one year | Leaves app. Opens the system Save dialog with a dated .json name. Message: “Saved name to folder” |
 | Import… | Tap |  | Leaves app [Import N school years?](#import). Opens the system file picker; a readable file opens the import dialog. A file over 50 MiB shows “This backup is too large to open (N MB; the limit is M MB).” |
+| Features | Tap |  | ↑ Opens [Features](#features). Shows how many tools are on. |
 | Getting started | Tap |  | ↑ Opens [Welcome to Course Pacer](#welcome). Opens the welcome guide. |
+| What's new | Tap |  | ↑ Opens [What's new](#whats-new). Opens the deck again. |
+| How pacing works | Tap |  | ↑ Opens a sheet with the schedule note and how ticking works (the group Tips, without the group's own notes). |
 | Show tips again | Tap |  | Brings back every tip you closed. Message: “Tips will show again” |
 | About: Share Course Pacer | Tap |  | Leaves app. Opens the share sheet with a short message and the link to the latest release page. With no app to share to, copies the link. Message: “No app to share with. The download link was copied.” |
 | About | Shows |  | Version, storage note, suite and credits. |
+
+<a id="features"></a>
+### Features
+
+*Sheet* · reached from [Settings](#app-settings), [What's new](#whats-new). The four modules. There is no way to turn one off.
+
+| Control | Gesture | When | What happens |
+| --- | --- | --- | --- |
+| On | Shows | The module is on | A check and "On". |
+| Turn on | Tap | The module is off | Edit. Turns it on; a confirm tick, a wash that fades over about 800 ms and a spoken "name is on". Off rows say what they add; Planning tools and Output say a ⋮ menu will appear on each group. |
 
 <a id="class-defaults"></a>
 ### New class defaults
@@ -589,6 +636,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Weekly view / Monthly view | Toggle |  | Edit. Switches the grouping; remembered for every group. |
+| Hint: Set these as homework? / Plan lessons yourself? | Shows | Once each: pages recorded ahead of the plan with Work off; a lesson's pages edited by hand twice with Planning tools off | Sits under the week, above the lessons to come. **Turn on Work** / **Turn on Planning tools** turns it on at once, then a status line says what appeared. **Not now** closes it for good (Settings › Show tips again brings it back). |
 | Weekly: the round ‹ › buttons, or swipe the day strip | Tap |  | View. Pages the week strip by one week. |
 | Weekly: the week label (dates, with the month under them) | Tap |  | ↑ Opens [Month picker](#month-menu). Jumps the strip to the first week of the month. |
 | Weekly: a day in the strip | Tap |  | View. Scrolls the list to that day's row (or the next listed day) and highlights it. The strip opens on the lesson after the one in the box. |
@@ -769,6 +817,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | All / Homework / Tests / Worksheets chips | Tap | All always; Homework needs Work · Homework brick; Tests and Worksheets need Work · Tests brick; a type with saved assignments stays available | View. Filters the list; a new assignment starts as the filtered type when available. If a selected type disappears, the view returns to All. |
+| Turn on Work (“Give this group homework and tests?”) | Tap | Work is off and the group has no saved assignments | Edit. Turns Work on with a confirm tick; the page then shows its ordinary empty state with Add assignment. |
 | Add assignment (empty state or floating button) | Tap | Work · Homework or Tests brick | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens with the filtered type, or the first available type if that type cannot be added. |
 | An assignment row | Tap |  | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens it in the assignment sheet. |
 | A row's ⋮ (Options for name) | Tap |  | ↑ Opens [Assignment ⋮](#work-row-menu). Opens its menu. |
@@ -887,7 +936,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 <a id="group-menu"></a>
 ### ⋮ Group menu
 
-*Menu* · reached from [Top bar](#top-bar). Under headings Share & print, Plan, Lessons and Help; a heading shows only when it has items, and Work leaves out Plan and Lessons (it lists assignments, not lessons). Every item has an icon. While the bar has folded Undo and ⚠ N (see Top bar) they come first.
+*Menu* · reached from [Top bar](#top-bar). It is absent when it would hold only Tips (no module adds to it and no catch-up is available): the bar then shows no ⋮, and Tips live in Settings › How pacing works. Under headings Share & print, Plan, Lessons and Help; a heading shows only when it has items, and Work leaves out Plan and Lessons (it lists assignments, not lessons). Every item has an icon. While the bar has folded Undo and ⚠ N (see Top bar) they come first.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -902,7 +951,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Own pace… | Tap | Large text, has lessons; Planning tools | ↑ Opens [My own pace](#own-pace). Opens My own pace. |
 | Adjust catch-up… | Tap | Catch-up available | ↑ Opens [Catch up](#catch-up). Opens Catch up. |
 | Add extra lesson… | Tap | Planning tools | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet with a date field. |
-| Tips | Tap |  | ↑ Opens [Tips](#tips). Opens the tips sheet. |
+| Tips | Tap | The menu is shown | ↑ Opens [Tips](#tips). Opens the tips sheet. |
 
 <a id="copy-to"></a>
 ### Copy to…

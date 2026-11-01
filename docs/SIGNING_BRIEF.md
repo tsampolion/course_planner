@@ -9,7 +9,7 @@ Android installs an update only when it is signed with the same certificate as t
 - **One permanent key.** CI signs release builds with it. The keystore and its password are secrets, and they are never committed or pasted anywhere.
 - **Only `main` gets the secrets.** `SIGNING_KEYSTORE_B64` and `SIGNING_PASSWORD` live in the `release` environment, which only `main` may use. A build of `main` without them fails, so a debug-signed APK is never published.
 - **Other branches and pull requests** get no secrets. They build with the debug key and never publish.
-- **The certificate is checked twice.** `android.yml` compares the APK's certificate with the `SIGNING_CERT_SHA256` variable and fails on a mismatch, a missing variable or more than one signer. `release.yml` checks it again before it tags, and adds the certificate to the release notes.
+- **The certificate is checked twice.** `android.yml` compares the APK's certificate with the `SIGNING_CERT_SHA256` variable and fails on a mismatch, a missing variable or more than one signer. `release.yml` checks it again before it tags.
 - **Builds without the key** (Android Studio, `installDebug`, a local `assembleRelease`) use the debug key. Debug builds are a separate app, `gr.edusuite.pacer.debug`, with their own data.
 
 ## Rules

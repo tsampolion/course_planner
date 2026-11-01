@@ -546,6 +546,30 @@ class PacerViewModelTest {
         assertEquals(setOf(Module.WORK, Module.OUTPUT), r.vm.settings.value.modules)
     }
 
+    @Test fun finishingWelcomeKeepsTheChoiceAndSkipsTheDeck() {
+        val r = Rig()
+        r.vm.finishWelcome(setOf(Module.WORK), "whatsnew.0.4.15")
+        val s = r.vm.settings.value
+        assertEquals(setOf(Module.WORK), s.modules)
+        assertTrue(s.welcomeSeen)
+        assertTrue("whatsnew.0.4.15" in s.seenTips)
+        assertEquals(s, r.settings.saved)
+    }
+
+    @Test fun justPacingIsKeptAsAChoiceNotAsEverything() {
+        val r = Rig()
+        r.vm.finishWelcome(emptySet(), "whatsnew.0.4.15")
+        assertEquals(emptySet<Module>(), r.vm.settings.value.modules)
+        assertEquals(emptySet<Module>(), r.settings.saved.modules)
+    }
+
+    @Test fun finishingWelcomeNeverChangesModulesAlreadyChosen() {
+        val r = Rig()
+        r.vm.chooseModules(setOf(Module.OUTPUT))
+        r.vm.finishWelcome(setOf(Module.WORK), "whatsnew.0.4.15")
+        assertEquals(setOf(Module.OUTPUT), r.vm.settings.value.modules)
+    }
+
     @Test fun turningOnFromNothingChosenKeepsEverything() {
         val r = Rig()
         r.vm.turnOn(Module.WORK)

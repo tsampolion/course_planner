@@ -6,7 +6,14 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +30,7 @@ import gr.edusuite.pacer.R
 import gr.edusuite.pacer.update.RELEASE_LATEST_URL
 import gr.edusuite.pacer.update.shareText
 import gr.edusuite.pacer.ui.theme.Figures
+import gr.edusuite.pacer.ui.theme.Space
 
 /** The available release, daily-check preference and explicit-check feedback. */
 @Composable
@@ -34,7 +42,7 @@ fun UpdatesSection(vm: PacerViewModel, toast: (String) -> Unit, modifier: Modifi
     Section(stringResource(R.string.settings_updates), modifier) {
         update?.let { u ->
             Text(stringResource(R.string.updates_available, u.version), style = MaterialTheme.typography.titleMedium)
-            if (u.notes.isNotBlank()) Text(u.notes, style = MaterialTheme.typography.bodyMedium)
+            UpdateNotes(u.notes)
             PrimaryButton(stringResource(R.string.updates_download), { openLink(context, u.apkUrl, toast) }, Modifier.fillMaxWidth())
             Hint(stringResource(R.string.updates_first_time))
             TertiaryButton(stringResource(R.string.updates_see_changes), { openLink(context, u.pageUrl, toast) })
@@ -75,5 +83,23 @@ fun shareApp(context: Context, toast: (String) -> Unit) {
     if (!share(context, title, shareText(context.getString(R.string.share_app_message)))) {
         copyLink(context, RELEASE_LATEST_URL)
         toast(context.getString(R.string.share_app_copied))
+    }
+}
+
+/** What is new, one plain-English bullet per line of [notes]; a release with none says so in one line. */
+@Composable
+private fun UpdateNotes(notes: String) {
+    val lines = notes.lines().filter { it.isNotBlank() }
+    if (lines.isEmpty()) {
+        Text(stringResource(R.string.updates_notes_fallback), style = MaterialTheme.typography.bodyMedium)
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+        lines.forEach { line ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+                Box(Modifier.padding(top = Space.s).size(Space.xs + Space.xs).background(MaterialTheme.colorScheme.onSurface, CircleShape))
+                Text(line, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 }

@@ -528,6 +528,15 @@ class PacerViewModel(
 
     /** The first choice of modules, from the Welcome presets. Ignored once a choice exists, so it can't take one away. */
     fun chooseModules(modules: Set<Module>) = editSettings { if (it.modules == null) it.copy(modules = modules) else it }
+
+    /**
+     * Welcome is done: the chosen [modules] are kept (only if none were chosen before), Welcome counts as seen and the
+     * What's new deck of [deckId] is skipped, since a fresh install has nothing new to be told.
+     */
+    fun finishWelcome(modules: Set<Module>, deckId: String) = editSettings { s ->
+        Hints.markSeen((if (s.modules == null) s.copy(modules = modules) else s).copy(welcomeSeen = true), deckId)
+    }
+
     fun markHintSeen(id: String) = editSettings { Hints.markSeen(it, id) }
     fun showTipsAgain() = editSettings { Hints.reset(it) }
 

@@ -236,6 +236,10 @@ fun PacerApp(vm: PacerViewModel) {
             }) else null,
             page = (screen as? Screen.Group)?.page ?: GroupPage.HOME,
         )
+    }?.takeIf { m ->
+        // At Just pacing the ⋮ would hold only Tips, so it is absent until a tool or fix gives it something (Tips: Settings › Help).
+        val shown = featuresOf(settings, ui.data)
+        groupMenuShown(groupMenuItems(m.hasRows, m.hasCustom, m.others.size, m.large, m.catchUp, shown).filter { it != GroupMenuItem.PRINT || m.canPrint })
     }
 
     // Screens keep their scroll position while they are on the stack, and forget it once popped.
@@ -385,6 +389,7 @@ fun PacerApp(vm: PacerViewModel) {
         }
         setAside?.let { SetAsideDialog(it, toast, vm::dismissSetAside) }
         if (setAside == null) pastLessons?.let { PastLessonsDialog(it, { vm.answerPastLessons(true) }, { vm.answerPastLessons(false) }) }
+        if (setAside == null && pastLessons == null) UpdateDeck(settings, ui.data.years.isNotEmpty(), vm)
     }
 }
 

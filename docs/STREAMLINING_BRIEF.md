@@ -172,3 +172,15 @@ PR7 implements only the approved Work module gates in 0.4.13.0. The owner declin
 | Empty Work to the assignment sheet | 1 | 1 | Homework or Tests brick, including saved data in use |
 | Empty Work to the homework-only sheet | 1 | 1 | Homework brick only; the sheet omits the redundant selector |
 | Lesson hero to Homework sheet | 1 | 1 | Homework brick, including saved data in use; otherwise absent |
+
+## PR8 journeys
+
+PR8 builds the modules launch in 0.4.15.0. Counts use the PR6 convention, with device validation pending.
+
+| Journey | Before | After | Preset |
+| --- | --- | --- | --- |
+| First run, to the New school year dialog | 1 (Create your school year) | 1; the preset is already selected | Just pacing; another preset costs one more tap |
+| Recording pages ahead of the plan to homework | Add homework: long-press + Add homework (2) | Hint: Turn on Work (1), then the hero's Homework | Work off |
+| Work page with Work off, to the assignment sheet | Not possible | Turn on Work (1), then Add assignment (1) | Work off |
+| Settings to turn on a tool | Not possible | Features + Turn on (2) | Any tool off |
+| Updating | Nothing shown | Continue per card; no skip, Back steps back | Existing install |

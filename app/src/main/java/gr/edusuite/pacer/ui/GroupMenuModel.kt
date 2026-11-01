@@ -25,6 +25,9 @@ fun groupMenuItems(
     add(GroupMenuItem.TIPS)
 }.filter { features.has(it.brick()) }
 
+/** The group's ⋮ appears only when a tool or fix gives it more than Tips; Tips alone lives in Settings › Help. */
+fun groupMenuShown(items: List<GroupMenuItem>): Boolean = items.any { it != GroupMenuItem.TIPS }
+
 /** The feature each ⋮ item belongs to; the menu offers only those [Features.has]. */
 fun GroupMenuItem.brick(): Brick = when (this) {
     GroupMenuItem.CREATE_PLAN, GroupMenuItem.MY_PLAN, GroupMenuItem.REPACE, GroupMenuItem.COPY_PLAN, GroupMenuItem.DELETE_PLAN -> Brick.PLAN_EDITOR

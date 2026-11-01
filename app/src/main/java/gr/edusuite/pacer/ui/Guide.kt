@@ -46,11 +46,11 @@ private val STEPS = listOf(
 
 /**
  * The welcome page (decision 20, D9): a full page with the logo, what the app does and the four steps to a first
- * schedule as a numbered list. Home shows it once, on a launch with no school years; Settings → Getting started shows
- * it again. With [onStart] it offers to create a school year, else Got it closes it. It has no background pattern.
+ * schedule as a numbered list. Settings → Getting started shows it; Got it closes it. It has no background pattern.
+ * A fresh install meets [FirstRunPage] first.
  */
 @Composable
-fun WelcomePage(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
+fun WelcomePage(onDismiss: () -> Unit) {
     val c = Pacer.colors
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = c.paper, contentColor = c.ink) {
@@ -82,12 +82,7 @@ fun WelcomePage(onStart: (() -> Unit)?, onDismiss: () -> Unit) {
                         }
                     }
                     Hint(stringResource(R.string.guide_hint))
-                    if (onStart != null) {
-                        PrimaryButton(stringResource(R.string.guide_create_year), { onStart(); onDismiss() }, Modifier.fillMaxWidth().padding(top = Space.m))
-                        TertiaryButton(stringResource(R.string.guide_not_now), onDismiss, Modifier.align(Alignment.CenterHorizontally))
-                    } else {
-                        PrimaryButton(stringResource(R.string.guide_got_it), onDismiss, Modifier.fillMaxWidth().padding(top = Space.m))
-                    }
+                    PrimaryButton(stringResource(R.string.guide_got_it), onDismiss, Modifier.fillMaxWidth().padding(top = Space.m))
                 }
             }
         }

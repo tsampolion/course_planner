@@ -75,6 +75,10 @@ fun SettingsScreen(
     val context = LocalContext.current
     var guide by rememberSaveable { mutableStateOf(false) }
     var defaults by rememberSaveable { mutableStateOf(false) }
+    var featuresOpen by rememberSaveable { mutableStateOf(false) }
+    var whatsNew by rememberSaveable { mutableStateOf(false) }
+    var howPacing by rememberSaveable { mutableStateOf(false) }
+    val features = LocalFeatures.current
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
     }
@@ -114,11 +118,18 @@ fun SettingsScreen(
                 Hint(stringResource(R.string.settings_defaults_hint))
             }
         }
+        item(key = "features") {
+            ListGroup(Modifier.animateItem()) {
+                LinkRow(stringResource(R.string.features_row), stringResource(R.string.features_row_detail, onCount(features), Module.entries.size), AppIcons.Settings) { featuresOpen = true }
+            }
+        }
         item(key = "backup") { BackupSection(yearCount, vm, toast, undoToast) }
         item(key = "help") {
             Section(stringResource(R.string.settings_help), modifier = Modifier.animateItem()) {
                 Column {
                     LinkRow(stringResource(R.string.settings_getting_started), stringResource(R.string.settings_getting_started_detail)) { guide = true }
+                    LinkRow(stringResource(R.string.settings_whats_new), stringResource(R.string.settings_whats_new_detail)) { whatsNew = true }
+                    LinkRow(stringResource(R.string.settings_how_pacing), stringResource(R.string.settings_how_pacing_detail)) { howPacing = true }
                     LinkRow(stringResource(R.string.settings_show_tips), stringResource(R.string.settings_show_tips_detail)) {
                         vm.showTipsAgain()
                         toast(context.getString(R.string.settings_tips_reset))
@@ -146,7 +157,13 @@ fun SettingsScreen(
             Hint(stringResource(R.string.settings_defaults_saved))
         }
     }
-    if (guide) WelcomePage(onStart = null) { guide = false }
+    if (guide) WelcomePage { guide = false }
+    if (whatsNew) WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), onChooseTools = { featuresOpen = true }, onFinish = { whatsNew = false })
+    if (featuresOpen) FeaturesSheet(features, { vm.turnOn(it) }, { featuresOpen = false })
+    if (howPacing) PacerSheet(stringResource(R.string.settings_how_pacing), { howPacing = false }) {
+        Note(stringResource(R.string.guide_schedule_note))
+        Hint(stringResource(R.string.group_tick_hint))
+    }
 }
 
 /** Export saves every school year to a file the teacher picks; Import reads one back after asking Add or Replace all. */

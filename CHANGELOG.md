@@ -18,12 +18,27 @@ Every pull request bumps the version:
 
 1. Choose A, B or C using the rules above.
 2. Set `versionName` in `app/build.gradle.kts` to `0.A.B.C` (always four parts, starting `0.`) and increase `versionCode` by one.
-3. Add a `## [0.A.B.C] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom.
+3. Add a `## [0.A.B.C] - YYYY-MM-DD` section below with that PR's changes, plus its compare link at the bottom. Write each bullet for a teacher: one plain sentence of at most 160 characters, with no code, file or setting names and no jargon (the Updates card in Settings shows the first four bullets as they are). Technical detail goes in the pull request and the docs. `DocsTest` checks this from 0.4.14.1.
 4. After the merge, the `Release` workflow tags the merge commit `v0.A.B.C` and publishes a GitHub release with that section as notes and the APK attached. It only runs once CI passes.
 
 Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
+
+## [0.4.15.0] - 2026-11-01 - Great Expectations
+
+### Added
+- Choose the tools you start with: just pacing, pacing and work, everything, or pick them one by one. You can turn on more any time in Settings.
+- Settings has a Features row that shows what each tool adds and turns it on. Once a tool is on, it stays on.
+- A short hint offers Work or Planning tools once, at the moment you would use them, with a Turn on button right there.
+- After an update, a few swipeable cards say what is new. Reopen them from Settings, under What's new.
+- Each big release now has a name, shown beside its version. A version that ends in .0 shows without it, so 0.4.15.0 reads 0.4.15.
+
+### Changed
+- With only pacing on, a group has no ⋮ menu until a tool adds something to it. Tips moved to Settings, under How pacing works.
+- When Work is off, the Work page offers to turn it on instead of telling you to add homework you cannot add.
+- The first start shows the tool choices instead of the four steps. The steps stay in Settings, under Getting started.
+- The update notice in Settings now lists what is new or fixed in a few short, plain bullets, instead of showing the start of the technical release notes.
 
 ## [0.4.14.1] - 2026-11-01
 
@@ -1120,7 +1135,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.14.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.15.0...HEAD
+[0.4.15.0]: https://github.com/tsampolion/course_planner/compare/v0.4.14.1...v0.4.15.0
 [0.4.14.1]: https://github.com/tsampolion/course_planner/compare/v0.4.14.0...v0.4.14.1
 [0.4.14.0]: https://github.com/tsampolion/course_planner/compare/v0.4.13.2...v0.4.14.0
 [0.4.13.2]: https://github.com/tsampolion/course_planner/compare/v0.4.13.1...v0.4.13.2

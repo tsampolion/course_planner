@@ -1,6 +1,6 @@
 # Feature modules
 
-Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, with every module on for every install; the launch waits for UI audit PR 8. The build is planned in `docs/superpowers/plans/2026-10-29-feature-modules.md` and rides the remaining UI audit pull requests (see [Order of work](#order-of-work)).
+Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, and the launch (UI audit PR 8) is built in 0.4.15.0: Welcome presets, Settings › Features, two hints, What's new and the release name. Deck wording and the hint placement wait for the owner's check on a phone.
 
 A new teacher meets every tool at once. This feature lets them start with pacing alone and turn on more as they need it, and lets a teacher who only paces keep a lean app for good. Modules only ever turn on.
 
@@ -205,7 +205,6 @@ No engine change, no schema change, no new dependency. Each step takes the versi
 
 ## Open decisions
 
-1. The hint triggers (candidates above) and how many to ship first.
-2. The deck's final wording, its card count per module, and whether the first card may use an exclamation mark (PRODUCT.md's voice says none).
-3. The first release name.
-4. At Just pacing the group ⋮ holds only Tips: keep the ⋮, or move Tips to Help and drop the ⋮ until a module adds to it.
+Settled with the owner for the launch: both hints ship, each once; the deck has one card per tool plus a greeting and a closing card, no exclamation mark, and no Skip or close (Continue on every card, Back to step back); releases are named from 0.4.14.0, shown without a last number of 0; at Just pacing the group ⋮ is absent and Tips live in Settings › How pacing works; the deck is remembered with the other show-once hints.
+
+Still open: the deck's final wording and card count after a phone check, and whether the hints should sit directly under the lesson row instead of under the week.
