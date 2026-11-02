@@ -256,4 +256,10 @@ class NavTest {
         assertEquals(320, listPaneDp(704))
         assertEquals(384, listPaneDp(960))
     }
+
+    @Test fun listScreensKeepAReadable640dpColumnOnWideWindows() {
+        assertEquals(16, sideGutterDp(360))
+        assertEquals(16, sideGutterDp(672))
+        assertEquals(192, sideGutterDp(1024))
+    }
 }

@@ -83,9 +83,12 @@ fun SettingsScreen(
     val features = LocalFeatures.current
     val version = rememberVersionName()
 
+    // A readable 640dp column on a tablet, as on every list screen (X10); measured on the screen's own width, beside any open menu.
+    androidx.compose.foundation.layout.BoxWithConstraints {
+    val side = sideGutterDp(maxWidth.value.toInt()).dp
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
-        contentPadding = PaddingValues(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
+        contentPadding = PaddingValues(start = side, end = side, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Rhythm.section),
     ) {
         if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, itemMotion()) }
@@ -148,6 +151,7 @@ fun SettingsScreen(
                 Hint(stringResource(R.string.settings_copyright))
             }
         }
+    }
     }
 
     if (defaults) {

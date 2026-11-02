@@ -37,6 +37,12 @@ fun drawerStaysOpen(widthDp: Int, pinned: Boolean): Boolean =
 /** The list pane of a [bodyDp]-wide window: 40%, raised toward 320dp as long as the group pane keeps 360dp. */
 fun listPaneDp(bodyDp: Int): Int = maxOf((bodyDp * 0.4f).toInt(), minOf(LIST_PANE_MIN_DP, bodyDp - DETAIL_PANE_MIN_DP))
 
+/** The widest a list screen's column grows, as on Home (UI audit X10). */
+const val READING_MAX_DP = 640
+
+/** The side padding that keeps a [widthDp]-wide list screen's column at most [READING_MAX_DP], never under 16dp. */
+fun sideGutterDp(widthDp: Int): Int = maxOf(16, (widthDp - READING_MAX_DP) / 2)
+
 @Composable
 fun rememberWindowWidthDp(): Int {
     val density = LocalDensity.current

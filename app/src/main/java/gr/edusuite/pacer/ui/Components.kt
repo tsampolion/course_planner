@@ -474,13 +474,17 @@ fun LinkRow(title: String, detail: String, icon: ImageVector = AppIcons.Info, on
     }
 }
 
-/** The scrolling body most screens share, inset by the scaffold's [padding]: 16dp edges, [Rhythm.section] between items. */
+/**
+ * The scrolling body most screens share, inset by the scaffold's [padding]: 16dp edges, widening on a tablet so the
+ * column stays at most 640dp ([sideGutterDp], X10) while the whole width scrolls; [Rhythm.section] between items.
+ */
 @Composable
-fun ScreenList(padding: PaddingValues, spacing: Dp = Rhythm.section, content: LazyListScope.() -> Unit) {
+fun ScreenList(padding: PaddingValues, spacing: Dp = Rhythm.section, content: LazyListScope.() -> Unit) = androidx.compose.foundation.layout.BoxWithConstraints {
+    val side = sideGutterDp(maxWidth.value.toInt()).dp
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentPadding = PaddingValues(
-            start = Space.l, end = Space.l,
+            start = side, end = side,
             top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl,
         ),
         verticalArrangement = Arrangement.spacedBy(spacing),
