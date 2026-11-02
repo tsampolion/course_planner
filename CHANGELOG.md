@@ -25,6 +25,25 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.15.2] - 2026-11-02
+
+### Fixed
+- What's new now shows once, instead of again after every update or after Show tips again.
+- Editing a one-day day off for the school year keeps it one day, unless you set an end date.
+- With only pacing on, group pages no longer show Due soon, Print rows, a way to set your own pace or drag handles.
+- Cancelling an import no longer turns tools on: they turn on only when you choose Add or Replace all.
+
+### Changed
+- Deleting a school year, class or group now names it and says what goes with it, with a red Delete button.
+- A test's or worksheet's note now shows under its title in the plan, on today's lesson and in print.
+- Hints never mention a tool you have off, and no longer use technical words.
+- Welcome's selected choice shows a clear tick, and Done and Homework on today's lesson are easier to tap.
+- Empty pages show their words and one button, without the round icon.
+- Work says once, above the list, that homework pages leave the lessons when saved, instead of on every row.
+- With Work off, a group's Plan, Stats and Settings buttons share one row.
+- Tapping a day off or a book in settings opens its options, and both day-off menus now match.
+- Settings calls the tools Features everywhere, and What's new gives a tour when every tool is already on.
+
 ## [0.4.15.1] - 2026-11-01
 
 ### Changed
@@ -1140,7 +1159,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.15.1...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.15.2...HEAD
+[0.4.15.2]: https://github.com/tsampolion/course_planner/compare/v0.4.15.1...v0.4.15.2
 [0.4.15.1]: https://github.com/tsampolion/course_planner/compare/v0.4.15.0...v0.4.15.1
 [0.4.15.0]: https://github.com/tsampolion/course_planner/compare/v0.4.14.1...v0.4.15.0
 [0.4.14.1]: https://github.com/tsampolion/course_planner/compare/v0.4.14.0...v0.4.14.1

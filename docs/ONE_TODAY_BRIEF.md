@@ -1,6 +1,6 @@
 # One today
 
-Status: built in 0.4.4.10. Scheduling on any given date is unchanged; the engine's page pools follow the app's shared date.
+Status: built in 0.4.4.10. Scheduling on any given date is unchanged; the engine's page pools follow the app's shared date. Since 0.4.13.2 homework pages leave pacing when saved, so homework no longer depends on the date.
 
 ## Why
 
@@ -22,7 +22,7 @@ Status: built in 0.4.4.10. Scheduling on any given date is unchanged; the engine
 ## Tests
 
 - `PacerTest.planForReadsTheGivenTodayNotTheClock`: the same class read the day before and on the day homework is due banks its pages only on the due day, whatever the clock says.
-- `PacerViewModelTest.midnightMovesPlansBankingAndRevisionDatesTogether`: with a fake clock, one midnight moves the plan's date, `bankedPages`/`remainingPages` and the revision dates together, and `saveUnitRevision` agrees with them.
+- `PacerViewModelTest.midnightMovesPlansAndRevisionDatesTogether`: with a fake clock, one midnight moves the plan's date and the revision dates together, and `saveUnitRevision` agrees with them.
 - Engine parity tests are unchanged. Tests that build a `Plan` pass `TEST_TODAY` (1 September 2026, before the sample term).
 
 ## Not covered

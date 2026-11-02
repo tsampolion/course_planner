@@ -2,20 +2,17 @@
 
 Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can propose new wording in one place. **No wording has been changed.** Fill the *Your proposal* column and return the file; copy changes then happen in one pass.
 
-- **Resource strings:** 791 entries from `app/src/main/res/values/*strings.xml`, grouped by screen. Plurals are one row each, with their `one` and `other` forms. `%1$s`, `%d` and similar are filled in by the app (names, numbers, dates); keep them in any proposal.
+- **Resource strings:** 897 entries from `app/src/main/res/values/*strings.xml`, grouped by screen. Plurals are one row each, with their `one` and `other` forms. `%1$s`, `%d` and similar are filled in by the app (names, numbers, dates); keep them in any proposal.
 - **TalkBack labels** are resource strings too (content descriptions, state descriptions and custom actions). Rows whose ID looks like one are tagged *TalkBack* in Notes; others used only by TalkBack are not separately tagged, so treat every row as possibly spoken.
 - **Strings written in Kotlin** (last section) are engine messages, default names, printed output and exports. They are kept out of resources on purpose, so changing them is a code change; say which you want changed.
 
 ## App bar, menu and shared actions
 
-44 entries.
+57 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
 | `app_name` | Course Pacer |  |  |
-| `menu_help` | Help |  |  |
-| `menu_lessons` | Lessons |  |  |
-| `menu_share_print` | Share & print |  |  |
 | `app_settings` | Settings |  |  |
 | `app_year_settings` | School year settings |  |  |
 | `app_overview` | Pacing overview |  |  |
@@ -27,6 +24,9 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `app_copied` | Copied. Paste into a spreadsheet or Word. |  |  |
 | `app_schedule` | Schedule |  |  |
 | `app_undo_steps` | one: Undo (%1$d) / other: Undo (%1$d) |  | Plural, Has placeholders |
+| `menu_share_print` | Share & print |  |  |
+| `menu_lessons` | Lessons |  |  |
+| `menu_help` | Help |  |  |
 | `nav_menu` | Menu |  |  |
 | `nav_search` | Find a class or group |  |  |
 | `nav_clear_search` | Clear search |  |  |
@@ -36,24 +36,27 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `nav_year_named` | School year · %1$s |  | Has placeholders |
 | `nav_show_classes` | Show classes and groups |  |  |
 | `nav_hide_classes` | Hide classes and groups |  |  |
-| `nav_classes_groups` | Classes & Groups |  |  |
-| `nav_back_to` | Back to %1$s |  | Has placeholders |
-| `nav_heading_count` | %1$s · %2$s |  | Has placeholders: a class name and its group count |
-| `nav_current_page` | Current page |  |  |
-| `nav_pin` | Keep the menu open |  |  |
-| `nav_unpin` | Let the menu collapse |  |  |
-| `group_place_home` | Group home |  |  |
-| `bar_more_warnings` | %1$s, %2$s |  | Has placeholders |
 | `nav_class_group` | %1$s · %2$s |  | Has placeholders |
 | `nav_behind` | one: %d behind / other: %d behind |  | Plural, Has placeholders |
 | `nav_groups_behind` | one: %d group behind / other: %d groups behind |  | Plural, Has placeholders |
 | `nav_all_classes` | one: The class / other: All %d classes |  | Plural, Has placeholders |
 | `switcher_title` | Go to |  |  |
 | `switcher_open` | Switch group |  |  |
+| `group_place_home` | Group home |  |  |
+| `nav_heading_count` | %1$s · %2$s |  | Has placeholders: a class name and its group count |
+| `nav_classes_groups` | Classes & Groups |  |  |
+| `nav_back_to` | Back to %1$s |  | Has placeholders |
+| `nav_current_page` | Current page |  |  |
+| `nav_pin` | Keep the menu open |  |  |
+| `nav_unpin` | Let the menu collapse |  |  |
 | `status_on_pace` | On pace |  |  |
 | `status_short` | one: Short by %d lesson / other: Short by %d lessons |  | Plural, Has placeholders |
-| `rows_options` | Options for %1$s |  | Has placeholders |
+| `menu_this_lesson` | This lesson |  |  |
+| `menu_my_plan` | My plan |  |  |
+| `menu_edit_my_plan` | Edit my plan |  |  |
+| `bar_more_warnings` | %1$s, %2$s |  | Has placeholders |
 | `rows_delete` | Delete |  |  |
+| `rows_options` | Options for %1$s |  | Has placeholders |
 | `panes_pick_group` | Pick a group to open it here. |  |  |
 | `toast_nothing_changed` | Already up to date |  |  |
 | `save_not_saved` | Couldn't save your latest changes. They are still in the app; keep it open until they are saved. |  |  |
@@ -69,7 +72,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Home
 
-53 entries.
+52 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
@@ -79,11 +82,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `home_year` | School year |  |  |
 | `home_hello` | Hello |  |  |
 | `home_hello_name` | Hello, %1$s |  | Has placeholders |
-| `home_next_today` | Next · today · %1$d of %2$d left |  | Has placeholders |
-| `home_next_on` | Next · %1$s |  | Has placeholders |
-| `home_next_overdue` | Next · overdue · %1$s |  | Has placeholders |
-| `home_done` | Done |  |  |
-| `home_all_classes` | All %1$d › |  | Has placeholders |
 | `home_see_all` | See all › |  |  |
 | `home_board_empty` | Add a group to a class and it shows here. |  |  |
 | `home_legend_behind` | Behind, lessons short |  |  |
@@ -91,19 +89,23 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `home_cell` | %1$s %2$s |  | Has placeholders |
 | `home_cell_on_pace` | %1$s %2$s, on pace |  | Has placeholders |
 | `home_open_group` | Open group |  |  |
+| `home_cell_today` | Today |  |  |
+| `home_cell_spoken_today` | %1$s, has a lesson today |  | Has placeholders |
+| `home_on_pace_set_up` | %1$d on pace · %2$d set-up needed › |  | Has placeholders |
+| `home_set_up_needed` | %1$d set-up needed › |  | Has placeholders |
+| `home_upcoming` | Tests & worksheets |  |  |
+| `home_kind_test` | Test |  |  |
+| `home_kind_worksheet` | Worksheet |  |  |
+| `home_upcoming_when` | %1$s %2$s |  | Has placeholders |
+| `home_open_tests` | Open tests and worksheets |  |  |
 | `home_add_first_class` | Add your first class |  |  |
 | `home_first_class_hint` | A class holds its books, lesson days and groups. Add one and its next lesson shows here. |  |  |
 | `home_add_class` | Add a class |  |  |
-| `home_no_lessons` | No lessons left this term |  |  |
-| `home_overview_hint` | Open Pacing overview to see where each group stands. |  |  |
-| `home_lesson_done` | Lesson marked done |  |  |
-| `home_classes` | Classes |  |  |
 | `home_overview` | Pacing overview |  |  |
 | `home_dates_missing` | Dates not set |  |  |
 | `home_rename` | Rename |  |  |
 | `home_class` | Class |  |  |
 | `home_group` | Group |  |  |
-| `home_no_pages` | No pages |  |  |
 | `home_rename_year` | Rename school year |  |  |
 | `home_save` | Save |  |  |
 | `home_name` | Name |  |  |
@@ -121,10 +123,10 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `today_next_label` | Next · lesson %1$d |  | Has placeholders |
 | `today_done` | Done |  |  |
 | `today_pages_taught` | Pages taught |  |  |
+| `today_homework` | Homework |  |  |
 | `hint_got_it` | Got it |  |  |
-| `hint_lesson_menu` | Long-press a lesson, or use TalkBack's actions, to change its pages, mark everything up to it done, or plan it. |  |  |
+| `hint_lesson_menu` | Long-press a lesson to change its pages, mark everything up to it done, or plan it. A phone that reads the screen aloud offers the same choices. |  |  |
 | `hint_pace_track` | The tick marks where a book would be in step with the lead book. Tap a book to change where the group is in it. |  |  |
-| `home_classes_link` | Classes › |  |  |
 | `home_groups_on_pace` | one: %d group on pace › / other: %d groups on pace › |  | Plural, Has placeholders |
 
 ## Welcome guide and tips
@@ -155,25 +157,39 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Classes and class editor
 
-115 entries.
+82 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
+| `collections_sort` | Classes: %1$s |  | Has placeholders |
+| `collections_your_order` | Your order |  |  |
+| `collections_name_order` | Name |  |  |
+| `collections_behind_order` | Most behind |  |  |
+| `collections_new` | New collection… |  |  |
+| `collections_edit` | Edit collection |  |  |
+| `collections_uncollected` | Other classes |  |  |
+| `collections_move_hint` | Choose classes. A class selected from another collection moves here. |  |  |
+| `collections_saved` | Collection saved |  |  |
+| `collections_delete` | Delete collection |  |  |
+| `collections_deleted` | Deleted collection “%1$s” |  | Has placeholders |
+| `collections_keep_classes` | Deleting this collection keeps all its classes. |  |  |
+| `collections_empty` | No classes in this collection. |  |  |
+| `setup_delete_title` | Delete %1$s? |  | Has placeholders |
+| `setup_delete` | Delete |  |  |
+| `setup_delete_year_body` | Its classes and groups go too. Undo brings it back. |  |  |
+| `setup_delete_class_body` | Its groups go too. Undo brings it back. |  |  |
+| `setup_delete_group_body` | Its lessons and work go too. Undo brings it back. |  |  |
+| `setup_continue` | Continue |  |  |
 | `class_positions_reset` | Positions reset |  |  |
 | `class_deleted` | Deleted “%1$s” |  | Has placeholders |
 | `class_removed` | Removed “%1$s” |  | Has placeholders |
 | `class_class` | Class |  |  |
 | `class_group` | Group |  |  |
 | `class_book` | Book |  |  |
-| `class_test` | Test |  |  |
 | `class_takes_lesson` | takes the lesson |  |  |
-| `class_alongside_lesson` | alongside the lesson |  |  |
 | `class_page_range` | pp. %1$d–%2$d |  | Has placeholders |
 | `class_due_by` | by %1$s |  | Has placeholders |
 | `class_book_summary` | %1$s · %2$s |  | Has placeholders |
-| `class_homework_pages` | %1$s %2$d–%3$d |  | Has placeholders |
-| `class_set_on` | Set %1$s |  | Has placeholders |
-| `class_no_homework_group` | None yet |  |  |
 | `class_problems_title` | Problems in this class |  |  |
 | `class_book_guide` | Add each coursebook with its first and last page, like Student's Book pp. 1–160. Each book is paced on its own. Then check each group's lesson days below and tap Open schedule. |  |  |
 | `class_add_the_books_you_teach_from` | Add the books you teach from |  |  |
@@ -188,26 +204,13 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `class_no_books_yet` | No books yet. |  |  |
 | `class_groups` | Groups |  |  |
 | `class_add_a_group_for_each_set_of_students_taught_from_these_books` | Add a group for each set of students taught from these books. |  |  |
-| `class_tests_and_homework` | Tests and homework |  |  |
-| `class_tests_worksheets` | Tests & worksheets |  |  |
-| `class_homework_already_assigned` | Homework already assigned |  |  |
 | `class_reset_all_positions` | Reset all positions |  |  |
 | `class_delete_this_class` | Delete this class |  |  |
 | `class_class_settings` | Class settings |  |  |
-| `class_done` | Done |  |  |
 | `class_lesson_length_min` | Lesson length (min) |  |  |
 | `class_pages_per_lesson_is_the_benchmark_the_verdict_measures_again` | Pages per lesson is the benchmark the verdict measures against; it does not drive the schedule. |  |  |
 | `class_edit` | Edit |  |  |
 | `class_next_lesson` | Next lesson |  |  |
-| `class_remove_group` | Remove group |  |  |
-| `class_open_schedule` | Open schedule |  |  |
-| `class_no_tests_yet` | No tests yet |  |  |
-| `class_plan_a_test_or_worksheet_for_your_next_lesson` | Plan a test or worksheet for your next lesson. |  |  |
-| `class_add_a_test` | Add a test |  |  |
-| `class_upcoming` | Upcoming |  |  |
-| `class_no_upcoming_tests` | No upcoming tests. |  |  |
-| `class_all_groups` | All groups |  |  |
-| `class_not_a_lesson_day` | Not a lesson day |  |  |
 | `class_title` | Title |  |  |
 | `class_first_page` | First page |  |  |
 | `class_last_page` | Last page |  |  |
@@ -216,25 +219,10 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `class_finish_by` | Finish by |  |  |
 | `class_only_this_book_re_paces_the_others_keep_their_own_rate` | Only this book re-paces. The others keep their own rate. |  |  |
 | `class_remove_book` | Remove book |  |  |
-| `class_pages_set_for_homework_leave_the_classroom_sequence_the_rest` | Pages set for homework leave the classroom sequence. The rest re-spread, so the pace eases and the books still finish together. |  |  |
-| `class_no_homework_assigned` | No homework assigned |  |  |
-| `class_assign_pages_to_ease_the_classroom_pace` | Assign pages to ease the classroom pace. |  |  |
-| `class_add_homework` | Add homework |  |  |
-| `class_add_a_group_and_a_book_first` | Add a group and a book first. |  |  |
-| `class_add_a_test_or_worksheet` | Add a test or worksheet |  |  |
-| `class_unit_3_test` | Unit 3 test |  |  |
 | `class_date` | Date |  |  |
-| `class_takes_the_whole_lesson` | Takes the whole lesson |  |  |
 | `class_companion` | Companion |  |  |
-| `class_from_p` | From p. |  |  |
-| `class_to_p` | To p. |  |  |
-| `class_set_on_optional` | Set on (optional) |  |  |
-| `class_entries` | one: %d entry / other: %d entries |  | Plural, Has placeholders |
-| `class_assignments` | one: %d assignment / other: %d assignments |  | Plural, Has placeholders |
 | `class_lessons_left` | one: %d lesson left / other: %d lessons left |  | Plural, Has placeholders |
-| `class_past_tests` | one: Past test (%d) / other: Past tests (%d) |  | Plural, Has placeholders |
 | `class_teachable` | one: %d teachable page / other: %d teachable pages |  | Plural, Has placeholders |
-| `class_pages` | one: %d page / other: %d pages |  | Plural, Has placeholders |
 | `class_monday` | Mon |  |  |
 | `class_tuesday` | Tue |  |  |
 | `class_wednesday` | Wed |  |  |
@@ -245,42 +233,58 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `class_lead_book` | Lead book |  |  |
 | `class_lead_none` | None: each book keeps its own pace |  |  |
 | `class_lead_hint` | The other books keep step with the lead book: when it is a third of the way through, so are they. A book with its own finish-by date keeps its own pace. Give the books unit start pages to keep them in step unit by unit. |  |  |
-| `class_units` | Unit start pages |  |  |
-| `class_units_placeholder` | 1, 13, 25, 37 |  |  |
-| `class_units_hint` | The page each unit starts on. When this book and the lead book have the same number of units, this book keeps step unit by unit. |  |  |
+| `class_units` | Unit start pages |  | Plural, Has placeholders |
 | `class_units` | one: %d unit / other: %d units |  | Plural, Has placeholders |
 | `class_lag_lessons` | Warn when a book is this many lessons behind |  |  |
 | `class_lag_hint` | The group screen warns when one book falls this far behind the lead book (or the others), and offers to bring it back in step. |  |  |
 | `classes_behind` | one: %d group behind / other: %d groups behind |  | Plural, Has placeholders |
 | `class_summary` | %1$d min lessons · %2$s pages a lesson |  | Has placeholders |
-| `class_upcoming_next` | %1$s · next %2$s |  | Has placeholders |
-| `class_upcoming_count` | one: %d upcoming / other: %d upcoming |  | Plural, Has placeholders |
 | `class_next_on` | Next %1$s |  | Has placeholders |
 | `class_edit_group` | Edit %1$s |  | Has placeholders |
 | `class_pages_chosen` | one: %d page chosen / other: %d pages chosen |  | Plural, Has placeholders |
 | `class_skips` | skips %1$s |  | Has placeholders |
-| `class_show` | Show |  |  |
-| `class_hide` | Hide |  |  |
-| `collections_sort` | Classes: %1$s |  | Has placeholders |
-| `collections_your_order` | Your order |  |  |
-| `collections_name_order` | Name |  |  |
-| `collections_behind_order` | Most behind |  |  |
-| `collections_new` | New collection… |  |  |
-| `collections_edit` | Edit collection |  |  |
-| `collections_uncollected` | Other classes |  |  |
-| `collections_move_hint` | Choose classes. A class selected from another collection moves here. |  |  |
-| `collections_saved` | Collection saved |  |  |
-| `collections_delete` | Delete collection |  |  |
-| `collections_deleted` | Deleted collection “%1$s” |  | Has placeholders |
-| `collections_keep_classes` | Deleting this collection keeps all its classes. |  |  |
-| `collections_empty` | No classes in this collection. |  |  |
 
 ## Group (home, settings, menu)
 
-88 entries.
+94 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
+| `group_settings_title` | Group settings |  |  |
+| `group_settings_end` | End date (optional) |  |  |
+| `group_settings_default_start` | School year starts: %1$s. Clear to use this date. |  | Has placeholders |
+| `group_settings_default_end` | School year ends: %1$s. Clear to use this date. |  | Has placeholders |
+| `group_settings_end_clamped` | This group still finishes by the school year end. |  |  |
+| `group_settings_days_off` | Group days off |  |  |
+| `group_settings_days_off_hint` | These additions apply only to this group. |  |  |
+| `group_settings_inherited_days_off` | School year and class days off |  |  |
+| `group_settings_no_days_off` | No additional days off. |  |  |
+| `group_settings_skipped_pages` | Additional skipped pages |  |  |
+| `group_settings_skip_hint` | These pages are added to the class skips. Clear a field to use only the class skips. |  |  |
+| `group_settings_class_skip` | Class skips: %1$s |  | Has placeholders |
+| `group_settings_skip_example` | 8, 24-27 |  |  |
+| `group_settings_none` | None |  |  |
+| `group_settings_delete` | Delete group |  |  |
+| `group_settings_books` | Books |  |  |
+| `group_settings_books_hint_basic` | Every class book is paced for this group. |  |  |
+| `group_settings_books_hint` | Class books are included unless you leave one out. Choose additional books for this group. |  |  |
+| `group_settings_removed_book` | Not used in this group |  |  |
+| `group_settings_class_date` | Class: %1$s |  |  |
+| `group_settings_use_class_date` | Use class date |  |  |
+| `group_settings_book_due_clamped` | This group finishes on %1$s, so the book ends then. |  |  |
+| `group_settings_remove_book` | Remove from this group |  |  |
+| `group_settings_remove_book_hint` | Lessons already taught stay as they are. The pages still to teach spread over the lessons left. |  |  |
+| `group_settings_add_back` | Add back |  |  |
+| `group_settings_keep_one_book` | A group needs at least one book that is paced. |  |  |
+| `group_settings_default_book` | Class default · included |  |  |
+| `group_settings_optional_book` | Optional book |  |  |
+| `group_settings_new_book_hint` | This book is added to the class library and selected only for this group. Other groups can choose it in their settings. |  |  |
+| `group_settings_page_range` | Enter a last page at or after the first page. |  |  |
+| `group_lesson_days` | Lesson days |  |  |
+| `group_settings_book_used` | Used by this group |  |  |
+| `group_settings_book_not_used` | Not used by this group |  |  |
+| `group_settings_use_book` | Use %1$s |  | Has placeholders |
+| `group_settings_stop_using_book` | Stop using %1$s |  | Has placeholders |
 | `group_updated` | Lesson updated |  |  |
 | `group_marked_done` | Lessons marked done |  |  |
 | `group_marked_not_done` | Lessons marked not done |  |  |
@@ -295,20 +299,20 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `group_done_up_to` | Done up to here |  |  |
 | `group_not_done_from` | Not done from here |  |  |
 | `group_edited` | Edited |  |  |
-| `group_done` | Done |  |  |
+| `group_not_taught` | Not taught |  |  |
+| `group_not_taught_menu` | Lesson didn't happen |  |  |
+| `group_not_taught_done` | Lesson recorded as not taught |  |  |
 | `group_save` | Save |  |  |
 | `group_none` | none |  |  |
 | `group_mark_done` | Mark done |  |  |
 | `group_lessons_left` | Lessons left |  |  |
 | `group_pages_left` | Pages left |  |  |
-| `group_pace` | Required pace |  |  |
 | `group_peak` | Heaviest lesson |  |  |
 | `group_hours` | Contact hours |  |  |
 | `group_banked` | Pages banked as homework |  |  |
 | `group_due_passed` | Due passed |  |  |
 | `group_position_hint` | The next page to teach. Updating it redistributes the remaining pages over future lessons. |  |  |
 | `group_resume` | Resume at page |  |  |
-| `group_schedule` | %1$s · schedule |  | Has placeholders |
 | `group_tick_hint` | Tick a lesson once it's taught. Long-press a lesson to change the pages it covered, to mark everything up to it, or to undo from it. |  |  |
 | `group_book_pages` | %1$s: %2$s |  | Has placeholders |
 | `ledger_retired_pages` | %1$s %2$s (not in plan) |  | Has placeholders |
@@ -326,8 +330,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `group_no_before_due` | No lesson before due |  |  |
 | `group_no_measure` | No teaching lessons to measure yet. |  |  |
 | `group_set_pace` | Set a sustainable pace on the class screen to see the verdict. |  |  |
-| `group_day_off` | Day off: %1$s |  | Has placeholders |
-| `group_no_on_day` | No lesson on %1$s |  | Has placeholders |
 | `group_tab_plan` | Plan |  |  |
 | `group_tab_stats` | Stats |  |  |
 | `group_tips` | Tips |  |  |
@@ -336,65 +338,46 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `group_pages_title` | Pages taught on %1$s %2$s |  | Has placeholders |
 | `group_blocked` | one: %1$d lesson goes to tests or worksheets; pages spread over %2$s. / other: %1$d lessons go to tests or worksheets; pages spread over %2$s. |  | Plural, Has placeholders |
 | `group_teaching_count` | one: %1$d lesson / other: %1$d lessons |  | Plural, Has placeholders |
+| `progress_fix` | Fix |  |  |
+| `progress_fix_description` | Fix. Opens Warnings |  |  |
 | `group_more` | More options |  |  |
-| `progress_strip` | Lesson %1$d of %2$d · %3$s |  | Has placeholders |
 | `group_print` | Print |  |  |
 | `group_make_custom_plan` | Make a custom plan |  |  |
-| `group_settings_title` | Group settings |  |  |
-| `group_settings_dates` | Dates |  |  |
-| `group_settings_end` | End date (optional) |  |  |
-| `group_settings_default_start` | School year starts: %1$s. Clear to use this date. |  | Has placeholders |
-| `group_settings_default_end` | School year ends: %1$s. Clear to use this date. |  | Has placeholders |
-| `group_settings_end_clamped` | This group still finishes by the school year end. |  |  |
-| `group_settings_days_off` | Group days off |  |  |
-| `group_settings_days_off_hint` | These additions apply only to this group. |  |  |
-| `group_settings_inherited_days_off` | School year and class days off |  |  |
-| `group_settings_no_days_off` | No additional days off. |  |  |
-| `group_settings_skipped_pages` | Additional skipped pages |  |  |
-| `group_settings_skip_hint` | These pages are added to the class skips. Clear a field to use only the class skips. |  |  |
-| `group_settings_class_skip` | Class skips: %1$s |  | Has placeholders |
-| `group_settings_skip_example` | 8, 24-27 |  |  |
-| `group_settings_none` | None |  |  |
-| `group_settings_delete` | Delete group |  |  |
-| `group_settings_books` | Books |  |  |
-| `group_settings_books_hint` | Class books are included unless you leave one out. Choose additional books for this group. |  |  |
-| `group_settings_books_long_press` | Long-press a book to leave it out of this group or give this group its own finish-by date. |  |  |
-| `group_settings_removed_book` | Not used in this group |  |  |
-| `group_settings_class_date` | Class: %1$s |  |  |
-| `group_settings_use_class_date` | Use class date |  |  |
-| `group_settings_book_due_clamped` | This group finishes on %1$s, so the book ends then. |  |  |
-| `group_settings_remove_book` | Remove from this group |  |  |
-| `group_settings_remove_book_hint` | Lessons already taught stay as they are. The pages still to teach spread over the lessons left. |  |  |
-| `group_settings_add_back` | Add back |  |  |
-| `group_settings_keep_one_book` | A group needs at least one book that is paced. |  |  |
-| `group_settings_default_book` | Class default · included |  |  |
-| `group_settings_optional_book` | Optional book |  |  |
-| `group_settings_new_book_hint` | This book is added to the class library and selected only for this group. Other groups can choose it in their settings. |  |  |
-| `group_settings_page_range` | Enter a last page at or after the first page. |  |  |
+| `progress_strip` | Lesson %1$d of %2$d · %3$s |  | Has placeholders |
 
 ## Group plan (ledger, custom plan, extra lessons, supplementary books)
 
-116 entries.
+119 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
+| `plan_weeks` | Weekly view |  |  |
+| `plan_months` | Monthly view |  |  |
+| `plan_this_month` | This month · %1$s |  | Has placeholders |
+| `plan_previous_month` | Previous month |  |  |
+| `plan_next_month` | Next month |  |  |
+| `plan_in_use` | %1$s · In use |  | Has placeholders |
+| `plan_own_pace` | Own pace… |  |  |
+| `plan_hide_earlier` | Hide earlier lessons |  |  |
+| `plan_earlier_lessons` | one: %d earlier lesson › / other: %d earlier lessons › |  | Plural, Has placeholders |
+| `custom_repace_keeps_edited` | Re-pacing keeps edited lessons unchanged. A warning can remain when those lessons or the available teaching time prevent a full repair. |  |  |
 | `custom_created` | Custom plan created |  |  |
 | `custom_mine` | My plan |  |  |
 | `custom_proposed` | Proposed |  |  |
 | `custom_preview_mine` | Your plan is ready. You're teaching from the proposed plan. |  |  |
 | `custom_preview_proposed` | The proposed plan, for comparison. You're teaching from your plan. |  |  |
 | `custom_use_this` | Use this plan |  |  |
-| `custom_now_mine` | Teaching from your plan |  |  |
-| `custom_now_proposed` | Teaching from the proposed plan |  |  |
 | `custom_fix_repace` | Re-pace |  |  |
 | `custom_fix_tidy` | Tidy |  |  |
 | `custom_fix_fit` | Fit to term |  |  |
-| `custom_fix_open_lesson` | Open lesson |  |  |
 | `custom_repace_all` | Re-pace untouched lessons |  |  |
 | `custom_copy_to` | Copy to… |  |  |
 | `custom_copied` | Plan copied to %1$s |  | Has placeholders |
 | `custom_delete` | Delete my plan |  |  |
 | `custom_deleted` | Custom plan deleted |  |  |
+| `plan_fix_catch_up` | one: Catch-up: %1$d more page a lesson until the group is back on pace. / other: Catch-up: %1$d more pages a lesson until the group is back on pace. |  | Plural, Has placeholders |
+| `plan_fix_adjusted` | A fix has adjusted this group's plan. |  |  |
+| `plan_fix_undo` | Back to the proposed plan |  |  |
 | `custom_repaced` | Plan re-paced |  |  |
 | `custom_tidied` | Plan tidied |  |  |
 | `custom_fitted` | Plan fitted to the term |  |  |
@@ -409,8 +392,8 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `custom_removed` | Lesson removed; its pages joined the next one |  |  |
 | `custom_moved` | Lesson moved |  |  |
 | `custom_free` | Free lesson |  |  |
-| `custom_proposed_line` | Proposed: %1$s |  | Has placeholders |
 | `custom_differs` | differs from the proposed plan |  |  |
+| `custom_proposed_line` | Proposed: %1$s |  | Has placeholders |
 | `custom_drag` | Drag to move lesson %1$d |  | Has placeholders |
 | `custom_sheet_title` | Lesson %1$d · %2$s %3$s |  | Has placeholders |
 | `custom_sheet_new` | New lesson |  |  |
@@ -422,9 +405,10 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `custom_doubled` | one: %d page taught twice / other: %d pages taught twice |  | Plural, Has placeholders |
 | `custom_stale` | one: %d page already covered / other: %d pages already covered |  | Plural, Has placeholders |
 | `custom_overflow` | one: %d lesson after the term ends / other: %d lessons after the term ends |  | Plural, Has placeholders |
+| `custom_fix_open_lesson` | Open lesson |  |  |
 | `supp_tag` | Supplementary |  |  |
 | `book_type` | Type |  |  |
-| `book_type_student` | Student\'s Book |  |  |
+| `book_type_student` | Student's Book |  |  |
 | `book_type_workbook` | Workbook |  |  |
 | `book_type_grammar` | Grammar Book |  |  |
 | `book_type_writing` | Writing Book |  |  |
@@ -458,6 +442,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `supp_choose_pages` | Choose pages to teach… |  |  |
 | `supp_restored` | The lesson's core pages are back as they were before. Change them if you like. |  |  |
 | `supp_save_failed` | Some pages can't go in this lesson. Check the fields and try again. |  |  |
+| `extra_taught_day` | That day is already taught |  |  |
 | `custom_line_title` | Start from this schedule and make it yours. |  |  |
 | `custom_line_body` | The proposed plan stays as your fallback. |  |  |
 | `custom_line_create` | Create |  |  |
@@ -485,16 +470,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `extra_unavailable` | Extra lesson on %1$s is unavailable |  | Has placeholders |
 | `extra_unavailable_hint` | A whole-lesson test or the group’s date range excludes it. Its pages are back in the remaining plan. |  |  |
 | `extra_after_short` | one: After this: Short by %d lesson / other: After this: Short by %d lessons |  | Plural, Has placeholders |
-| `plan_weeks` | Weekly view |  |  |
-| `plan_months` | Monthly view |  |  |
-| `plan_this_month` | This month · %1$s |  | Has placeholders |
-| `plan_previous_month` | Previous month |  |  |
-| `plan_next_month` | Next month |  |  |
-| `plan_choose_month` | Choose month |  |  |
-| `plan_in_use` | %1$s · In use |  | Has placeholders |
-| `plan_own_pace` | Own pace… |  |  |
-| `plan_hide_earlier` | Hide earlier lessons |  |  |
-| `plan_earlier_lessons` | one: %d earlier lesson › / other: %d earlier lessons › |  | Plural, Has placeholders |
 
 ## Group stats
 
@@ -502,6 +477,23 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
+| `stats_lessons_planned` | Lessons planned |  |  |
+| `stats_plan_rate` | Planned pace |  |  |
+| `stats_plan_end` | Plan ends |  |  |
+| `stats_term_end` | Term ends |  |  |
+| `stats_own_pace` | Set my own pace… |  |  |
+| `stats_own_pace_title` | My own pace |  |  |
+| `stats_own_pace_hint` | Set pages per lesson across core books. Lessons you changed by hand stay as they are. You can also open this by holding Pace needed. |  |  |
+| `stats_own_pace_error` | Enter a positive pace. Try a higher number if the plan is too long. |  |  |
+| `stats_own_pace_field` | Pages per lesson |  |  |
+| `stats_own_pace_preview` | Ends %1$s |  | Has placeholders |
+| `stats_own_pace_overflow` | one: %d planned lesson falls after the term. / other: %d planned lessons fall after the term. |  | Plural, Has placeholders |
+| `stats_covered_short` | one: Your plan covers %1$d of %2$d short lesson. / other: Your plan covers %1$d of %2$d short lessons. |  | Plural, Has placeholders |
+| `stats_beyond_term` | Beyond the term |  |  |
+| `stats_plan_position` | On plan: page %1$d; you are at page %2$d |  | Has placeholders |
+| `stats_no_end` | No dated lessons |  |  |
+| `stats_my_plan` | My plan |  |  |
+| `stats_proposed` | Proposed |  |  |
 | `stats_fix_short` | Teach %1$s to finish, or skip %2$s. |  | Has placeholders |
 | `stats_more_pages` | one: about %d page more a lesson / other: about %d pages more a lesson |  | Plural, Has placeholders |
 | `stats_pages` | one: %d page / other: %d pages |  | Plural, Has placeholders |
@@ -522,30 +514,19 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `stats_month_spoken` | one: %1$s: %2$d lesson / other: %1$s: %2$d lessons |  | Plural, Has placeholders |
 | `stats_more` | More stats › |  |  |
 | `stats_fewer` | Fewer stats |  |  |
-| `stats_lessons_planned` | Lessons planned |  |  |
-| `stats_plan_rate` | Planned pace |  |  |
-| `stats_plan_end` | Plan ends |  |  |
-| `stats_term_end` | Term ends |  |  |
-| `stats_own_pace` | Set my own pace… |  |  |
-| `stats_own_pace_title` | My own pace |  |  |
-| `stats_own_pace_hint` | Set pages per lesson across core books. Lessons you changed by hand stay as they are. You can also open this by holding Pace needed. |  |  |
-| `stats_own_pace_error` | Enter a positive pace. Try a higher number if the plan is too long. |  |  |
-| `stats_own_pace_field` | Pages per lesson |  |  |
-| `stats_own_pace_preview` | Ends %1$s |  | Has placeholders |
-| `stats_own_pace_overflow` | one: %d planned lesson falls after the term. / other: %d planned lessons fall after the term. |  | Plural, Has placeholders |
-| `stats_covered_short` | one: Your plan covers %1$d of %2$d short lesson. / other: Your plan covers %1$d of %2$d short lessons. |  | Plural, Has placeholders |
-| `stats_beyond_term` | Beyond the term |  |  |
-| `stats_plan_position` | On plan: page %1$d; you are at page %2$d |  | Has placeholders |
-| `stats_no_end` | No dated lessons |  |  |
-| `stats_my_plan` | My plan |  |  |
-| `stats_proposed` | Proposed |  |  |
 
 ## Work: homework, tests and worksheets
 
-51 entries.
+54 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
+| `homework_mark_done_named` | Mark done: %1$s |  | Has placeholders |
+| `homework_mark_not_done_named` | Mark not done: %1$s |  | Has placeholders |
+| `homework_done` | Done |  |  |
+| `homework_mark_done` | Mark done |  |  |
+| `homework_mark_not_done` | Mark not done |  |  |
+| `homework_pages_leave_pacing` | Pages set as homework leave the lessons as soon as you save. Marking done changes nothing. |  |  |
 | `work_title` | Work |  |  |
 | `work_all` | All |  |  |
 | `work_homework` | Homework |  |  |
@@ -574,7 +555,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `work_no_due` | No dated assignments coming up. |  |  |
 | `work_due_today` | Homework due today: %1$s |  | Has placeholders |
 | `work_set_today` | Set today: %1$s |  | Has placeholders |
-| `work_moved` | Assignments have moved to each group. |  |  |
 | `work_book_left` | one: %1$s · %2$d page left / other: %1$s · %2$d pages left |  | Plural, Has placeholders |
 | `work_needs_date` | Choose a due lesson to reserve time in class. |  |  |
 | `work_worksheet_lesson` | Worksheet · %1$s |  | Has placeholders |
@@ -583,8 +563,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `homework_add` | Add homework… |  |  |
 | `homework_edit_named` | Edit homework: %1$s… |  | Has placeholders |
 | `homework_delete_named` | Delete homework: %1$s |  | Has placeholders |
-| `homework_content` | Homework content |  |  |
-| `homework_pages_notes` | Pages or notes |  |  |
 | `homework_row` | HW: %1$s |  | Has placeholders |
 | `homework_due_short` | due %1$s |  | Has placeholders |
 | `homework_schedule_title` | Schedule it in class? |  |  |
@@ -611,7 +589,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `overview_no_groups` | No groups in this class yet. |  |  |
 | `overview_group` | Group |  |  |
 | `overview_no_lessons` | No lessons left in this term. |  |  |
-| `overview_behind_suffix` | one:  · %d behind / other:  · %d behind |  | Plural, Has placeholders |
+| `overview_behind_suffix` | one: · %d behind / other: · %d behind |  | Plural, Has placeholders |
 | `overview_class_behind` | one: %d behind / other: %d behind |  | Plural, Has placeholders |
 | `overview_all_on_pace` | All on pace |  |  |
 | `overview_next_on` | Next %1$s %2$s |  | Has placeholders |
@@ -626,10 +604,12 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## School year
 
-51 entries.
+46 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
+| `year_switch_clears_undo` | Changing school years clears Undo. Continue? |  |  |
+| `day_off_range_error` | The end date must be on or after the start date. |  |  |
 | `year_class_all` | %1$s · all groups |  | Has placeholders |
 | `year_group_only` | %1$s only |  | Has placeholders |
 | `year_all_classes` | All classes |  |  |
@@ -642,18 +622,13 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `year_name` | Name |  |  |
 | `year_starts` | Starts |  |  |
 | `year_ends` | Ends |  |  |
-| `year_not_set` | Not set |  |  |
 | `year_term_hint` | Every class paces up to the end date. Each group tracks its own next lesson; the start is only the default. |  |  |
 | `year_delete` | Delete this school year |  |  |
 | `year_days_off` | Days off |  |  |
 | `year_no_days_off` | No days off yet. |  |  |
 | `year_day_off` | Day off |  |  |
-| `year_add_day_off` | Add a day off |  |  |
 | `year_edit_day_off` | Edit day off |  |  |
-| `year_term_starts` | Term starts |  |  |
-| `year_term_ends` | Term ends |  |  |
-| `year_save` | Save |  |  |
-| `year_date` | Date |  |  |
+| `year_add_day_off` | Add a day off |  |  |
 | `year_add` | Add |  |  |
 | `year_reason` | Reason |  |  |
 | `year_reason_example` | Christmas break |  |  |
@@ -668,13 +643,11 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `year_no_groups` | No groups |  |  |
 | `year_defaults_hint` | New classes take the lesson length and pace from Settings. |  |  |
 | `year_class_example` | B1 Senior |  |  |
-| `year_lessons_across` | Lessons left across %1$s · %2$s |  | Has placeholders |
 | `year_holidays_added` | one: %d holiday added / other: %d holidays added |  | Plural, Has placeholders |
 | `year_problems` | one: %d problem / other: %d problems |  | Plural, Has placeholders |
 | `year_groups` | one: %d group / other: %d groups |  | Plural, Has placeholders |
 | `year_books` | one: %d book / other: %d books |  | Plural, Has placeholders |
 | `year_term` | Term |  |  |
-| `year_done` | Done |  |  |
 | `year_dates_not_set` | Dates not set |  |  |
 | `year_date_warning` | Set a start and end date, with the end on or after the start. |  |  |
 | `year_edit` | Edit |  |  |
@@ -684,7 +657,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Units
 
-51 entries.
+52 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
@@ -728,6 +701,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `units_revision_unscheduled` | No future lesson is available. Your revision choice will be saved unscheduled; add a lesson or extend the term. |  |  |
 | `units_revision_remove` | Remove revision |  |  |
 | `units_revision_add` | Add a revision |  |  |
+| `units_revision_prompt` | Unit %1$d is finished. Plan its revision? |  | Has placeholders |
 | `units_position` | Unit %1$d of %2$d |  | Has placeholders |
 | `units_lesson_position` | Unit %1$d · lesson %2$d of %3$d |  | Has placeholders |
 | `units_remaining` | %1$s · %2$d pages left |  | Has placeholders |
@@ -742,10 +716,13 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Warnings and problems
 
-27 entries.
+31 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
+| `warnings_edited_hint` | In a lesson you edited, so Tidy leaves it as it is. |  |  |
+| `warnings_overflow_stuck` | No lesson you haven't edited is free in the term, so Fit to term has nowhere to put them. |  |  |
+| `warnings_overflow_edited` | one: %d of them you edited, so it stays as it is. / other: %d of them you edited, so they stay as they are. |  | Plural, Has placeholders |
 | `warn_catch_up` | Catch up |  |  |
 | `warn_catch_up_title` | Catch up |  |  |
 | `warn_apply_catch_up` | Apply catch-up |  |  |
@@ -753,6 +730,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `warn_boost` | +%1$d a lesson |  | Has placeholders |
 | `warn_catch_up_plan` | Teach %1$s pages a lesson until then, and you're back on pace by %2$s %3$s. |  | Has placeholders |
 | `warn_infeasible` | Even at this pace the term's %1$d lessons are not enough. Take a bigger step, skip pages or set some for homework. |  | Has placeholders |
+| `warn_infeasible_basic` | Even at this pace the term's %1$d lessons are not enough. Take a bigger step or skip pages. |  | Has placeholders |
 | `warn_bigger_step` | Bigger step |  |  |
 | `warn_writes_custom` | This goes into your custom plan (one is made from the proposed plan if you have none). The proposed plan stays as it is, and lessons you planned by hand don't change. |  |  |
 | `warn_first_lessons` | First lessons |  |  |
@@ -771,20 +749,19 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `warnings_book_behind` | one: %1$s is %2$d lesson behind / other: %1$s is %2$d lessons behind |  | Plural, Has placeholders |
 | `warnings_book_hint` | The other books are further on. |  |  |
 | `warnings_plan_hint` | In your custom plan. |  |  |
-| `warnings_edited_hint` | In a lesson you edited, so Tidy leaves it as it is. |  |  |
-| `warnings_overflow_stuck` | No lesson you haven't edited is free in the term, so Fit to term has nowhere to put them. |  |  |
-| `warnings_overflow_edited` | one: %d of them you edited, so it stays as it is. / other: %d of them you edited, so they stay as they are. |  | Plural, Has placeholders |
 | `warn_repace_keeps_catch_up` | Re-pacing untouched lessons keeps your chosen catch-up pace. |  |  |
 | `warnings_repace_to_fit` | Re-pace to fit |  |  |
 
 ## Print
 
-12 entries.
+14 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
 | `print_title` | Print or save PDF |  |  |
 | `print_print` | Print |  |  |
+| `print_from_class` | This class or the whole year, on paper or as a PDF |  |  |
+| `print_from_year` | Every group this year, on paper or as a PDF |  |  |
 | `print_none` | No lessons left to print. |  |  |
 | `print_class` | Class |  |  |
 | `print_margins` | Margins |  |  |
@@ -798,7 +775,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Settings, palette and updates
 
-72 entries.
+83 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
@@ -823,7 +800,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `settings_credits` | Outfit typeface: © The Outfit Project Authors, SIL Open Font License 1.1. AndroidX: Apache License 2.0. Material Symbols Rounded: Google, Apache License 2.0. |  |  |
 | `settings_copyright` | © 2026 Dimitrios Tsampallas. All rights reserved. |  |  |
 | `settings_defaults_title` | New class defaults |  |  |
-| `settings_done` | Done |  |  |
 | `settings_lesson_length` | Lesson length (min) |  |  |
 | `settings_defaults_saved` | Changes are saved as you type and apply to new classes only. |  |  |
 | `settings_backup` | Back up and restore |  |  |
@@ -835,7 +811,6 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `settings_add` | Add |  |  |
 | `settings_cancel` | Cancel |  |  |
 | `settings_defaults_summary` | %1$d min · %2$s pages per lesson |  | Has placeholders |
-| `settings_version` | %1$s %2$s |  | Has placeholders |
 | `settings_export_saved` | Saved %1$s |  | Has placeholders |
 | `settings_export_saved_to` | Saved %1$s to %2$s |  | Has placeholders |
 | `settings_save_error` | Couldn't save the file. Try another place. |  |  |
@@ -845,7 +820,12 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `settings_import_unreadable` | Couldn't read that file. Choose one exported from %1$s or from the Coursebook Pacer web page. |  | Has placeholders |
 | `settings_name_separator` | ", " |  |  |
 | `settings_no_years` | There are no school years on this phone yet. |  |  |
-| `settings_import_body` | %1$s.<br><br>%2$s You can undo it straight after. |  | Has placeholders |
+| `settings_import_body` | %1$s.  %2$s You can undo it straight after. |  | Has placeholders |
+| `settings_import_modules_title` | Turn on these tools? |  |  |
+| `settings_import_modules_body` | This backup uses %1$s. Turn them on to bring it in? |  | Has placeholders |
+| `settings_import_modules_confirm` | Turn on and import |  |  |
+| `settings_import_modules_two` | %1$s, and %2$s |  | Has placeholders |
+| `settings_import_modules_three` | %1$s, %2$s, and %3$s |  | Has placeholders |
 | `settings_no_picker` | This phone has no file picker. |  |  |
 | `settings_year_count` | one: %d school year / other: %d school years |  | Plural, Has placeholders |
 | `settings_import_added` | one: Added %d school year / other: Added %d school years |  | Plural, Has placeholders |
@@ -867,6 +847,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `updates_available` | Version %1$s is available |  | Has placeholders |
 | `updates_download` | Download |  |  |
 | `updates_first_time` | The first time, Android may ask you to allow installs from your browser. |  |  |
+| `updates_notes_fallback` | Improvements and fixes. |  |  |
 | `updates_see_changes` | See all changes |  |  |
 | `updates_auto` | Check for updates automatically |  |  |
 | `updates_auto_hint` | Once a day, Course Pacer asks GitHub for the latest version. Nothing about you or your school years is sent. |  |  |
@@ -877,6 +858,101 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `updates_installed` | Installed version %1$s |  | Has placeholders |
 | `updates_no_browser` | No browser found. The download link was copied. |  |  |
 | `updates_link_label` | Course Pacer download link |  |  |
+| `settings_how_pacing` | How pacing works |  |  |
+| `settings_how_pacing_detail` | The schedule, and how ticking pages works. |  |  |
+| `settings_whats_new` | What's new |  |  |
+| `settings_whats_new_detail` | See what changed in this version. |  |  |
+
+## Modules, Welcome and What's new
+
+84 entries.
+
+| ID | Current text | Your proposal | Notes |
+| --- | --- | --- | --- |
+| `module_work_named` | homework and tests |  |  |
+| `module_book_tools_named` | book tools |  |  |
+| `module_planning_named` | planning tools |  |  |
+| `module_output_named` | print, copy and share |  |  |
+| `hint_lesson_menu_basic` | Long-press a lesson to change its pages or mark everything up to it done. A phone that reads the screen aloud offers the same choices. |  |  |
+| `release_name` | Great Expectations |  |  |
+| `welcome_presets_title` | Start with what you need |  |  |
+| `welcome_presets_sub` | You can add more tools later, in Settings. |  |  |
+| `welcome_presets_label` | Starting tools |  |  |
+| `preset_just` | Just pacing |  |  |
+| `preset_just_gets` | You get: schedule, ticking pages, Stats and warnings. |  |  |
+| `preset_work` | Pacing and work |  |  |
+| `preset_work_gets` | Adds: homework, tests and worksheets, and a Work page for each group. |  |  |
+| `preset_everything` | Everything |  |  |
+| `preset_everything_gets` | Adds: Work, book tools, planning tools, print, copy and share. |  |  |
+| `preset_choose` | Choose tools… |  |  |
+| `preset_choose_detail` | Pick them one by one. |  |  |
+| `preset_choose_title` | Choose your tools |  |  |
+| `preset_choose_use` | Use these |  |  |
+| `features_row` | Features |  |  |
+| `features_row_detail` | %1$d of %2$d on. Turn on more when you need them. |  | Has placeholders |
+| `features_title` | Features |  |  |
+| `features_note` | Once a tool is on, it stays on. |  |  |
+| `features_on` | On |  |  |
+| `features_turn_on` | Turn on |  |  |
+| `features_turn_on_named` | Turn on %1$s |  | Has placeholders |
+| `features_now_on` | %1$s is on. |  | Has placeholders |
+| `module_work_title` | Work |  |  |
+| `module_work_detail` | Homework, tests and worksheets. |  |  |
+| `module_book_tools_title` | Book tools |  |  |
+| `module_book_tools_detail` | Lead book, units, optional books, a group's own book rules. |  |  |
+| `module_planning_title` | Planning tools |  |  |
+| `module_planning_detail` | Plan your own lessons, own pace, extra lessons, supplementary books. |  |  |
+| `module_output_title` | Output |  |  |
+| `module_output_detail` | Print, copy and share. |  |  |
+| `module_book_tools_adds` | Adds: options in a book's and a group's settings. |  |  |
+| `module_planning_adds` | Adds: a ⋮ menu on each group with My plan, Extra lesson and Own pace. |  |  |
+| `module_output_adds` | Adds: a ⋮ menu on each group with Print, Copy and Share. |  |  |
+| `module_work_adds` | Adds: homework, tests and worksheets, and a Work page for each group. |  |  |
+| `hint_work_title` | Set these as homework? |  |  |
+| `hint_work_body` | one: This page is ahead of the plan. / other: These %1$d pages are ahead of the plan. |  | Plural, Has placeholders |
+| `hint_planning_title` | Plan lessons yourself? |  |  |
+| `hint_planning_body` | You have changed this group's pages by hand twice. |  |  |
+| `hint_turn_on_work` | Turn on Work |  |  |
+| `hint_turn_on_planning` | Turn on Planning tools |  |  |
+| `hint_not_now` | Not now |  |  |
+| `hint_done_work` | Work is on. Homework is now in the lesson menu. |  |  |
+| `hint_done_planning` | Planning tools are on. My plan is now in the ⋮ menu. |  |  |
+| `deck_greeting` | Hi. |  |  |
+| `deck_greeting_named` | Hi %1$s. |  | Has placeholders |
+| `deck_hello` | %1$s Course Pacer can now start simple. |  | Has placeholders |
+| `deck_hello_body` | Turn on only the tools you use. Swipe to see them. |  |  |
+| `deck_work_title` | Homework, tests and worksheets |  |  |
+| `deck_work_body` | One page for what is due, and what each class has to hand in. |  |  |
+| `deck_book_tools_title` | Lead book, units and optional books |  |  |
+| `deck_book_tools_body` | Teach from one lead book, split a book into units and keep books only some groups use. |  |  |
+| `deck_planning_title` | Plan lessons yourself |  |  |
+| `deck_planning_body` | Move, add and re-pace lessons, set your own pace and add extra lessons. |  |  |
+| `deck_output_title` | Print, copy and share |  |  |
+| `deck_output_body` | Send a group's schedule to a printer, a spreadsheet or another app. |  |  |
+| `deck_choose_title` | Choose in Settings › Features |  |  |
+| `deck_choose_body` | Turn tools on any time. Once on, they stay on. |  |  |
+| `deck_choose_button` | Open Features |  |  |
+| `deck_tour_hello` | %1$s Here is what Course Pacer can do. |  | Has placeholders |
+| `deck_tour_body` | Swipe to see each tool. |  |  |
+| `deck_tour_end_title` | All of these are on |  |  |
+| `deck_tour_end_body` | New teachers can start with fewer. Settings › Features shows what each one adds. |  |  |
+| `deck_continue` | Continue |  |  |
+| `deck_back` | Back |  |  |
+| `deck_position` | %1$d of %2$d |  | Has placeholders |
+| `deck_frag_work_1` | Reading, pages 62–70 |  |  |
+| `deck_frag_work_1d` | Year 9 · B · due Thu 5 Nov |  |  |
+| `deck_frag_work_2` | Unit 5 test |  |  |
+| `deck_frag_work_2d` | Year 9 · B · Mon 9 Nov |  |  |
+| `deck_frag_book_1` | Lead book |  |  |
+| `deck_frag_book_1d` | Unit 5 · pages 62–70 |  |  |
+| `deck_frag_book_2` | Optional book |  |  |
+| `deck_frag_book_2d` | Only for this group |  |  |
+| `deck_frag_plan_1` | My plan |  |  |
+| `deck_frag_plan_2` | Extra lesson |  |  |
+| `deck_frag_plan_3` | Own pace |  |  |
+| `deck_frag_out_1` | Print |  |  |
+| `deck_frag_out_2` | Copy |  |  |
+| `deck_frag_out_3` | Share |  |  |
 
 ## Recovery and notices
 
@@ -894,7 +970,7 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 
 ## Shared components
 
-25 entries.
+47 entries.
 
 | ID | Current text | Your proposal | Notes |
 | --- | --- | --- | --- |
@@ -922,7 +998,29 @@ Every word Course Pacer shows, says aloud (TalkBack) or prints, so the owner can
 | `component_integer_range` | Enter a whole number from %1$d to %2$d. |  | Has placeholders |
 | `component_pace_invalid` | Enter a finite number of pages, zero or greater. |  |  |
 | `component_save` | Save |  |  |
+| `sheet_discard_title` | Discard your changes? |  |  |
+| `sheet_keep_editing` | Keep editing |  |  |
+| `sheet_discard` | Discard |  |  |
 | `component_saved` | Saved |  |  |
+| `not_taught_title` | Lesson didn't happen? |  |  |
+| `not_taught_body` | %1$s won't count as taught. Its pages move to the lessons left. |  | Has placeholders |
+| `not_taught_pace` | Pages a lesson: %1$s to %2$s |  | Has placeholders |
+| `not_taught_confirm` | Lesson didn't happen |  |  |
+| `yesterday_taught` | Yesterday: taught as planned |  |  |
+| `yesterday_edited` | Yesterday: pages recorded |  |  |
+| `yesterday_not_taught` | Yesterday: not taught |  |  |
+| `yesterday_change` | Change |  |  |
+| `past_lessons_title` | Past lessons |  |  |
+| `past_lessons_body` | These lessons are before today and were never ticked. From now on a lesson counts as taught when its day has passed. Should these count too? |  |  |
+| `past_lessons_row` | %1$s · %2$s |  | Has placeholders |
+| `past_lessons_count` | one: %d lesson / other: %d lessons |  | Plural, Has placeholders |
+| `past_lessons_tick` | Yes, treat them as taught |  |  |
+| `past_lessons_leave` | Leave them as they are |  |  |
+| `component_pick_month` | Choose month |  |  |
+| `share_app_title` | Share Course Pacer |  |  |
+| `share_app_detail` | Send another teacher a link to the latest version |  |  |
+| `share_app_message` | Thank you for sharing Course Pacer, the new way of planning your lessons! |  |  |
+| `share_app_copied` | No app to share with. The download link was copied. |  |  |
 
 ## Strings written in Kotlin
 
