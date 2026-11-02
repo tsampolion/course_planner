@@ -10,11 +10,23 @@ enum class DeckCard(val module: Module? = null) {
 
 fun deckCards(): List<DeckCard> = DeckCard.entries
 
-/** The stored id that remembers a version's deck was shown, kept with the other show-once hints. */
-fun deckId(version: String): String = Hints.whatsNew(shortVersion(version))
+/** The release whose deck this is. The deck's cards describe the tools launched in 0.4.15, so later updates don't repeat it. */
+const val DECK_RELEASE = "0.4.15"
 
-/** An install that already had data or saw Welcome gets the deck once; a fresh install sees Welcome instead. */
-fun deckDue(seen: Set<String>, id: String, existingInstall: Boolean): Boolean = existingInstall && id !in seen
+/** The stored id that remembers the deck was shown, kept with the other show-once hints. */
+fun deckId(): String = Hints.whatsNew(DECK_RELEASE)
+
+/**
+ * An install that already had data or saw Welcome gets the deck once; a fresh install sees Welcome instead. 0.4.15.1
+ * stored the deck under its own version (`whatsnew.0.4.15.1`), so any id of this release counts as seen.
+ */
+fun deckDue(seen: Set<String>, existingInstall: Boolean): Boolean =
+    existingInstall && seen.none { it == deckId() || it.startsWith(deckId() + ".") }
+
+/** What the deck offers: a choice of tools, or, when every tool is already on, a tour of them. */
+enum class DeckVariant { CHOOSE, TOUR }
+
+fun deckVariant(on: Set<Module>): DeckVariant = if (on.containsAll(Module.entries)) DeckVariant.TOUR else DeckVariant.CHOOSE
 
 /** The teacher's name for the greeting, or null when none is set ("Hi." alone). */
 fun deckName(name: String): String? = name.trim().takeIf { it.isNotEmpty() }

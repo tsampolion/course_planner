@@ -79,9 +79,7 @@ fun SettingsScreen(
     var whatsNew by rememberSaveable { mutableStateOf(false) }
     var howPacing by rememberSaveable { mutableStateOf(false) }
     val features = LocalFeatures.current
-    val version = remember {
-        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
-    }
+    val version = rememberVersionName()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
@@ -158,7 +156,7 @@ fun SettingsScreen(
         }
     }
     if (guide) WelcomePage { guide = false }
-    if (whatsNew) WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), onChooseTools = { featuresOpen = true }, onFinish = { whatsNew = false })
+    if (whatsNew) WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), deckVariant(settings.features().on), onChooseTools = { featuresOpen = true }, onFinish = { whatsNew = false })
     if (featuresOpen) FeaturesSheet(features, { vm.turnOn(it) }, { featuresOpen = false })
     if (howPacing) PacerSheet(stringResource(R.string.settings_how_pacing), { howPacing = false }) {
         Note(stringResource(R.string.guide_schedule_note))

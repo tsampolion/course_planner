@@ -15,17 +15,32 @@ class WhatsNewDeckTest {
     }
 
     @Test fun anUpdateSeesTheDeckOnce() {
-        assertTrue(deckDue(seen = emptySet(), id = "whatsnew.0.4.15", existingInstall = true))
-        assertFalse(deckDue(seen = setOf("whatsnew.0.4.15"), id = "whatsnew.0.4.15", existingInstall = true))
+        assertTrue(deckDue(seen = emptySet(), existingInstall = true))
+        assertFalse(deckDue(seen = setOf(deckId()), existingInstall = true))
     }
 
     @Test fun aFreshInstallSeesWelcomeInsteadOfTheDeck() {
-        assertFalse(deckDue(seen = emptySet(), id = "whatsnew.0.4.15", existingInstall = false))
+        assertFalse(deckDue(seen = emptySet(), existingInstall = false))
     }
 
-    @Test fun theDeckIdFollowsTheShortVersion() {
-        assertEquals("whatsnew.0.4.15", deckId("0.4.15.0"))
-        assertEquals("whatsnew.0.4.15.1", deckId("0.4.15.1"))
+    @Test fun theDeckIsTheSameLaunchDeckOnEveryVersion() {
+        assertEquals("whatsnew.0.4.15", deckId())
+    }
+
+    @Test fun aTeacherWhoSawTheDeckOn0_4_15_1IsNotShownItAgain() {
+        // 0.4.15.0 stored whatsnew.0.4.15 and 0.4.15.1 stored whatsnew.0.4.15.1: both mean this deck was seen.
+        assertFalse(deckDue(seen = setOf("whatsnew.0.4.15.1"), existingInstall = true))
+        assertFalse(deckDue(seen = setOf("whatsnew.0.4.15"), existingInstall = true))
+    }
+
+    @Test fun aDeckForALaterReleaseDoesNotCountAsThisOne() {
+        assertTrue(deckDue(seen = setOf("whatsnew.0.4.150"), existingInstall = true))
+    }
+
+    @Test fun aTeacherWithEveryToolOnGetsTheTourNotTheChoice() {
+        assertEquals(DeckVariant.TOUR, deckVariant(Module.entries.toSet()))
+        assertEquals(DeckVariant.CHOOSE, deckVariant(emptySet()))
+        assertEquals(DeckVariant.CHOOSE, deckVariant(setOf(Module.WORK)))
     }
 
     @Test fun greetingUsesTheNameWhenThereIsOne() {

@@ -132,7 +132,9 @@ object Hints {
     const val PLAN_BY_HAND = "modules.planByHand"
 
     /** The id that remembers the What's new deck of a version (as shown to the teacher, such as 0.4.15). */
-    fun whatsNew(version: String): String = "whatsnew.$version"
+    fun whatsNew(version: String): String = WHATS_NEW + version
+
+    private const val WHATS_NEW = "whatsnew."
 
     /** True once the hint [id] was shown and dismissed, until "Show tips again". */
     fun seen(settings: Settings, id: String): Boolean = id in settings.seenTips
@@ -141,6 +143,6 @@ object Hints {
     fun markSeen(settings: Settings, id: String): Settings =
         if (id.isBlank() || seen(settings, id)) settings else settings.copy(seenTips = settings.seenTips + id)
 
-    /** [settings] with every hint showing again. */
-    fun reset(settings: Settings): Settings = settings.copy(seenTips = emptySet())
+    /** [settings] with every hint showing again. The What's new deck is not a tip: it has its own row in Settings. */
+    fun reset(settings: Settings): Settings = settings.copy(seenTips = settings.seenTips.filterTo(mutableSetOf()) { it.startsWith(WHATS_NEW) })
 }

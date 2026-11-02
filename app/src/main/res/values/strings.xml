@@ -1052,7 +1052,11 @@
     <string name="deck_output_body">Send a group\'s schedule to a printer, a spreadsheet or another app.</string>
     <string name="deck_choose_title">Choose in Settings › Features</string>
     <string name="deck_choose_body">Turn tools on any time. Once on, they stay on.</string>
-    <string name="deck_choose_button">Choose tools now</string>
+    <string name="deck_choose_button">Open Features</string>
+    <string name="deck_tour_hello">%1$s Here is what Course Pacer can do.</string>
+    <string name="deck_tour_body">Swipe to see each tool.</string>
+    <string name="deck_tour_end_title">All of these are on</string>
+    <string name="deck_tour_end_body">New teachers can start with fewer. Settings › Features shows what each one adds.</string>
     <string name="deck_continue">Continue</string>
     <string name="deck_back">Back</string>
     <string name="deck_position">%1$d of %2$d</string>
