@@ -194,8 +194,6 @@ fun planBarMode(custom: CustomPlan?, features: Features): PlanBarMode = when {
 /** Lessons can be dragged only where the plan editor shows; a plan written by a fix is changed by its own bar. */
 fun dragShown(mode: PlanBarMode): Boolean = mode == PlanBarMode.EDITOR
 
-
-
 /** The Tips sheet teaches long-press planning and the drag handle only where the plan editor shows. */
 fun tipsShowPlanEditor(mode: PlanBarMode): Boolean = mode == PlanBarMode.EDITOR
 
