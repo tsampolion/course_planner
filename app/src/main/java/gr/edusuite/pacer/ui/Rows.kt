@@ -79,7 +79,7 @@ fun RowDivider() {
 /**
  * One ledger row: an optional [edge] for its kind (which also tints the row) (or a leading [icon] on a row that opens another screen), an optional [date] column in figures, the [title] over a muted
  * [detail], and [trailing] (a status, a chevron, a ⋮). With [onClick] the row is one target; TalkBack reads it as one
- * item. [warn] turns the detail rust. [onLongClick] adds a long-press (named for TalkBack by [longClickLabel]) beside the tap.
+ * item. [warn] turns the detail the warning colour. [onLongClick] adds a long-press (named for TalkBack by [longClickLabel]) beside the tap.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -141,7 +141,7 @@ fun Chevron() {
     AppIcon(AppIcons.ChevronRight, Modifier.padding(horizontal = Space.s))
 }
 
-/** The quiet actions at a screen's foot: a muted one at the start and a rust one at the end, both 48dp. */
+/** The quiet actions at a screen's foot: a muted one at the start and one in the warning colour at the end, both 48dp. */
 @Composable
 fun FootActions(start: Pair<String, () -> Unit>?, end: Pair<String, () -> Unit>, startEnabled: Boolean = true) {
     Row(Modifier.fillMaxWidth().padding(top = Space.l), verticalAlignment = Alignment.CenterVertically) {
