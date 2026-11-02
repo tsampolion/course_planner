@@ -78,6 +78,7 @@ object PrintSheet {
         )
         for (plan in plans) for (g in plan.groups) {
             val r = GroupReport(plan, g)
+            val notesById = eventNotes(g)
             if (r.rows.isEmpty()) continue
             append("<section><h3>").append(esc("${plan.name} — ${g.name}")).append("</h3><div class=meta>")
             append(r.lessons.size).append(" lessons")
@@ -103,7 +104,7 @@ object PrintSheet {
                     append("<tr class=brk><td colspan=").append(2 + cols.size + if (notes) 1 else 0).append(">")
                         .append(row.date.monthShort()).append(' ').append(row.date.year).append("</td></tr>")
                 }
-                val names = esc(row.events.joinToString(" · ") { it.name })
+                val names = esc(row.events.joinToString(" · ") { eventLine(it, notesById) })
                 val hasPages = row.pages.any { it.isNotEmpty() }
                 append(if (row.blocked) "<tr class=ev>" else "<tr>")
                 append("<td class=n>").append(row.n).append("</td><td>").append(row.date.fmt()).append(' ')

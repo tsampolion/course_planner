@@ -118,7 +118,7 @@ fun GroupSettingsScreen(
         item(key = 4) {
             SectionColumn {
                 SectionHead(stringResource(R.string.group_settings_books), action = stringResource(R.string.class_add_a_book), onAction = if (features.has(Brick.OPTIONAL_BOOKS)) ({ addingBook = true }) else null)
-                Hint(stringResource(R.string.group_settings_books_hint))
+                Hint(stringResource(groupBooksHint(features)))
                 RowGroup {
                     plan.books.filter { !it.groupOnly || features.has(Brick.OPTIONAL_BOOKS) }.forEachIndexed { i, book ->
                         if (i > 0) RowDivider()

@@ -145,6 +145,8 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                     if (next.extraId != null) Text(stringResource(R.string.extra_label), style = MaterialTheme.typography.labelMedium)
                     Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall.merge(Figures))
                     if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
+                    // A test's note says what to study, under its title (UI audit B7).
+                    next.events.mapNotNull { actions.eventNotes[it.id] }.takeIf { it.isNotEmpty() }?.let { Text(it.joinToString(" · "), style = MaterialTheme.typography.bodyMedium) }
                     if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
                 }
             }
@@ -181,7 +183,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         // Two lines at most, and only as wide as the column beside the buttons, so the pages never run under them.
                         PagesLine(next, actions, onEdit)
                         Column(Modifier.clearAndSetSemantics {}) {
-                            val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
+                            val detail = (next.events.map { eventLine(it, actions.eventNotes) } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
                             if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             HomeworkLines(next, actions, c.onAccent)
                         }

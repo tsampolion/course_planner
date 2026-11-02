@@ -246,7 +246,7 @@ fun ClassesScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, 
         if (year.classes.isEmpty() && year.collections.isEmpty()) {
             item(key = "hint") { Hint(stringResource(R.string.year_classes_hint)) }
             item(key = "empty") {
-                EmptyState(AppIcons.Add, stringResource(R.string.year_first_class), stringResource(R.string.year_first_class_hint), stringResource(R.string.year_new_class), { adding = true })
+                EmptyState(stringResource(R.string.year_first_class), stringResource(R.string.year_first_class_hint), stringResource(R.string.year_new_class), { adding = true })
             }
         } else {
             item(key = "head") {

@@ -164,9 +164,10 @@ fun GroupScreen(
     }
     // Supplementary pages are planned in the custom plan: from it, or from the proposed plan when there is none yet.
     val planSupplementary = plan.supplementaryBooks.isNotEmpty() && (customActions != null || (custom == null && canTick))
-    val actions = remember(lessons, g.id, plan.books, canTick, customActions) {
+    val actions = remember(lessons, g.id, g.assignments, plan.books, canTick, customActions) {
         LessonActions(
             bookNames = plan.books.map { it.name },
+            eventNotes = eventNotes(g),
             shortNames = classBookLabels(report.classBooks, plan.books),
             bookIds = plan.books.map { it.id },
             supplementary = plan.books.map { it.supplementary },
@@ -349,7 +350,7 @@ fun GroupScreen(
                             onNotNow = { vm.markHintSeen(offer.id) },
                         )
                         hintDone?.let { ModuleHintDone(ModuleHint.valueOf(it)) }
-                        if (lessons.isNotEmpty()) ShowOnceHint(Hints.LESSON_MENU, seenTips, stringResource(R.string.hint_lesson_menu), vm::markHintSeen)
+                        if (lessons.isNotEmpty()) ShowOnceHint(Hints.LESSON_MENU, seenTips, stringResource(lessonMenuHint(LocalFeatures.current)), vm::markHintSeen)
                         if (plan.books.isEmpty()) {
                             GuideCard(stringResource(R.string.group_add_books), stringResource(R.string.group_add_books_hint))
                         }
@@ -399,7 +400,7 @@ fun GroupScreen(
         GroupSheet.TIPS -> PacerSheet(stringResource(R.string.group_tips), onSheetClose) {
             Note(stringResource(R.string.guide_schedule_note))
             Hint(stringResource(R.string.group_tick_hint))
-            if (custom != null) Hint(stringResource(R.string.custom_hint))
+            if (custom != null && tipsShowPlanEditor(planBarMode(custom, LocalFeatures.current))) Hint(stringResource(R.string.custom_hint))
         }
         GroupSheet.OWN_PACE -> OwnPaceSheet(report, { rate -> changed(vm.applyOwnPace(g.id, rate), context.getString(R.string.custom_created)) }, onSheetClose)
         GroupSheet.CATCH_UP -> CatchUpSheet(report, { boost -> changed(vm.applyCatchUp(g.id, boost), context.getString(R.string.warn_caught_up)) }, onSheetClose)

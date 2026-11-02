@@ -138,9 +138,7 @@ fun HomeScreen(
         Column(Modifier.widthIn(max = 640.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.l)) {
             Header(name, year, today, onMenu, menuBadge)
             if (year == null) {
-                EmptyState(
-                    AppIcons.Add,
-                    stringResource(R.string.home_create_year),
+                EmptyState(stringResource(R.string.home_create_year),
                     stringResource(R.string.home_create_year_hint),
                     stringResource(R.string.home_new_year),
                 ) { adding = true }

@@ -268,4 +268,15 @@ class GroupModelTest {
         assertEquals(PlanBarMode.EDITOR, planBarMode(fixMade, gr.edusuite.pacer.model.Features(setOf(gr.edusuite.pacer.model.Module.PLANNING))))
         assertEquals(PlanBarMode.EDITOR, planBarMode(fixMade, gr.edusuite.pacer.model.Features.ALL))
     }
+
+    @Test fun aTestOrWorksheetShowsItsNoteButHomeworkAndBlankNotesDoNot() {
+        val g = Group("g", "B", emptySet(), from = null, assignments = listOf(
+            gr.edusuite.pacer.model.Assignment("t", gr.edusuite.pacer.model.AssignmentType.TEST, "Unit 3 test", note = " Units 3–4 vocabulary "),
+            gr.edusuite.pacer.model.Assignment("w", gr.edusuite.pacer.model.AssignmentType.WORKSHEET, "Sheet", note = "  "),
+            gr.edusuite.pacer.model.Assignment("h", gr.edusuite.pacer.model.AssignmentType.HOMEWORK, "HW", note = "Read p. 4"),
+        ))
+        assertEquals(mapOf("t" to "Units 3–4 vocabulary"), eventNotes(g))
+        assertEquals("Unit 3 test: Units 3–4 vocabulary", eventLine(gr.edusuite.pacer.model.TestEvent("t", "Unit 3 test", TEST_TODAY, "g", true), eventNotes(g)))
+        assertEquals("Sheet", eventLine(gr.edusuite.pacer.model.TestEvent("w", "Sheet", TEST_TODAY, "g", true), eventNotes(g)))
+    }
 }

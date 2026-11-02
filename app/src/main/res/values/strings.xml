@@ -15,7 +15,7 @@
     <string name="homework_done">Done</string>
     <string name="homework_mark_done">Mark done</string>
     <string name="homework_mark_not_done">Mark not done</string>
-    <string name="homework_pages_leave_pacing">These pages are already out of future pacing; marking done does not change pacing.</string>
+    <string name="homework_pages_leave_pacing">Pages set as homework leave the lessons as soon as you save. Marking done changes nothing.</string>
     <string name="group_settings_book_used">Used by this group</string>
     <string name="group_settings_book_not_used">Not used by this group</string>
     <string name="group_settings_use_book">Use %1$s</string>
@@ -579,6 +579,7 @@
     <string name="warn_boost">+%1$d a lesson</string>
     <string name="warn_catch_up_plan">Teach %1$s pages a lesson until then, and you\'re back on pace by %2$s %3$s.</string>
     <string name="warn_infeasible">Even at this pace the term\'s %1$d lessons are not enough. Take a bigger step, skip pages or set some for homework.</string>
+    <string name="warn_infeasible_basic">Even at this pace the term\'s %1$d lessons are not enough. Take a bigger step or skip pages.</string>
     <string name="warn_bigger_step">Bigger step</string>
     <string name="warn_writes_custom">This goes into your custom plan (one is made from the proposed plan if you have none). The proposed plan stays as it is, and lessons you planned by hand don\'t change.</string>
     <string name="warn_first_lessons">First lessons</string>
@@ -716,7 +717,8 @@
     <string name="print_whole_year">Every group this year</string>
     <!-- Group, Stats tab (3.4.0) -->
     <string name="hint_got_it">Got it</string>
-    <string name="hint_lesson_menu">Long-press a lesson, or use TalkBack\'s actions, to change its pages, mark everything up to it done, or plan it.</string>
+    <string name="hint_lesson_menu">Long-press a lesson to change its pages, mark everything up to it done, or plan it. A phone that reads the screen aloud offers the same choices.</string>
+    <string name="hint_lesson_menu_basic">Long-press a lesson to change its pages or mark everything up to it done. A phone that reads the screen aloud offers the same choices.</string>
     <string name="hint_pace_track">The tick marks where a book would be in step with the lead book. Tap a book to change where the group is in it.</string>
     <string name="stats_fix_short">Teach %1$s to finish, or skip %2$s.</string>
     <plurals name="stats_more_pages">

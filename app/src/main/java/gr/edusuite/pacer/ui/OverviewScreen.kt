@@ -48,7 +48,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
 
     ScreenList(padding) {
         if (classes.isEmpty()) item(key = "empty") {
-            EmptyState(AppIcons.Add, stringResource(R.string.overview_no_classes), stringResource(R.string.overview_empty_hint), stringResource(R.string.overview_open_classes), { vm.open(Screen.Classes) })
+            EmptyState(stringResource(R.string.overview_no_classes), stringResource(R.string.overview_empty_hint), stringResource(R.string.overview_open_classes), { vm.open(Screen.Classes) })
         } else item(key = "head") {
             val counts = @Composable { m: Modifier ->
                 Row(m) {

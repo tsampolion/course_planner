@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import gr.edusuite.pacer.R
 import gr.edusuite.pacer.model.Brick
 import gr.edusuite.pacer.model.Features
 import gr.edusuite.pacer.model.Module
@@ -57,5 +58,19 @@ class JustPacingTest {
         assertFalse(dragShown(PlanBarMode.CATCH_UP_ONLY))
         assertFalse(dragShown(PlanBarMode.NONE))
         assertTrue(dragShown(PlanBarMode.EDITOR))
+    }
+
+    @Test fun hintsNeverNameAToolThatIsOff() {
+        assertEquals(R.string.hint_lesson_menu_basic, lessonMenuHint(none))
+        assertEquals(R.string.hint_lesson_menu, lessonMenuHint(Features(setOf(Module.PLANNING))))
+        assertEquals(R.string.group_settings_books_hint_basic, groupBooksHint(none))
+        assertEquals(R.string.group_settings_books_hint, groupBooksHint(Features(setOf(Module.BOOK_TOOLS))))
+        assertEquals(R.string.warn_infeasible_basic, infeasibleWarning(none))
+        assertEquals(R.string.warn_infeasible, infeasibleWarning(Features(setOf(Module.WORK))))
+    }
+
+    @Test fun tipsTeachThePlanEditorOnlyWhereItShows() {
+        assertFalse(tipsShowPlanEditor(PlanBarMode.CATCH_UP_ONLY))
+        assertTrue(tipsShowPlanEditor(PlanBarMode.EDITOR))
     }
 }

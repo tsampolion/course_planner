@@ -197,6 +197,8 @@ internal fun Plan.daysOff(g: Group, lessonDates: Set<LocalDate>): List<Entry.Day
 /** What a long-press on a lesson offers, and what tapping its tick does. */
 internal class LessonActions(
     val bookNames: List<String>,
+    /** The notes of the group's tests and worksheets by id ([eventNotes]), shown under their titles. */
+    val eventNotes: Map<String, String> = emptyMap(),
     /** The names a row shows: initials where they don't clash ([shortBookNames]). */
     val shortNames: List<String> = bookNames,
     val bookIds: List<String> = emptyList(),
@@ -482,7 +484,7 @@ internal fun WeekHeader(section: WeekSection<*>, modifier: Modifier = Modifier) 
 internal fun spokenLesson(l: Lesson, actions: LessonActions): String {
     val parts = buildList {
         l.unitIndex?.let { add(stringResource(R.string.units_lesson_position, it + 1, l.unitLesson, l.unitLessons)) }
-        if (l.events.isNotEmpty()) add(l.events.joinToString(", ") { it.name })
+        if (l.events.isNotEmpty()) add(l.events.joinToString(", ") { eventLine(it, actions.eventNotes) })
         if (l.note.isNotEmpty()) add(l.note)
         l.cells.forEachIndexed { i, cell ->
             if (l.blocked && (cell.isBlank() || cell == collapse(emptyList()))) return@forEachIndexed
@@ -559,7 +561,7 @@ internal fun LessonRow(l: Lesson, actions: LessonActions, grip: (@Composable (la
     val large = rememberLargeText()
     val subtitle = buildList {
         l.unitIndex?.let { add(stringResource(R.string.units_lesson_position, it + 1, l.unitLesson, l.unitLessons)) }
-        if (l.events.isNotEmpty()) add(l.events.joinToString(" · ") { it.name })
+        if (l.events.isNotEmpty()) add(l.events.joinToString(" · ") { eventLine(it, actions.eventNotes) })
         if (l.extraId != null) add(stringResource(R.string.extra_label))
         if (l.free) add(stringResource(R.string.custom_free))
         if (l.touched && !l.done) add(stringResource(R.string.ledger_by_hand))
@@ -658,7 +660,9 @@ internal fun SlimRow(entry: Entry, actions: LessonActions, selected: Boolean = f
         append(summary.substring(cut))
     }
     val homework = lesson?.let { homeworkSummaries(it, actions) }.orEmpty()
-    val spoken = (listOf("${entry.date.format(SPOKEN_DATE)}. $summary") + homework).joinToString(". ")
+    // A test's or worksheet's note, under its title (UI audit B7).
+    val notes = lesson?.events?.mapNotNull { actions.eventNotes[it.id] }.orEmpty().joinToString(" · ")
+    val spoken = (listOf("${entry.date.format(SPOKEN_DATE)}. $summary") + listOf(notes).filter { it.isNotEmpty() } + homework).joinToString(". ")
     val textStyle = if (lesson != null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodySmall
     val textColor = if (lesson != null) (if (lesson.done) c.muted else c.ink) else c.muted
     val pad = if (lesson != null) Space.m else Space.s
@@ -683,11 +687,13 @@ internal fun SlimRow(entry: Entry, actions: LessonActions, selected: Boolean = f
                 if (large) Column(Modifier.weight(1f).padding(start = Space.m, top = pad, bottom = pad)) {
                     Text(date, style = MaterialTheme.typography.bodySmall.merge(Figures), color = c.muted)
                     Text(shown, style = textStyle, color = textColor)
+                    if (notes.isNotEmpty()) Text(notes, style = MaterialTheme.typography.bodyMedium, color = c.muted)
                     if (lesson != null) HomeworkLines(lesson, actions)
                 } else {
                     DateGutter(entry.date, if (lesson != null) textColor else c.muted)
                     Column(Modifier.weight(1f).padding(vertical = pad)) {
                         Text(shown, style = textStyle, color = textColor)
+                        if (notes.isNotEmpty()) Text(notes, style = MaterialTheme.typography.bodyMedium, color = c.muted)
                         if (lesson != null) HomeworkLines(lesson, actions)
                     }
                 }

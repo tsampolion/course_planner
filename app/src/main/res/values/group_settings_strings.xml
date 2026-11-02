@@ -16,6 +16,7 @@
     <string name="group_settings_none">None</string>
     <string name="group_settings_delete">Delete group</string>
     <string name="group_settings_books">Books</string>
+    <string name="group_settings_books_hint_basic">Every class book is paced for this group.</string>
     <string name="group_settings_books_hint">Class books are included unless you leave one out. Choose additional books for this group.</string>
     <string name="group_settings_books_long_press">Long-press a book to leave it out of this group or give this group its own finish-by date.</string>
     <string name="group_settings_removed_book">Not used in this group</string>

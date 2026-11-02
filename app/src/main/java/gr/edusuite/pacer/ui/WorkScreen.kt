@@ -10,7 +10,9 @@ import androidx.compose.material3.*
 import android.content.pm.ApplicationInfo
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -68,6 +70,9 @@ internal fun assignmentEdge(type: AssignmentType) = when (type) {
     AssignmentType.WORKSHEET -> Pacer.colors.edgeWorksheet
 }
 
+/** Work says once, above its list, that homework pages leave pacing when saved (UI audit B8). */
+fun homeworkRuleShown(work: List<Assignment>): Boolean = work.any { it.type == AssignmentType.HOMEWORK && it.pages.isNotEmpty() }
+
 @Composable
 internal fun AssignmentRow(a: Assignment, report: GroupReport, onOpen: () -> Unit, trailing: (@Composable RowScope.() -> Unit)? = null) {
     val pages = report.plan.books.mapNotNull { b -> a.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { "${b.name} ${collapse(it)}" } }
@@ -75,10 +80,12 @@ internal fun AssignmentRow(a: Assignment, report: GroupReport, onOpen: () -> Uni
         a.setOn?.let { stringResource(R.string.work_set_date, it.fmtShort()) },
         a.due?.let { stringResource(R.string.work_due_date, it.fmtShort()) },
         if (a.takesLesson && a.type != AssignmentType.HOMEWORK) stringResource(R.string.class_takes_lesson) else null,
-        if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) stringResource(R.string.homework_pages_leave_pacing) else null,
         a.note.takeIf { it.isNotBlank() },
     )
-    LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface), detail = details.joinToString(" · "),
+    // The rule shows once above Work's list; a screen reader still hears it on each homework row with pages.
+    val rule = stringResource(R.string.homework_pages_leave_pacing)
+    val spokenRule = if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) Modifier.semantics { stateDescription = rule } else Modifier
+    LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface).then(spokenRule), detail = details.joinToString(" · "),
         date = a.workDate()?.fmtShort(), edge = assignmentEdge(a.type), onClick = onOpen, trailing = trailing)
 }
 
@@ -115,9 +122,12 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Pacer.colors.accent, selectedLabelColor = Pacer.colors.onAccent, selectedLeadingIconColor = Pacer.colors.onAccent)) }
                 }
             }
+            if (homeworkRuleShown(sections.flatMap { it.assignments })) item(key = "homeworkRule") {
+                Hint(stringResource(R.string.homework_pages_leave_pacing), Modifier.padding(start = Space.l, end = Space.l, bottom = Rhythm.inSection).clearAndSetSemantics {})
+            }
             if (sections.isEmpty()) item {
                 Column(Modifier.padding(Space.l)) {
-                    EmptyState(AppIcons.Homework, stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint),
+                    EmptyState(stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint),
                         if (canAdd) stringResource(R.string.work_add) else null) { adding = true }
                 }
             }

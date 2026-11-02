@@ -89,7 +89,7 @@ fun CatchUpSheet(report: GroupReport, onApply: (Int) -> Unit, onDismiss: () -> U
         if (cu.feasible && until != null) {
             Text(stringResource(R.string.warn_catch_up_plan, (report.plan.pace + boost).plain(), until.dayOfWeek.short(), until.fmtShort()), style = MaterialTheme.typography.bodyMedium)
         } else {
-            WarningBanner(stringResource(R.string.warn_infeasible, report.teaching), stringResource(R.string.warn_bigger_step), { choice = (choice + 1).coerceAtMost(BOOSTS.lastIndex) })
+            WarningBanner(stringResource(infeasibleWarning(LocalFeatures.current), report.teaching), stringResource(R.string.warn_bigger_step), { choice = (choice + 1).coerceAtMost(BOOSTS.lastIndex) })
         }
         PreviewLines(preview)
         Hint(stringResource(R.string.warn_writes_custom))

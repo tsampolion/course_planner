@@ -223,17 +223,14 @@ fun PillIconButton(label: String, onClick: () -> Unit, modifier: Modifier = Modi
  * line and an optional pill action.
  */
 @Composable
-fun EmptyState(symbol: ImageVector, title: String, message: String, action: String? = null, onAction: (() -> Unit)? = null) {
+fun EmptyState(title: String, message: String, action: String? = null, onAction: (() -> Unit)? = null) {
+    // Words of the trade and the one action, left-aligned where the list will be; no icon in a circle (UI audit X11, B9).
     Column(
-        Modifier.fillMaxWidth().padding(vertical = Space.xxl),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Space.l),
+        Modifier.fillMaxWidth().padding(vertical = Space.xl),
+        verticalArrangement = Arrangement.spacedBy(Space.m),
     ) {
-        Surface(shape = CircleShape, color = Pacer.colors.tile2, contentColor = Pacer.colors.onTile, modifier = Modifier.size(120.dp)) {
-            Box(contentAlignment = Alignment.Center) { AppIcon(symbol, Modifier.size(48.dp)) }
-        }
-        Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
         if (action != null && onAction != null) PrimaryButton(action, onAction)
     }
 }
