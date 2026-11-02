@@ -100,10 +100,11 @@ fun WhatsNewDeck(name: String, releaseLabel: String, variant: DeckVariant, onCho
 private fun Dots(count: Int, current: Int, modifier: Modifier = Modifier) {
     val c = Pacer.colors
     val motion = animationsEnabled()
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.CenterVertically) {
         repeat(count) { i ->
-            val width by animateDpAsState(if (i == current) 20.dp else 6.dp, if (motion) Motion.work(MotionSpec.Step.PRESS) else Motion.work(MotionSpec.Step.PRESS, false))
-            Box(Modifier.height(6.dp).width(width).clip(CircleShape).background(if (i == current) c.accent else c.line))
+            // The current card's dot stretches to a short bar (FEATURE_MODULES_BRIEF, Motion): 8dp dots, a 24dp bar.
+            val width by animateDpAsState(if (i == current) Space.xl else Space.s, Motion.work(MotionSpec.Step.PRESS, motion))
+            Box(Modifier.height(Space.s).width(width).clip(CircleShape).background(if (i == current) c.accent else c.line))
         }
     }
 }
@@ -171,9 +172,9 @@ private fun Fragment(module: Module) {
                     FragmentRow(R.string.deck_frag_work_2, R.string.deck_frag_work_2d, c.edgeTest)
                 }
                 Module.BOOK_TOOLS -> {
-                    FragmentRow(R.string.deck_frag_book_1, R.string.deck_frag_book_1d, c.edgeEdited)
+                    FragmentRow(R.string.deck_frag_book_1, R.string.deck_frag_book_1d, null)
                     HorizontalDivider(color = c.line)
-                    FragmentRow(R.string.deck_frag_book_2, R.string.deck_frag_book_2d, c.edgeSupp)
+                    FragmentRow(R.string.deck_frag_book_2, R.string.deck_frag_book_2d, null)
                 }
                 Module.PLANNING -> listOf(R.string.deck_frag_plan_1, R.string.deck_frag_plan_2, R.string.deck_frag_plan_3).forEachIndexed { i, r ->
                     if (i > 0) HorizontalDivider(color = c.line)
@@ -189,10 +190,11 @@ private fun Fragment(module: Module) {
 }
 
 @Composable
-private fun FragmentRow(title: Int, detail: Int, edge: androidx.compose.ui.graphics.Color) {
+/** A ledger row as the app draws it; [edge] only for a real lesson kind (homework, a test), never borrowed for another meaning. */
+private fun FragmentRow(title: Int, detail: Int, edge: androidx.compose.ui.graphics.Color?) {
     val c = Pacer.colors
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.kindTint(edge)).padding(vertical = Space.m), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
-        Box(Modifier.width(4.dp).fillMaxHeight().background(edge, MaterialTheme.shapes.extraSmall))
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).then(if (edge != null) Modifier.background(c.kindTint(edge)) else Modifier).padding(vertical = Space.m), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+        if (edge != null) Box(Modifier.width(Space.xs).fillMaxHeight().background(edge, MaterialTheme.shapes.extraSmall))
         Column {
             Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(detail), style = MaterialTheme.typography.bodyMedium.merge(Figures), color = c.muted)

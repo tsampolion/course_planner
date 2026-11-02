@@ -113,7 +113,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 }
             }
         }
-        items(problems) { Box(Modifier.animateItem()) { ErrorBox(it.text) } }
+        items(problems) { Box(itemMotion()) { ErrorBox(it.text) } }
         item(key = "term") {
             SectionColumn {
                 SectionHead(stringResource(R.string.year_term), action = stringResource(R.string.year_edit), onAction = { editingTerm = true }, plus = false)
@@ -130,7 +130,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
             }
         }
         item(key = "days-off") {
-            SectionColumn(Modifier.animateItem()) {
+            SectionColumn(itemMotion()) {
                 SectionHead(stringResource(R.string.year_days_off), action = stringResource(R.string.year_add), onAction = { adding = true })
                 if (year.closures.isEmpty()) Hint(stringResource(R.string.year_no_days_off))
                 else RowGroup {

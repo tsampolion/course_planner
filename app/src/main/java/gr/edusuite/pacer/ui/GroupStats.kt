@@ -314,7 +314,7 @@ private fun MonthColumns(report: GroupReport) {
                 Column(Modifier.weight(1f).clearAndSetSemantics { contentDescription = spoken }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
                     AnimatedFigure("$n", style = MaterialTheme.typography.labelSmall.merge(Figures), color = c.muted)
                     Box(Modifier.fillMaxWidth().height(72.dp), contentAlignment = Alignment.BottomCenter) {
-                        Box(Modifier.fillMaxWidth().fillMaxHeight(n.toFloat() / max).clip(MaterialTheme.shapes.extraSmall).background(if (m == now) c.accent else c.surfaceContainer))
+                        Box(Modifier.fillMaxWidth().fillMaxHeight(n.toFloat() / max).clip(MaterialTheme.shapes.extraSmall).background(if (m == now) c.mark else c.surfaceContainer))
                     }
                     Text(m.monthShort(), style = MaterialTheme.typography.labelSmall, maxLines = 1)
                 }

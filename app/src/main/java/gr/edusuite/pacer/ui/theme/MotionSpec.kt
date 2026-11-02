@@ -12,6 +12,9 @@ object MotionSpec {
     /** Undo's five seconds is a notification lifetime, not a transition duration. */
     const val UNDO_MILLIS = 5_000L
 
+    /** How long a sheet's Save shows its tick before the sheet closes. */
+    const val SAVED_HOLD_MILLIS = 600L
+
     const val ROW_RISE_PX = 14f
     const val CALENDAR_SHIFT_PX = 24
 

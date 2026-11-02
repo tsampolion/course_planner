@@ -9,8 +9,9 @@ enum class SheetCloseDecision { CLOSE, ASK }
  * Streamlining S4 (F18): an untouched sheet closes at once; a changed draft asks Keep editing / Discard before any way
  * out drops it. The filled action saves, so it never asks.
  */
-fun sheetCloseDecision(dirty: Boolean, via: SheetClose): SheetCloseDecision =
-    if (dirty && via != SheetClose.ACTION) SheetCloseDecision.ASK else SheetCloseDecision.CLOSE
+fun sheetCloseDecision(dirty: Boolean, via: SheetClose, saved: Boolean = false): SheetCloseDecision =
+    // A sheet that has just saved holds its tick for a moment; a way out then closes it, since nothing is unsaved.
+    if (dirty && !saved && via != SheetClose.ACTION) SheetCloseDecision.ASK else SheetCloseDecision.CLOSE
 
 /** A saveable fingerprint of a sheet's fields, so a field edited and edited back reads as unchanged. */
 fun draftSignature(values: List<Any?>): String = buildString {

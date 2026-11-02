@@ -245,7 +245,7 @@ fun LazyItemScope.DraggableLesson(
     }
     Box(
         Modifier
-            .then(if (dragging) Modifier else Modifier.animateItem())
+            .then(if (dragging) Modifier else itemMotion())
             .zIndex(if (dragging) 1f else 0f)
             .onGloballyPositioned { y = it.positionInRoot().y; height = it.size.height.coerceAtLeast(1) }
             .graphicsLayer {

@@ -359,7 +359,7 @@ fun GroupScreen(
                     item(key = "empty") { Box(Modifier.padding(Space.l)) { Hint(stringResource(R.string.group_no_range)) } }
                 } else laterWeeks.forEach { section ->
                     item(key = "wb${section.start}", contentType = "week") {
-                        if (grouping == PlanGrouping.WEEKS) WeekHeader(section, Modifier.animateItem())
+                        if (grouping == PlanGrouping.WEEKS) WeekHeader(section, itemMotion())
                         else {
                             val month = YearMonth.from(section.start)
                             val name = month.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH))
@@ -385,7 +385,7 @@ fun GroupScreen(
                                 },
                             ) { grip -> LessonRow(ls, actions, grip, selected = e.date == chosen) }
                         } else {
-                            Box(Modifier.animateItem()) { EntryRow(e, actions, selected = e.date == chosen) }
+                            Box(itemMotion()) { EntryRow(e, actions, selected = e.date == chosen) }
                         }
                         unitWindows.filter { it.end == e.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                     }

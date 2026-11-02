@@ -91,7 +91,7 @@ fun PacerSheet(
     }
     fun requestClose(via: SheetClose) {
         if (closing) return
-        when (sheetCloseDecision(isDirty, via)) {
+        when (sheetCloseDecision(isDirty, via, saved = completed)) {
             SheetCloseDecision.CLOSE -> close()
             SheetCloseDecision.ASK -> {
                 asking = true
@@ -147,7 +147,7 @@ fun PacerSheet(
                                 action.onClick()
                                 if (motion) {
                                     completed = true
-                                    scope.launch { delay(600); close() }
+                                    scope.launch { delay(MotionSpec.SAVED_HOLD_MILLIS); close() }
                                 } else close()
                             }
                         }, Modifier.fillMaxWidth(), enabled = action.enabled && !closing && !completed, completed = completed)

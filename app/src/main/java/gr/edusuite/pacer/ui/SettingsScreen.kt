@@ -88,9 +88,9 @@ fun SettingsScreen(
         contentPadding = PaddingValues(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Rhythm.section),
     ) {
-        if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, Modifier.animateItem()) }
+        if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, itemMotion()) }
         item(key = "name") {
-            ListGroup(Modifier.animateItem()) {
+            ListGroup(itemMotion()) {
                 Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                     CommitField(
                         settings.name, vm::setName, stringResource(R.string.settings_your_name), Modifier.fillMaxWidth(),
@@ -102,7 +102,7 @@ fun SettingsScreen(
             }
         }
         item(key = "theme") {
-            Section(stringResource(R.string.settings_theme), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_theme), modifier = itemMotion()) {
                 // D10: the segmented switch ticks on its own.
                 SegmentedToggle(
                     THEMES.map { stringResource(it.second) },
@@ -113,19 +113,19 @@ fun SettingsScreen(
             }
         }
         item(key = "defaults") {
-            Section(stringResource(R.string.settings_new_classes), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_new_classes), modifier = itemMotion()) {
                 LinkRow(stringResource(R.string.settings_class_defaults), stringResource(R.string.settings_defaults_summary, settings.lessonMins, settings.pace.plain())) { defaults = true }
                 Hint(stringResource(R.string.settings_defaults_hint))
             }
         }
         item(key = "features") {
-            ListGroup(Modifier.animateItem()) {
-                LinkRow(stringResource(R.string.features_row), stringResource(R.string.features_row_detail, onCount(features), Module.entries.size), AppIcons.Settings) { featuresOpen = true }
+            ListGroup(itemMotion()) {
+                LinkRow(stringResource(R.string.features_row), stringResource(R.string.features_row_detail, onCount(features), Module.entries.size)) { featuresOpen = true }
             }
         }
         item(key = "backup") { BackupSection(yearCount, vm, toast, undoToast) }
         item(key = "help") {
-            Section(stringResource(R.string.settings_help), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_help), modifier = itemMotion()) {
                 Column {
                     LinkRow(stringResource(R.string.settings_getting_started), stringResource(R.string.settings_getting_started_detail)) { guide = true }
                     LinkRow(stringResource(R.string.settings_whats_new), stringResource(R.string.settings_whats_new_detail)) { whatsNew = true }
@@ -138,7 +138,7 @@ fun SettingsScreen(
             }
         }
         item(key = "about") {
-            Section(stringResource(R.string.settings_about), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_about), modifier = itemMotion()) {
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.bodyLarge)
                 LinkRow(stringResource(R.string.share_app_title), stringResource(R.string.share_app_detail), AppIcons.Share) { shareApp(context, toast) }
                 if (!vm.updatesEnabled) Text(version, style = MaterialTheme.typography.bodyMedium.merge(Figures))

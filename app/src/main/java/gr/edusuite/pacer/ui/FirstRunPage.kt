@@ -22,10 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -140,6 +142,7 @@ private fun Tick(selected: Boolean) {
     val motion = animationsEnabled()
     val t by animateFloatAsState(if (selected) 1f else 0f, Motion.work(MotionSpec.Step.PRESS, motion))
     Box(Modifier.size(24.dp).border(2.dp, if (selected) c.accent else c.outline, CircleShape).background(c.accent.copy(alpha = t), CircleShape), contentAlignment = Alignment.Center) {
-        AppIcon(AppIcons.Check, Modifier.size(16.dp).alpha(t).scale(0.6f + 0.4f * t))
+        // The check sits on the accent fill, so it wears onAccent, not the card's text colour.
+        CompositionLocalProvider(LocalContentColor provides c.onAccent) { AppIcon(AppIcons.Check, Modifier.size(16.dp).alpha(t).scale(0.6f + 0.4f * t)) }
     }
 }

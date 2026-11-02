@@ -74,7 +74,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
             l.classes.forEach { lc ->
                 item(key = "class:${lc.shown.classId}") {
                     val open = lc.shown.classId in opened
-                    SectionColumn(Modifier.animateItem()) {
+                    SectionColumn(itemMotion()) {
                         ClassHead(year, lc.shown, if (lc.onPace.isEmpty()) null else {
                             { TertiaryButton(if (open) stringResource(R.string.overview_hide_on_pace) else when {
                                 lc.setUp == 0 -> pluralStringResource(R.plurals.overview_on_pace_link, lc.onPace.size, lc.onPace.size)
@@ -100,7 +100,7 @@ fun OverviewScreen(year: SchoolYear, vm: PacerViewModel, padding: PaddingValues,
             }
         } else classes.forEach { c ->
             item(key = "class:${c.classId}") {
-                SectionColumn(Modifier.animateItem()) {
+                SectionColumn(itemMotion()) {
                     ClassHead(year, c, null)
                     GroupRows(c, vm, selected)
                 }
