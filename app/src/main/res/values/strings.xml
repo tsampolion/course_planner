@@ -917,7 +917,7 @@
     <string name="updates_link_label">Course Pacer download link</string>
 
     <!-- Launch of the feature modules (placeholder copy until the owner approves it) -->
-    <string name="release_name" translatable="false">Great Expectations</string>
+    <string name="release_name" translatable="false">Middlemarch</string>
     <string name="welcome_presets_title">Start with what you need</string>
     <string name="welcome_presets_sub">You can add more tools later, in Settings.</string>
     <string name="welcome_presets_label">Starting tools</string>

@@ -76,7 +76,7 @@ flowchart LR
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| ☰ Menu | Tap | Below 840dp wide, or on a wider tablet while the menu is unpinned; read as “Menu, update available” while an update waits | ↑ Opens [☰ Menu](#drawer). Slides the menu in over the screen. The update dot is the mark colour, 3:1 on every palette. |
+| ☰ Menu | Tap | Below 1000dp wide, or on a wider window while the menu is unpinned; read as “Menu, update available” while an update waits | ↑ Opens [☰ Menu](#drawer). Slides the menu in over the screen. The update dot is the mark colour, 3:1 on every palette. |
 | Context line and title | Shows |  | Small line names the year (or year · class); the title names the screen, class or group. The line is plain text, not a link; the menu's Classes & Groups list is the way up. |
 | Title ▾ (Switch group) | Tap | Group screens only | ↑ Opens [Go to](#group-switcher). One sheet from every group page. |
 | ⚠ N warnings | Tap | Group screens, while the count is above 0 and the bar has room | ↑ Opens [Warnings · Class · Group](#warnings). Opens the group's Warnings sheet. |
@@ -89,7 +89,7 @@ flowchart LR
 <a id="drawer"></a>
 ### ☰ Menu
 
-*Panel* · reached from [Top bar](#top-bar), [Home](#home). A drawer that slides over the screen; from 840dp it can stay open beside the screens (pinned, the default) and ☰ goes away. Swiping only closes it, so an edge swipe never fights the month pager or system Back. The five main items never change order: Home, Pacing overview, Classes & Groups, School year, Settings, each with an icon. Every row that opens a screen closes the drawer and uses goTo: a screen already open is returned to, not stacked again.
+*Panel* · reached from [Top bar](#top-bar), [Home](#home). A drawer that slides over the screen; from 1000dp, where both panes keep a usable width beside it, it can stay open beside the screens (pinned, the default) and ☰ goes away. Swiping only closes it, so an edge swipe never fights the month pager or system Back. The five main items never change order: Home, Pacing overview, Classes & Groups, School year, Settings, each with an icon. Every row that opens a screen closes the drawer and uses goTo: a screen already open is returned to, not stacked again.
 
 **Classes & Groups** is the “You are here” list. It opens at the teacher's own place and shows one level at a time, each hiding the ones above it:
 
@@ -101,8 +101,8 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| 📌 Pin / unpin the menu | Tap | Window 840dp wide or more | Edit. Pinned keeps the menu open beside the screens. Unpinned collapses it behind ☰ and it slides over the screen like a phone's. Kept in Settings (`drawerPinned`). Read as “Keep the menu open” / “Let the menu collapse”. |
-| Escape (hardware keyboard) | Press | The menu is open as a drawer (below 840dp, or unpinned) | Closes. Closes the menu; a pinned menu has nothing to close. |
+| 📌 Pin / unpin the menu | Tap | Window 1000dp wide or more | Edit. Pinned keeps the menu open beside the screens. Unpinned collapses it behind ☰ and it slides over the screen like a phone's. Kept in Settings (`drawerPinned`). Read as “Keep the menu open” / “Let the menu collapse”. |
+| Escape (hardware keyboard) | Press | The menu is open as a drawer (below 1000dp, or unpinned) | Closes. Closes the menu; a pinned menu has nothing to close. |
 | Find a class or group | Type | While a school year is open | View. Lists every group whose class and group names hold each word you type. Accents and case are ignored, so “Fce” finds “FCE”. Each hit shows its status. |
 | ✕ Clear search | Tap | While there is text | View. Empties the field and brings the menu items back. |
 | A search hit (Class · Group) | Tap |  | → Screen [Group home](#group-home). Opens that group's home, switching the open class if needed. |
@@ -146,7 +146,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Switching class | Automatic |  | → Screen. Closes the old class's screens; the year's screens stay. |
 | Deleting or undoing something | Automatic |  | → Screen. Screens for a year, class or group that no longer exists drop off the stack. |
 | Tablet 600–839dp | Automatic |  | View. Pacing overview (or Classes) shows as a list pane beside the open group; with no group open the right pane says to pick one. Group home shows as Plan. |
-| Tablet 840dp and wider | Automatic |  | View. The menu stays open on the left while it is pinned (no ☰); unpinned, it collapses behind ☰. |
+| Window 1000dp and wider | Automatic |  | View. The menu stays open on the left while it is pinned (no ☰); unpinned, it collapses behind ☰. From 600dp the list pane keeps 320dp where the group pane can keep 360dp; list screens and Settings keep a 640dp column. |
 | Midnight / returning to the app | Automatic |  | View. “Today” refreshes, so Today and Next labels and overdue lessons move on by themselves. |
 
 <a id="group-switcher"></a>
@@ -205,7 +205,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| ☰ | Tap | Below 840dp | ↑ Opens [☰ Menu](#drawer). Opens the menu. |
+| ☰ | Tap | Below 1000dp, or unpinned | ↑ Opens [☰ Menu](#drawer). Opens the menu. |
 | Welcome page | Automatic | First run | ↑ Opens [Start with what you need](#first-run). Opens over Home once. |
 | What's new deck | Automatic | After an update, on an install that already had data; once for the 0.4.15 deck, never again on later updates or after Show tips again | ↑ Opens [What's new](#whats-new). Opens over whatever screen the teacher is on and returns there. |
 | New school year | Tap | No school year yet | ↑ Opens [New school year](#new-year). Warns before clearing nonempty Undo, then opens the New school year dialog. |
@@ -244,7 +244,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Continue | Tap | | View. Next card; on the last card closes the deck. |
+| Continue | Tap | | View. Next card; on the last card closes the deck. Each card's words arrive one after another, 60ms apart; at once with animations off. |
 | Back | Tap | Not the first card | View. Previous card. |
 | Swipe | Swipe | | View. Moves between cards; the buttons do the same. |
 | Open Features | Tap | Last card; some tool is off | ↑ Opens [Features](#features) over the deck; closing it returns to the deck. |
@@ -635,7 +635,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Weekly view / Monthly view | Toggle |  | Edit. Switches the grouping; remembered for every group. |
-| Hint: Set these as homework? / Plan lessons yourself? | Shows | Once each: pages recorded ahead of the plan with Work off; a lesson's pages edited by hand twice with Planning tools off | Sits under the week, above the lessons to come. **Turn on Work** / **Turn on Planning tools** turns it on at once, then a status line says what appeared. **Not now** closes it for good (Settings › Show tips again brings it back). |
+| Hint: Set these as homework? / Plan lessons yourself? | Shows | Once each: pages recorded ahead of the plan with Work off; a lesson's pages edited by hand twice with Planning tools off | Sits under the week, above the lessons to come. After Turn on, the hero's Homework button or the Make it yours line arrives with a short wash. **Turn on Work** / **Turn on Planning tools** turns it on at once, then a status line says what appeared. **Not now** closes it for good (Settings › Show tips again brings it back). |
 | Weekly: the round ‹ › buttons, or swipe the day strip | Tap |  | View. Pages the week strip by one week. |
 | Weekly: the week label (dates, with the month under them) | Tap |  | ↑ Opens [Month picker](#month-menu). Jumps the strip to the first week of the month. |
 | Weekly: a day in the strip | Tap |  | View. Scrolls the list to that day's row (or the next listed day) and highlights it. The strip opens on the lesson after the one in the box. |

@@ -1,6 +1,6 @@
 # Feature modules
 
-Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, and the launch (UI audit PR 8) is built in 0.4.15.0: Welcome presets, Settings › Features, two hints, What's new and the release name. 0.4.15.2 closed the launch's gaps (Due soon, Print, Own pace and the drag handle follow their tools; the deck shows once; an import turns tools on only with Add or Replace). Not built: turning Planning tools on from the catch-up bar, and the release name in the update notice. Deck wording and the hint placement wait for the owner's check on a phone.
+Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, and the launch (UI audit PR 8) is built in 0.4.15.0: Welcome presets, Settings › Features, two hints, What's new and the release name. 0.4.15.2 closed the launch's gaps (Due soon, Print, Own pace and the drag handle follow their tools; the deck shows once; an import turns tools on only with Add or Replace). 0.4.16.0 adds the motion: the deck's words arrive in reading order, and a tool turned on from a hint arrives with a wash where it is used. Not built: turning Planning tools on from the catch-up bar, and the release name in the update notice. Deck wording and the hint placement wait for the owner's check on a phone.
 
 A new teacher meets every tool at once. This feature lets them start with pacing alone and turn on more as they need it, and lets a teacher who only paces keep a lean app for good. Modules only ever turn on.
 
