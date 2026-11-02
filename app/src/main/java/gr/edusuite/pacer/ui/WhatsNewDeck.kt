@@ -36,3 +36,10 @@ fun deckBack(index: Int): Int = (index - 1).coerceAtLeast(0)
 
 /** The card after [index], or null after the last one, where Continue finishes. */
 fun deckNext(index: Int): Int? = (index + 1).takeIf { it < deckCards().size }
+
+/** The deck's content enters in reading order, this far apart, and the fourth item on waits no longer. */
+const val DECK_STEP_MILLIS = 60L
+private const val DECK_STEPS = 3
+
+/** When item [index] of a card starts to enter; at once when the system's animations are off. */
+fun deckEntranceDelay(index: Int, enabled: Boolean): Long = if (!enabled) 0L else index.coerceIn(0, DECK_STEPS) * DECK_STEP_MILLIS

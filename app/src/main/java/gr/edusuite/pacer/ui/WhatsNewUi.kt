@@ -1,5 +1,6 @@
 package gr.edusuite.pacer.ui
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -26,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +35,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -79,7 +83,7 @@ fun WhatsNewDeck(name: String, releaseLabel: String, variant: DeckVariant, onCho
                         )
                     }
                     HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth(), pageSpacing = Space.m) { page ->
-                        DeckCardView(cards[page], name, variant, onChooseTools)
+                        DeckCardView(cards[page], name, variant, page == pager.currentPage, onChooseTools)
                     }
                     Dots(cards.size, pager.currentPage, Modifier.align(Alignment.CenterHorizontally))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
@@ -110,7 +114,7 @@ private fun Dots(count: Int, current: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun DeckCardView(card: DeckCard, name: String, variant: DeckVariant, onChooseTools: () -> Unit) {
+private fun DeckCardView(card: DeckCard, name: String, variant: DeckVariant, current: Boolean, onChooseTools: () -> Unit) {
     val c = Pacer.colors
     Surface(
         Modifier.fillMaxSize(), shape = MaterialTheme.shapes.large, color = c.surface,
@@ -121,22 +125,22 @@ private fun DeckCardView(card: DeckCard, name: String, variant: DeckVariant, onC
                 DeckCard.HELLO -> {
                     val greeting = deckName(name)?.let { stringResource(R.string.deck_greeting_named, it) } ?: stringResource(R.string.deck_greeting)
                     val tour = variant == DeckVariant.TOUR
-                    Text(stringResource(if (tour) R.string.deck_tour_hello else R.string.deck_hello, greeting), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-                    Text(stringResource(if (tour) R.string.deck_tour_body else R.string.deck_hello_body), style = MaterialTheme.typography.bodyLarge, color = c.muted)
+                    Text(stringResource(if (tour) R.string.deck_tour_hello else R.string.deck_hello, greeting), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.deckReveal(0, current).semantics { heading() })
+                    Text(stringResource(if (tour) R.string.deck_tour_body else R.string.deck_hello_body), style = MaterialTheme.typography.bodyLarge, color = c.muted, modifier = Modifier.deckReveal(1, current))
                 }
                 DeckCard.CHOOSE -> {
                     // With every tool already on there is nothing to choose, so the last card says so and offers no button.
                     val tour = variant == DeckVariant.TOUR
-                    Text(stringResource(if (tour) R.string.deck_tour_end_title else R.string.deck_choose_title), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-                    Text(stringResource(if (tour) R.string.deck_tour_end_body else R.string.deck_choose_body), style = MaterialTheme.typography.bodyLarge, color = c.muted)
-                    if (!tour) SecondaryButton(stringResource(R.string.deck_choose_button), onChooseTools, Modifier.fillMaxWidth())
+                    Text(stringResource(if (tour) R.string.deck_tour_end_title else R.string.deck_choose_title), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.deckReveal(0, current).semantics { heading() })
+                    Text(stringResource(if (tour) R.string.deck_tour_end_body else R.string.deck_choose_body), style = MaterialTheme.typography.bodyLarge, color = c.muted, modifier = Modifier.deckReveal(1, current))
+                    if (!tour) SecondaryButton(stringResource(R.string.deck_choose_button), onChooseTools, Modifier.fillMaxWidth().deckReveal(2, current))
                 }
                 else -> {
                     val module = card.module!!
-                    Text(stringResource(module.titleRes()), style = MaterialTheme.typography.labelLarge, color = c.muted)
-                    Text(stringResource(card.titleRes()), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-                    Text(stringResource(card.bodyRes()), style = MaterialTheme.typography.bodyLarge, color = c.muted)
-                    Fragment(module)
+                    Text(stringResource(module.titleRes()), style = MaterialTheme.typography.labelLarge, color = c.muted, modifier = Modifier.deckReveal(0, current))
+                    Text(stringResource(card.titleRes()), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.deckReveal(1, current).semantics { heading() })
+                    Text(stringResource(card.bodyRes()), style = MaterialTheme.typography.bodyLarge, color = c.muted, modifier = Modifier.deckReveal(2, current))
+                    Fragment(module, Modifier.deckReveal(3, current))
                 }
             }
         }
@@ -161,9 +165,9 @@ private fun DeckCard.bodyRes(): Int = when (this) {
 
 /** A real piece of the screen the tool adds: ledger rows with the kind edge and tint, or the ⋮ menu's items. */
 @Composable
-private fun Fragment(module: Module) {
+private fun Fragment(module: Module, modifier: Modifier = Modifier) {
     val c = Pacer.colors
-    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = c.paper, border = BorderStroke(1.dp, c.line)) {
+    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = c.paper, border = BorderStroke(1.dp, c.line)) {
         Column(Modifier.padding(horizontal = Space.l, vertical = Space.xs)) {
             when (module) {
                 Module.WORK -> {
@@ -217,4 +221,22 @@ fun UpdateDeck(settings: gr.edusuite.pacer.model.Settings, hasYears: Boolean, vm
         WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), deckVariant(settings.features().on), onChooseTools = { choosing = true }, onFinish = { vm.markHintSeen(id) })
     }
     if (choosing) FeaturesSheet(LocalFeatures.current, { vm.turnOn(it) }, { choosing = false })
+}
+
+/**
+ * A deck card's item rises into place in reading order each time its card becomes the current one ([deckEntranceDelay],
+ * `FEATURE_MODULES_BRIEF.md` Motion). Shown at once when the system's animations are off, and never hidden from a screen reader.
+ */
+private fun Modifier.deckReveal(index: Int, current: Boolean): Modifier = composed {
+    val enabled = animationsEnabled()
+    val progress = remember { Animatable(if (enabled) 0f else 1f) }
+    LaunchedEffect(current, enabled) {
+        if (!enabled) progress.snapTo(1f)
+        else if (current) {
+            progress.snapTo(0f)
+            kotlinx.coroutines.delay(deckEntranceDelay(index, enabled))
+            progress.animateTo(1f, Motion.work(MotionSpec.Step.ROW))
+        }
+    }
+    graphicsLayer { alpha = progress.value; translationY = MotionSpec.ROW_RISE_PX * (1f - progress.value) }
 }

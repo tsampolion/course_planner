@@ -59,4 +59,9 @@ class WhatsNewDeckTest {
         assertEquals(null, deckNext(last))
         assertEquals(1, deckNext(0))
     }
+
+    @Test fun aCardsContentEntersInReadingOrderCappedAndSnapsWithoutAnimations() {
+        assertEquals(listOf(0L, 60L, 120L, 180L, 180L), (0..4).map { deckEntranceDelay(it, enabled = true) })
+        assertEquals(0L, deckEntranceDelay(2, enabled = false))
+    }
 }
