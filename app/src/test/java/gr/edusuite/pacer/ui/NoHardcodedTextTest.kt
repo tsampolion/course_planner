@@ -30,7 +30,7 @@ class NoHardcodedTextTest {
         "Components.kt" to setOf("swipe action", "save completion"),
         "DashboardComponents.kt" to setOf("expand", "segment", "segment ink", "selected day", "MMMM yyyy"),
         "SettingsScreen.kt" to setOf("updates", "about", "features", "application/json", "backup", "defaults", "help", "name", "theme", "wt", "w", "\\uFEFF"),
-        "WorkScreen.kt" to setOf("work-off"),
+        "WorkScreen.kt" to setOf("homeworkRule"),
         "GroupModel.kt" to setOf("[^\\\\p{L}\\\\p{N}']+", "B", "book"),
         "NavModel.kt" to setOf("\\\\p{Mn}+", "\\\\s+", "^(\\\\d{4})\\\\s*[-–—/]\\\\s*\\\\d{2}(\\\\d{2})\\\\b"),
         "SetAside.kt" to setOf("application/json", "course-pacer-unreadable-.json"),

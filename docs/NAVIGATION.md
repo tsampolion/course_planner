@@ -195,7 +195,6 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | --- | --- | --- | --- |
 | Keep editing | Tap |  | Closes. Closes the question; the sheet stays open with the draft. Back and a tap outside do the same. |
 | Discard | Tap |  | Closes. Closes the sheet without saving. |
-| Swipe a removable row from the end | Swipe |  | Undo:. Reveals Remove and removes the row (days off, assignments), with Undo. The same Remove is in its long-press menu and TalkBack actions. |
 
 ## Year
 
@@ -208,7 +207,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | --- | --- | --- | --- |
 | ☰ | Tap | Below 840dp | ↑ Opens [☰ Menu](#drawer). Opens the menu. |
 | Welcome page | Automatic | First run | ↑ Opens [Start with what you need](#first-run). Opens over Home once. |
-| What's new deck | Automatic | After an update, on an install that already had data; once | ↑ Opens [What's new](#whats-new). Opens over the screen the teacher was on and returns there. |
+| What's new deck | Automatic | After an update, on an install that already had data; once for the 0.4.15 deck, never again on later updates or after Show tips again | ↑ Opens [What's new](#whats-new). Opens over whatever screen the teacher is on and returns there. |
 | New school year | Tap | No school year yet | ↑ Opens [New school year](#new-year). Warns before clearing nonempty Undo, then opens the New school year dialog. |
 | Add a class | Tap | Year without classes | → Screen [Classes](#classes). Opens Classes. |
 | Pacing overview board: a cell (Group, −N when behind; “● Today” under the name when the group has a lesson today) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. An on-pace cell wears its class's colour (a swatch beside the class name), a behind cell the warning colour, and the Today dot the second primary. The dot blinks three times when Home opens, then stays lit (steady with animations off). Groups run most behind first inside each class, as on Pacing overview. TalkBack reads class, group, “on pace” or “short by N lessons”, and “has a lesson today”. |
@@ -241,14 +240,14 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 <a id="whats-new"></a>
 ### What's new
 
-*Dialog* · reached from [Home](#home) (automatic, once after an update), [Settings](#app-settings) › What's new. Swipeable cards: a greeting, one per tool with a real piece of its screen, then where to choose. There is no Skip and no close: every card has Continue and the last one finishes. System Back steps to the previous card.
+*Dialog* · reached from any screen (automatic, once after an update), [Settings](#app-settings) › What's new. Swipeable cards: a greeting, one per tool with a real piece of its screen, then where to choose. With every tool already on, the greeting says what Course Pacer can do and the last card says all of them are on, with no button. There is no Skip and no close: every card has Continue and the last one finishes. System Back steps to the previous card.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | Continue | Tap | | View. Next card; on the last card closes the deck. |
 | Back | Tap | Not the first card | View. Previous card. |
 | Swipe | Swipe | | View. Moves between cards; the buttons do the same. |
-| Choose tools now | Tap | Last card | ↑ Opens [Features](#features) over the deck; closing it returns to the deck. |
+| Open Features | Tap | Last card; some tool is off | ↑ Opens [Features](#features) over the deck; closing it returns to the deck. |
 
 <a id="welcome"></a>
 ### Welcome to Course Pacer
@@ -377,11 +376,11 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | New school year | Tap |  | ↑ Opens [New school year](#new-year). Warns before clearing nonempty Undo, then opens the New school year dialog. |
 | Term: Edit / the term row | Tap |  | ↑ Opens [Term](#term). Opens the term sheet. |
 | Days off: Add | Tap |  | ↑ Opens [Add a day off](#day-off). Opens Add a day off. |
-| A day-off row | Swipe |  | Swipe from the end to remove; visible ⋮ or long-press opens Edit/Delete. Undo: “Removed “reason”” |
+| A day-off row | Swipe |  | Swipe from the end to remove; a tap, the visible ⋮ or a long-press opens the day-off menu (Edit, Delete in red), the same as Group settings'. Undo: “Removed “reason”” |
 | Add Greek public holidays | Tap | Both term dates set | Adds the holidays for every calendar year the term touches. Message: “N holidays added / Already there” |
-| Print or save PDF | Tap | Some group this year has lessons to print | ↑ Opens [Print or save PDF](#print), on Every group this year. |
+| Print or save PDF | Tap | Some group this year has lessons to print; Output | ↑ Opens [Print or save PDF](#print), on Every group this year. |
 | Rename | Tap |  | ↑ Opens [Rename school year](#rename-year). Opens Rename school year. |
-| Delete this school year | Tap |  |  [Home](#home). Asks for confirmation, then deletes and returns Home. Undo: “Deleted “name”” |
+| Delete this school year | Tap |  |  [Home](#home). Asks “Delete name?” (its classes and groups go too), with Cancel and Delete; then deletes and returns Home. Undo: “Deleted “name”” |
 
 <a id="term"></a>
 ### Term
@@ -438,7 +437,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Getting started | Tap |  | ↑ Opens [Welcome to Course Pacer](#welcome). Opens the welcome guide. |
 | What's new | Tap |  | ↑ Opens [What's new](#whats-new). Opens the deck again. |
 | How pacing works | Tap |  | ↑ Opens a sheet with the schedule note and how ticking works (the group Tips, without the group's own notes). |
-| Show tips again | Tap |  | Brings back every tip you closed. Message: “Tips will show again” |
+| Show tips again | Tap |  | Brings back every tip you closed; the What's new deck stays seen (it has its own row). Message: “Tips will show again” |
 | About: Share Course Pacer | Tap |  | Leaves app. Opens the share sheet with a short message and the link to the latest release page. With no app to share to, copies the link. Message: “No app to share with. The download link was copied.” |
 | About | Shows |  | Version, storage note, suite and credits. |
 
@@ -481,7 +480,7 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Turn on and import | Tap |  | Edit. Turns those modules on, then ↑ Opens [Import N school years?](#import). |
+| Turn on and import | Tap |  | ↑ Opens [Import N school years?](#import). Add or Replace all there turns those modules on; Cancel leaves them off. |
 | Cancel | Tap |  | Closes. Imports nothing. |
 
 <a id="recovery"></a>
@@ -508,12 +507,12 @@ Nested rows are indented and carry no icon. The row on the screen the teacher is
 | Add a book (guide card or Books › Add) | Tap |  | ↑ Opens [Add a book](#add-book). Opens Add a book. |
 | A book row (pages, skips, finish-by, tags) | Tap |  | ↑ Opens [Book (editor)](#book-editor). Opens the book editor. |
 | Lead book | Choose | Lead book; two or more core books | Edit. None, or a book the others keep step with. |
-| Add group (guide card or Groups › Add) | Tap |  | Opens Add group: name and lesson-day chips; Add saves both in one undo step. |
+| Add group (guide card or Groups › Add) | Tap |  | Opens Add group: name and the Lesson days chips (the same chips as Group settings); Add saves both in one undo step. |
 | A group row (Next date) | Tap |  | → Screen [Group home](#group-home). Opens that group's home. |
 | Edit name (beside a group) | Tap |  | → Opens [Group settings](#group-settings) directly. |
-| Print or save PDF | Tap | Some group of the class or year has lessons to print | ↑ Opens [Print or save PDF](#print), on Every group in class. |
+| Print or save PDF | Tap | Some group of the class or year has lessons to print; Output | ↑ Opens [Print or save PDF](#print), on Every group in class. |
 | Reset all positions | Tap |  | Clears every group's resume page. Undo: “Positions reset” |
-| Delete this class | Tap |  | Asks for confirmation, then deletes and closes its screens. Undo: “Deleted “name”” |
+| Delete this class | Tap |  | Asks “Delete name?” (its groups go too), with Cancel and Delete; then deletes and closes its screens. Undo: “Deleted “name”” |
 | ⚠ in the top bar | Tap | The class has problems | ↑ Opens [Problems in this class](#class-problems). Opens Problems in this class. |
 
 <a id="class-settings"></a>
@@ -578,7 +577,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 <a id="units"></a>
 ### Book units
 
-*Screen* · reached from [Class](#class), [Book (editor)](#book-editor), [Group settings](#group-settings). Three steps: choose the lead book, set each book's units, link books. Reached from Class, Class settings, the book editor, Group settings and the Warnings sheet.
+*Screen* · reached from [Class](#class), [Book (editor)](#book-editor), [Group settings](#group-settings). Three steps: choose the lead book, set each book's units, link books. Reached from Class, the book editor, Group settings and the Warnings sheet.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -622,8 +621,8 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Fix (round button beside the progress strip) | Tap | The group is short and Warnings has a lateness fix | ↑ Opens the Warnings sheet, as the top bar's warning button does. The sheet's repairs keep hand-edited lessons. |
 | Unit progress strip | Shows | Units on | Unit N of M, a bar per unit, pages left per book. |
 | Pace track (compact) | Tap | Books, units off | → Screen [Stats](#stats). Opens Stats. |
-| Due soon: an assignment row | Tap |  | → Screen [Work](#work). Opens Work. |
-| Plan pill | Tap |  | → Screen [Plan](#plan). Opens Plan. In large text the pills become rows. |
+| Due soon: an assignment row | Tap | Work | → Screen [Work](#work). Opens Work. The Due soon block shows only with Work (or saved work). |
+| Plan pill | Tap |  | → Screen [Plan](#plan). Opens Plan. Four pills sit 2 × 2 on a phone, three (Work off) share one row; in large text the pills become rows. |
 | Work pill | Tap | Work | → Screen [Work](#work). Opens Work. |
 | Stats pill | Tap |  | → Screen [Stats](#stats). Opens Stats. |
 | Settings pill | Tap |  | → Screen [Group settings](#group-settings). Opens Group settings. |
@@ -651,12 +650,12 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Use this plan | Tap | Previewing the plan not in use | Edit. Makes the shown plan the one you teach from. |
 | A lesson row: the round tick | Tap | Shown plan in use | Marks done or not done. TalkBack: the row is a checkbox. Undo: “Lesson updated” |
 | A lesson row | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). A ring draws around your finger, then the lesson menu opens. TalkBack offers the same items as actions. |
-| A custom-plan lesson's ⠿ grip | Drag | Custom plan shown | Drag up or down; the others make room. Release to move it, or cancel to drop it back. Undo: “Lesson moved” |
-| A test or worksheet row (as tall as a lesson, kind in bold) | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Takes the lesson; has the tick and the lesson menu. |
+| A custom-plan lesson's ⠿ grip | Drag | Custom plan shown; the plan editor shows (Planning tools or a lesson planned by hand) | Drag up or down; the others make room. Release to move it, or cancel to drop it back. Undo: “Lesson moved” |
+| A test or worksheet row (as tall as a lesson, kind in bold) | Long-press |  | ↑ Opens [Lesson menu](#lesson-menu). Takes the lesson; has the tick and the lesson menu. Its note, if any, shows as a second line (also on the hero and in Print). |
 | A day-off row (slim) | Tap |  | Nothing happens. |
 | A day-off row (slim) | Long-press | Planning tools | ↑ Opens [Day-off row menu](#day-off-menu). A one-item menu: Add extra lesson…. Once added, the day is a lesson row whose menu has Edit extra lesson… and Delete extra lesson. |
 | Unit N revision row: Add a revision / Edit (a finished unit with no decision asks “Unit N is finished. Plan its revision?”) | Tap | After a unit's last lesson | ↑ Opens [Unit N revision](#unit-revision). Opens the unit revision sheet; finishing a unit never opens it by itself. |
-| Tip: Long-press a lesson… · Got it | Tap |  | Edit. Hides the tip until Show tips again. |
+| Tip: Long-press a lesson… · Got it | Tap |  | Edit. Hides the tip until Show tips again. It mentions planning a lesson only where Planning tools are on. |
 | Tablet: Work · Stats · Group settings rows | Tap | 600dp and wider, where Plan stands in for group home; the Work row needs Work | → Screen [Work](#work). The group home links, at the top of Plan. |
 
 <a id="month-menu"></a>
@@ -687,6 +686,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Add homework… | Tap | Work | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens the assignment sheet as Homework, set on this lesson. |
 | Edit homework: name… | Tap | Homework set or due this lesson (one per item) | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens it in the assignment sheet. |
 | Delete homework: name | Tap | Homework set or due this lesson | Removes it. Undo: “Assignment removed” |
+| Mark done: name / Mark not done: name | Tap | Homework set or due this lesson | Edit. The same as Work's Mark done; pacing does not change. |
 | Edit extra lesson… | Tap | An extra lesson, not yet taught | ↑ Opens [Add extra lesson… / Edit extra lesson…](#extra-lesson). Opens the extra lesson sheet. |
 | Delete extra lesson | Tap | An extra lesson | Deletes it; its pages return to the plan. Undo: “Extra lesson deleted” |
 | Add book pages… (one per supplementary book) | Tap | Not done, not a test, class has supplementary books; Planning tools | ↑ Opens [Lesson sheet with supplementary books](#plan-lesson-supp). Opens the lesson sheet with supplementary fields. |
@@ -812,12 +812,11 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 <a id="work"></a>
 ### Work
 
-*Screen* · reached from [Go to](#group-switcher), [Class](#class), [Group home](#group-home), [Plan](#plan). The group's homework, tests and worksheets in This week, Later, No date and Earlier.
+*Screen* · reached from [Go to](#group-switcher), [Class](#class), [Group home](#group-home), [Plan](#plan). The group's homework, tests and worksheets in This week, Later, No date and Earlier. When homework has pages, one line above the list says they leave the lessons as soon as they are saved; a screen reader hears it on each such row. An empty Work page shows its words and Add assignment, with no icon.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | All / Homework / Tests / Worksheets chips | Tap | All always; Homework needs Work · Homework brick; Tests and Worksheets need Work · Tests brick; a type with saved assignments stays available | View. Filters the list; a new assignment starts as the filtered type when available. If a selected type disappears, the view returns to All. |
-| Turn on Work (“Give this group homework and tests?”) | Tap | Work is off and the group has no saved assignments | Edit. Turns Work on with a confirm tick; the page then shows its ordinary empty state with Add assignment. |
 | Add assignment (empty state or floating button) | Tap | Work · Homework or Tests brick | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens with the filtered type, or the first available type if that type cannot be added. |
 | An assignment row | Tap |  | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens it in the assignment sheet. |
 | A row's ⋮ (Options for name) | Tap |  | ↑ Opens [Assignment ⋮](#work-row-menu). Opens its menu. |
@@ -830,7 +829,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Mark done / Mark not done | Tap | Homework | Stores completion without changing date-based pacing; status and banking date appear in Work; lesson menus and TalkBack offer the same completion action. |
+| Mark done / Mark not done | Tap | Homework | Edit. Stores completion; pacing does not change (homework pages left the lessons when the homework was saved). The lesson menu offers the same as Mark done: name / Mark not done: name. |
 | Edit assignment | Tap |  | ↑ Opens [Add assignment / Edit assignment](#assignment). Opens the assignment sheet. |
 | Remove | Tap |  | Removes it. Undo: “Assignment removed” |
 
@@ -842,7 +841,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
 | My plan / Proposed | Toggle | Has a custom plan | View. Shows either plan's figures. |
-| Figure strip: the pace tile (Planned pace / Pace needed) | Tap |  | ↑ Opens [My own pace](#own-pace). Tap or long-press opens My own pace; TalkBack offers it as “Set my own pace…”. |
+| Figure strip: the pace tile (Planned pace / Pace needed) | Tap | Planning tools | ↑ Opens [My own pace](#own-pace). Tap or long-press opens My own pace; TalkBack offers it as “Set my own pace…”. |
 | Pace track: a book | Tap |  | ↑ Opens [Book · position](#position). Opens its position sheet (read as “Change position”). |
 | Tip: the tick marks… · Got it | Tap | Has a lead book | Edit. Hides the tip. |
 | More stats › / Fewer stats | Tap | Large text | View. Shows or hides months and details. |
@@ -874,20 +873,20 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Name / lesson-day chips | Type / Toggle |  | Saves the group name and lesson days. |
+| Name / Lesson days chips | Type / Toggle |  | Saves the group name and lesson days. The chips are the same as Add group's. |
 | Next lesson | Tap |  | Edit [Date picker](#date-picker). Date picker with Clear (back to the term start). |
 | End date (optional) | Tap |  | Edit [Date picker](#date-picker). Date picker with Clear; never past the term end. |
 | School year and class days off | Shows |  | Read-only rows. |
 | Group days off: Add | Tap |  | ↑ Opens [Add a day off / Edit day off](#group-day-off). Opens the group day-off sheet. |
-| An own day off | Long-press |  | ↑ Opens [Day-off options](#group-day-off-menu). Opens its menu (also the ⋮ Options button). |
+| An own day off | Tap / Long-press |  | ↑ Opens [Day-off options](#group-day-off-menu). Opens its menu (also the ⋮ Options button). |
 | Add Greek public holidays | Tap |  | Message:. Adds the ones the group doesn't already inherit. |
 | Additional skipped pages: per book | Type | Group book rules | Added to the class skips; clear to use only the class's. |
 | Books › Add a book | Tap | Optional books | ↑ Opens [Add a book (group)](#group-add-book). Opens the group book sheet. |
-| A book row’s ⋮ (Options for name) | Tap | Group book rules | ↑ Opens [Book options (group)](#book-options). Long-pressing the row opens the same options. |
+| A book row’s ⋮ (Options for name) | Tap | Group book rules | ↑ Opens [Book options (group)](#book-options). Tapping or long-pressing the row opens the same options. |
 | Use name / Stop using name | Tap | Optional books; optional book | Edit. Includes or leaves out this book for this group. The row states whether the group uses it. |
 | Book units for this group | Choose | Units | Edit. Follow class setting, On or Off. |
 | Book units | Tap | Units | → Screen [Book units](#units). Opens Book units. |
-| Delete group | Tap |  | Asks for confirmation, then deletes; its screens close. Undo: “Removed “name”” |
+| Delete group | Tap |  | Asks “Delete name?” (its lessons and work go too), with Cancel and Delete; then deletes; its screens close. Undo: “Removed “name”” |
 
 <a id="group-day-off-menu"></a>
 ### Day-off options
@@ -936,7 +935,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 <a id="group-menu"></a>
 ### ⋮ Group menu
 
-*Menu* · reached from [Top bar](#top-bar). It is absent when it would hold only Tips (no module adds to it and no catch-up is available): the bar then shows no ⋮, and Tips live in Settings › How pacing works. Under headings Share & print, Plan, Lessons and Help; a heading shows only when it has items, and Work leaves out Plan and Lessons (it lists assignments, not lessons). Every item has an icon. While the bar has folded Undo and ⚠ N (see Top bar) they come first.
+*Menu* · reached from [Top bar](#top-bar). It is absent when it would hold only Tips on that page (no module adds to it and no catch-up is available; on Work, where Plan and Lessons are left out, a catch-up alone does not count): the bar then shows no ⋮, and Tips live in Settings › How pacing works. Under headings Share & print, Plan, Lessons and Help; a heading shows only when it has items, and Work leaves out Plan and Lessons (it lists assignments, not lessons). Every item has an icon. While the bar has folded Undo and ⚠ N (see Top bar) they come first.
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
@@ -969,7 +968,7 @@ The Class pencil opens [Group settings](#group-settings), which owns name, lesso
 
 | Control | Gesture | When | What happens |
 | --- | --- | --- | --- |
-| Notes | Shows |  | The schedule is arithmetic; tick taught lessons; long-press for more; with a custom plan, how to plan and drag. |
+| Notes | Shows |  | The schedule is arithmetic; tick taught lessons; long-press for more; where the plan editor shows, how to plan and drag. |
 
 <a id="print"></a>
 ### Print or save PDF

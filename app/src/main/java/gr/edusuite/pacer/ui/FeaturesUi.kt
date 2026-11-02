@@ -2,7 +2,7 @@ package gr.edusuite.pacer.ui
 
 import androidx.compose.animation.Animatable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -138,7 +138,7 @@ fun ChooseToolsSheet(initial: Set<Module>, onUse: (Set<Module>) -> Unit, onDismi
             val checked = m.name in picked
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 56.dp)
-                    .clickable(role = Role.Checkbox) { picked = if (checked) picked - m.name else picked + m.name }
+                    .toggleable(checked, role = Role.Checkbox) { picked = if (checked) picked - m.name else picked + m.name }
                     .padding(vertical = Space.s),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.m),
             ) {

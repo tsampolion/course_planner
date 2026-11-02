@@ -105,7 +105,8 @@ fun LedgerRow(
         modifier.fillMaxWidth().height(IntrinsicSize.Min).heightIn(min = 56.dp)
             .then(if (edge != null) Modifier.background(c.kindTint(edge)) else Modifier)
             .then(
-                if (onLongClick != null) Modifier.combinedClickable(role = Role.Button, onLongClickLabel = longClickLabel, onLongClick = onLongClick, onClick = onClick ?: {})
+                // A row with only a long-press opens the same menu on a tap, so nothing is reached by long-press alone (proposal 5).
+                if (onLongClick != null) Modifier.combinedClickable(role = Role.Button, onLongClickLabel = longClickLabel, onLongClick = onLongClick, onClick = onClick ?: onLongClick)
                 else if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick)
                 else Modifier,
             )
@@ -140,26 +141,6 @@ fun Chevron() {
     AppIcon(AppIcons.ChevronRight, Modifier.padding(horizontal = Space.s))
 }
 
-/** A row's ⋮ with Remove: the visible way to remove it, beside the swipe and the long-press (decision 21). */
-@Composable
-fun RemoveMenu(what: String, onRemove: () -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    val label = stringResource(R.string.rows_options, what)
-    Box {
-        PaletteTextButton(
-            onClick = { open = true }, contentPadding = PaddingValues(0.dp),
-            modifier = Modifier.size(48.dp).semantics { contentDescription = label },
-        ) { AppIcon(AppIcons.MoreVert) }
-        PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.component_remove), color = Pacer.colors.warn) },
-                leadingIcon = { AppIcon(AppIcons.Delete) },
-                onClick = { open = false; onRemove() },
-            )
-        }
-    }
-}
-
 /** The quiet actions at a screen's foot: a muted one at the start and a rust one at the end, both 48dp. */
 @Composable
 fun FootActions(start: Pair<String, () -> Unit>?, end: Pair<String, () -> Unit>, startEnabled: Boolean = true) {
@@ -167,5 +148,20 @@ fun FootActions(start: Pair<String, () -> Unit>?, end: Pair<String, () -> Unit>,
         if (start != null) TertiaryButton(start.first, start.second, enabled = startEnabled, color = Pacer.colors.muted)
         Box(Modifier.weight(1f))
         TertiaryButton(end.first, end.second, color = Pacer.colors.warn)
+    }
+}
+
+/** A day off's menu, the same on School year and Group settings (X21): Edit, and Delete in the warning colour. */
+@Composable
+fun DayOffMenu(expanded: Boolean, onDismiss: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+    PacerDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.class_edit)) }, leadingIcon = { AppIcon(AppIcons.Edit) },
+            onClick = { onDismiss(); onEdit() },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.rows_delete), color = Pacer.colors.warn) }, leadingIcon = { AppIcon(AppIcons.Delete) },
+            onClick = { onDismiss(); onDelete() },
+        )
     }
 }

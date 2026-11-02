@@ -90,16 +90,7 @@ fun GroupSettingsScreen(
                                 title, date = dayOffDates(c.from, c.to), edge = Pacer.colors.edgeDayOff,
                                 onLongClick = { menu = true }, longClickLabel = stringResource(R.string.component_options),
                             ) { PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) } }
-                            PacerDropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.class_edit)) }, leadingIcon = { AppIcon(AppIcons.Edit) },
-                                    onClick = { menu = false; editingClosure = c.id },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.rows_delete), color = Pacer.colors.warn) }, leadingIcon = { AppIcon(AppIcons.Delete) },
-                                    onClick = { menu = false; remove() },
-                                )
-                            }
+                            DayOffMenu(menu, { menu = false }, onEdit = { editingClosure = c.id }, onDelete = remove)
                         }
                     }
                 }
@@ -127,7 +118,7 @@ fun GroupSettingsScreen(
         item(key = 4) {
             SectionColumn {
                 SectionHead(stringResource(R.string.group_settings_books), action = stringResource(R.string.class_add_a_book), onAction = if (features.has(Brick.OPTIONAL_BOOKS)) ({ addingBook = true }) else null)
-                Hint(stringResource(R.string.group_settings_books_hint))
+                Hint(stringResource(groupBooksHint(features)))
                 RowGroup {
                     plan.books.filter { !it.groupOnly || features.has(Brick.OPTIONAL_BOOKS) }.forEachIndexed { i, book ->
                         if (i > 0) RowDivider()
@@ -173,9 +164,10 @@ fun GroupSettingsScreen(
             }
         }
         item(key = 5) {
+            val deleteGroup = deleteConfirm(group.name.ifBlank { stringResource(R.string.class_group) }, R.string.setup_delete_group_body)
             FootActions(null, stringResource(R.string.group_settings_delete) to {
                 val name = group.name.ifBlank { context.getString(R.string.class_group) }
-                confirmDelete { vm.removeGroup(group.id); undoToast(context.getString(R.string.class_removed, name)) }
+                confirmDelete(deleteGroup) { vm.removeGroup(group.id); undoToast(context.getString(R.string.class_removed, name)) }
             })
         }
     }
@@ -192,7 +184,7 @@ fun GroupSettingsScreen(
 private fun GroupClosureSheet(groupId: String, editing: Closure?, vm: PacerViewModel, onDismiss: () -> Unit) {
     var label by rememberSaveable(editing?.id) { mutableStateOf(editing?.label.orEmpty()) }
     var fromText by rememberSaveable(editing?.id) { mutableStateOf(editing?.from?.toString()) }
-    var toText by rememberSaveable(editing?.id) { mutableStateOf(editing?.takeIf { it.to != it.from }?.to?.toString()) }
+    var toText by rememberSaveable(editing?.id) { mutableStateOf(closureEndText(editing)) }
     val from = fromText?.let(LocalDate::parse)
     val to = toText?.let(LocalDate::parse)
     PacerSheet(
@@ -207,7 +199,7 @@ private fun GroupClosureSheet(groupId: String, editing: Closure?, vm: PacerViewM
         CommitField(label, { label = it }, stringResource(R.string.year_reason), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_reason_example))
         DateField(from, { fromText = it?.toString() }, stringResource(R.string.year_from), Modifier.fillMaxWidth())
         DateField(to, { toText = it?.toString() }, stringResource(R.string.year_to_optional), Modifier.fillMaxWidth(), clearable = true)
-        if (from != null && to != null && to < from) Hint(stringResource(R.string.pr6_day_range), color = Pacer.colors.warn)
+        if (from != null && to != null && to < from) Hint(stringResource(R.string.day_off_range_error), color = Pacer.colors.warn)
     }
 }
 

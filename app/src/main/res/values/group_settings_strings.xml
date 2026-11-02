@@ -1,6 +1,5 @@
 <resources>
     <string name="group_settings_title">Group settings</string>
-    <string name="group_settings_dates">Dates</string>
     <string name="group_settings_end">End date (optional)</string>
     <string name="group_settings_default_start">School year starts: %1$s. Clear to use this date.</string>
     <string name="group_settings_default_end">School year ends: %1$s. Clear to use this date.</string>
@@ -16,8 +15,8 @@
     <string name="group_settings_none">None</string>
     <string name="group_settings_delete">Delete group</string>
     <string name="group_settings_books">Books</string>
+    <string name="group_settings_books_hint_basic">Every class book is paced for this group.</string>
     <string name="group_settings_books_hint">Class books are included unless you leave one out. Choose additional books for this group.</string>
-    <string name="group_settings_books_long_press">Long-press a book to leave it out of this group or give this group its own finish-by date.</string>
     <string name="group_settings_removed_book">Not used in this group</string>
     <string name="group_settings_class_date">Class: %1$s</string>
     <string name="group_settings_use_class_date">Use class date</string>

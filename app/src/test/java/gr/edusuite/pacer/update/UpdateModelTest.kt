@@ -202,4 +202,11 @@ class UpdateModelTest {
         assertEquals("Real.", u.notes)
         assertNull(toUpdate(listOf(r("4.1.0", "Ancient.")), "0.4.14.0"))
     }
+
+    @Test fun aNewerReleaseWithoutADownloadAddsNoNotes() {
+        val noApk = r("0.4.16.0", "Not offered yet.").copy(assets = emptyList())
+        val u = toUpdate(listOf(noApk, r("0.4.15.2", "Offered fix.")), "0.4.15.1")!!
+        assertEquals("0.4.15.2", u.version)
+        assertEquals("Offered fix.", u.notes)
+    }
 }

@@ -169,3 +169,6 @@ fun validSetupInclude(text: String): Boolean {
         }
     }
 }
+
+/** The end date a day-off sheet starts with: none for a one-day closure, so moving its start keeps it one day. */
+fun closureEndText(c: gr.edusuite.pacer.model.Closure?): String? = c?.takeIf { it.to != it.from }?.to?.toString()

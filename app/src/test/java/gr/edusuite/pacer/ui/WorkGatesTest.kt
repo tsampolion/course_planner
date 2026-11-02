@@ -83,4 +83,12 @@ class AssignmentBookFieldsTest {
         assertFalse(assignmentHasBookFields(AssignmentType.WORKSHEET))
         assertFalse(assignmentHasBookFields(AssignmentType.TEST))
     }
+
+    @Test fun theHomeworkRuleIsSaidOnceWhenHomeworkHasPages() {
+        val hw = gr.edusuite.pacer.model.Assignment("h", gr.edusuite.pacer.model.AssignmentType.HOMEWORK, "HW", pages = mapOf("b" to listOf(4)))
+        val notes = gr.edusuite.pacer.model.Assignment("n", gr.edusuite.pacer.model.AssignmentType.HOMEWORK, "Read", note = "p. 4")
+        val test = gr.edusuite.pacer.model.Assignment("t", gr.edusuite.pacer.model.AssignmentType.TEST, "Unit test", pages = mapOf("b" to listOf(4)))
+        assertTrue(homeworkRuleShown(listOf(notes, hw)))
+        assertFalse(homeworkRuleShown(listOf(notes, test)))
+    }
 }

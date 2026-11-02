@@ -93,7 +93,9 @@ fun toUpdate(releases: List<Release>, installed: String): Update? {
         .filter { isNewer(it.first, current) }.sortedBy { it.first }
     val newest = newer.lastOrNull { toUpdate(it.second) != null } ?: return null
     val base = toUpdate(newest.second)!!
-    val byBiggest = newer.mapIndexed { i, (v, r) -> Triple(v, r, tier(if (i == 0) current else newer[i - 1].first, v)) }
+    // Only releases up to the one offered: a newer release with no download yet adds nothing to its notes.
+    val offered = newer.filter { it.first <= newest.first }
+    val byBiggest = offered.mapIndexed { i, (v, r) -> Triple(v, r, tier(if (i == 0) current else offered[i - 1].first, v)) }
         .filter { it.first >= NOTES_FROM }.sortedWith(compareBy<Triple<Version, Release, Int>> { it.third }.thenByDescending { it.first })
     val bullets = byBiggest.map { noteBullets(it.second.body) }
     val picked = LinkedHashSet<String>()

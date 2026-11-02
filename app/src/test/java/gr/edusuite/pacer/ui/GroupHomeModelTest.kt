@@ -171,4 +171,10 @@ class GroupHomeModelTest {
         assertTrue(GroupDestination.WORK in groupDestinations(Features(emptySet(), inUse = setOf(Brick.TESTS))))
         assertEquals(GroupDestination.entries, groupDestinations(Features.ALL))
     }
+
+    @Test fun threePillsShareOneRowOnAPhoneSoNoCellIsLeftEmpty() {
+        assertEquals(3, pillsPerLine(PillLayout.GRID_2X2, 3))
+        assertEquals(2, pillsPerLine(PillLayout.GRID_2X2, 4))
+        assertEquals(1, pillsPerLine(PillLayout.COLUMN, 3))
+    }
 }

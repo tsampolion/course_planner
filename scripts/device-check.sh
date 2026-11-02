@@ -71,4 +71,4 @@ if $kill; then
   shot "after-kill" # opens on Home by design; check no data was lost
 fi
 
-echo "Done. The app's palette (Bone or Saffron) is an in-app setting: switch it and run again for the other one."
+echo "Done. The app's palette (Freetown, Arusha or Oxford) is an in-app setting: switch it and run again for the others."

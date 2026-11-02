@@ -24,10 +24,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -223,17 +221,14 @@ fun PillIconButton(label: String, onClick: () -> Unit, modifier: Modifier = Modi
  * line and an optional pill action.
  */
 @Composable
-fun EmptyState(symbol: ImageVector, title: String, message: String, action: String? = null, onAction: (() -> Unit)? = null) {
+fun EmptyState(title: String, message: String, action: String? = null, onAction: (() -> Unit)? = null) {
+    // Words of the trade and the one action, left-aligned where the list will be; no icon in a circle (UI audit X11, B9).
     Column(
-        Modifier.fillMaxWidth().padding(vertical = Space.xxl),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Space.l),
+        Modifier.fillMaxWidth().padding(vertical = Space.xl),
+        verticalArrangement = Arrangement.spacedBy(Space.m),
     ) {
-        Surface(shape = CircleShape, color = Pacer.colors.tile2, contentColor = Pacer.colors.onTile, modifier = Modifier.size(120.dp)) {
-            Box(contentAlignment = Alignment.Center) { AppIcon(symbol, Modifier.size(48.dp)) }
-        }
-        Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = Pacer.colors.muted)
         if (action != null && onAction != null) PrimaryButton(action, onAction)
     }
 }
@@ -416,40 +411,6 @@ fun Picker(
     }
 }
 
-/** A delete control drawn as a plain ×, in a 48dp touch target. */
-@Composable
-fun RemoveButton(what: String, onClick: () -> Unit) {
-    val removeDescription = stringResource(R.string.component_remove_what, what)
-    PaletteTextButton(
-        onClick = onClick,
-        contentPadding = PaddingValues(0.dp),
-        shape = CircleShape,
-        modifier = Modifier.size(48.dp).semantics { contentDescription = removeDescription },
-    ) { AppIcon(AppIcons.Close) }
-}
-
-/** One row in a setup list (§6 List row): a title, an optional chip, a detail line in Figures, and a remove button. */
-@Composable
-fun ListItemRow(title: String, detail: String, tag: String? = null, warn: Boolean = false, onRemove: () -> Unit) {
-    ListGroup {
-        Row(Modifier.fillMaxWidth().padding(start = Space.l, top = Space.xs, bottom = Space.xs), verticalAlignment = Alignment.CenterVertically) {
-            AppIcon(AppIcons.Info, Modifier.padding(end = Space.m))
-            Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
-                    if (tag != null) Tag(tag, Modifier.padding(start = Space.s))
-                }
-                Text(
-                    detail,
-                    style = MaterialTheme.typography.bodySmall.merge(Figures),
-                    color = if (warn) Pacer.colors.warn else Pacer.colors.muted,
-                )
-            }
-            RemoveButton(title, onRemove)
-        }
-    }
-}
-
 /**
  * A status chip (§6): a pill in `labelSmall`, sentence case. On paper and surface it takes the accent's soft tint,
  * or warnSoft with [warn]; [onTile] puts it on a tile, as a surface pill at 70%.
@@ -472,16 +433,6 @@ fun Tag(text: String, modifier: Modifier = Modifier, warn: Boolean = false, onTi
         },
     ) {
         Text(text, style = MaterialTheme.typography.labelSmall, maxLines = 1, modifier = Modifier.padding(horizontal = Space.s, vertical = 2.dp))
-    }
-}
-
-/** The "Add a …" button at the foot of each list: a secondary pill. */
-@Composable
-fun AddButton(text: String, onClick: () -> Unit) {
-    val interaction = remember { MutableInteractionSource() }
-    Button(onClick = onClick, interactionSource = interaction, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).pressFeedback(interaction), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Pacer.colors.surfaceContainer, contentColor = Pacer.colors.ink)) {
-        AppIcon(AppIcons.Add, Modifier.padding(end = Space.s))
-        Text(text, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -535,35 +486,6 @@ fun ScreenList(padding: PaddingValues, spacing: Dp = Rhythm.section, content: La
         verticalArrangement = Arrangement.spacedBy(spacing),
         content = content,
     )
-}
-
-/** A heading over a run of rows, such as "Books" or a class name. */
-@Composable
-fun Heading(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text, style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onBackground, modifier = modifier.padding(top = Space.s).semantics { heading() },
-    )
-}
-
-/** A tappable row on its own list group: a title, a muted summary, and a chevron. With [warn] the summary is rust. */
-@Composable
-fun CardRow(title: String, detail: String, onClick: () -> Unit, warn: Boolean = false) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = Pacer.colors.surface,
-    ) {
-        Row(Modifier.heightIn(min = 48.dp).padding(horizontal = Space.l, vertical = Space.m), verticalAlignment = Alignment.CenterVertically) {
-            AppIcon(AppIcons.Info, Modifier.padding(end = Space.m))
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(detail, style = MaterialTheme.typography.bodySmall, color = if (warn) Pacer.colors.warn else Pacer.colors.muted)
-            }
-            AppIcon(AppIcons.ChevronRight, Modifier.padding(start = Space.s))
-        }
-    }
 }
 
 /** The dialog behind every "Add a …" button: [content] holds the fields, and Add stays off until [canAdd]. */

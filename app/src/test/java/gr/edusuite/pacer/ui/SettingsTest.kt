@@ -97,6 +97,13 @@ class SettingsTest {
         assertEquals(start, Hints.markSeen(start, " "))
     }
 
+    @Test fun showingTipsAgainDoesNotBringBackTheWhatsNewDeck() {
+        val seen = Hints.markSeen(Hints.markSeen(Settings(), "group.lessonMenu"), Hints.whatsNew("0.4.15"))
+        val reset = Hints.reset(seen)
+        assertFalse(Hints.seen(reset, "group.lessonMenu"))
+        assertTrue(Hints.seen(reset, Hints.whatsNew("0.4.15")))
+    }
+
     @Test fun sanitisingKeepsSeenTipsButDropsBlankIds() {
         assertEquals(setOf("a"), Settings(seenTips = setOf("a", "", " ")).sanitised().seenTips)
     }

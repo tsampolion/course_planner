@@ -429,13 +429,6 @@ class PacerViewModel(
         return true
     }
 
-    /** Shows another school year on Home. Another year's edits can no longer be undone from here. */
-    fun selectYear(id: String) {
-        if (id == data.activeYear || data.years.none { it.id == id }) return
-        clearHistory()
-        publish(data.copy(activeYear = id, activeClass = ""), Nav.root)
-    }
-
     /** Opens another year from the School year screen's switcher, and stays on School year for it. */
     fun switchYear(id: String) {
         if (id == data.activeYear || data.years.none { it.id == id }) return
@@ -517,7 +510,6 @@ class PacerViewModel(
     fun setTheme(v: ThemeMode) = editSettings { it.copy(theme = v) }
     fun setDefaultMins(v: Int) = editSettings { it.copy(lessonMins = v) }
     fun setDefaultPace(v: Double) = editSettings { it.copy(pace = v) }
-    fun setWelcomeSeen() = editSettings { it.copy(welcomeSeen = true) }
 
     /** The pin on a wide tablet's menu: kept open beside the screens, or collapsed behind ☰. */
     fun setDrawerPinned(v: Boolean) = editSettings { it.copy(drawerPinned = v) }
@@ -527,14 +519,14 @@ class PacerViewModel(
     fun turnOn(vararg modules: Module) = editSettings { it.copy(modules = it.features().on + modules) }
 
     /** The first choice of modules, from the Welcome presets. Ignored once a choice exists, so it can't take one away. */
-    fun chooseModules(modules: Set<Module>) = editSettings { if (it.modules == null) it.copy(modules = modules) else it }
+    fun chooseModules(modules: Set<Module>) = editSettings { it.withChosenModules(modules) }
 
     /**
      * Welcome is done: the chosen [modules] are kept (only if none were chosen before), Welcome counts as seen and the
      * What's new deck of [deckId] is skipped, since a fresh install has nothing new to be told.
      */
     fun finishWelcome(modules: Set<Module>, deckId: String) = editSettings { s ->
-        Hints.markSeen((if (s.modules == null) s.copy(modules = modules) else s).copy(welcomeSeen = true), deckId)
+        Hints.markSeen(s.withChosenModules(modules).copy(welcomeSeen = true), deckId)
     }
 
     fun markHintSeen(id: String) = editSettings { Hints.markSeen(it, id) }
@@ -972,7 +964,6 @@ class PacerViewModel(
     fun setLastPage(id: String, v: Int) = editBook(id, "blast:$id") { if (v in it.first..MAX_PAGE) it.copy(last = v) else it }
     fun setSkip(id: String, v: String) = editBook(id, "bskip:$id") { it.copy(skip = v) }
     fun setDue(id: String, v: LocalDate?) = editBook(id, "bdue:$id") { it.copy(due = v) }
-    fun setUnits(id: String, v: String) = editBook(id, "bunits:$id") { it.copy(units = v) }
 
     fun setLagLessons(v: Int) = editClass("class:lag") { it.copy(lagLessons = v.coerceIn(1, MAX_LAG_LESSONS)) }
 

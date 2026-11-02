@@ -130,3 +130,8 @@ fun Modifier.workReveal(id: String, index: Int, seen: MutableSet<String>): Modif
     }
     graphicsLayer { alpha = if (enabled) progress.value else 1f; translationY = if (enabled) MotionSpec.ROW_RISE_PX * (1f - progress.value) else 0f }
 }
+
+/** A lazy list item that slides to its new place, or snaps there when the system's animations are off. */
+@Composable
+fun androidx.compose.foundation.lazy.LazyItemScope.itemMotion(): Modifier =
+    if (animationsEnabled()) Modifier.animateItem() else Modifier

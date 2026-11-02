@@ -38,6 +38,8 @@ import gr.edusuite.pacer.data.BoundedText
 import gr.edusuite.pacer.data.megabytes
 import gr.edusuite.pacer.data.readBoundedText
 import gr.edusuite.pacer.data.backupFileName
+import gr.edusuite.pacer.data.ImportStep
+import gr.edusuite.pacer.data.importStep
 import gr.edusuite.pacer.data.modulesNeeded
 import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.SchoolYear
@@ -79,18 +81,16 @@ fun SettingsScreen(
     var whatsNew by rememberSaveable { mutableStateOf(false) }
     var howPacing by rememberSaveable { mutableStateOf(false) }
     val features = LocalFeatures.current
-    val version = remember {
-        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
-    }
+    val version = rememberVersionName()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentPadding = PaddingValues(start = Space.l, end = Space.l, top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Rhythm.section),
     ) {
-        if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, Modifier.animateItem()) }
+        if (vm.updatesEnabled) item(key = "updates") { UpdatesSection(vm, toast, itemMotion()) }
         item(key = "name") {
-            ListGroup(Modifier.animateItem()) {
+            ListGroup(itemMotion()) {
                 Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.m)) {
                     CommitField(
                         settings.name, vm::setName, stringResource(R.string.settings_your_name), Modifier.fillMaxWidth(),
@@ -102,7 +102,7 @@ fun SettingsScreen(
             }
         }
         item(key = "theme") {
-            Section(stringResource(R.string.settings_theme), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_theme), modifier = itemMotion()) {
                 // D10: the segmented switch ticks on its own.
                 SegmentedToggle(
                     THEMES.map { stringResource(it.second) },
@@ -113,19 +113,19 @@ fun SettingsScreen(
             }
         }
         item(key = "defaults") {
-            Section(stringResource(R.string.settings_new_classes), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_new_classes), modifier = itemMotion()) {
                 LinkRow(stringResource(R.string.settings_class_defaults), stringResource(R.string.settings_defaults_summary, settings.lessonMins, settings.pace.plain())) { defaults = true }
                 Hint(stringResource(R.string.settings_defaults_hint))
             }
         }
         item(key = "features") {
-            ListGroup(Modifier.animateItem()) {
-                LinkRow(stringResource(R.string.features_row), stringResource(R.string.features_row_detail, onCount(features), Module.entries.size), AppIcons.Settings) { featuresOpen = true }
+            ListGroup(itemMotion()) {
+                LinkRow(stringResource(R.string.features_row), stringResource(R.string.features_row_detail, onCount(features), Module.entries.size)) { featuresOpen = true }
             }
         }
         item(key = "backup") { BackupSection(yearCount, vm, toast, undoToast) }
         item(key = "help") {
-            Section(stringResource(R.string.settings_help), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_help), modifier = itemMotion()) {
                 Column {
                     LinkRow(stringResource(R.string.settings_getting_started), stringResource(R.string.settings_getting_started_detail)) { guide = true }
                     LinkRow(stringResource(R.string.settings_whats_new), stringResource(R.string.settings_whats_new_detail)) { whatsNew = true }
@@ -138,7 +138,7 @@ fun SettingsScreen(
             }
         }
         item(key = "about") {
-            Section(stringResource(R.string.settings_about), modifier = Modifier.animateItem()) {
+            Section(stringResource(R.string.settings_about), modifier = itemMotion()) {
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.bodyLarge)
                 LinkRow(stringResource(R.string.share_app_title), stringResource(R.string.share_app_detail), AppIcons.Share) { shareApp(context, toast) }
                 if (!vm.updatesEnabled) Text(version, style = MaterialTheme.typography.bodyMedium.merge(Figures))
@@ -158,7 +158,7 @@ fun SettingsScreen(
         }
     }
     if (guide) WelcomePage { guide = false }
-    if (whatsNew) WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), onChooseTools = { featuresOpen = true }, onFinish = { whatsNew = false })
+    if (whatsNew) WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), deckVariant(settings.features().on), onChooseTools = { featuresOpen = true }, onFinish = { whatsNew = false })
     if (featuresOpen) FeaturesSheet(features, { vm.turnOn(it) }, { featuresOpen = false })
     if (howPacing) PacerSheet(stringResource(R.string.settings_how_pacing), { howPacing = false }) {
         Note(stringResource(R.string.guide_schedule_note))
@@ -209,20 +209,27 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
 
     val settings by vm.settings.collectAsState()
     val needed = importing?.let { remember(it, settings.modules) { modulesNeeded(it, settings.features()) } }.orEmpty()
-    importing?.takeIf { needed.isNotEmpty() }?.let { _ ->
-        ModulesForImportDialog(needed, onTurnOn = { vm.turnOn(*needed.toTypedArray()) }, onDismiss = { importing = null })
-    }
-    importing?.takeIf { needed.isEmpty() }?.let { years ->
-        ImportDialog(
-            years, yearCount,
-            onAdd = { vm.addImportedYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_added, years.size, years.size)) },
-            onReplace = { vm.replaceAllYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_replaced, years.size, years.size)) },
-            onDismiss = { importing = null },
-        )
+    var agreed by remember(importing) { mutableStateOf(false) }
+    importing?.let { years ->
+        when (importStep(needed, agreed)) {
+            ImportStep.TURN_ON_TOOLS -> ModulesForImportDialog(needed, onTurnOn = { agreed = true }, onDismiss = { importing = null })
+            ImportStep.ADD_OR_REPLACE -> ImportDialog(
+                years, yearCount,
+                onAdd = {
+                    if (needed.isNotEmpty()) vm.turnOn(*needed.toTypedArray())
+                    vm.addImportedYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_added, years.size, years.size))
+                },
+                onReplace = {
+                    if (needed.isNotEmpty()) vm.turnOn(*needed.toTypedArray())
+                    vm.replaceAllYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_replaced, years.size, years.size))
+                },
+                onDismiss = { importing = null },
+            )
+        }
     }
 }
 
-/** Asked before an import whose data uses modules that are off. Turning them on leads to the usual import question. */
+/** Asked before an import whose data uses modules that are off. Agreeing leads to the usual import question, whose Add or Replace turns them on. */
 @Composable
 private fun ModulesForImportDialog(needed: Set<Module>, onTurnOn: () -> Unit, onDismiss: () -> Unit) {
     val names = needed.map { stringResource(it.namedRes()) }

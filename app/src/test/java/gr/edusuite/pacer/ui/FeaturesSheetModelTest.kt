@@ -29,8 +29,4 @@ class FeaturesSheetModelTest {
         assertEquals(4, onCount(Features.ALL))
         assertEquals(0, onCount(Features(emptySet())))
     }
-
-    @Test fun onlyMenuModulesPromiseAMenu() {
-        assertEquals(setOf(Module.PLANNING, Module.OUTPUT), Module.entries.filter { it.addsToGroupMenu() }.toSet())
-    }
 }

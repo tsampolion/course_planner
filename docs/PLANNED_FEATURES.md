@@ -167,7 +167,7 @@ Count only measured groups (`short == 0`) as on pace. Unmeasured groups need neu
 
 ### Matrix
 
-- **Themes:** both palettes, light and dark.
+- **Themes:** the three palettes, light and dark.
 - **Devices:** a compact phone, a large phone and a tablet, in portrait and landscape.
 - **Text:** 100%, 150% and 200%.
 - **Widths:** 599, 600, 839, 840 and 1024dp, plus split screen.
@@ -184,7 +184,7 @@ Count only measured groups (`short == 0`) as on pace. Unmeasured groups need neu
 ### Coverage gaps to close with tests
 
 - Failed writes and retry ([`SAVE_STATUS_BRIEF.md`](SAVE_STATUS_BRIEF.md)).
-- Midnight across screens: the engine side is covered (`PacerViewModelTest.midnightMovesPlansBankingAndRevisionDatesTogether`); the Compose screens are not.
+- Midnight across screens: the engine side is covered (`PacerViewModelTest.midnightMovesPlansAndRevisionDatesTogether`); the Compose screens are not.
 - Shared-control semantics (UI audit X12, X13).
 - Process and sheet restoration (streamlining S4).
 
@@ -267,7 +267,7 @@ Design the tablet as its own layout, not a wider phone. Ideas to settle with the
 
 ### The problem
 
-The app explains itself in small pieces: the first-run guide, the Tips sheet in a group's ⋮ menu, and hints on empty screens. There is no one place a teacher can open to look something up, and the menu has no Help row.
+The app explains itself in small pieces: the first-run guide, the Tips sheet in a group's ⋮ menu, and hints on empty screens. Settings has a Help section (Getting started, What's new, How pacing works, Show tips again), but there is no one place a teacher can open to look something up, and the ☰ menu has no Help row.
 
 ### Proposal
 
@@ -276,7 +276,7 @@ A Help feature, reached from the ☰ menu. Its content and shape are not decided
 - a short list of how-to topics (set up a class, tick lessons, fit to term, back up) written for teachers, not as a manual;
 - whether it reuses the first-run guide and the Tips text instead of repeating them (one home per fact);
 - whether it also explains the warnings and the pacing verdicts in plain words.
-- reusing the What's new `CardDeck` from [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md) as Help's frame, and its module cards as topics.
+- generalising the What's new deck (`WhatsNewDeck`) from [`FEATURE_MODULES_BRIEF.md`](FEATURE_MODULES_BRIEF.md) as Help's frame, and its module cards as topics.
 
 ### Open questions
 

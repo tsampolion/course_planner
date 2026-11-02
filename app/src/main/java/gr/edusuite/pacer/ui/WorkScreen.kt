@@ -10,7 +10,9 @@ import androidx.compose.material3.*
 import android.content.pm.ApplicationInfo
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,10 +40,6 @@ private fun AssignmentType.brick(): Brick = when (this) {
 fun workAssignmentTypes(features: Features, existing: AssignmentType? = null): List<AssignmentType> =
     listOf(AssignmentType.HOMEWORK, AssignmentType.WORKSHEET, AssignmentType.TEST)
         .filter { features.has(it.brick()) || it == existing }
-
-/** Work is off and the group has none saved: the page offers to turn Work on instead of an add button that is not there. */
-fun workOffOffer(features: Features, hasAssignments: Boolean): Boolean =
-    !hasAssignments && workAssignmentTypes(features).isEmpty()
 
 /** All stays first; saved work always has a filter, independent of creation availability. */
 fun workFilterTypes(features: Features, work: List<Assignment>): List<AssignmentType?> =
@@ -72,17 +70,22 @@ internal fun assignmentEdge(type: AssignmentType) = when (type) {
     AssignmentType.WORKSHEET -> Pacer.colors.edgeWorksheet
 }
 
+/** Work says once, above its list, that homework pages leave pacing when saved (UI audit B8). */
+fun homeworkRuleShown(work: List<Assignment>): Boolean = work.any { it.type == AssignmentType.HOMEWORK && it.pages.isNotEmpty() }
+
 @Composable
 internal fun AssignmentRow(a: Assignment, report: GroupReport, onOpen: () -> Unit, trailing: (@Composable RowScope.() -> Unit)? = null) {
     val pages = report.plan.books.mapNotNull { b -> a.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { "${b.name} ${collapse(it)}" } }
-    val details = listOf(assignmentTypeName(a.type)) + (if (a.completed) listOf(stringResource(R.string.pr6_done)) else emptyList()) + pages + listOfNotNull(
+    val details = listOf(assignmentTypeName(a.type)) + (if (a.completed) listOf(stringResource(R.string.homework_done)) else emptyList()) + pages + listOfNotNull(
         a.setOn?.let { stringResource(R.string.work_set_date, it.fmtShort()) },
         a.due?.let { stringResource(R.string.work_due_date, it.fmtShort()) },
         if (a.takesLesson && a.type != AssignmentType.HOMEWORK) stringResource(R.string.class_takes_lesson) else null,
-        if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) stringResource(R.string.pr6_homework_immediate) else null,
         a.note.takeIf { it.isNotBlank() },
     )
-    LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface), detail = details.joinToString(" · "),
+    // The rule shows once above Work's list; a screen reader still hears it on each homework row with pages.
+    val rule = stringResource(R.string.homework_pages_leave_pacing)
+    val spokenRule = if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) Modifier.semantics { stateDescription = rule } else Modifier
+    LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface).then(spokenRule), detail = details.joinToString(" · "),
         date = a.workDate()?.fmtShort(), edge = assignmentEdge(a.type), onClick = onOpen, trailing = trailing)
 }
 
@@ -119,15 +122,12 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Pacer.colors.accent, selectedLabelColor = Pacer.colors.onAccent, selectedLeadingIconColor = Pacer.colors.onAccent)) }
                 }
             }
-            if (sections.isEmpty() && workOffOffer(features, report.group.assignments.isNotEmpty())) item(key = "work-off") {
-                val confirm = rememberConfirmHaptic()
-                Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.l)) {
-                    Text(stringResource(R.string.work_off_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-                    PrimaryButton(stringResource(R.string.work_off_turn_on), { vm.turnOn(Module.WORK); confirm() }, Modifier.fillMaxWidth())
-                }
-            } else if (sections.isEmpty()) item {
+            if (homeworkRuleShown(sections.flatMap { it.assignments })) item(key = "homeworkRule") {
+                Hint(stringResource(R.string.homework_pages_leave_pacing), Modifier.padding(start = Space.l, end = Space.l, bottom = Rhythm.inSection).clearAndSetSemantics {})
+            }
+            if (sections.isEmpty()) item {
                 Column(Modifier.padding(Space.l)) {
-                    EmptyState(AppIcons.Homework, stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint),
+                    EmptyState(stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint),
                         if (canAdd) stringResource(R.string.work_add) else null) { adding = true }
                 }
             }
@@ -152,7 +152,7 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                                     PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) }
                                     PacerDropdownMenu(menu, { menu = false }) {
                                         if (a.type == AssignmentType.HOMEWORK) DropdownMenuItem(
-                                            text = { Text(stringResource(if (a.completed) R.string.pr6_mark_not_done else R.string.pr6_mark_done)) },
+                                            text = { Text(stringResource(if (a.completed) R.string.homework_mark_not_done else R.string.homework_mark_done)) },
                                             onClick = { menu = false; vm.saveAssignment(report.group.id, a.copy(completed = !a.completed)) },
                                         )
                                         DropdownMenuItem(text = { Text(stringResource(R.string.work_edit)) }, onClick = { menu = false; editing = a.id })

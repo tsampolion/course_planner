@@ -134,8 +134,8 @@ lesson hero (filled with the accent, including Homework due today and Set today)
 a Progress strip, the Pace track, a dated Due soon ledger, then Plan / Work /
 Stats / Settings pills. Progress, Pace track and Due soon sit in containers one
 `Space.l` apart. The strip is one line ("Lesson 14 of 40 · On pace") over a thin
-bar and opens Stats. Pills are 2 × 2 on phones, one row from 600dp and one column
-at large text. Plan retains the compact hero, source and calendar controls.
+bar and opens Stats. Pills are 2 × 2 on phones (three share one row when Work is
+off) and one column at large text; tablets show Plan instead of group home. Plan retains the compact hero, source and calendar controls.
 Tablets keep Plan in the detail pane, with Work, Stats and Settings one tap away. Group pages use the normal back stack; only group identity persists.
 
 Work uses one horizontally scrolling filter row (All, Homework, Tests,
@@ -200,12 +200,26 @@ layout. Native runtime/screenshot checks remain pending without a device.
 - **Every way out is the same:** ✕, Back, a tap outside and a swipe down. An untouched sheet closes at once; a changed draft asks Keep editing / Discard. Drafts are not kept after the app is closed.
 - **Motion** uses the sheet and scrim timings from `MotionSpec` and snaps when animations are off.
 
+## Polish of the modules launch (0.4.15.2)
+
+Approved by the owner on 2026-11-02 (UI audit polish, B2 to B9):
+
+- **What's new for a teacher with every tool on** is a tour: "Here is what Course Pacer can do." and, last, "All of these are on", with no button. It shows once for its release.
+- **Deletes name what they delete:** "Delete *name*?", what goes with it, Cancel and a Delete in the warning colour, in the house dialog (surface, extra-large corners, no tonal elevation).
+- **Three pills share one row** on a phone when Work is off; four stay 2 × 2.
+- **Hints never name a tool that is off**, and teacher copy never names the screen reader by its brand.
+- **One name, Features,** for the Settings row, its sheet and the deck.
+- **A test's or worksheet's note** is a second, muted line under its title on Plan and the hero, and follows the title in Print.
+- **Work says the homework rule once,** above its list; a screen reader hears it on each homework row with pages.
+- **Empty states are words and one action,** left-aligned where the list will be; no icon in a circle (X11).
+- **One day-off menu and one day chip** for School year, Group settings and Add group; a row with a menu opens it on a tap too.
+
 ## Plan redesign (0.4.6.0)
 
 - **One hue per kind in every mode** (proposal 4): each lesson kind keeps its hue family between light and dark, a worksheet has an ochre edge of its own, and a test is never the warning colour. `ContrastTest` checks the families, the distinctness of the seven edges and the 3:1 contrast.
 - **Day-number gutters:** each lesson row starts with a gutter of one width: the day number in figures over the weekday. Rows keep their height; the kind edge is the only colour.
 - **Tests and worksheets are full lessons:** as tall and as large as any lesson, with the kind word in bold. A day off stays slim.
-- **Hero buttons:** Done is the strong (dark) button in every mode and Homework is the second primary (D14). Both are 40dp so the box keeps its size. The hero's pages go two books to a line.
+- **Hero buttons:** Done is the strong (dark) button in every mode and Homework is the second primary (D14). Both are drawn 40dp tall inside a 48dp touch target (0.4.15.2). The hero's pages go two books to a line.
 - **Week and month controls** use round chevron pills, in one row with a label that opens the month picker.
 
 ## Group home redesign (0.4.5.0)

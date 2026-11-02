@@ -31,13 +31,13 @@ Each one records why a feature was built, and starts with a `Status:` line.
 - [EXTRA_LESSONS_BRIEF.md](EXTRA_LESSONS_BRIEF.md): date-pinned core-book extra lessons.
 - [GROUP_SETTINGS_BRIEF.md](GROUP_SETTINGS_BRIEF.md): group overrides, optional books, collections and sorting.
 - [ASSIGNMENTS_BRIEF.md](ASSIGNMENTS_BRIEF.md): group-owned Homework, Tests and Worksheets.
-- [HOMEWORK_BRIEF.md](HOMEWORK_BRIEF.md): lesson homework actions, pairing and date-based banking.
+- [HOMEWORK_BRIEF.md](HOMEWORK_BRIEF.md): lesson homework actions, pairing, the Done record, and homework pages leaving pacing when saved.
 - [UNITS_BRIEF.md](UNITS_BRIEF.md): optional linked book units, group overrides and revisions.
 - [UPDATES_BRIEF.md](UPDATES_BRIEF.md): the in-app update check against GitHub releases and its release contract.
 - [SAVE_STATUS_BRIEF.md](SAVE_STATUS_BRIEF.md): the save result, the lasting "not saved" notice, Retry, Export a copy and Try reading again.
 - [TIDY_FIT_BRIEF.md](TIDY_FIT_BRIEF.md): Tidy and Fit to term leave the teacher's hand-edited lessons and removed-book pages alone.
 - [AUTO_TICK_BRIEF.md](AUTO_TICK_BRIEF.md): lessons count as taught when their day has passed, "Lesson didn't happen" and the first-launch question.
-- [ONE_TODAY_BRIEF.md](ONE_TODAY_BRIEF.md): every plan the app builds reads the view model's one "today", so banking and revision dates follow midnight with the screens.
+- [ONE_TODAY_BRIEF.md](ONE_TODAY_BRIEF.md): every plan the app builds reads the view model's one "today", so plans and revision dates follow midnight with the screens.
 - [REMOVED_BOOK_HISTORY_BRIEF.md](REMOVED_BOOK_HISTORY_BRIEF.md): done lessons still show pages taught from a book the group dropped, and the schema-15 codec tests.
 - [PRINT_BRIEF.md](PRINT_BRIEF.md): the printed sheet wraps and turns landscape for many books, and Print offers only scopes with lessons.
 - [UI_AUDIT_BRIEF.md](UI_AUDIT_BRIEF.md): the UI/UX audit: findings per screen, proposed design-rule changes and the order of the fix pull requests.

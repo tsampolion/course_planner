@@ -164,9 +164,10 @@ fun GroupScreen(
     }
     // Supplementary pages are planned in the custom plan: from it, or from the proposed plan when there is none yet.
     val planSupplementary = plan.supplementaryBooks.isNotEmpty() && (customActions != null || (custom == null && canTick))
-    val actions = remember(lessons, g.id, plan.books, canTick, customActions) {
+    val actions = remember(lessons, g.id, g.assignments, plan.books, canTick, customActions) {
         LessonActions(
             bookNames = plan.books.map { it.name },
+            eventNotes = eventNotes(g),
             shortNames = classBookLabels(report.classBooks, plan.books),
             bookIds = plan.books.map { it.id },
             supplementary = plan.books.map { it.supplementary },
@@ -184,7 +185,7 @@ fun GroupScreen(
             editExtra = { extraDate = it.date.toString() },
             deleteExtra = { l -> l.extraId?.let { changed(vm.removeExtra(g.id, it), context.getString(R.string.extra_deleted)) } },
             addHomework = { homeworkDate = it.date.toString(); homeworkId = null },
-            toggleHomework = { changed(vm.saveAssignment(g.id, it.copy(completed = !it.completed)), context.getString(if (it.completed) R.string.pr6_mark_not_done else R.string.pr6_mark_done)) },
+            toggleHomework = { changed(vm.saveAssignment(g.id, it.copy(completed = !it.completed)), context.getString(if (it.completed) R.string.homework_mark_not_done else R.string.homework_mark_done)) },
             editHomework = { homeworkId = it.id; homeworkDate = null },
             deleteHomework = { changed(vm.removeAssignment(g.id, it.id), context.getString(R.string.work_deleted)) },
             notTaught = { notTaughtDate = it.date.toString() },
@@ -349,7 +350,7 @@ fun GroupScreen(
                             onNotNow = { vm.markHintSeen(offer.id) },
                         )
                         hintDone?.let { ModuleHintDone(ModuleHint.valueOf(it)) }
-                        if (lessons.isNotEmpty()) ShowOnceHint(Hints.LESSON_MENU, seenTips, stringResource(R.string.hint_lesson_menu), vm::markHintSeen)
+                        if (lessons.isNotEmpty()) ShowOnceHint(Hints.LESSON_MENU, seenTips, stringResource(lessonMenuHint(LocalFeatures.current)), vm::markHintSeen)
                         if (plan.books.isEmpty()) {
                             GuideCard(stringResource(R.string.group_add_books), stringResource(R.string.group_add_books_hint))
                         }
@@ -359,7 +360,7 @@ fun GroupScreen(
                     item(key = "empty") { Box(Modifier.padding(Space.l)) { Hint(stringResource(R.string.group_no_range)) } }
                 } else laterWeeks.forEach { section ->
                     item(key = "wb${section.start}", contentType = "week") {
-                        if (grouping == PlanGrouping.WEEKS) WeekHeader(section, Modifier.animateItem())
+                        if (grouping == PlanGrouping.WEEKS) WeekHeader(section, itemMotion())
                         else {
                             val month = YearMonth.from(section.start)
                             val name = month.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.ENGLISH))
@@ -369,7 +370,7 @@ fun GroupScreen(
                     items(section.items, key = { e -> e.key() }, contentType = { e -> if (e is Entry.Item && !e.lesson.blocked) "lesson" else "slim" }) { e ->
                         val ls = (e as? Entry.Item)?.lesson
                         val id = ls?.lessonId
-                        val ca = actions.custom
+                        val ca = actions.custom?.takeIf { dragShown(planBarMode(custom, LocalFeatures.current)) }
                         if (ls != null && !ls.blocked && ca != null && id != null) {
                             DraggableLesson(
                                 ls.index, ca.last, dragId == id, reveal,
@@ -385,7 +386,7 @@ fun GroupScreen(
                                 },
                             ) { grip -> LessonRow(ls, actions, grip, selected = e.date == chosen) }
                         } else {
-                            Box(Modifier.animateItem()) { EntryRow(e, actions, selected = e.date == chosen) }
+                            Box(itemMotion()) { EntryRow(e, actions, selected = e.date == chosen) }
                         }
                         unitWindows.filter { it.end == e.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                     }
@@ -399,7 +400,7 @@ fun GroupScreen(
         GroupSheet.TIPS -> PacerSheet(stringResource(R.string.group_tips), onSheetClose) {
             Note(stringResource(R.string.guide_schedule_note))
             Hint(stringResource(R.string.group_tick_hint))
-            if (custom != null) Hint(stringResource(R.string.custom_hint))
+            if (custom != null && tipsShowPlanEditor(planBarMode(custom, LocalFeatures.current))) Hint(stringResource(R.string.custom_hint))
         }
         GroupSheet.OWN_PACE -> OwnPaceSheet(report, { rate -> changed(vm.applyOwnPace(g.id, rate), context.getString(R.string.custom_created)) }, onSheetClose)
         GroupSheet.CATCH_UP -> CatchUpSheet(report, { boost -> changed(vm.applyCatchUp(g.id, boost), context.getString(R.string.warn_caught_up)) }, onSheetClose)

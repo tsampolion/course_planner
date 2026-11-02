@@ -47,6 +47,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
     padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onFix: () -> Unit, onOpen: (GroupDestination) -> Unit,
     yesterday: Lesson? = null, onYesterdayEdit: (Lesson) -> Unit = {}, onYesterdayNotTaught: (Lesson) -> Unit = {}) {
     val fixable = remember(report) { showsFix(progressLine(report).status, groupWarnings(report)) }
+    val features = LocalFeatures.current
     LazyColumn(contentPadding = PaddingValues(start = Space.l, end = Space.l,
         top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Rhythm.section)) {
@@ -70,7 +71,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
         if (report.plan.books.isNotEmpty() && unitProgress(report.plan, report.group).isEmpty()) item {
             RowGroup { Column(Modifier.padding(horizontal = Space.l, vertical = Space.m)) { PaceTrack(report, compact = true) { onOpen(GroupDestination.STATS) } } }
         }
-        item {
+        if (dueSoonShown(features)) item {
             RowGroup {
                 Column {
                     SectionHead(stringResource(R.string.work_due_soon), Modifier.padding(horizontal = Space.l))
@@ -137,12 +138,12 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
 @Composable
 internal fun GroupHomePills(showPlan: Boolean = true, onOpen: (GroupDestination) -> Unit) {
     val pills = groupDestinations(LocalFeatures.current).filter { showPlan || it != GroupDestination.PLAN }.map { it to it.titleRes() }
-    val layout = rememberHomePills()
+    val perLine = pillsPerLine(rememberHomePills(), pills.size)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        pills.chunked(layout.perLine()).forEach { line ->
+        pills.chunked(perLine).forEach { line ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                 line.forEach { (page, title) -> HomePill(stringResource(title), { onOpen(page) }, Modifier.weight(1f)) }
-                repeat(layout.perLine() - line.size) { Spacer(Modifier.weight(1f)) }
+                repeat(perLine - line.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }

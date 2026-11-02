@@ -191,3 +191,17 @@ fun planBarMode(custom: CustomPlan?, features: Features): PlanBarMode = when {
     else -> PlanBarMode.CATCH_UP_ONLY
 }
 
+/** Lessons can be dragged only where the plan editor shows; a plan written by a fix is changed by its own bar. */
+fun dragShown(mode: PlanBarMode): Boolean = mode == PlanBarMode.EDITOR
+
+/** The Tips sheet teaches long-press planning and the drag handle only where the plan editor shows. */
+fun tipsShowPlanEditor(mode: PlanBarMode): Boolean = mode == PlanBarMode.EDITOR
+
+/** The notes of a group's tests and worksheets by id, so a lesson can show what to study (UI audit B7). Homework keeps its own line. */
+fun eventNotes(g: gr.edusuite.pacer.model.Group): Map<String, String> =
+    g.assignments.filter { it.type != gr.edusuite.pacer.model.AssignmentType.HOMEWORK && it.note.isNotBlank() }
+        .associate { it.id to it.note.trim() }
+
+/** A test or worksheet in a compact list: its title, and its note after a colon when it has one. */
+fun eventLine(e: gr.edusuite.pacer.model.TestEvent, notes: Map<String, String>): String =
+    notes[e.id]?.let { "${e.name}: $it" } ?: e.name

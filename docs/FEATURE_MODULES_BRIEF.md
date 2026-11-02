@@ -1,6 +1,6 @@
 # Feature modules
 
-Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, and the launch (UI audit PR 8) is built in 0.4.15.0: Welcome presets, Settings › Features, two hints, What's new and the release name. Deck wording and the hint placement wait for the owner's check on a phone.
+Status: approved 2026-10-29 (design and order); the foundation (step 2) is built in 0.4.11.0, and the launch (UI audit PR 8) is built in 0.4.15.0: Welcome presets, Settings › Features, two hints, What's new and the release name. 0.4.15.2 closed the launch's gaps (Due soon, Print, Own pace and the drag handle follow their tools; the deck shows once; an import turns tools on only with Add or Replace). Not built: turning Planning tools on from the catch-up bar, and the release name in the update notice. Deck wording and the hint placement wait for the owner's check on a phone.
 
 A new teacher meets every tool at once. This feature lets them start with pacing alone and turn on more as they need it, and lets a teacher who only paces keep a lean app for good. Modules only ever turn on.
 
@@ -70,7 +70,7 @@ An install that already has data, or has seen Welcome, starts with every module 
 ## Turning a module on
 
 - **Settings › Features** is one row. Its sheet lists each module that is off with what it adds and a **Turn on** button; modules that are on read "On", with no switch. There is no way to turn one off.
-- **At the moment of need**, a one-line hint appears once, in place, under the control the teacher just used. Turning the module on there shows the new control in that spot, so the hint, the switch and the first use are two taps. Candidate triggers (open decision 1):
+- **At the moment of need**, a one-line hint appears once, in place, under the control the teacher just used. Turning the module on there shows the new control in that spot, so the hint, the switch and the first use are two taps. The two triggers (settled at launch):
   - pages recorded into a lesson that are already ahead of the plan → "Set these as homework? Turn on Work";
   - a lesson moved by hand twice through "Edit pages taught" → "Plan lessons yourself? Turn on Planning tools".
 - The sheet shows what each module produces: a small, real piece of the app (the Homework button, the ⋮ items), not an icon.
@@ -82,28 +82,30 @@ Backup › Import reads the file first. If it uses a module that is off (a pure 
 > This backup uses tests and planning tools. Turn them on to bring it in?
 > **Turn on and import** · **Cancel**
 
-Cancel imports nothing. The same words serve the teacher's own backup on a new phone. Android's own restore brings `settings.xml` back with `plans.json`, so the two stay in step; a restored file with no stored modules counts as an existing install.
+Turn on and import leads to the usual Add or Replace all question; the tools turn on only when the teacher chooses one, so Cancel at either step imports nothing and turns nothing on. The same words serve the teacher's own backup on a new phone. Android's own restore brings `settings.xml` back with `plans.json`, so the two stay in step; a restored file with no stored modules counts as an existing install.
 
 ## Warning fixes at every preset
 
-A fix that writes a custom plan works without Planning tools. While no lesson is planned by hand, Plan shows one slim bar instead of the plan editor: "Catch-up: 2 more pages a lesson until the group is back on pace" (or "A fix has adjusted this group's plan"), with **Back to the proposed plan**, which deletes the fix's plan with Undo. The editor appears once Planning tools are on, or once any group in the open year has a lesson planned by hand (data in use always shows). The launch adds a way to turn Planning tools on from the bar.
+A fix that writes a custom plan works without Planning tools. While no lesson is planned by hand, Plan shows one slim bar instead of the plan editor: "Catch-up: 2 more pages a lesson until the group is back on pace" (or "A fix has adjusted this group's plan"), with **Back to the proposed plan**, which deletes the fix's plan with Undo. The editor appears once Planning tools are on, or once any group in the open year has a lesson planned by hand (data in use always shows). A way to turn Planning tools on from the bar is planned but not built.
 
 ## What's new
 
-Teachers who update see a short card deck once. It is a reusable `CardDeck`, so Help (planned feature 12) can use the same frame.
+Teachers who update see a short card deck once, for the release that launched it; later updates and Show tips again do not bring it back. It is `WhatsNewDeck`, built for this deck; Help (planned feature 12) would have to generalise it to reuse the frame.
 
 1. "Hi {name}. Course Pacer can now start simple." Then: "Turn on only the tools you use. Swipe to see them." (No name: "Hi.")
 2. One card per module: its name, one line on what it is for, and a real fragment of the screen it adds to. A module that needs more gets a second card.
 3. "Choose in Settings › Features", with a button that opens the sheet and then returns to where the teacher was.
 
-The deck can be skipped from the first card and reopened from Settings › Help.
+A teacher who already has every tool on (every install that updated) gets a tour instead: "Hi {name}. Here is what Course Pacer can do." and, last, "All of these are on", with no button.
+
+The deck has no Skip (the owner's choice at launch); it can be reopened from Settings › What's new.
 
 ## Release names
 
 From the release that launches this feature, A and B releases (`0.A.0.0`, `0.x.B.0`) carry a title from English literature, classic or contemporary; a C release keeps the name of the release it fixes and never adds or changes one.
 
 - The name follows the date in the changelog heading: `## [0.4.13.0] - 2026-12-01 - Great Expectations`.
-- Names start early, with 0.4.14.0 “To the Lighthouse” (the palette release), before this feature launches. `release.yml` already puts a name in the GitHub release title (“Course Pacer 0.4.14.0 · To the Lighthouse”; a heading without one keeps “Course Pacer <version>”); the update notice and the What's new deck show it once this feature ships.
+- Names start early, with 0.4.14.0 “To the Lighthouse” (the palette release), before this feature launches. `release.yml` already puts a name in the GitHub release title (“Course Pacer 0.4.14.0 · To the Lighthouse”; a heading without one keeps “Course Pacer <version>”); the What's new deck and Settings' version label show it; the update notice does not yet.
 - Installed apps read only the tag and the APK name, `release.yml` finds notes by the `## [version]` prefix and `DocsTest` reads the bracket, so the update contract does not change.
 - Prefer titles that are not brands or series trademarks.
 
@@ -130,7 +132,7 @@ No new chrome at any preset: no badges, no locked or greyed items, no "upgrade" 
 4. Term set-up: core fields only; a module's fields appear where they are used.
 5. Discovering a tool: hint to first use in two taps, in place.
 6. Import or restore: one extra tap, only when a module is off.
-7. Updating: the deck is skippable and returns the teacher where they were.
+7. Updating: the deck is short and returns the teacher where they were.
 
 ## Motion and micro-interactions
 
@@ -186,7 +188,7 @@ No engine change, no schema change, no new dependency. Each step takes the versi
 - The modules are stored per phone; two phones can differ until the teacher turns the same ones on.
 - The Compose-only gates have no automated UI tests until planned feature 10.
 
-**Rebuild or evolve.** Evolve. The engine, model and data are pure Kotlin behind 536 tests that guard parity, schemas 1–15 and the web export; modules are a presentation concern that fits the existing seams. A rebuild would be right only for a platform move, a broken data format or an engine tangled with the UI.
+**Rebuild or evolve.** Evolve. The engine, model and data are pure Kotlin behind the unit tests that guard parity, schemas 1–15 and the web export; modules are a presentation concern that fits the existing seams. A rebuild would be right only for a platform move, a broken data format or an engine tangled with the UI.
 
 ## Fringe cases
 

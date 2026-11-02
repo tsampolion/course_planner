@@ -38,10 +38,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
@@ -142,6 +145,8 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                     if (next.extraId != null) Text(stringResource(R.string.extra_label), style = MaterialTheme.typography.labelMedium)
                     Text("${next.date.dayOfWeek.short()} ${next.date.fmtShort()}", style = MaterialTheme.typography.headlineSmall.merge(Figures))
                     if (next.events.isNotEmpty()) Text(next.events.joinToString(" · ") { it.name }, style = MaterialTheme.typography.bodyMedium)
+                    // A test's note says what to study, under its title (UI audit B7).
+                    next.events.mapNotNull { actions.eventNotes[it.id] }.takeIf { it.isNotEmpty() }?.let { Text(it.joinToString(" · "), style = MaterialTheme.typography.bodyMedium) }
                     if (next.note.isNotEmpty()) Text(next.note, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
                 }
             }
@@ -178,7 +183,7 @@ internal fun TodayBox(next: Lesson?, today: LocalDate, actions: LessonActions, o
                         // Two lines at most, and only as wide as the column beside the buttons, so the pages never run under them.
                         PagesLine(next, actions, onEdit)
                         Column(Modifier.clearAndSetSemantics {}) {
-                            val detail = (next.events.map { it.name } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
+                            val detail = (next.events.map { eventLine(it, actions.eventNotes) } + listOf(next.note).filter { it.isNotBlank() }).joinToString(" · ")
                             if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             HomeworkLines(next, actions, c.onAccent)
                         }
@@ -220,15 +225,15 @@ private fun PagesLine(next: Lesson, actions: LessonActions, onEdit: (() -> Unit)
     }
 }
 
-/** A button of the lesson box: a surface pill with ink content, drawn at [height] (the box does not grow for it). */
+/** A button of the lesson box: a pill drawn at [height] inside a touch target of at least 48dp; its icon wears [content]. */
 @Composable
 private fun HeroButton(text: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier, height: Dp, container: Color, content: Color, icon: @Composable () -> Unit) {
     Row(
-        modifier.height(height).alpha(if (enabled) 1f else .5f).clip(CircleShape).background(container)
+        modifier.minimumInteractiveComponentSize().height(height).alpha(if (enabled) 1f else .5f).clip(CircleShape).background(container)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick).padding(horizontal = Space.m),
         horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
     ) {
-        icon()
+        CompositionLocalProvider(LocalContentColor provides content) { icon() }
         Spacer(Modifier.width(Space.xs))
         Text(text, style = MaterialTheme.typography.labelLarge, color = content, maxLines = 1)
     }

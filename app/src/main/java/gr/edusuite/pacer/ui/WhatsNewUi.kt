@@ -55,7 +55,7 @@ import kotlinx.coroutines.launch
  * never closes the deck. The last card can open Features without leaving the deck.
  */
 @Composable
-fun WhatsNewDeck(name: String, releaseLabel: String, onChooseTools: () -> Unit, onFinish: () -> Unit) {
+fun WhatsNewDeck(name: String, releaseLabel: String, variant: DeckVariant, onChooseTools: () -> Unit, onFinish: () -> Unit) {
     val cards = remember { deckCards() }
     val pager = rememberPagerState { cards.size }
     val scope = rememberCoroutineScope()
@@ -79,7 +79,7 @@ fun WhatsNewDeck(name: String, releaseLabel: String, onChooseTools: () -> Unit, 
                         )
                     }
                     HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth(), pageSpacing = Space.m) { page ->
-                        DeckCardView(cards[page], name, onChooseTools)
+                        DeckCardView(cards[page], name, variant, onChooseTools)
                     }
                     Dots(cards.size, pager.currentPage, Modifier.align(Alignment.CenterHorizontally))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
@@ -100,16 +100,17 @@ fun WhatsNewDeck(name: String, releaseLabel: String, onChooseTools: () -> Unit, 
 private fun Dots(count: Int, current: Int, modifier: Modifier = Modifier) {
     val c = Pacer.colors
     val motion = animationsEnabled()
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(Space.s), verticalAlignment = Alignment.CenterVertically) {
         repeat(count) { i ->
-            val width by animateDpAsState(if (i == current) 20.dp else 6.dp, if (motion) Motion.work(MotionSpec.Step.PRESS) else Motion.work(MotionSpec.Step.PRESS, false))
-            Box(Modifier.height(6.dp).width(width).clip(CircleShape).background(if (i == current) c.accent else c.line))
+            // The current card's dot stretches to a short bar (FEATURE_MODULES_BRIEF, Motion): 8dp dots, a 24dp bar.
+            val width by animateDpAsState(if (i == current) Space.xl else Space.s, Motion.work(MotionSpec.Step.PRESS, motion))
+            Box(Modifier.height(Space.s).width(width).clip(CircleShape).background(if (i == current) c.accent else c.line))
         }
     }
 }
 
 @Composable
-private fun DeckCardView(card: DeckCard, name: String, onChooseTools: () -> Unit) {
+private fun DeckCardView(card: DeckCard, name: String, variant: DeckVariant, onChooseTools: () -> Unit) {
     val c = Pacer.colors
     Surface(
         Modifier.fillMaxSize(), shape = MaterialTheme.shapes.large, color = c.surface,
@@ -119,13 +120,16 @@ private fun DeckCardView(card: DeckCard, name: String, onChooseTools: () -> Unit
             when (card) {
                 DeckCard.HELLO -> {
                     val greeting = deckName(name)?.let { stringResource(R.string.deck_greeting_named, it) } ?: stringResource(R.string.deck_greeting)
-                    Text(stringResource(R.string.deck_hello, greeting), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-                    Text(stringResource(R.string.deck_hello_body), style = MaterialTheme.typography.bodyLarge, color = c.muted)
+                    val tour = variant == DeckVariant.TOUR
+                    Text(stringResource(if (tour) R.string.deck_tour_hello else R.string.deck_hello, greeting), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+                    Text(stringResource(if (tour) R.string.deck_tour_body else R.string.deck_hello_body), style = MaterialTheme.typography.bodyLarge, color = c.muted)
                 }
                 DeckCard.CHOOSE -> {
-                    Text(stringResource(R.string.deck_choose_title), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-                    Text(stringResource(R.string.deck_choose_body), style = MaterialTheme.typography.bodyLarge, color = c.muted)
-                    SecondaryButton(stringResource(R.string.deck_choose_button), onChooseTools, Modifier.fillMaxWidth())
+                    // With every tool already on there is nothing to choose, so the last card says so and offers no button.
+                    val tour = variant == DeckVariant.TOUR
+                    Text(stringResource(if (tour) R.string.deck_tour_end_title else R.string.deck_choose_title), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+                    Text(stringResource(if (tour) R.string.deck_tour_end_body else R.string.deck_choose_body), style = MaterialTheme.typography.bodyLarge, color = c.muted)
+                    if (!tour) SecondaryButton(stringResource(R.string.deck_choose_button), onChooseTools, Modifier.fillMaxWidth())
                 }
                 else -> {
                     val module = card.module!!
@@ -168,9 +172,9 @@ private fun Fragment(module: Module) {
                     FragmentRow(R.string.deck_frag_work_2, R.string.deck_frag_work_2d, c.edgeTest)
                 }
                 Module.BOOK_TOOLS -> {
-                    FragmentRow(R.string.deck_frag_book_1, R.string.deck_frag_book_1d, c.edgeEdited)
+                    FragmentRow(R.string.deck_frag_book_1, R.string.deck_frag_book_1d, null)
                     HorizontalDivider(color = c.line)
-                    FragmentRow(R.string.deck_frag_book_2, R.string.deck_frag_book_2d, c.edgeSupp)
+                    FragmentRow(R.string.deck_frag_book_2, R.string.deck_frag_book_2d, null)
                 }
                 Module.PLANNING -> listOf(R.string.deck_frag_plan_1, R.string.deck_frag_plan_2, R.string.deck_frag_plan_3).forEachIndexed { i, r ->
                     if (i > 0) HorizontalDivider(color = c.line)
@@ -186,10 +190,11 @@ private fun Fragment(module: Module) {
 }
 
 @Composable
-private fun FragmentRow(title: Int, detail: Int, edge: androidx.compose.ui.graphics.Color) {
+/** A ledger row as the app draws it; [edge] only for a real lesson kind (homework, a test), never borrowed for another meaning. */
+private fun FragmentRow(title: Int, detail: Int, edge: androidx.compose.ui.graphics.Color?) {
     val c = Pacer.colors
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(c.kindTint(edge)).padding(vertical = Space.m), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
-        Box(Modifier.width(4.dp).fillMaxHeight().background(edge, MaterialTheme.shapes.extraSmall))
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).then(if (edge != null) Modifier.background(c.kindTint(edge)) else Modifier).padding(vertical = Space.m), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+        if (edge != null) Box(Modifier.width(Space.xs).fillMaxHeight().background(edge, MaterialTheme.shapes.extraSmall))
         Column {
             Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(detail), style = MaterialTheme.typography.bodyMedium.merge(Figures), color = c.muted)
@@ -206,10 +211,10 @@ private fun MenuLine(label: Int) {
 @Composable
 fun UpdateDeck(settings: gr.edusuite.pacer.model.Settings, hasYears: Boolean, vm: PacerViewModel) {
     val version = rememberVersionName()
-    val id = deckId(version)
+    val id = deckId()
     var choosing by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
-    if (deckDue(settings.seenTips, id, existingInstall = settings.welcomeSeen || hasYears)) {
-        WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), onChooseTools = { choosing = true }, onFinish = { vm.markHintSeen(id) })
+    if (deckDue(settings.seenTips, existingInstall = settings.welcomeSeen || hasYears)) {
+        WhatsNewDeck(settings.name, releaseLabel(version, stringResource(R.string.release_name)), deckVariant(settings.features().on), onChooseTools = { choosing = true }, onFinish = { vm.markHintSeen(id) })
     }
     if (choosing) FeaturesSheet(LocalFeatures.current, { vm.turnOn(it) }, { choosing = false })
 }

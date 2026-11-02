@@ -25,8 +25,12 @@ fun groupMenuItems(
     add(GroupMenuItem.TIPS)
 }.filter { features.has(it.brick()) }
 
-/** The group's ⋮ appears only when a tool or fix gives it more than Tips; Tips alone lives in Settings › Help. */
-fun groupMenuShown(items: List<GroupMenuItem>): Boolean = items.any { it != GroupMenuItem.TIPS }
+/**
+ * The group's ⋮ appears only when a tool or fix gives it more than Tips on [page]; Tips alone lives in Settings › Help.
+ * Work leaves out the plan and lesson sections, so a catch-up alone gives Work no ⋮.
+ */
+fun groupMenuShown(items: List<GroupMenuItem>, page: GroupPage = GroupPage.HOME): Boolean =
+    groupMenuSections(items, page).any { (_, section) -> section.any { it != GroupMenuItem.TIPS } }
 
 /** The feature each ⋮ item belongs to; the menu offers only those [Features.has]. */
 fun GroupMenuItem.brick(): Brick = when (this) {

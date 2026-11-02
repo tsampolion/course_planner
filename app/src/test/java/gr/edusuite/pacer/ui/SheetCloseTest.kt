@@ -30,4 +30,9 @@ class SheetCloseTest {
         assertNotEquals(draftSignature(listOf("ab", "c")), draftSignature(listOf("a", "bc")))
         assertNotEquals(draftSignature(listOf(null)), draftSignature(listOf("null")))
     }
+
+    @Test fun aSheetThatJustSavedClosesWithoutAsking() {
+        assertEquals(SheetCloseDecision.CLOSE, sheetCloseDecision(dirty = true, via = SheetClose.BACK, saved = true))
+        assertEquals(SheetCloseDecision.ASK, sheetCloseDecision(dirty = true, via = SheetClose.BACK, saved = false))
+    }
 }

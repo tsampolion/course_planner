@@ -44,10 +44,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -138,9 +136,7 @@ fun HomeScreen(
         Column(Modifier.widthIn(max = 640.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.l)) {
             Header(name, year, today, onMenu, menuBadge)
             if (year == null) {
-                EmptyState(
-                    AppIcons.Add,
-                    stringResource(R.string.home_create_year),
+                EmptyState(stringResource(R.string.home_create_year),
                     stringResource(R.string.home_create_year_hint),
                     stringResource(R.string.home_new_year),
                 ) { adding = true }
@@ -158,7 +154,7 @@ fun HomeScreen(
     }
 
     if (welcome) {
-        val deck = deckId(rememberVersionName())
+        val deck = deckId()
         FirstRunPage(onStart = { vm.finishWelcome(it, deck); adding = true }, onNotNow = { vm.finishWelcome(it, deck) })
     }
     if (adding) NewYearDialog(data.years, vm) { adding = false }
