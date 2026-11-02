@@ -38,6 +38,8 @@ import gr.edusuite.pacer.data.BoundedText
 import gr.edusuite.pacer.data.megabytes
 import gr.edusuite.pacer.data.readBoundedText
 import gr.edusuite.pacer.data.backupFileName
+import gr.edusuite.pacer.data.ImportStep
+import gr.edusuite.pacer.data.importStep
 import gr.edusuite.pacer.data.modulesNeeded
 import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.SchoolYear
@@ -207,20 +209,27 @@ private fun BackupSection(yearCount: Int, vm: PacerViewModel, toast: (String) ->
 
     val settings by vm.settings.collectAsState()
     val needed = importing?.let { remember(it, settings.modules) { modulesNeeded(it, settings.features()) } }.orEmpty()
-    importing?.takeIf { needed.isNotEmpty() }?.let { _ ->
-        ModulesForImportDialog(needed, onTurnOn = { vm.turnOn(*needed.toTypedArray()) }, onDismiss = { importing = null })
-    }
-    importing?.takeIf { needed.isEmpty() }?.let { years ->
-        ImportDialog(
-            years, yearCount,
-            onAdd = { vm.addImportedYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_added, years.size, years.size)) },
-            onReplace = { vm.replaceAllYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_replaced, years.size, years.size)) },
-            onDismiss = { importing = null },
-        )
+    var agreed by remember(importing) { mutableStateOf(false) }
+    importing?.let { years ->
+        when (importStep(needed, agreed)) {
+            ImportStep.TURN_ON_TOOLS -> ModulesForImportDialog(needed, onTurnOn = { agreed = true }, onDismiss = { importing = null })
+            ImportStep.ADD_OR_REPLACE -> ImportDialog(
+                years, yearCount,
+                onAdd = {
+                    if (needed.isNotEmpty()) vm.turnOn(*needed.toTypedArray())
+                    vm.addImportedYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_added, years.size, years.size))
+                },
+                onReplace = {
+                    if (needed.isNotEmpty()) vm.turnOn(*needed.toTypedArray())
+                    vm.replaceAllYears(years); undoToast(context.resources.getQuantityString(R.plurals.settings_import_replaced, years.size, years.size))
+                },
+                onDismiss = { importing = null },
+            )
+        }
     }
 }
 
-/** Asked before an import whose data uses modules that are off. Turning them on leads to the usual import question. */
+/** Asked before an import whose data uses modules that are off. Agreeing leads to the usual import question, whose Add or Replace turns them on. */
 @Composable
 private fun ModulesForImportDialog(needed: Set<Module>, onTurnOn: () -> Unit, onDismiss: () -> Unit) {
     val names = needed.map { stringResource(it.namedRes()) }

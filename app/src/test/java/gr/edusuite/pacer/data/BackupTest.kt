@@ -112,6 +112,12 @@ class BackupTest {
         y.copy(classes = listOf(c.copy(groups = listOf(g) + c.groups.drop(1), lead = c.books[0].id)))
     }
 
+    @Test fun theToolsQuestionComesFirstAndTurnsNothingOnByItself() {
+        assertEquals(ImportStep.TURN_ON_TOOLS, importStep(setOf(Module.WORK), agreed = false))
+        assertEquals(ImportStep.ADD_OR_REPLACE, importStep(setOf(Module.WORK), agreed = true))
+        assertEquals(ImportStep.ADD_OR_REPLACE, importStep(emptySet(), agreed = false))
+    }
+
     @Test fun noQuestionWhenEverythingIsOn() {
         assertEquals(emptySet<Module>(), modulesNeeded(listOf(yearWithTests()), Features.ALL))
     }

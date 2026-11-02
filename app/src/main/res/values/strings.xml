@@ -365,12 +365,12 @@
     <string name="settings_import_modules_title">Turn on these tools?</string>
     <string name="settings_import_modules_body">This backup uses %1$s. Turn them on to bring it in?</string>
     <string name="settings_import_modules_confirm">Turn on and import</string>
-    <string name="settings_import_modules_two">%1$s and %2$s</string>
-    <string name="settings_import_modules_three">%1$s, %2$s and %3$s</string>
+    <string name="settings_import_modules_two">%1$s, and %2$s</string>
+    <string name="settings_import_modules_three">%1$s, %2$s, and %3$s</string>
     <string name="module_work_named">homework and tests</string>
     <string name="module_book_tools_named">book tools</string>
     <string name="module_planning_named">planning tools</string>
-    <string name="module_output_named">print and share</string>
+    <string name="module_output_named">print, copy and share</string>
     <string name="settings_no_picker">This phone has no file picker.</string>
     <string name="guide_step_1_title">School year</string>
     <string name="guide_step_1_detail">Its first and last teaching day, and the days off.</string>
@@ -1008,7 +1008,7 @@
     <string name="preset_choose_summary_none">Just pacing</string>
     <string name="features_row">Features</string>
     <string name="features_row_detail">%1$d of %2$d on. Turn on more when you need them.</string>
-    <string name="features_title">Tools</string>
+    <string name="features_title">Features</string>
     <string name="features_note">Once a tool is on, it stays on.</string>
     <string name="features_on">On</string>
     <string name="features_turn_on">Turn on</string>

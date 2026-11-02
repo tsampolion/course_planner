@@ -98,3 +98,13 @@ fun addYears(current: List<SchoolYear>, incoming: List<SchoolYear>): List<School
  */
 fun modulesNeeded(incoming: List<SchoolYear>, features: Features): Set<Module> =
     Module.entries.filterTo(linkedSetOf()) { it in modulesInUse(incoming) && it !in features.on }
+
+/** The import's questions in order: turn on the tools a file needs, then Add or Replace all. */
+enum class ImportStep { TURN_ON_TOOLS, ADD_OR_REPLACE }
+
+/**
+ * Which question shows. Agreeing to turn the tools on only moves to Add or Replace; the tools turn on when the teacher
+ * chooses one, so Cancel there leaves them off (`docs/FEATURE_MODULES_BRIEF.md`, Imports).
+ */
+fun importStep(needed: Set<Module>, agreed: Boolean): ImportStep =
+    if (needed.isNotEmpty() && !agreed) ImportStep.TURN_ON_TOOLS else ImportStep.ADD_OR_REPLACE
