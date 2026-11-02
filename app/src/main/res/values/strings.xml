@@ -1074,8 +1074,6 @@
     <string name="deck_frag_out_1">Print</string>
     <string name="deck_frag_out_2">Copy</string>
     <string name="deck_frag_out_3">Share</string>
-    <string name="work_off_title">Give this group homework and tests?</string>
-    <string name="work_off_turn_on">Turn on Work</string>
     <string name="settings_how_pacing">How pacing works</string>
     <string name="settings_how_pacing_detail">The schedule, and how ticking pages works.</string>
     <string name="settings_whats_new">What\'s new</string>

@@ -39,10 +39,6 @@ fun workAssignmentTypes(features: Features, existing: AssignmentType? = null): L
     listOf(AssignmentType.HOMEWORK, AssignmentType.WORKSHEET, AssignmentType.TEST)
         .filter { features.has(it.brick()) || it == existing }
 
-/** Work is off and the group has none saved: the page offers to turn Work on instead of an add button that is not there. */
-fun workOffOffer(features: Features, hasAssignments: Boolean): Boolean =
-    !hasAssignments && workAssignmentTypes(features).isEmpty()
-
 /** All stays first; saved work always has a filter, independent of creation availability. */
 fun workFilterTypes(features: Features, work: List<Assignment>): List<AssignmentType?> =
     listOf(null, AssignmentType.HOMEWORK, AssignmentType.TEST, AssignmentType.WORKSHEET)
@@ -119,13 +115,7 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Pacer.colors.accent, selectedLabelColor = Pacer.colors.onAccent, selectedLeadingIconColor = Pacer.colors.onAccent)) }
                 }
             }
-            if (sections.isEmpty() && workOffOffer(features, report.group.assignments.isNotEmpty())) item(key = "work-off") {
-                val confirm = rememberConfirmHaptic()
-                Column(Modifier.padding(Space.l), verticalArrangement = Arrangement.spacedBy(Space.l)) {
-                    Text(stringResource(R.string.work_off_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-                    PrimaryButton(stringResource(R.string.work_off_turn_on), { vm.turnOn(Module.WORK); confirm() }, Modifier.fillMaxWidth())
-                }
-            } else if (sections.isEmpty()) item {
+            if (sections.isEmpty()) item {
                 Column(Modifier.padding(Space.l)) {
                     EmptyState(AppIcons.Homework, stringResource(R.string.work_empty), stringResource(R.string.work_empty_hint),
                         if (canAdd) stringResource(R.string.work_add) else null) { adding = true }

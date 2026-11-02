@@ -15,3 +15,12 @@ fun featuresOf(settings: Settings, data: AppData): Features {
 
 /** What the screens may show. Previews and tests outside [PacerApp] see every brick. */
 val LocalFeatures = staticCompositionLocalOf { Features.ALL }
+
+/** Group home's Due soon belongs to Work: it shows with Work, or while tests or homework are saved. */
+fun dueSoonShown(f: Features): Boolean = f.has(Brick.HOMEWORK) || f.has(Brick.TESTS)
+
+/** Print or save PDF on Class and School year belongs to Output, like the group ⋮'s Print. */
+fun printShown(f: Features): Boolean = f.has(Brick.PRINT)
+
+/** Stats' Pace needed opens My own pace, a Planning tool. */
+fun ownPaceShown(f: Features): Boolean = f.has(Brick.OWN_PACE)

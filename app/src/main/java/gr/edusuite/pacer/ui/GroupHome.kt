@@ -47,6 +47,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
     padding: PaddingValues, onDone: () -> Unit, onPagesTaught: () -> Unit, onFix: () -> Unit, onOpen: (GroupDestination) -> Unit,
     yesterday: Lesson? = null, onYesterdayEdit: (Lesson) -> Unit = {}, onYesterdayNotTaught: (Lesson) -> Unit = {}) {
     val fixable = remember(report) { showsFix(progressLine(report).status, groupWarnings(report)) }
+    val features = LocalFeatures.current
     LazyColumn(contentPadding = PaddingValues(start = Space.l, end = Space.l,
         top = padding.calculateTopPadding() + Space.m, bottom = padding.calculateBottomPadding() + Space.xxl),
         verticalArrangement = Arrangement.spacedBy(Rhythm.section)) {
@@ -70,7 +71,7 @@ internal fun GroupHome(report: GroupReport, next: Lesson?, today: LocalDate, act
         if (report.plan.books.isNotEmpty() && unitProgress(report.plan, report.group).isEmpty()) item {
             RowGroup { Column(Modifier.padding(horizontal = Space.l, vertical = Space.m)) { PaceTrack(report, compact = true) { onOpen(GroupDestination.STATS) } } }
         }
-        item {
+        if (dueSoonShown(features)) item {
             RowGroup {
                 Column {
                     SectionHead(stringResource(R.string.work_due_soon), Modifier.padding(horizontal = Space.l))

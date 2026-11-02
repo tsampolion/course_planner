@@ -191,3 +191,7 @@ fun planBarMode(custom: CustomPlan?, features: Features): PlanBarMode = when {
     else -> PlanBarMode.CATCH_UP_ONLY
 }
 
+/** Lessons can be dragged only where the plan editor shows; a plan written by a fix is changed by its own bar. */
+fun dragShown(mode: PlanBarMode): Boolean = mode == PlanBarMode.EDITOR
+
+

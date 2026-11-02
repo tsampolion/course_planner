@@ -183,7 +183,7 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
         }
         item(key = "print") {
             val ui by vm.state.collectAsState()
-            ui.data.year?.let { PrintRow(it, ui.data.activeClass) }
+            if (printShown(LocalFeatures.current)) ui.data.year?.let { PrintRow(it, ui.data.activeClass) }
         }
         item(key = "delete") {
             FootActions(

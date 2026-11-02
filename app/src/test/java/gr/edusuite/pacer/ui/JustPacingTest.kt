@@ -31,13 +31,31 @@ class JustPacingTest {
         assertTrue(groupMenuShown(groupMenuItems(true, false, 1, false, features = Features.ALL)))
     }
 
-    @Test fun workOffersToTurnOnWorkOnlyWhenNothingCouldBeAdded() {
-        assertTrue(workOffOffer(none, hasAssignments = false))
-        assertFalse(workOffOffer(Features(setOf(Module.WORK)), hasAssignments = false))
+    @Test fun onWorkTheMenuIsAbsentWhenOnlyTipsWouldBeOnThatPage() {
+        val items = groupMenuItems(true, false, 1, false, catchUp = true, features = Features(setOf(Module.WORK)))
+        assertTrue(groupMenuShown(items, GroupPage.PLAN))
+        assertFalse(groupMenuShown(items, GroupPage.WORK))
     }
 
-    @Test fun savedWorkAlwaysShowsAndNeverShowsTheOffer() {
-        assertFalse(workOffOffer(none, hasAssignments = true))
-        assertFalse(workOffOffer(Features(emptySet(), inUse = setOf(Brick.HOMEWORK)), hasAssignments = false))
+    @Test fun dueSoonFollowsWorkOrSavedWork() {
+        assertFalse(dueSoonShown(none))
+        assertTrue(dueSoonShown(Features(setOf(Module.WORK))))
+        assertTrue(dueSoonShown(Features(emptySet(), inUse = setOf(Brick.TESTS))))
+    }
+
+    @Test fun printRowsFollowOutput() {
+        assertFalse(printShown(none))
+        assertTrue(printShown(Features(setOf(Module.OUTPUT))))
+    }
+
+    @Test fun paceNeededOpensOwnPaceOnlyWithPlanningTools() {
+        assertFalse(ownPaceShown(none))
+        assertTrue(ownPaceShown(Features(setOf(Module.PLANNING))))
+    }
+
+    @Test fun aFixOnlyPlanHasNoDragHandlesWithoutPlanningTools() {
+        assertFalse(dragShown(PlanBarMode.CATCH_UP_ONLY))
+        assertFalse(dragShown(PlanBarMode.NONE))
+        assertTrue(dragShown(PlanBarMode.EDITOR))
     }
 }

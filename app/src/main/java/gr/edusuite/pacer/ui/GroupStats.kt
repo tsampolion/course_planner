@@ -108,7 +108,7 @@ fun GroupStats(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
             if (showingMine) 0 else 1, { showingMine = it == 0 },
         )
         UnitProgressStrip(shown)
-        FigureStrip(shown) { ownPace = true }
+        FigureStrip(shown, { ownPace = true }.takeIf { ownPaceShown(LocalFeatures.current) })
         if (plan.books.isNotEmpty()) {
             PaceTrack(shown) { bookId = it }
             if (plan.leadBook() != null) ShowOnceHint(Hints.PACE_TRACK, seenTips, stringResource(R.string.hint_pace_track), vm::markHintSeen)
@@ -172,7 +172,7 @@ internal fun VerdictHeading(report: GroupReport) {
 /** Lessons left, Pages left and Pace needed in one divided strip. Pace keeps two decimals, and only here. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun FigureStrip(report: GroupReport, onOwnPace: () -> Unit) {
+private fun FigureStrip(report: GroupReport, onOwnPace: (() -> Unit)?) {
     val stats = statsFigures(report)
     val ownLabel = stringResource(R.string.stats_own_pace)
     val figures = listOf(
@@ -185,7 +185,7 @@ private fun FigureStrip(report: GroupReport, onOwnPace: () -> Unit) {
         BoxWithConstraints {
             val stacked = large || maxWidth < 280.dp
             val cell = @Composable { f: Triple<String, String, String?>, m: Modifier ->
-                Column(m.then(if (f == figures.last()) Modifier.combinedClickable(onClick = onOwnPace, onLongClickLabel = ownLabel, onLongClick = onOwnPace).semantics { customActions = listOf(CustomAccessibilityAction(ownLabel) { onOwnPace(); true }) } else Modifier).padding(Space.m).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(m.then(if (f == figures.last() && onOwnPace != null) Modifier.combinedClickable(onClick = onOwnPace, onLongClickLabel = ownLabel, onLongClick = onOwnPace).semantics { customActions = listOf(CustomAccessibilityAction(ownLabel) { onOwnPace(); true }) } else Modifier).padding(Space.m).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(f.first, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted)
                     AnimatedFigure(f.second, style = MaterialTheme.typography.headlineSmall.merge(Figures))
                     f.third?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = Pacer.colors.muted) }

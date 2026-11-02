@@ -369,7 +369,7 @@ fun GroupScreen(
                     items(section.items, key = { e -> e.key() }, contentType = { e -> if (e is Entry.Item && !e.lesson.blocked) "lesson" else "slim" }) { e ->
                         val ls = (e as? Entry.Item)?.lesson
                         val id = ls?.lessonId
-                        val ca = actions.custom
+                        val ca = actions.custom?.takeIf { dragShown(planBarMode(custom, LocalFeatures.current)) }
                         if (ls != null && !ls.blocked && ca != null && id != null) {
                             DraggableLesson(
                                 ls.index, ca.last, dragId == id, reveal,

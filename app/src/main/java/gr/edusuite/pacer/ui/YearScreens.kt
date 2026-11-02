@@ -84,6 +84,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
     val confirmSwitch = rememberSetupConfirmation(R.string.pr6_undo_warning)
     val ui by vm.state.collectAsState()
     val context = LocalContext.current
+    val features = LocalFeatures.current
     val tick = rememberSegmentHaptic()
     var editingDay by rememberSaveable { mutableStateOf<String?>(null) }
     var adding by rememberSaveable { mutableStateOf(false) }
@@ -162,7 +163,7 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 Hint(stringResource(R.string.year_holidays_hint))
             }
         }
-        item(key = "print") { PrintRow(year, null) }
+        if (printShown(features)) item(key = "print") { PrintRow(year, null) }
         item(key = "delete") {
             FootActions(
                 start = stringResource(R.string.home_rename) to { renaming = true },
