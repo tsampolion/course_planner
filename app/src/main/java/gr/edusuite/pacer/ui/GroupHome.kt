@@ -138,12 +138,12 @@ internal fun ProgressStrip(report: GroupReport, onFix: (() -> Unit)? = null, onO
 @Composable
 internal fun GroupHomePills(showPlan: Boolean = true, onOpen: (GroupDestination) -> Unit) {
     val pills = groupDestinations(LocalFeatures.current).filter { showPlan || it != GroupDestination.PLAN }.map { it to it.titleRes() }
-    val layout = rememberHomePills()
+    val perLine = pillsPerLine(rememberHomePills(), pills.size)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s)) {
-        pills.chunked(layout.perLine()).forEach { line ->
+        pills.chunked(perLine).forEach { line ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                 line.forEach { (page, title) -> HomePill(stringResource(title), { onOpen(page) }, Modifier.weight(1f)) }
-                repeat(layout.perLine() - line.size) { Spacer(Modifier.weight(1f)) }
+                repeat(perLine - line.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }

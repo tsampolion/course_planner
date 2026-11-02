@@ -56,6 +56,9 @@ fun PillLayout.perLine(): Int = when (this) {
     PillLayout.COLUMN -> 1
 }
 
+/** How many of [count] pills share a line: three at Just pacing sit in one row on a phone rather than leave a cell empty (UI audit B4). */
+fun pillsPerLine(layout: PillLayout, count: Int): Int = if (layout == PillLayout.GRID_2X2 && count == 3) 3 else layout.perLine()
+
 @Composable
 fun rememberHomePills(): PillLayout {
     val density = LocalDensity.current
