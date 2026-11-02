@@ -6,6 +6,8 @@ import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.model.Module
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class ModuleHintsTest {
@@ -53,5 +55,11 @@ class ModuleHintsTest {
     @Test fun eachHintTurnsOnItsOwnModule() {
         assertEquals(Module.WORK, ModuleHint.WORK.module)
         assertEquals(Module.PLANNING, ModuleHint.PLANNING.module)
+    }
+
+    @Test fun theToolTurnedOnFromAHintArrivesWhereItIsUsed() {
+        assertTrue(arrives(ModuleHint.WORK.name, gr.edusuite.pacer.model.Module.WORK))
+        assertFalse(arrives(ModuleHint.WORK.name, gr.edusuite.pacer.model.Module.PLANNING))
+        assertFalse(arrives(null, gr.edusuite.pacer.model.Module.WORK))
     }
 }
