@@ -123,4 +123,10 @@ class ScreensModelTest {
         assertEquals(listOf(listOf("a", "b"), listOf("c")), sections.map { section -> section.classes.map { it.classId } })
     }
 
+    @Test fun editingAOneDayDayOffStartsWithNoEndDate() {
+        val day = LocalDate.of(2026, 11, 5)
+        assertNull(closureEndText(Closure("c", "Strike", day, day, ALL_GROUPS)))
+        assertEquals("2026-11-07", closureEndText(Closure("c", "Trip", day, day.plusDays(2), ALL_GROUPS)))
+        assertNull(closureEndText(null))
+    }
 }

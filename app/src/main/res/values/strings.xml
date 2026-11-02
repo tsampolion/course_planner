@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pr6_mark_done_named">Mark done: %1$s</string>
-    <string name="pr6_mark_not_done_named">Mark not done: %1$s</string>
-    <string name="pr6_repace_preserves">Re-pacing keeps edited lessons unchanged. A warning can remain when those lessons or the available teaching time prevent a full repair.</string>
-    <string name="pr6_delete_confirmation">Delete this item and its contents?</string>
-    <string name="pr6_continue">Continue</string>
-    <string name="pr6_undo_warning">Changing school years clears Undo. Continue?</string>
-    <string name="pr6_lesson_days">Lesson days</string>
-    <string name="pr6_day_range">The end date must be on or after the start date.</string>
-    <string name="pr6_done">Done</string>
-    <string name="pr6_mark_done">Mark done</string>
-    <string name="pr6_mark_not_done">Mark not done</string>
-    <string name="pr6_homework_immediate">These pages are already out of future pacing; marking done does not change pacing.</string>
+    <string name="homework_mark_done_named">Mark done: %1$s</string>
+    <string name="homework_mark_not_done_named">Mark not done: %1$s</string>
+    <string name="custom_repace_keeps_edited">Re-pacing keeps edited lessons unchanged. A warning can remain when those lessons or the available teaching time prevent a full repair.</string>
+    <string name="setup_delete_title">Delete %1$s?</string>
+    <string name="setup_delete">Delete</string>
+    <string name="setup_delete_year_body">Its classes and groups go too. Undo brings it back.</string>
+    <string name="setup_delete_class_body">Its groups go too. Undo brings it back.</string>
+    <string name="setup_delete_group_body">Its lessons and work go too. Undo brings it back.</string>
+    <string name="setup_continue">Continue</string>
+    <string name="year_switch_clears_undo">Changing school years clears Undo. Continue?</string>
+    <string name="group_lesson_days">Lesson days</string>
+    <string name="day_off_range_error">The end date must be on or after the start date.</string>
+    <string name="homework_done">Done</string>
+    <string name="homework_mark_done">Mark done</string>
+    <string name="homework_mark_not_done">Mark not done</string>
+    <string name="homework_pages_leave_pacing">These pages are already out of future pacing; marking done does not change pacing.</string>
     <string name="group_settings_book_used">Used by this group</string>
     <string name="group_settings_book_not_used">Not used by this group</string>
     <string name="group_settings_use_book">Use %1$s</string>

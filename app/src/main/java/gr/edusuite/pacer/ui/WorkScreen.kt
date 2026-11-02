@@ -71,11 +71,11 @@ internal fun assignmentEdge(type: AssignmentType) = when (type) {
 @Composable
 internal fun AssignmentRow(a: Assignment, report: GroupReport, onOpen: () -> Unit, trailing: (@Composable RowScope.() -> Unit)? = null) {
     val pages = report.plan.books.mapNotNull { b -> a.pages[b.id]?.takeIf { it.isNotEmpty() }?.let { "${b.name} ${collapse(it)}" } }
-    val details = listOf(assignmentTypeName(a.type)) + (if (a.completed) listOf(stringResource(R.string.pr6_done)) else emptyList()) + pages + listOfNotNull(
+    val details = listOf(assignmentTypeName(a.type)) + (if (a.completed) listOf(stringResource(R.string.homework_done)) else emptyList()) + pages + listOfNotNull(
         a.setOn?.let { stringResource(R.string.work_set_date, it.fmtShort()) },
         a.due?.let { stringResource(R.string.work_due_date, it.fmtShort()) },
         if (a.takesLesson && a.type != AssignmentType.HOMEWORK) stringResource(R.string.class_takes_lesson) else null,
-        if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) stringResource(R.string.pr6_homework_immediate) else null,
+        if (a.type == AssignmentType.HOMEWORK && a.pages.isNotEmpty()) stringResource(R.string.homework_pages_leave_pacing) else null,
         a.note.takeIf { it.isNotBlank() },
     )
     LedgerRow(assignmentTitle(a), Modifier.background(Pacer.colors.surface), detail = details.joinToString(" · "),
@@ -142,7 +142,7 @@ fun WorkScreen(report: GroupReport, vm: PacerViewModel, padding: PaddingValues, 
                                     PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) }
                                     PacerDropdownMenu(menu, { menu = false }) {
                                         if (a.type == AssignmentType.HOMEWORK) DropdownMenuItem(
-                                            text = { Text(stringResource(if (a.completed) R.string.pr6_mark_not_done else R.string.pr6_mark_done)) },
+                                            text = { Text(stringResource(if (a.completed) R.string.homework_mark_not_done else R.string.homework_mark_done)) },
                                             onClick = { menu = false; vm.saveAssignment(report.group.id, a.copy(completed = !a.completed)) },
                                         )
                                         DropdownMenuItem(text = { Text(stringResource(R.string.work_edit)) }, onClick = { menu = false; editing = a.id })

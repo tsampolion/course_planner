@@ -81,7 +81,8 @@ internal fun dayOffDates(from: LocalDate, to: LocalDate): String =
 @Composable
 fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewModel, padding: PaddingValues, toast: (String) -> Unit, undoToast: (String) -> Unit, onDeleted: (String) -> Unit) {
     val confirmDelete = rememberSetupConfirmation()
-    val confirmSwitch = rememberSetupConfirmation(R.string.pr6_undo_warning)
+    val confirmSwitch = rememberSetupConfirmation()
+    val switchAsk = SetupConfirm(null, stringResource(R.string.year_switch_clears_undo), stringResource(R.string.setup_continue), destructive = false)
     val ui by vm.state.collectAsState()
     val context = LocalContext.current
     val features = LocalFeatures.current
@@ -104,9 +105,9 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                 verticalArrangement = Arrangement.Center,
             ) {
                 sorted.forEach { y ->
-                    YearChip(y.name.ifBlank { stringResource(R.string.home_year) }, y.id == year.id) { tick(); if (y.id != year.id && ui.undoDepth > 0) confirmSwitch { vm.switchYear(y.id) } else vm.switchYear(y.id) }
+                    YearChip(y.name.ifBlank { stringResource(R.string.home_year) }, y.id == year.id) { tick(); if (y.id != year.id && ui.undoDepth > 0) confirmSwitch(switchAsk) { vm.switchYear(y.id) } else vm.switchYear(y.id) }
                 }
-                PaletteTextButton(onClick = { if (ui.undoDepth > 0) confirmSwitch { newYear = true } else newYear = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                PaletteTextButton(onClick = { if (ui.undoDepth > 0) confirmSwitch(switchAsk) { newYear = true } else newYear = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                     AppIcon(AppIcons.Add, Modifier.size(18.dp).padding(end = Space.xs))
                     Text(stringResource(R.string.home_new_year), style = MaterialTheme.typography.labelLarge, color = Pacer.colors.accentText)
                 }
@@ -141,13 +142,10 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
                         SwipeRow(title, remove) {
                             var menu by remember { mutableStateOf(false) }
                             Box {
-                                LedgerRow(title, detail = who, date = dayOffDates(minOf(c.from, c.to), maxOf(c.from, c.to)), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface), onLongClick = { menu = true }) {
+                                LedgerRow(title, detail = who, date = dayOffDates(minOf(c.from, c.to), maxOf(c.from, c.to)), edge = Pacer.colors.edgeDayOff, modifier = Modifier.background(Pacer.colors.surface), onLongClick = { menu = true }, longClickLabel = stringResource(R.string.component_options)) {
                                     PillIconButton(stringResource(R.string.rows_options, title), { menu = true }) { AppIcon(AppIcons.MoreVert) }
                                 }
-                                PacerDropdownMenu(menu, { menu = false }) {
-                                    DropdownMenuItem(text = { Text(stringResource(R.string.class_edit)) }, onClick = { menu = false; editingDay = c.id })
-                                    DropdownMenuItem(text = { Text(stringResource(R.string.rows_delete)) }, onClick = { menu = false; remove() })
-                                }
+                                DayOffMenu(menu, { menu = false }, onEdit = { editingDay = c.id }, onDelete = remove)
                             }
                         }
                     }
@@ -165,11 +163,12 @@ fun YearSettingsScreen(years: List<SchoolYear>, year: SchoolYear, vm: PacerViewM
         }
         if (printShown(features)) item(key = "print") { PrintRow(year, null) }
         item(key = "delete") {
+            val deleteYear = deleteConfirm(year.name.ifBlank { stringResource(R.string.year_school_year) }, R.string.setup_delete_year_body)
             FootActions(
                 start = stringResource(R.string.home_rename) to { renaming = true },
                 end = stringResource(R.string.year_delete) to {
                     val name = year.name.ifBlank { context.getString(R.string.year_school_year) }
-                    confirmDelete { vm.deleteYear(year.id); onDeleted(name) }
+                    confirmDelete(deleteYear) { vm.deleteYear(year.id); onDeleted(name) }
                 },
             )
         }
@@ -209,7 +208,7 @@ private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, editing: Closu
     val segmentHaptic = rememberSegmentHaptic()
     var label by rememberSaveable { mutableStateOf(editing?.label.orEmpty()) }
     var fromText by rememberSaveable { mutableStateOf(editing?.from?.toString()) }
-    var toText by rememberSaveable { mutableStateOf(editing?.to?.toString()) }
+    var toText by rememberSaveable { mutableStateOf(closureEndText(editing)) }
     val from = fromText?.let(LocalDate::parse)
     val to = toText?.let(LocalDate::parse)
     var who by rememberSaveable { mutableStateOf(editing?.who ?: ALL_GROUPS) }
@@ -217,9 +216,10 @@ private fun AddClosureSheet(year: SchoolYear, vm: PacerViewModel, editing: Closu
         dirty = rememberDraftChanged(label, fromText, toText, who)) {
         CommitField(label, { label = it }, stringResource(R.string.year_reason), Modifier.fillMaxWidth(), placeholder = stringResource(R.string.year_reason_example))
         DateField(from, { fromText = it?.toString() }, stringResource(R.string.year_from), Modifier.fillMaxWidth())
+        // The reason Save is off stays in sight even while More options is folded.
+        if (from != null && to != null && to < from) Hint(stringResource(R.string.day_off_range_error), color = Pacer.colors.warn)
         MoreOptions {
             DateField(to, { toText = it?.toString() }, stringResource(R.string.year_to_optional), Modifier.fillMaxWidth(), clearable = true)
-            if (from != null && to != null && to < from) Hint(stringResource(R.string.pr6_day_range), color = Pacer.colors.warn)
             if (editing == null) Picker(stringResource(R.string.year_applies_to), whoOptions(context, year), who, { segmentHaptic(); who = it }, Modifier.fillMaxWidth())
         }
     }

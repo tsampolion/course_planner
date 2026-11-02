@@ -186,12 +186,13 @@ fun ClassScreen(plan: Plan, vm: PacerViewModel, padding: PaddingValues, undoToas
             if (printShown(LocalFeatures.current)) ui.data.year?.let { PrintRow(it, ui.data.activeClass) }
         }
         item(key = "delete") {
+            val deleteClass = deleteConfirm(plan.name.ifBlank { stringResource(R.string.class_class) }, R.string.setup_delete_class_body)
             FootActions(
                 start = stringResource(R.string.class_reset_all_positions) to { vm.resetPositions(); undoToast(context.getString(R.string.class_positions_reset)) },
                 startEnabled = plan.groups.isNotEmpty(),
                 end = stringResource(R.string.class_delete_this_class) to {
                     val name = plan.name.ifBlank { context.getString(R.string.class_class) }
-                    confirmDelete { vm.deleteClass(); undoToast(context.getString(R.string.class_deleted, name)) }
+                    confirmDelete(deleteClass) { vm.deleteClass(); undoToast(context.getString(R.string.class_deleted, name)) }
                 },
             )
         }
@@ -253,21 +254,26 @@ internal fun ColumnScope.GroupFields(g: Group, vm: PacerViewModel) {
         CommitField(g.name, { vm.renameGroup(g.id, it) }, stringResource(R.string.class_name), Modifier.weight(1f))
 
     }
+    Text(stringResource(R.string.group_lesson_days), style = MaterialTheme.typography.labelLarge, modifier = Modifier.semantics { heading() })
     // Seven chips need about 330dp; the row wraps its last chips on very narrow phones.
     FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-        WEEK.forEach { day ->
-            FilterChip(
-                selected = day in g.days,
-                onClick = { segmentHaptic(); vm.toggleDay(g.id, day) },
-                label = { Text(stringResource(classDayResource(day))) },
-                shape = MaterialTheme.shapes.extraSmall,
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
-        }
+        WEEK.forEach { day -> DayChip(day, day in g.days) { segmentHaptic(); vm.toggleDay(g.id, day) } }
     }
+}
+
+/** A lesson-day chip, the same wherever days are chosen: the selected day wears the accent (D14). */
+@Composable
+internal fun DayChip(day: java.time.DayOfWeek, selected: Boolean, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(stringResource(classDayResource(day))) },
+        shape = MaterialTheme.shapes.extraSmall,
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+        ),
+    )
 }
 
 /**

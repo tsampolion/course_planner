@@ -271,7 +271,7 @@ internal fun lessonMenu(l: Lesson, actions: LessonActions): List<MenuItem> {
     val workNames = homeworkActionNames(work, actions.bookIds, actions.shortNames).mapIndexed { i, text ->
         text.ifBlank { "${i + 1}. ${assignmentTitle(work[i])}" }
     }
-    val toggleHomework = workNames.mapIndexed { i, name -> stringResource(if (work[i].completed) R.string.pr6_mark_not_done_named else R.string.pr6_mark_done_named, name) }
+    val toggleHomework = workNames.mapIndexed { i, name -> stringResource(if (work[i].completed) R.string.homework_mark_not_done_named else R.string.homework_mark_done_named, name) }
     val editHomework = workNames.map { stringResource(R.string.homework_edit_named, it) }
     val deleteHomework = workNames.map { stringResource(R.string.homework_delete_named, it) }
     val kinds = lessonMenuItems(l, isPast = !l.date.isAfter(rememberToday()), hasCustomPlan = ca != null, canTick = actions.canTick, ticksItself = l.date.isBefore(rememberToday()), features = LocalFeatures.current)
@@ -448,7 +448,7 @@ internal fun suppPages(l: Lesson, actions: LessonActions): List<Pair<Int, String
 @Composable
 private fun homeworkSummaries(l: Lesson, actions: LessonActions): List<String> = homeworkForLesson(l).map { a ->
     val content = homeworkTextParts(a, actions.bookIds, actions.shortNames) +
-        (if (a.completed) listOf(stringResource(R.string.pr6_done)) else emptyList()) +
+        (if (a.completed) listOf(stringResource(R.string.homework_done)) else emptyList()) +
         listOfNotNull(a.contentType?.let { assignmentTypeName(it) }) + listOfNotNull(
             a.due?.let { stringResource(R.string.homework_due_short, "${it.dayOfWeek.short()} ${it.fmtShort()}") })
     stringResource(R.string.homework_row, content.joinToString(" · ").ifBlank { a.note.ifBlank { assignmentTypeName(a.type) } })
