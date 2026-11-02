@@ -4,7 +4,6 @@
     <string name="plan_this_month">This month · %1$s</string>
     <string name="plan_previous_month">Previous month</string>
     <string name="plan_next_month">Next month</string>
-    <string name="plan_choose_month">Choose month</string>
     <string name="plan_in_use">%1$s · In use</string>
     <string name="plan_own_pace">Own pace…</string>
     <string name="plan_hide_earlier">Hide earlier lessons</string>

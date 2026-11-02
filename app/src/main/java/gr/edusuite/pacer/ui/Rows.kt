@@ -141,26 +141,6 @@ fun Chevron() {
     AppIcon(AppIcons.ChevronRight, Modifier.padding(horizontal = Space.s))
 }
 
-/** A row's ⋮ with Remove: the visible way to remove it, beside the swipe and the long-press (decision 21). */
-@Composable
-fun RemoveMenu(what: String, onRemove: () -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    val label = stringResource(R.string.rows_options, what)
-    Box {
-        PaletteTextButton(
-            onClick = { open = true }, contentPadding = PaddingValues(0.dp),
-            modifier = Modifier.size(48.dp).semantics { contentDescription = label },
-        ) { AppIcon(AppIcons.MoreVert) }
-        PacerDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.component_remove), color = Pacer.colors.warn) },
-                leadingIcon = { AppIcon(AppIcons.Delete) },
-                onClick = { open = false; onRemove() },
-            )
-        }
-    }
-}
-
 /** The quiet actions at a screen's foot: a muted one at the start and a rust one at the end, both 48dp. */
 @Composable
 fun FootActions(start: Pair<String, () -> Unit>?, end: Pair<String, () -> Unit>, startEnabled: Boolean = true) {

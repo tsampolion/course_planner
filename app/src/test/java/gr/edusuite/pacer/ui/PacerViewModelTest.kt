@@ -594,4 +594,25 @@ class PacerViewModelTest {
         assertTrue(f.has(Brick.HOMEWORK))
         assertFalse(f.has(Brick.TESTS))
     }
+
+    @Test fun markingHomeworkDoneIsSavedAndOneUndoBringsItBack() {
+        val r = Rig()
+        val hw = Assignment("h", AssignmentType.HOMEWORK, "HW", pages = mapOf("b" to listOf(4)))
+        r.vm.saveAssignment(r.group.id, hw)
+        r.vm.saveAssignment(r.group.id, hw.copy(completed = true))
+        assertTrue(r.group.assignments.single().completed)
+        assertEquals(listOf(4), r.group.assignments.single().pages["b"])
+        r.vm.undo()
+        assertFalse(r.group.assignments.single().completed)
+    }
+
+    @Test fun editingAOneDayDayOffKeepsItOneDay() {
+        val r = Rig()
+        r.vm.addClosure("Strike", d("2026-11-05"), null, ALL_GROUPS)
+        val c = r.vm.state.value.data.year!!.closures.single { it.label == "Strike" }
+        r.vm.editClosure(c.id, c.who, c.label, d("2026-11-03"), closureEndText(c)?.let(java.time.LocalDate::parse))
+        val edited = r.vm.state.value.data.year!!.closures.single { it.id == c.id }
+        assertEquals(d("2026-11-03"), edited.from)
+        assertEquals(d("2026-11-03"), edited.to)
+    }
 }

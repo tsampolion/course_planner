@@ -41,15 +41,10 @@
     <string name="class_class">Class</string>
     <string name="class_group">Group</string>
     <string name="class_book">Book</string>
-    <string name="class_test">Test</string>
     <string name="class_takes_lesson">takes the lesson</string>
-    <string name="class_alongside_lesson">alongside the lesson</string>
     <string name="class_page_range">pp. %1$d–%2$d</string>
     <string name="class_due_by">by %1$s</string>
     <string name="class_book_summary">%1$s · %2$s</string>
-    <string name="class_homework_pages">%1$s %2$d–%3$d</string>
-    <string name="class_set_on">Set %1$s</string>
-    <string name="class_no_homework_group">None yet</string>
     <string name="class_problems_title">Problems in this class</string>
     <string name="class_book_guide">Add each coursebook with its first and last page, like Student\'s Book pp. 1–160. Each book is paced on its own. Then check each group\'s lesson days below and tap Open schedule.</string>
     <string name="class_add_the_books_you_teach_from">Add the books you teach from</string>
@@ -64,26 +59,13 @@
     <string name="class_no_books_yet">No books yet.</string>
     <string name="class_groups">Groups</string>
     <string name="class_add_a_group_for_each_set_of_students_taught_from_these_books">Add a group for each set of students taught from these books.</string>
-    <string name="class_tests_and_homework">Tests and homework</string>
-    <string name="class_tests_worksheets">Tests &amp; worksheets</string>
-    <string name="class_homework_already_assigned">Homework already assigned</string>
     <string name="class_reset_all_positions">Reset all positions</string>
     <string name="class_delete_this_class">Delete this class</string>
     <string name="class_class_settings">Class settings</string>
-    <string name="class_done">Done</string>
     <string name="class_lesson_length_min">Lesson length (min)</string>
     <string name="class_pages_per_lesson_is_the_benchmark_the_verdict_measures_again">Pages per lesson is the benchmark the verdict measures against; it does not drive the schedule.</string>
     <string name="class_edit">Edit</string>
     <string name="class_next_lesson">Next lesson</string>
-    <string name="class_remove_group">Remove group</string>
-    <string name="class_open_schedule">Open schedule</string>
-    <string name="class_no_tests_yet">No tests yet</string>
-    <string name="class_plan_a_test_or_worksheet_for_your_next_lesson">Plan a test or worksheet for your next lesson.</string>
-    <string name="class_add_a_test">Add a test</string>
-    <string name="class_upcoming">Upcoming</string>
-    <string name="class_no_upcoming_tests">No upcoming tests.</string>
-    <string name="class_all_groups">All groups</string>
-    <string name="class_not_a_lesson_day">Not a lesson day</string>
     <string name="class_title">Title</string>
     <string name="class_first_page">First page</string>
     <string name="class_last_page">Last page</string>
@@ -92,42 +74,15 @@
     <string name="class_finish_by">Finish by</string>
     <string name="class_only_this_book_re_paces_the_others_keep_their_own_rate">Only this book re-paces. The others keep their own rate.</string>
     <string name="class_remove_book">Remove book</string>
-    <string name="class_pages_set_for_homework_leave_the_classroom_sequence_the_rest">Pages set for homework leave the classroom sequence. The rest re-spread, so the pace eases and the books still finish together.</string>
-    <string name="class_no_homework_assigned">No homework assigned</string>
-    <string name="class_assign_pages_to_ease_the_classroom_pace">Assign pages to ease the classroom pace.</string>
-    <string name="class_add_homework">Add homework</string>
-    <string name="class_add_a_group_and_a_book_first">Add a group and a book first.</string>
-    <string name="class_add_a_test_or_worksheet">Add a test or worksheet</string>
-    <string name="class_unit_3_test">Unit 3 test</string>
     <string name="class_date">Date</string>
-    <string name="class_takes_the_whole_lesson">Takes the whole lesson</string>
     <string name="class_companion">Companion</string>
-    <string name="class_from_p">From p.</string>
-    <string name="class_to_p">To p.</string>
-    <string name="class_set_on_optional">Set on (optional)</string>
-    <plurals name="class_entries">
-        <item quantity="one">%d entry</item>
-        <item quantity="other">%d entries</item>
-    </plurals>
-    <plurals name="class_assignments">
-        <item quantity="one">%d assignment</item>
-        <item quantity="other">%d assignments</item>
-    </plurals>
     <plurals name="class_lessons_left">
         <item quantity="one">%d lesson left</item>
         <item quantity="other">%d lessons left</item>
     </plurals>
-    <plurals name="class_past_tests">
-        <item quantity="one">Past test (%d)</item>
-        <item quantity="other">Past tests (%d)</item>
-    </plurals>
     <plurals name="class_teachable">
         <item quantity="one">%d teachable page</item>
         <item quantity="other">%d teachable pages</item>
-    </plurals>
-    <plurals name="class_pages">
-        <item quantity="one">%d page</item>
-        <item quantity="other">%d pages</item>
     </plurals>
     <string name="class_monday">Mon</string>
     <string name="class_tuesday">Tue</string>
@@ -198,20 +153,17 @@
     </plurals>
     <string name="past_lessons_tick">Yes, treat them as taught</string>
     <string name="past_lessons_leave">Leave them as they are</string>
-    <string name="group_done">Done</string>
     <string name="group_save">Save</string>
     <string name="group_none">none</string>
     <string name="group_mark_done">Mark done</string>
     <string name="group_lessons_left">Lessons left</string>
     <string name="group_pages_left">Pages left</string>
-    <string name="group_pace">Required pace</string>
     <string name="group_peak">Heaviest lesson</string>
     <string name="group_hours">Contact hours</string>
     <string name="group_banked">Pages banked as homework</string>
     <string name="group_due_passed">Due passed</string>
     <string name="group_position_hint">The next page to teach. Updating it redistributes the remaining pages over future lessons.</string>
     <string name="group_resume">Resume at page</string>
-    <string name="group_schedule">%1$s · schedule</string>
     <string name="group_tick_hint">Tick a lesson once it\'s taught. Long-press a lesson to change the pages it covered, to mark everything up to it, or to undo from it.</string>
     <string name="group_book_pages">%1$s: %2$s</string>
     <string name="ledger_retired_pages">%1$s %2$s (not in plan)</string>
@@ -252,11 +204,6 @@
     <string name="home_year">School year</string>
     <string name="home_hello">Hello</string>
     <string name="home_hello_name">Hello, %1$s</string>
-    <string name="home_next_today">Next · today · %1$d of %2$d left</string>
-    <string name="home_next_on">Next · %1$s</string>
-    <string name="home_next_overdue">Next · overdue · %1$s</string>
-    <string name="home_done">Done</string>
-    <string name="home_all_classes">All %1$d ›</string>
     <string name="home_see_all">See all ›</string>
     <string name="home_board_empty">Add a group to a class and it shows here.</string>
     <string name="home_legend_behind">Behind, lessons short</string>
@@ -276,16 +223,11 @@
     <string name="home_add_first_class">Add your first class</string>
     <string name="home_first_class_hint">A class holds its books, lesson days and groups. Add one and its next lesson shows here.</string>
     <string name="home_add_class">Add a class</string>
-    <string name="home_no_lessons">No lessons left this term</string>
-    <string name="home_overview_hint">Open Pacing overview to see where each group stands.</string>
-    <string name="home_lesson_done">Lesson marked done</string>
-    <string name="home_classes">Classes</string>
     <string name="home_overview">Pacing overview</string>
     <string name="home_dates_missing">Dates not set</string>
     <string name="home_rename">Rename</string>
     <string name="home_class">Class</string>
     <string name="home_group">Group</string>
-    <string name="home_no_pages">No pages</string>
     <string name="home_rename_year">Rename school year</string>
     <string name="home_save">Save</string>
     <string name="home_name">Name</string>
@@ -343,7 +285,6 @@
     <string name="settings_credits">Outfit typeface: © The Outfit Project Authors, SIL Open Font License 1.1. AndroidX: Apache License 2.0. Material Symbols Rounded: Google, Apache License 2.0.</string>
     <string name="settings_copyright">© 2026 Dimitrios Tsampallas. All rights reserved.</string>
     <string name="settings_defaults_title">New class defaults</string>
-    <string name="settings_done">Done</string>
     <string name="settings_lesson_length">Lesson length (min)</string>
     <string name="settings_defaults_saved">Changes are saved as you type and apply to new classes only.</string>
     <string name="settings_backup">Back up and restore</string>
@@ -355,7 +296,6 @@
     <string name="settings_add">Add</string>
     <string name="settings_cancel">Cancel</string>
     <string name="settings_defaults_summary">%1$d min · %2$s pages per lesson</string>
-    <string name="settings_version">%1$s %2$s</string>
     <string name="settings_export_saved">Saved %1$s</string>
     <string name="settings_export_saved_to">Saved %1$s to %2$s</string>
     <string name="settings_save_error">Couldn\'t save the file. Try another place.</string>
@@ -438,7 +378,6 @@
     <string name="year_name">Name</string>
     <string name="year_starts">Starts</string>
     <string name="year_ends">Ends</string>
-    <string name="year_not_set">Not set</string>
     <string name="year_term_hint">Every class paces up to the end date. Each group tracks its own next lesson; the start is only the default.</string>
     <string name="year_delete">Delete this school year</string>
     <string name="year_days_off">Days off</string>
@@ -446,10 +385,6 @@
     <string name="year_day_off">Day off</string>
     <string name="year_edit_day_off">Edit day off</string>
     <string name="year_add_day_off">Add a day off</string>
-    <string name="year_term_starts">Term starts</string>
-    <string name="year_term_ends">Term ends</string>
-    <string name="year_save">Save</string>
-    <string name="year_date">Date</string>
     <string name="year_add">Add</string>
     <string name="year_reason">Reason</string>
     <string name="year_reason_example">Christmas break</string>
@@ -464,7 +399,6 @@
     <string name="year_no_groups">No groups</string>
     <string name="year_defaults_hint">New classes take the lesson length and pace from Settings.</string>
     <string name="year_class_example">B1 Senior</string>
-    <string name="year_lessons_across">Lessons left across %1$s · %2$s</string>
     <string name="overview_no_classes">No classes yet</string>
     <string name="overview_empty_hint">Add a class to see how its groups are progressing.</string>
     <string name="overview_open_classes">Open classes</string>
@@ -489,7 +423,6 @@
         <item quantity="other">%d books</item>
     </plurals>
     <string name="year_term">Term</string>
-    <string name="year_done">Done</string>
     <string name="year_dates_not_set">Dates not set</string>
     <string name="year_date_warning">Set a start and end date, with the end on or after the start.</string>
     <string name="custom_created">Custom plan created</string>
@@ -498,8 +431,6 @@
     <string name="custom_preview_mine">Your plan is ready. You\'re teaching from the proposed plan.</string>
     <string name="custom_preview_proposed">The proposed plan, for comparison. You\'re teaching from your plan.</string>
     <string name="custom_use_this">Use this plan</string>
-    <string name="custom_now_mine">Teaching from your plan</string>
-    <string name="custom_now_proposed">Teaching from the proposed plan</string>
     <string name="custom_fix_repace">Re-pace</string>
     <string name="custom_fix_tidy">Tidy</string>
     <string name="custom_fix_fit">Fit to term</string>
@@ -564,8 +495,6 @@
     <string name="class_lead_none">None: each book keeps its own pace</string>
     <string name="class_lead_hint">The other books keep step with the lead book: when it is a third of the way through, so are they. A book with its own finish-by date keeps its own pace. Give the books unit start pages to keep them in step unit by unit.</string>
     <string name="class_units">Unit start pages</string>
-    <string name="class_units_placeholder">1, 13, 25, 37</string>
-    <string name="class_units_hint">The page each unit starts on. When this book and the lead book have the same number of units, this book keeps step unit by unit.</string>
     <plurals name="class_units">
         <item quantity="one">%d unit</item>
         <item quantity="other">%d units</item>
@@ -780,11 +709,6 @@
     </plurals>
     <string name="year_add_greek">Add Greek public holidays</string>
     <string name="class_summary">%1$d min lessons · %2$s pages a lesson</string>
-    <string name="class_upcoming_next">%1$s · next %2$s</string>
-    <plurals name="class_upcoming_count">
-        <item quantity="one">%d upcoming</item>
-        <item quantity="other">%d upcoming</item>
-    </plurals>
     <string name="class_next_on">Next %1$s</string>
     <string name="class_edit_group">Edit %1$s</string>
     <plurals name="class_pages_chosen">
@@ -792,8 +716,6 @@
         <item quantity="other">%d pages chosen</item>
     </plurals>
     <string name="class_skips">skips %1$s</string>
-    <string name="class_show">Show</string>
-    <string name="class_hide">Hide</string>
     <plurals name="overview_behind_suffix">
         <item quantity="one"> · %d behind</item>
         <item quantity="other"> · %d behind</item>
@@ -810,7 +732,6 @@
     <string name="overview_sort_next">by next lesson</string>
     <string name="overview_problems">Problems in this year</string>
     <!-- 3.6.0: large text -->
-    <string name="home_classes_link">Classes ›</string>
     <plurals name="home_groups_on_pace">
         <item quantity="one">%d group on pace ›</item>
         <item quantity="other">%d groups on pace ›</item>
@@ -896,7 +817,6 @@
     <string name="work_no_due">No dated assignments coming up.</string>
     <string name="work_due_today">Homework due today: %1$s</string>
     <string name="work_set_today">Set today: %1$s</string>
-    <string name="work_moved">Assignments have moved to each group.</string>
     <plurals name="work_book_left">
         <item quantity="one">%1$s · %2$d page left</item>
         <item quantity="other">%1$s · %2$d pages left</item>
@@ -1011,7 +931,6 @@
     <string name="preset_choose_detail">Pick them one by one.</string>
     <string name="preset_choose_title">Choose your tools</string>
     <string name="preset_choose_use">Use these</string>
-    <string name="preset_choose_summary_none">Just pacing</string>
     <string name="features_row">Features</string>
     <string name="features_row_detail">%1$d of %2$d on. Turn on more when you need them.</string>
     <string name="features_title">Features</string>

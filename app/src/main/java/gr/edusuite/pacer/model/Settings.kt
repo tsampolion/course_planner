@@ -75,6 +75,9 @@ data class Settings(
     /** The modules on, before the data in use is added (see [Features]). */
     fun features(): Features = Features(modules ?: Module.entries.toSet())
 
+    /** The teacher's first choice of [chosen] modules; a choice already made is never replaced, so nothing turns off. */
+    fun withChosenModules(chosen: Set<Module>): Settings = if (modules == null) copy(modules = chosen) else this
+
     /** Keeps stored values usable whatever was saved. */
     fun sanitised(): Settings = copy(
         lessonMins = lessonMins.takeIf { it in 1..MAX_MINS } ?: DEFAULT_MINS,
