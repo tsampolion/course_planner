@@ -34,6 +34,8 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenuItem
@@ -254,7 +256,9 @@ fun PacerApp(vm: PacerViewModel) {
     // A tablet 840dp wide or more keeps the menu open beside the screens; a smaller one slides it over them. From 600dp,
     // Pacing overview and an open group share the window as a list pane and a detail pane (decision 17).
     val layout = rememberWindowLayout()
-    val permanent = layout == WindowLayout.EXPANDED && settings.drawerPinned
+    // The pinned menu stays open only where both panes keep a usable width (X15); narrower, it sits behind ☰.
+    val widthDp = rememberWindowWidthDp()
+    val permanent = layout == WindowLayout.EXPANDED && drawerStaysOpen(widthDp, settings.drawerPinned)
     val panes = Nav.panes(ui.stack, layout)
     // One set of actions per window: on a tablet they sit in the detail pane's bar, which has ☰ only where the menu isn't always open.
     val bar: @Composable (Boolean) -> Unit = { titled ->
@@ -310,8 +314,10 @@ fun PacerApp(vm: PacerViewModel) {
         ) { padding ->
             if (panes != null) {
                 val below = PaddingValues(bottom = padding.calculateBottomPadding())
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                val listWidth = listPaneDp(maxWidth.value.toInt()).dp
                 Row(Modifier.fillMaxSize()) {
-                    Column(Modifier.weight(0.4f).fillMaxHeight()) {
+                    Column(Modifier.width(listWidth).fillMaxHeight()) {
                         // The list pane has no ☰, Undo or warning button: only its title.
                         Text(
                             stringResource(if (panes.list == Screen.Classes) R.string.app_classes else R.string.app_overview),
@@ -321,7 +327,7 @@ fun PacerApp(vm: PacerViewModel) {
                         Box(Modifier.weight(1f)) { screenContent(panes.list, below) }
                     }
                     VerticalDivider(color = Pacer.colors.line)
-                    Column(Modifier.weight(0.6f).fillMaxHeight()) {
+                    Column(Modifier.weight(1f).fillMaxHeight()) {
                         bar(panes.detail != null)
                         Box(Modifier.weight(1f)) {
                             val detail = panes.detail
@@ -329,6 +335,7 @@ fun PacerApp(vm: PacerViewModel) {
                             else Hint(stringResource(R.string.panes_pick_group), Modifier.padding(Space.l))
                         }
                     }
+                }
                 }
                 return@Scaffold
             }
@@ -348,7 +355,8 @@ fun PacerApp(vm: PacerViewModel) {
             ) { (s, _) -> screenContent(s, padding) }
         }
     }
-    val pin: ((Boolean) -> Unit)? = if (layout == WindowLayout.EXPANDED) vm::setDrawerPinned else null
+    // Pinning matters only where the menu can stay open beside the panes.
+    val pin: ((Boolean) -> Unit)? = if (layout == WindowLayout.EXPANDED && drawerStaysOpen(widthDp, pinned = true)) vm::setDrawerPinned else null
     val plansStandIn = layout != WindowLayout.COMPACT
     // What the screens may show: the teacher's modules plus the open year's data in use (FEATURE_MODULES_BRIEF.md).
     val features = remember(settings.modules, ui.data.year) { featuresOf(settings, ui.data) }

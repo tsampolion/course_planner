@@ -34,3 +34,7 @@ fun dueModuleHint(features: Features, seen: Set<String>, aheadPages: Int, handEd
     handEdits >= 2 && ModuleHint.PLANNING.id !in seen && Module.PLANNING !in features.on && !features.has(Brick.PLAN_EDITOR) -> ModuleHint.PLANNING
     else -> null
 }
+
+/** True when [hintDone] (a [ModuleHint] name, set when its Turn on was tapped) turned on [module], so its new control arrives with a wash. */
+fun arrives(hintDone: String?, module: Module): Boolean =
+    hintDone?.let { name -> ModuleHint.entries.firstOrNull { it.name == name } }?.module == module

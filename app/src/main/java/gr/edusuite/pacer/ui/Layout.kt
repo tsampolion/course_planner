@@ -25,6 +25,30 @@ fun windowLayout(widthDp: Int): WindowLayout = when {
     else -> WindowLayout.COMPACT
 }
 
+/** The permanent menu's width, and the narrowest list and group panes still worth reading (UI audit X15, proposal 9). */
+const val DRAWER_DP = 320
+const val LIST_PANE_MIN_DP = 320
+const val DETAIL_PANE_MIN_DP = 360
+
+/** A pinned menu stays beside the panes only where both panes keep a usable width; narrower, it sits behind ☰. */
+fun drawerStaysOpen(widthDp: Int, pinned: Boolean): Boolean =
+    pinned && widthDp - DRAWER_DP >= LIST_PANE_MIN_DP + DETAIL_PANE_MIN_DP
+
+/** The list pane of a [bodyDp]-wide window: 40%, raised toward 320dp as long as the group pane keeps 360dp. */
+fun listPaneDp(bodyDp: Int): Int = maxOf((bodyDp * 0.4f).toInt(), minOf(LIST_PANE_MIN_DP, bodyDp - DETAIL_PANE_MIN_DP))
+
+/** The widest a list screen's column grows, as on Home (UI audit X10). */
+const val READING_MAX_DP = 640
+
+/** The side padding that keeps a [widthDp]-wide list screen's column at most [READING_MAX_DP], never under 16dp. */
+fun sideGutterDp(widthDp: Int): Int = maxOf(16, (widthDp - READING_MAX_DP) / 2)
+
+@Composable
+fun rememberWindowWidthDp(): Int {
+    val density = LocalDensity.current
+    return (LocalWindowInfo.current.containerSize.width / density.density).toInt()
+}
+
 @Composable
 fun rememberLargeText(): Boolean = largeText(LocalDensity.current.fontScale)
 

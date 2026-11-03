@@ -385,7 +385,7 @@ fun GroupSwitcherSheet(year: SchoolYear, classId: String, screen: Screen, plansS
     }
 }
 
-/** ☰, with a small dot in the mark colour (3:1 on every ground, unlike the Saffron fill) while an update is available. TalkBack reads "Menu, update available". */
+/** ☰, with a small dot in the mark colour (3:1 on every ground, unlike the Arusha accent fill) while an update is available. TalkBack reads "Menu, update available". */
 @Composable
 fun MenuButton(onMenu: () -> Unit, badge: Boolean) {
     val c = Pacer.colors

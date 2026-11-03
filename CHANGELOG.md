@@ -25,6 +25,18 @@ Keep `[Unreleased]` empty between pull requests.
 
 ## [Unreleased]
 
+## [0.4.16.0] - 2026-11-02 - Middlemarch
+
+### Added
+- On a tablet, the menu stays open beside Pacing overview and the group only when there is room for both, so neither gets cramped.
+
+### Changed
+- Settings, School year, Class and other lists keep a comfortable reading width on a tablet instead of stretching edge to edge.
+- When you turn on a tool from a hint, its new button arrives with a short glow where you will use it.
+- What's new cards bring in their words one after another; with animations off they appear at once.
+- Weekday labels in the plan are no longer in capitals, and a lesson you drag no longer casts a shadow.
+- The pin on a tablet's menu now matches the app's other icons.
+
 ## [0.4.15.2] - 2026-11-02
 
 ### Fixed
@@ -1159,7 +1171,8 @@ Changes since the `v1.0.0` tag: documentation, licensing and the version format.
 - Unit tests for the engine.
 - GitHub Actions workflow that runs the tests and builds the release APK on every push and pull request, and uploads the APK as a build artifact.
 
-[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.15.2...HEAD
+[Unreleased]: https://github.com/tsampolion/course_planner/compare/v0.4.16.0...HEAD
+[0.4.16.0]: https://github.com/tsampolion/course_planner/compare/v0.4.15.2...v0.4.16.0
 [0.4.15.2]: https://github.com/tsampolion/course_planner/compare/v0.4.15.1...v0.4.15.2
 [0.4.15.1]: https://github.com/tsampolion/course_planner/compare/v0.4.15.0...v0.4.15.1
 [0.4.15.0]: https://github.com/tsampolion/course_planner/compare/v0.4.14.1...v0.4.15.0

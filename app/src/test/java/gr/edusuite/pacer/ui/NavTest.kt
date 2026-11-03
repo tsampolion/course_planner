@@ -241,4 +241,25 @@ class NavTest {
         assertTrue(largeText(1.5f))
         assertTrue(largeText(2f))
     }
+
+    @Test fun thePinnedMenuStaysOpenOnlyWhereBothPanesKeepAUsableWidth() {
+        // X15: the 320dp drawer plus a 320dp list and a 360dp group pane need 1000dp.
+        assertFalse(drawerStaysOpen(840, pinned = true))
+        assertFalse(drawerStaysOpen(999, pinned = true))
+        assertTrue(drawerStaysOpen(1000, pinned = true))
+        assertFalse(drawerStaysOpen(1280, pinned = false))
+    }
+
+    @Test fun theListPaneKeeps320dpWithoutSqueezingTheGroupBelow360() {
+        assertEquals(240, listPaneDp(600))
+        assertEquals(335, listPaneDp(839))
+        assertEquals(320, listPaneDp(704))
+        assertEquals(384, listPaneDp(960))
+    }
+
+    @Test fun listScreensKeepAReadable640dpColumnOnWideWindows() {
+        assertEquals(16, sideGutterDp(360))
+        assertEquals(16, sideGutterDp(672))
+        assertEquals(192, sideGutterDp(1024))
+    }
 }

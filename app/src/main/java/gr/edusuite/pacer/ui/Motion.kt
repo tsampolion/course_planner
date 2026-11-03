@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -135,3 +136,29 @@ fun Modifier.workReveal(id: String, index: Int, seen: MutableSet<String>): Modif
 @Composable
 fun androidx.compose.foundation.lazy.LazyItemScope.itemMotion(): Modifier =
     if (animationsEnabled()) Modifier.animateItem() else Modifier
+
+/** The hint whose Turn on was just tapped on this screen ([arrives]); the controls it brings read it to arrive with a wash. */
+val LocalArrivedHint = androidx.compose.runtime.compositionLocalOf<String?> { null }
+
+/**
+ * A control a tool just brought arrives with a wash of the second primary around it that fades over [MotionSpec.Step.REVISION]
+ * (800ms, `FEATURE_MODULES_BRIEF.md` Motion); nothing when the system's animations are off. It draws outside the control, so
+ * nothing moves.
+ */
+fun Modifier.arrivalWash(active: Boolean): Modifier = composed {
+    val enabled = animationsEnabled()
+    val c = gr.edusuite.pacer.ui.theme.Pacer.colors
+    val wash = remember { Animatable(0f) }
+    LaunchedEffect(active, enabled) {
+        if (active && enabled) { wash.snapTo(1f); wash.animateTo(0f, Motion.work(MotionSpec.Step.REVISION)) } else wash.snapTo(0f)
+    }
+    val spread = with(LocalDensity.current) { Space.xs.toPx() }
+    drawBehind {
+        if (wash.value > 0f) drawRoundRect(
+            c.secondSoft.copy(alpha = wash.value),
+            topLeft = androidx.compose.ui.geometry.Offset(-spread, -spread),
+            size = androidx.compose.ui.geometry.Size(size.width + 2 * spread, size.height + 2 * spread),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2 + spread),
+        )
+    }
+}

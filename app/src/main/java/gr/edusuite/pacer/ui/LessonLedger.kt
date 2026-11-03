@@ -523,7 +523,7 @@ internal fun DrawingCheck(pulse: Int, tint: Color, modifier: Modifier) {
 private fun DateGutter(date: LocalDate, color: Color) {
     Column(Modifier.width(GutterW).padding(start = Space.s), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.titleMedium.merge(Figures), color = color)
-        Text(date.dayOfWeek.short().uppercase(), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted)
+        Text(date.dayOfWeek.short(), style = MaterialTheme.typography.labelSmall, color = Pacer.colors.muted)
     }
 }
 

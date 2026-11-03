@@ -251,8 +251,10 @@ fun LazyItemScope.DraggableLesson(
             .graphicsLayer {
                 alpha = appear.value
                 translationY = if (dragging) dy - (y - startY) else (1f - appear.value) * Space.xl.toPx()
-                if (dragging) { shadowElevation = 8.dp.toPx(); scaleX = 1.02f; scaleY = 1.02f }
-            },
+                // Flat: a lifted lesson steps up a tone instead of casting a shadow (style guide §1).
+                if (dragging) { scaleX = 1.02f; scaleY = 1.02f }
+            }
+            .then(if (dragging) Modifier.background(Pacer.colors.surfaceContainer) else Modifier),
     ) {
         val handle = Modifier.pointerInput(Unit) {
             detectDragGestures(

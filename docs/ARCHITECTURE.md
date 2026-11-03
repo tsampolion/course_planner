@@ -226,7 +226,7 @@ Every sheet is `PacerSheet` (`PacerSheet.kt`): a Dialog drawn as a bottom sheet 
 
 ### Large text and tablets
 
-`Layout.kt`: `largeText(fontScale)` from 1.5 reflows rows and buttons and shows less, with the rest one tap away (`behindOnly` in `HomeModel.kt`, `largeOverview` in `ScreensModel.kt`, Stats' "More stats", the custom-plan line in the group's ⋮). On a tablet (`windowLayout(widthDp)`: 600dp and 840dp) `Nav.panes` puts Pacing overview in a list pane beside the open group's detail pane. `AppDrawer(permanent = true)` stays open from 840dp (no ☰) while `Settings.drawerPinned` is on (the default); its pin turns it into the usual sliding menu behind ☰. Back pops the stack as usual, so it closes the detail pane first. There is no background pattern.
+`Layout.kt`: `largeText(fontScale)` from 1.5 reflows rows and buttons and shows less, with the rest one tap away (`behindOnly` in `HomeModel.kt`, `largeOverview` in `ScreensModel.kt`, Stats' "More stats", the custom-plan line in the group's ⋮). On a tablet (`windowLayout(widthDp)`: 600dp and 840dp) `Nav.panes` puts Pacing overview in a list pane beside the open group's detail pane. `listPaneDp` sizes the list pane (40%, raised toward 320dp while the group pane keeps 360dp). `AppDrawer(permanent = true)` stays open (no ☰) where `drawerStaysOpen(widthDp, Settings.drawerPinned)` holds, from 1000dp with the pin on (the default); narrower, or unpinned, it is the usual sliding menu behind ☰. `ScreenList` and Settings pad their sides with `sideGutterDp`, so the column stays at most 640dp. Back pops the stack as usual, so it closes the detail pane first. There is no background pattern.
 
 ### Print
 

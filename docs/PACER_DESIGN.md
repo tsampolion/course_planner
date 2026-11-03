@@ -22,7 +22,7 @@ and friendly, and precise like an instrument.
 | D2 | §1/§3: figures in monospace | Outfit with tabular figures |
 | D3 | §6 Home header: "Hello" with a Settings button | "Hello, name" with the date and year. ☰ opens the menu. Settings is in the menu. |
 | D4 | §6 Tile grid (bento) on Home | The Pacing overview board, with a blinking dot and "Today" on groups that teach today, and a card of the next tests and worksheets |
-| D5 | §15: a back arrow on every screen; no drawer | ☰ menu on every screen, no back arrow; System Back still works. The menu keeps five items in a fixed order, and Classes & Groups opens at the teacher's place (class, group, or the group's pages) with the current page marked and a back row up. On tablets 840dp and wider the menu is a drawer the teacher can pin open (the default) or let collapse behind ☰. |
+| D5 | §15: a back arrow on every screen; no drawer | ☰ menu on every screen, no back arrow; System Back still works. The menu keeps five items in a fixed order, and Classes & Groups opens at the teacher's place (class, group, or the group's pages) with the current page marked and a back row up. On windows 1000dp and wider (where both panes keep a usable width) the menu is a drawer the teacher can pin open (the default) or let collapse behind ☰. |
 | D6 | §6 List row: a leading icon | Ledger rows with no icon. Edge colours mark the kind. |
 | D7 | §6 Warning banner on the screen | A warning button with a count, and the Warnings sheet |
 | D8 | §2: no kind colours | Seven non-violet lesson-kind colours: a 4dp edge and a tint across the row, with words retained (D13, D14) |
@@ -111,7 +111,9 @@ Text is at least 4.5:1, on every ground, class colour, kind tint and today's row
 - **Touch targets** are 48dp or more, text links included.
 - **Tablets** (the window's width in dp, no window-size library):
   - from 600dp, Pacing overview and the open group share the window as a list pane and a detail pane, with one set of actions in the detail pane's bar and the open group highlighted in the list;
-  - from 840dp the menu is a permanent drawer while it is pinned, so there is no ☰; unpinned, it collapses behind ☰;
+  - the list pane takes 40% of the width, raised toward 320dp as long as the group pane keeps 360dp;
+  - from 1000dp (the 320dp menu plus a 320dp list and a 360dp group) the menu is a permanent drawer while it is pinned, so there is no ☰; narrower, or unpinned, it sits behind ☰ (proposal 9, X15);
+  - list screens and Settings keep a 640dp column, as Home does, while the whole width scrolls (X10);
   - Back closes the detail pane first (`Nav.panes`).
 
 ## Popup corners (3.8.1)
@@ -199,6 +201,15 @@ layout. Native runtime/screenshot checks remain pending without a device.
 - **One frame for every sheet** (audit X7, streamlining S4): a handle, the title, ✕, then the fields. A filled Save, Add or Apply sits at the bottom only when the sheet has something to save; sheets that save as you type, pickers and notices have ✕ alone.
 - **Every way out is the same:** ✕, Back, a tap outside and a swipe down. An untouched sheet closes at once; a changed draft asks Keep editing / Discard. Drafts are not kept after the app is closed.
 - **Motion** uses the sheet and scrim timings from `MotionSpec` and snaps when animations are off.
+
+## Polish and record (0.4.16.0, Middlemarch)
+
+Approved by the owner on 2026-11-02 (UI audit row 9 and proposal 9):
+
+- **Tablets:** the pinned menu stays open only where both panes keep a usable width (Tablets, above).
+- **What's new:** each card's words arrive in reading order, 60ms apart and at most four steps, rising 14px over `MotionSpec.Step.ROW`; at once with animations off.
+- **A tool turned on from a hint arrives where it is used:** the hero's Homework button or the Make it yours line wears a wash of `secondSoft` around it that fades over 800ms (`MotionSpec.Step.REVISION`), with the confirm haptic; nothing moves, and nothing shows with animations off. The hint's place says what appeared, for a screen reader.
+- **Style guide kept by a test** (`StyleGuardTest`): no capitals (Plan's weekday labels are sentence case), no shadows (a dragged lesson steps up to `surfaceContainer`), and every icon a Material Symbol in `AppIcons.kt`.
 
 ## Polish of the modules launch (0.4.15.2)
 

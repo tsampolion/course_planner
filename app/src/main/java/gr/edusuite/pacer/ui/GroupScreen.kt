@@ -60,6 +60,7 @@ import gr.edusuite.pacer.engine.short
 import gr.edusuite.pacer.engine.supplementaryBooks
 import gr.edusuite.pacer.engine.unplacedPages
 import gr.edusuite.pacer.model.Brick
+import gr.edusuite.pacer.model.Module
 import gr.edusuite.pacer.model.PlanGrouping
 import gr.edusuite.pacer.model.Hints
 import gr.edusuite.pacer.ui.theme.Figures
@@ -277,19 +278,20 @@ fun GroupScreen(
                     unitWindows.filter { it.end == e.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                 }
                 if (showHero) item(key = "today") {
-                    TodayBox(
+                    androidx.compose.runtime.CompositionLocalProvider(LocalArrivedHint provides hintDone) { TodayBox(
                         next, today, actions,
                         onDone = { next?.let { toggleHaptic(true); vm.toggleLesson(g.id, it.date); undoToast(context.getString(R.string.group_lesson_done)) } },
                         onPagesTaught = { editingDate = next?.date?.toString() },
                         modifier = Modifier.padding(horizontal = Space.l),
-                    )
+                    ) }
                     unitWindows.filter { it.end == next?.date }.forEach { UnitRevisionRow(shown, vm, it.index) }
                 }
                 item(key = "custom") {
                     Column(Modifier.padding(start = Space.l, end = Space.l, top = Rhythm.section), verticalArrangement = Arrangement.spacedBy(Rhythm.inSection)) {
                         if (custom == null) {
                             // Large text: the line lives in the ⋮ menu instead.
-                            if (report.rows.isNotEmpty() && !largeText && LocalFeatures.current.has(Brick.PLAN_EDITOR)) CustomPlanLine({
+                            // Planning tools turned on from the hint: the line they bring arrives with a wash.
+                            if (report.rows.isNotEmpty() && !largeText && LocalFeatures.current.has(Brick.PLAN_EDITOR)) CustomPlanLine(modifier = Modifier.arrivalWash(arrives(hintDone, Module.PLANNING)), onCreate = {
                                 toggleHaptic(true)
                                 vm.createCustomPlan(g.id)
                                 showMine = true
